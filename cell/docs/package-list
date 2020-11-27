@@ -1,0 +1,11 @@
+cell.api
+cell.assistant
+cell.core
+cell.core.cellet
+cell.core.net
+cell.core.talk
+cell.core.talk.dialect
+cell.util
+cell.util.collection
+cell.util.log
+cell.util.quota

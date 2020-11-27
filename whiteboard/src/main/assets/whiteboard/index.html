@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <title>Cube Whiteboard</title>
+    <style>
+        html, body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        #root {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        #root .wb {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+    </style>
+</head>
+<body>
+<div id="root"></div>
+<script src="sp-graphic.js"></script>
+<script>
+    var boards = new Map();
+
+    function createWhiteboard(name) {
+        console.log("createWhiteboard --> name:" + name);
+        var sp = SPGraphic;
+        var dom = document.createElement('div');
+        dom.id = 'wb' + name;
+        dom.className = 'wb';
+        dom.style.visibility = 'hidden';
+        document.getElementById('root').appendChild(dom);
+
+        var board = sp.create(dom);
+        board.onchange = function (data) {
+            if (window.WhiteboardBridge) {
+                window.WhiteboardBridge.onChange(name, JSON.stringify(data));
+            }
+        };
+
+        boards.set(name, board);
+        dom.style.display = 'none';
+        dom.style.visibility = '';
+        return dom;
+    }
+
+    function deleteWhiteboard(name) {
+        console.log("deleteWhiteboard --> name:" + name);
+        var board = boards.get(name);
+        board.dispose();
+
+        var dom = document.getElementById('wb' + name);
+        if (dom) dom.parentElement.removeChild(dom);
+    }
+
+    function switchWhiteboard(boardName) {
+        console.log("switchWhiteboard --> boardName:" + boardName);
+        var nodes = document.getElementById('root').getElementsByClassName('wb');
+        var boardId = 'wb' + (boardName || 'default');
+        for (var i = 0; i < nodes.length; i++) {
+            var dom = nodes.item(i);
+            if (boardId === dom.id) {
+                dom.style.display = 'block';
+            } else {
+                dom.style.display = 'none';
+            }
+        }
+    }
+
+    function selectWhiteboardTool(toolId, attribute, boardName) {
+        console.log("selectWhiteboardTool --> toolId:" + toolId);
+        var sp = SPGraphic;
+        var board = boards.get(boardName || 'default');
+		var size = attribute && attribute.size ? attribute.size : 2;
+		var color = attribute && attribute.color ? attribute.color : '#FF0000';
+
+        switch (toolId) {
+            case sp.GraphicType.PEN:
+                board.select(new sp.Pen(size, color));
+                break;
+            case sp.GraphicType.RECT:
+                board.select(new sp.Rect(size, color));
+                break;
+            case sp.GraphicType.ELLIPSE:
+                board.select(new sp.Ellipse(size, color));
+                break;
+            case sp.GraphicType.ARROW:
+                board.select(new sp.Arrow(size, color));
+                break;
+            case sp.GraphicType.MOSAIC:
+                board.select(new sp.Mosaic(size, color));
+                break;
+            case sp.GraphicType.TEXT:
+                board.select(new sp.Text(attribute && attribute.size ? attribute.size : 14, color));
+                break;
+        }
+    }
+
+    function deselectWhiteboardTool(boardName) {
+        console.log("deselectWhiteboardTool --> boardName:" + boardName);
+        var board = boards.get(boardName || 'default');
+        board.deselect();
+    }
+
+    function setWhiteboardToolAttribute(attribute, boardName) {
+        console.log("setWhiteboardToolAttribute --> boardName:" + boardName);
+        var board = boards.get(boardName || 'default');
+        if (typeof attribute.size === 'number') board.entity.setSize(attribute.size);
+        if (typeof attribute.color === 'string') board.entity.setColor(attribute.color);
+    }
+
+    function executeWhiteboardCmd(cmd, boardName) {
+        console.log("executeWhiteboardCmd --> cmd:" + cmd);
+        var sp = SPGraphic;
+        var board = boards.get(boardName || 'default');
+
+        switch (cmd) {
+            case sp.GraphicType.CLEAR:
+                board.clear();
+                break;
+            case sp.GraphicType.UNDO:
+                board.undo();
+                break;
+            case sp.GraphicType.REDO:
+                // TODO
+                break;
+        }
+    }
+
+    function setWhiteboardImage(url, boardName) {
+        console.log("setWhiteboardImage --> url:" + url);
+        var board = boards.get(boardName || 'default');
+
+        board.setImage(url);
+    }
+
+    function loadWhiteboardData(list, boardName) {
+        console.log("loadWhiteboardData --> list:" + list);
+        var board = boards.get(boardName || 'default');
+        board.load(list);
+    }
+
+    (function () {
+        var dom = createWhiteboard('default');
+        dom.style.display = 'block';
+
+        // 检查桥接是否正常
+        if (!window.WhiteboardBridge) {
+            console.warn('[WARN] - 未检测到桥接接口，请确认 WebView 是否已经注入 WhiteboardBridge 桥接对象')
+        } else if (typeof window.WhiteboardBridge.onReady === 'function') {
+            window.WhiteboardBridge.onReady();
+        }
+		
+		document.body.addEventListener('touchmove', function (e) {
+            e.preventDefault();
+        }, {passive: false});
+    })();
+</script>
+</body>
+</html>

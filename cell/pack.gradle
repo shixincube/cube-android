@@ -1,0 +1,64 @@
+def jarName = "cell"
+
+// 请在 Terminal 中运行 gradlew make
+task make(type: Copy) {
+    // 删除存在的
+    delete 'libs/' + jarName + ".jar"
+    // 设置拷贝的文件
+    from("build/intermediates/aar_main_jar/release")
+    // 打进 jar 包后的文件目录，将 classes.jar 放入 build/libs/ 目录下
+    into('libs/')
+    // 要打包的 jar 文件
+    include('classes.jar')
+    // 重命名
+    rename('classes.jar', jarName + ".jar")
+}
+
+make.dependsOn(build)
+
+// -encoding UTF-8  -charset UTF-8
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+}
+
+// 生成 Java Document 的 task。
+task javadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    exclude 'cell/util/rudp/**'
+    exclude 'cell/util/Base64.java'
+    options.encoding = "UTF-8"
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    classpath += configurations.compile
+    destinationDir = file("docs")
+    title = "Cell for Android API Document"
+    failOnError false
+}
+
+
+// 生成 jar 包的 sourcesJar。
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    archiveClassifier = 'sources'
+    archiveFileName = jarName + '-sources.jar'
+}
+
+// 生成 JavaDoc 的 jar，不需要修改。
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    group = 'jar'
+    archiveClassifier = 'javadoc'
+    from javadoc.destinationDir
+    archiveFileName = jarName + '-javadoc.jar'
+}
+
+task generateJavadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    ext.cp = android.libraryVariants.collect { variant ->
+        variant.javaCompileProvider.classpath.files
+    }
+    classpath = files(ext.cp)
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}

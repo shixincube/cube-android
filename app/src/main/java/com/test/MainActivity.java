@@ -13,6 +13,7 @@ import cube.common.callback.CubeCallback1;
 import cube.contact.service.Contact;
 import cube.contact.service.ContactService;
 import cube.contact.service.Self;
+import cube.core.KernelConfig;
 import cube.engine.CubeEngine;
 import cube.message.service.MessageListener;
 import cube.message.service.MessageService;
@@ -98,10 +99,12 @@ public class MainActivity extends AppCompatActivity implements MessageListener {
     }
 
     private void initEngine() {
-        CubeConfig config = new CubeConfig();
-        config.setDebug(true);
-        CubeEngine.getInstance().setCubeConfig(config);
-        CubeEngine.getInstance().startup(this);
+        KernelConfig config = new KernelConfig();
+        config.address = "192.168.1.113";
+        config.port = 7000;
+        config.domain = "shixincube.com";
+        config.appKey = "shixin-cubeteam-opensource-appkey";
+        CubeEngine.getInstance().startup(this, config);
 
         CubeEngine.getInstance().getService(MessageService.class).addListener(this);
     }

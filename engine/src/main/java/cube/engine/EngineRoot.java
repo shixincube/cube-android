@@ -5,6 +5,7 @@ import android.location.Location;
 
 import androidx.annotation.NonNull;
 import cube.core.EngineAgent;
+import cube.core.KernelConfig;
 import cube.service.CubeEngineListener;
 import cube.service.CubeState;
 import cube.service.model.CubeConfig;
@@ -32,8 +33,8 @@ public final class EngineRoot extends CubeEngine {
     }
 
     @Override
-    public boolean startup(@NonNull Context context) {
-        return agent.startup(context);
+    public boolean startup(@NonNull Context context, KernelConfig config) {
+        return agent.startup(context, config);
     }
 
     @Override

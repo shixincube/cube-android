@@ -4,6 +4,7 @@ import android.content.Context;
 import android.location.Location;
 
 import androidx.annotation.NonNull;
+import cube.core.KernelConfig;
 import cube.service.CubeEngineListener;
 import cube.service.CubeState;
 import cube.service.model.CubeConfig;
@@ -56,9 +57,10 @@ public abstract class CubeEngine {
      * 调用该方法后引擎将完成各种初始化工作。
      *
      * @param context
+     * @param config
      * @return
      */
-    public abstract boolean startup(@NonNull Context context);
+    public abstract boolean startup(@NonNull Context context, KernelConfig config);
 
     /**
      * 此方法用于停止引擎，将引擎置为关闭状态。

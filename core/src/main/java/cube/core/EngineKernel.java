@@ -48,7 +48,8 @@ public class EngineKernel extends EngineAgent {
     private Context context;
     private DeviceInfo deviceInfo;
     private CubeSession session;
-    private CubeConfig config;
+    private CubeConfig cubeConfig;
+    private KernelConfig kernelConfig;
     private Pipeline defaultPipeline;
 
     // 监听
@@ -68,7 +69,7 @@ public class EngineKernel extends EngineAgent {
      */
     private EngineKernel() {
         session = new CubeSession();
-        config = new CubeConfig();
+        cubeConfig = new CubeConfig();
         listeners = new ArrayList<>();
         defaultPipeline = new CellPipeline();
         relationMap = new ConcurrentHashMap<>();
@@ -100,7 +101,7 @@ public class EngineKernel extends EngineAgent {
     }
 
     @Override
-    public synchronized boolean startup(@NonNull Context context) {
+    public synchronized boolean startup(@NonNull Context context, KernelConfig config) {
         LogUtil.i(TAG, "startup --> start");
 
         if (isStarting || isStarted) {
@@ -112,7 +113,7 @@ public class EngineKernel extends EngineAgent {
             init(context.getApplicationContext());
 
             //引擎shutdown之后的再次startup 如果用户信息初始化过自动去连接
-            if (config.isAlwaysOnline() && SpUtil.isInitUser()) {
+            if (cubeConfig.isAlwaysOnline() && SpUtil.isInitUser()) {
                 wakeup();
             }
 
@@ -154,7 +155,7 @@ public class EngineKernel extends EngineAgent {
         // 初始化引擎配置信息
         initConfig();
 
-        boolean isDebug = config.isDebug() || SpUtil.isDebug();
+        boolean isDebug = cubeConfig.isDebug() || SpUtil.isDebug();
 
         // 初始化日志工具
         if (isDebug) {
@@ -215,31 +216,31 @@ public class EngineKernel extends EngineAgent {
 
     @Override
     public void setCubeConfig(@NonNull CubeConfig config) {
-        this.config = config;
+        this.cubeConfig = config;
 
         //重置config
         initConfig();
     }
 
     private void initConfig() {
-        if (null != config && null != context) {
-            SpUtil.setTransportProtocol(config.getTransportProtocol());
-            SpUtil.setSupportSip(config.isSupportSip());
-            SpUtil.setDebug(config.isDebug());
-            if (config.getResourceDir() != null) {
-                SpUtil.setResourcePath(config.getResourceDir());
+        if (null != cubeConfig && null != context) {
+            SpUtil.setTransportProtocol(cubeConfig.getTransportProtocol());
+            SpUtil.setSupportSip(cubeConfig.isSupportSip());
+            SpUtil.setDebug(cubeConfig.isDebug());
+            if (cubeConfig.getResourceDir() != null) {
+                SpUtil.setResourcePath(cubeConfig.getResourceDir());
             }
-            if (null != config.getAudioCodec()) {
-                SpUtil.setAudioCodec(config.getAudioCodec());
+            if (null != cubeConfig.getAudioCodec()) {
+                SpUtil.setAudioCodec(cubeConfig.getAudioCodec());
             }
-            if (null != config.getVideoCodec()) {
-                SpUtil.setVideoCodec(config.getVideoCodec());
+            if (null != cubeConfig.getVideoCodec()) {
+                SpUtil.setVideoCodec(cubeConfig.getVideoCodec());
             }
-            if (null != config.getLicenseServer()) {
-                SpUtil.setLicenseServer(config.getLicenseServer());
+            if (null != cubeConfig.getLicenseServer()) {
+                SpUtil.setLicenseServer(cubeConfig.getLicenseServer());
             }
-            if (config.getCameraId() >= 0) {
-                SpUtil.setVideoId(config.getCameraId());
+            if (cubeConfig.getCameraId() >= 0) {
+                SpUtil.setVideoId(cubeConfig.getCameraId());
             }
         } else {
             LogUtil.i("config/mContext is null");
@@ -248,7 +249,7 @@ public class EngineKernel extends EngineAgent {
 
     @Override
     public CubeConfig getCubeConfig() {
-        return config;
+        return cubeConfig;
     }
 
     @Override
@@ -428,22 +429,17 @@ public class EngineKernel extends EngineAgent {
             cubeService.start();
         }
 
-
-        KernelConfig config = new KernelConfig();
-        config.address = "192.168.1.113";
-        config.port = 7000;
-        config.domain = "shixincube.com";
-        config.appKey = "shixin-cubeteam-opensource-appkey";
-
         // 检查授权
-        checkAuth(config);
+        checkAuth(kernelConfig);
     }
 
     private void checkAuth(KernelConfig config) {
+        // 配置并启动默认管道
         defaultPipeline.setRemoteAddress(config.address, config.port);
         defaultPipeline.open(new CubeCallback0() {
             @Override
             public void onSuccess() {
+                // 管道打开后，检查授权
                 getService(AuthService.class).checkToken(config.domain, config.appKey, config.address, new CubeCallback1<AuthToken>() {
                     @Override
                     public void onSuccess(AuthToken token) {
@@ -481,7 +477,7 @@ public class EngineKernel extends EngineAgent {
     }
 
     /**
-     * 初始化通信库
+     * 初始化通信管道
      */
     private synchronized void initPipeline() {
         for (Pipeline pipeline : pipelineMap.values()) {
@@ -490,7 +486,7 @@ public class EngineKernel extends EngineAgent {
     }
 
     /**
-     * 销毁通信库
+     * 销毁通信管道
      */
     private synchronized void destroyPipeline() {
         for (Pipeline pipeline : pipelineMap.values()) {
@@ -521,6 +517,8 @@ public class EngineKernel extends EngineAgent {
 
     /**
      * 类加载
+     * 描述：通过类加载，在对应类静态代码块中注册服务模块，
+     * 目的是实现模块的隔离和动态加载
      *
      * @param className
      */

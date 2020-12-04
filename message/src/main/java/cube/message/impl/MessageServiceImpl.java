@@ -21,6 +21,7 @@ import cube.contact.service.ContactService;
 import cube.contact.service.Self;
 import cube.core.EngineAgent;
 import cube.core.Module;
+import cube.core.PluginSystem;
 import cube.core.manager.CallBackManager;
 import cube.message.service.MessageListener;
 import cube.message.service.MessageService;
@@ -90,11 +91,19 @@ public class MessageServiceImpl implements MessageService, Module, PipelineListe
     public void start() {
         pipeline.addListener(Service.MessageService, this);
         contactService = EngineAgent.getInstance().getService(ContactService.class);
+
+        // 注册一个消息插件
+        PluginSystem.getInstance().register(MessageHook.NAME, new MessagePlugin());
+
+        // 添加消息钩子
+        PluginSystem.getInstance().addHook(new MessageHook());
     }
 
     @Override
     public void stop() {
         pipeline.removeListener(Service.MessageService, this);
+        PluginSystem.getInstance().deregister(MessageHook.NAME);
+        PluginSystem.getInstance().removeHook(MessageHook.NAME);
     }
 
     /*public void sendToContact(Contact contact, Message message) {
@@ -230,6 +239,8 @@ public class MessageServiceImpl implements MessageService, Module, PipelineListe
             while (!messageQueue.isEmpty()) {
                 Message message = messageQueue.poll();
                 if (message != null) {
+                    // 触发消息钩子
+                    message = PluginSystem.getInstance().getHook(MessageHook.NAME).apply(message);
                     CubeCallback1<Message> callback = callbackMap.remove(message.getId());
                     callback = callback != null ? new CubeCallbackUI1<>(callback) : null;
                     send(MessageAction.Push, message.toJSON(), callback);

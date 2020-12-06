@@ -4,6 +4,17 @@
 
 支持的操作系统有：Windows、Linux 、macOS 、Android、iOS 等，支持的浏览器有：Chrome、Firefox、Safari 等。
 
+
+## 简介
+
+TODO
+
+
+## 快速开始
+
+TODO
+
+
 ## 功能列表
 
 Cube 包含以下协作功能：
@@ -68,15 +79,6 @@ Cube 包含以下协作功能：
 |![DocCollaboration](https://static.shixincube.com/cube/assets/showcase/doc_collaboration_excel.gif)|
 |![DocCollaboration](https://static.shixincube.com/cube/assets/showcase/doc_collaboration.gif)|
 
-
-## 简介
-
-TODO
-
-
-## 快速开始
-
-TODO
 
 
 ## 获得帮助

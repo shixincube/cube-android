@@ -7,13 +7,7 @@
 
 ## 简介
 
-TODO
-
-
-## 快速开始
-
-TODO
-
+Cube for Android 是 Cube 的Android平台 SDK 解决方案。开发者可使用该项目快速集成 Cube 的各项功能和能力。
 
 ## 功能列表
 
@@ -32,6 +26,57 @@ Cube 包含以下协作功能：
 * 在线文档协作（Online Document Collaboration）。支持 Word、PowerPoint、Excel 等主流格式文多人在写协作。
 * 安全与运维管理（Operation and Maintenance management）。所有数据通道支持加密，可支持国密算法等。
 * 风控管理（Risk Management）。对系统内所有文本、图片、视频、文件等内容进行包括 NLP、OCR、IR 等技术手段的风险控制和预警等。
+
+## 快速开始
+
+一、在新建项目中引入下面Jar或源码模块：
+	
+	
+	1、cell 			数据链路通信层（必选）
+	2、core			数据管道封装、联系人、认证等公共库（必选）
+	3、message		消息模块（可选）
+	4、conference	会议模块（可选）
+	5、filestorage	存储模块（可选）
+	6、whiteboard	白板模块（可选）
+	7、engine		接口封装（可选）
+
+二、初始化与简单实用：
+
+	1、启动
+	KernelConfig config = new KernelConfig();
+	config.address = "ip";
+	config.port = 7000;
+	config.domain = "...";
+	config.appKey = "...";
+	CubeEngine.getInstance().startup(context: Context, config);
+	2、注册（登录）
+	Self self = new Self(account:String, "昵称":String);
+	CubeEngine.getInstance().getService(ContactService.class).setSelf(self, new CubeCallback1<Contact>() {
+	        @Override
+	        public void onSuccess(Contact result) {
+	            Toast.makeText(MainActivity.this, "账号设置成功", Toast.LENGTH_LONG).show();
+	        }
+	
+	        @Override
+	        public void onError(int code, String desc) {
+	        }
+	});
+	3、使用（发消息）
+	TextMessage message = new TextMessage();
+	message.setTo("receiverId");
+	message.setContent("content");
+	    CubeEngine.getInstance().getService(MessageService.class).sendMessage(message, new CubeCallback1<Message>() {
+	        @Override
+	        public void onSuccess(Message result) {
+	            Toast.makeText(MainActivity.this, "发送消息：" + message.getContent(), Toast.LENGTH_LONG).show();
+	        }
+	
+	        @Override
+	        public void onError(int code, String desc) {
+	            Toast.makeText(MainActivity.this, "发生失败：" + desc, Toast.LENGTH_LONG).show();
+	        }
+	});
+	其他更多功能请查阅各模块详细文档
 
 
 ## 功能展示

@@ -588,16 +588,25 @@ public class TalkServiceKernel implements TalkService, TalkListener {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void onContacted(String cellet, Speakable speaker) {
+	public void onContacted(Speakable speaker) {
 		if (null == this.listeners) {
 			return;
 		}
 
 		if (speaker instanceof Speaker) {
+			Speaker spr = (Speaker) speaker;
+
 			for (Map.Entry<String, TalkListener> e : this.listeners.entrySet()) {
 				String celletName = e.getKey();
 				Speaker celletSpeaker = this.celletSpeakerMap.get(celletName);
-				e.getValue().onContacted(celletName, celletSpeaker);
+				if (null != celletSpeaker) {
+					if (celletSpeaker == spr) {
+						e.getValue().onContacted(speaker);
+					}
+				}
+				else {
+					e.getValue().onContacted(speaker);
+				}
 			}
 		}
 	}

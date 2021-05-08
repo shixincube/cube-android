@@ -3,6 +3,8 @@ package cube.pipeline;
 import android.content.Context;
 import android.text.TextUtils;
 
+import androidx.annotation.NonNull;
+
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -17,7 +19,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
-import androidx.annotation.NonNull;
 import cell.api.Nucleus;
 import cell.api.Speakable;
 import cell.api.TalkListener;
@@ -28,16 +29,16 @@ import cell.core.talk.dialect.ActionDialect;
 import cell.core.talk.dialect.DialectFactory;
 import cube.common.callback.CubeCallback0;
 import cube.core.EngineAgent;
-import cube.core.EngineKernel;
+import cube.core.Kernel;
 import cube.core.Service;
-import cube.utils.broadcast.ConnectionChangeListener;
-import cube.utils.broadcast.ConnectionChangeReceiver;
 import cube.service.CubeState;
 import cube.service.model.State;
 import cube.utils.EmptyUtil;
 import cube.utils.GsonUtil;
 import cube.utils.NetworkUtil;
 import cube.utils.SpUtil;
+import cube.utils.broadcast.ConnectionChangeListener;
+import cube.utils.broadcast.ConnectionChangeReceiver;
 import cube.utils.log.LogUtil;
 
 /**
@@ -238,19 +239,16 @@ public class CellPipeline extends Pipeline implements TalkListener, ConnectionCh
     /**
      * 服务连接成功
      *
-     * @param cellet
-     * @param speakable
+     * @param speaker
      */
     @Override
-    public void onContacted(String cellet, Speakable speakable) {
-        if (TextUtils.equals(Service.AuthService, cellet)) {
-            LogUtil.i("服务连接成功:" + cellet);
-            this.isReady = true;
-            SpUtil.setTag(nucleus.getTag().asString());
+    public void onContacted(Speakable speaker) {
+        LogUtil.i("服务连接成功:" + Service.AuthService);
+        this.isReady = true;
+        SpUtil.setTag(nucleus.getTag().asString());
 
-            if (openCallback != null) {
-                openCallback.onSuccess();
-            }
+        if (openCallback != null) {
+            openCallback.onSuccess();
         }
     }
 
@@ -308,7 +306,7 @@ public class CellPipeline extends Pipeline implements TalkListener, ConnectionCh
             } else {
                 releaseConnectionSchedule();
                 //改变引擎状态为启动
-                EngineKernel.getInstance().setCubeEngineState(CubeState.PAUSE);
+                Kernel.getInstance().setCubeEngineState(CubeState.PAUSE);
             }
         }
     }
@@ -390,7 +388,7 @@ public class CellPipeline extends Pipeline implements TalkListener, ConnectionCh
                 LogUtil.i("cannot connect server, network is not available");
                 releaseConnectionSchedule();
                 //引擎暂停连接服务器工作，切换状态为暂停
-                EngineKernel.getInstance().setCubeEngineState(CubeState.PAUSE);
+                Kernel.getInstance().setCubeEngineState(CubeState.PAUSE);
                 return;
             }
 

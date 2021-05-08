@@ -26,15 +26,10 @@
 
 package cell.core.talk.dialect;
 
-import androidx.annotation.NonNull;
-import cell.core.talk.LiteralBase;
-import cell.core.talk.Primitive;
-import cell.core.talk.Stuff;
-
-import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.util.Arrays;
+import cell.core.talk.Primitive;
+import cell.core.talk.Stuff;
 
 /**
  * 动作方言。
@@ -399,25 +394,5 @@ public class ActionDialect extends Primitive {
 		}
 
 		return -1;
-	}
-
-	@NonNull
-	@Override
-	public String toString() {
-		JSONArray data = new JSONArray();
-		for (Stuff stuff : stuffList) {
-			LiteralBase literalBase = stuff.getLiteralBase();
-			if (literalBase == LiteralBase.STRING) {
-				data.put(stuff.getValueAsString());
-			} else if (literalBase == LiteralBase.LONG) {
-				data.put(stuff.getValueAsLong());
-			} else if (literalBase == LiteralBase.JSON) {
-				data.put(stuff.getValueAsJson());
-			} else {
-				data.put(stuff.getValue());
-			}
-		}
-
-		return data.toString();
 	}
 }

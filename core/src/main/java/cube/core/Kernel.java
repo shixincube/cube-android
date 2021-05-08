@@ -34,14 +34,12 @@ import cube.utils.log.LogUtil;
 
 /**
  * 引擎内核
- *
- * @author LiuFeng
- * @data 2019/5/8 11:49
  */
-public class EngineKernel extends EngineAgent {
-    private static final String TAG = "EngineKernel";
+public class Kernel extends EngineAgent {
 
-    private static EngineKernel instance = new EngineKernel();
+    private static final String TAG = "Kernel";
+
+    private static Kernel instance = new Kernel();
 
     private boolean isStarted;
     private boolean isStarting;
@@ -67,7 +65,7 @@ public class EngineKernel extends EngineAgent {
     /**
      * 构造函数
      */
-    private EngineKernel() {
+    private Kernel() {
         session = new CubeSession();
         cubeConfig = new CubeConfig();
         listeners = new ArrayList<>();
@@ -82,7 +80,7 @@ public class EngineKernel extends EngineAgent {
      *
      * @return
      */
-    public static EngineKernel getInstance() {
+    public static Kernel getInstance() {
         return instance;
     }
 

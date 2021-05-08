@@ -813,7 +813,7 @@ public class Speaker implements Speakable, MessageHandler,
 		HandshakeProtocol protocol = Protocol.deserializeHandshake(message.getPayload());
 		this.serverTag = protocol.tag.toString();
 
-		this.listener.onContacted(null, this);
+		this.listener.onContacted(this);
 
 		protocol.destroy();
 	}

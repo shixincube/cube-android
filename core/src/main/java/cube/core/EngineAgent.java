@@ -25,7 +25,7 @@ public abstract class EngineAgent extends Subject {
      * @return
      */
     public static EngineAgent getInstance() {
-        return EngineKernel.getInstance();
+        return Kernel.getInstance();
     }
 
     /**

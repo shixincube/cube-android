@@ -29,7 +29,6 @@ package cell.assistant;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import cell.api.NucleusTag;
@@ -39,7 +38,6 @@ import cell.api.TalkListener;
 import cell.api.TalkService;
 import cell.core.talk.HeartbeatMachine;
 import cell.core.talk.Primitive;
-import cell.core.talk.Speaker;
 import cell.core.talk.TalkError;
 
 /**
@@ -264,7 +262,7 @@ public final class UninterruptedOperator implements TalkService {
         }
 
         @Override
-        public void onContacted(String cellet, final Speakable speaker) {
+        public void onContacted(final Speakable speaker) {
             final List<String> cellets = getCellets(speaker);
             if (null != cellets) {
                 (new Thread() {
@@ -288,9 +286,10 @@ public final class UninterruptedOperator implements TalkService {
                 }).start();
             }
 
-            for (Map.Entry<String, TalkListener> e : listenerMap.entrySet()) {
-                String celletName = e.getKey();
-                e.getValue().onContacted(celletName, speaker);
+            for (TalkListener tl : listenerMap.values()) {
+                if (null != tl) {
+                    tl.onContacted(speaker);
+                }
             }
         }
 

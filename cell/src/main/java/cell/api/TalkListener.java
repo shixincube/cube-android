@@ -72,11 +72,10 @@ public interface TalkListener {
 
 	/**
 	 * 当会话者连接到服务器完成握手后该方法被调用。
-	 *
-	 * @param cellet
+	 * 
 	 * @param speaker 发送数据的会话者。
 	 */
-	public void onContacted(String cellet, Speakable speaker);
+	public void onContacted(Speakable speaker);
 
 	/**
 	 * 当会话者断开与服务器的连接时该方法被调用。

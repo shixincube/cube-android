@@ -302,8 +302,8 @@ public final class Network {
 						return NetworkType.Mobile3G;
 					case TelephonyManager.NETWORK_TYPE_LTE:
 						return NetworkType.Mobile4G;
-//					case TelephonyManager.NETWORK_TYPE_NR:
-//						return NetworkType.Mobile5G;
+					case TelephonyManager.NETWORK_TYPE_NR:
+						return NetworkType.Mobile5G;
 					default:
 						return NetworkType.Unknown;
 				}

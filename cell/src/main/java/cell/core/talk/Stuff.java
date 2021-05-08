@@ -26,11 +26,12 @@
 
 package cell.core.talk;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.nio.charset.Charset;
 
 import cell.util.ByteUtils;
-import org.json.JSONException;
-import org.json.JSONObject;
 import cell.util.log.Logger;
 
 /**

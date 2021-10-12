@@ -26,5 +26,15 @@
 
 package cube.util;
 
-public class Observer {
+/**
+ * 观察者角色类。
+ */
+public interface Observer {
+
+    /**
+     * 更新事件。
+     *
+     * @param event 事件。
+     */
+    void update(ObservableEvent event);
 }

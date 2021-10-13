@@ -22,6 +22,11 @@
             android:value="1280">
         </meta-data>
 
+        <service
+            android:name="cube.service.CubeService"
+            android:exported="true">
+        </service>
+
         <activity
             android:name=".ui.activity.SplashActivity"
             android:screenOrientation="portrait"

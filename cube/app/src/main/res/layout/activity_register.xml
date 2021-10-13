@@ -8,8 +8,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingLeft="22dp"
-        android:paddingRight="22dp">
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp">
 
         <com.zhy.autolayout.AutoLinearLayout
             android:layout_width="match_parent"
@@ -117,7 +117,9 @@
 
         </com.zhy.autolayout.AutoLinearLayout>
 
-        <View style="@style/Line"/>
+        <View
+            android:id="@+id/vLinePhoneNumber"
+            style="@style/Line"/>
 
         <com.zhy.autolayout.AutoRelativeLayout
             android:layout_width="wrap_content"
@@ -164,7 +166,9 @@
 
         </com.zhy.autolayout.AutoRelativeLayout>
 
-        <View style="@style/Line"/>
+        <View
+            android:id="@+id/vLinePassword"
+            style="@style/Line"/>
 
         <com.zhy.autolayout.AutoLinearLayout
             android:layout_width="match_parent"
@@ -204,7 +208,9 @@
 
         </com.zhy.autolayout.AutoLinearLayout>
 
-        <View style="@style/Line"/>
+        <View
+            android:id="@+id/vLineVerificationCode"
+            style="@style/Line"/>
 
         <Button
             android:id="@+id/btnRegister"

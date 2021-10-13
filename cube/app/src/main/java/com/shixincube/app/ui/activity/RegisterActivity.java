@@ -26,6 +26,8 @@
 
 package com.shixincube.app.ui.activity;
 
+import android.text.TextWatcher;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
@@ -33,11 +35,36 @@ import com.shixincube.app.R;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.presenter.RegisterPresenter;
 import com.shixincube.app.ui.view.RegisterView;
+import com.shixincube.app.util.UIUtils;
+
+import butterknife.BindView;
 
 public class RegisterActivity extends BaseActivity<RegisterView, RegisterPresenter> implements RegisterView {
 
+    @BindView(R.id.etNickname)
+    EditText nickNameText;
+    @BindView(R.id.vLineNickname)
+    View nickNameLine;
+
+    @BindView(R.id.etPhoneNumber)
+    EditText phoneNumberText;
+
+    private TextWatcher watcher;
+
     public RegisterActivity() {
         super();
+    }
+
+    @Override
+    public void initListener() {
+        nickNameText.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) {
+                nickNameLine.setBackgroundColor(UIUtils.getColor(R.color.blue2));
+            }
+            else {
+                nickNameLine.setBackgroundColor(UIUtils.getColor(R.color.line));
+            }
+        });
     }
 
     @Override

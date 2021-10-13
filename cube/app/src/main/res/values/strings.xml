@@ -1,3 +1,18 @@
 <resources>
     <string name="app_name">Cube</string>
+
+    <!-- 开屏页 -->
+    <string name="login">登录</string>
+    <string name="register">注册</string>
+    <string name="nickname">昵称</string>
+    <string name="nickname_hint">例如：来自平行宇宙的我</string>
+    <string name="password">密码</string>
+    <string name="district">国家/地区</string>
+    <string name="verification_code">验证码</string>
+    <string name="enter_phone_number">请填写手机号码</string>
+    <string name="enter_password">请填写密码</string>
+    <string name="enter_verification_code">请填写验证码</string>
+    <string name="send_verification_code">发送验证码</string>
+    <string name="china">中国</string>
+    <string name="china_district_number">+86</string>
 </resources>

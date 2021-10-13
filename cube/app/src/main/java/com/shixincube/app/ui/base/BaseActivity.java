@@ -26,6 +26,7 @@
 
 package com.shixincube.app.ui.base;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 
@@ -133,5 +134,27 @@ public abstract class BaseActivity<V, T extends BasePresenter<V>> extends AppCom
      */
     protected boolean isToolbarCanBack() {
         return true;
+    }
+
+    public void jumpToActivity(Intent intent) {
+        startActivity(intent);
+    }
+
+    public void jumpToActivity(Class<?> activity) {
+        Intent intent = new Intent(this, activity);
+        startActivity(intent);
+    }
+
+    public void jumpToActivityAndClearTask(Class<?> activity) {
+        Intent intent = new Intent(this, activity);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
+    }
+
+    public void jumpToActivityAndClearTop(Class<?> activity) {
+        Intent intent = new Intent(this, activity);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(intent);
     }
 }

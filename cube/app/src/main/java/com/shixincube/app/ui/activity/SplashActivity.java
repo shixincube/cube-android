@@ -26,7 +26,10 @@
 
 package com.shixincube.app.ui.activity;
 
+
 import android.Manifest;
+import android.view.animation.AlphaAnimation;
+import android.widget.Button;
 import android.widget.RelativeLayout;
 
 import com.jaeger.library.StatusBarUtil;
@@ -35,6 +38,7 @@ import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.util.UIUtils;
 
+import butterknife.BindView;
 import kr.co.namee.permissiongen.PermissionGen;
 
 /**
@@ -42,7 +46,14 @@ import kr.co.namee.permissiongen.PermissionGen;
  */
 public class SplashActivity extends BaseActivity {
 
+    @BindView(R.id.accountLayout)
     RelativeLayout accountView;
+
+    @BindView(R.id.btnLogin)
+    Button loginButton;
+
+    @BindView(R.id.btnRegister)
+    Button registerButton;
 
     public SplashActivity() {
         super();
@@ -65,6 +76,22 @@ public class SplashActivity extends BaseActivity {
     @Override
     public void initView() {
         StatusBarUtil.setColor(this, UIUtils.getColor(R.color.black));
+
+        AlphaAnimation alphaAnimation = new AlphaAnimation(0, 1);
+        alphaAnimation.setDuration(1000);
+        this.accountView.startAnimation(alphaAnimation);
+    }
+
+    @Override
+    public void initListener() {
+        this.loginButton.setOnClickListener(v -> {
+
+        });
+
+        this.registerButton.setOnClickListener(v -> {
+            jumpToActivity(RegisterActivity.class);
+            finish();
+        });
     }
 
     @Override

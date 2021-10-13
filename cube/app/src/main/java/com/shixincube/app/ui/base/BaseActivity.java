@@ -27,16 +27,111 @@
 package com.shixincube.app.ui.base;
 
 import android.os.Bundle;
+import android.view.MenuItem;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.android.material.appbar.AppBarLayout;
+import com.jaeger.library.StatusBarUtil;
+import com.shixincube.app.CubeApp;
+import com.shixincube.app.R;
+import com.shixincube.app.util.UIUtils;
+
+import butterknife.ButterKnife;
 
 public abstract class BaseActivity<V, T extends BasePresenter<V>> extends AppCompatActivity {
 
     protected T presenter;
 
+    protected AppBarLayout appBar;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        CubeApp.addActivity(this);
+
+        init();
+
+        this.presenter = createPresenter();
+        if (null != this.presenter) {
+            this.presenter.attachView((V) this);
+        }
+
+        setContentView(provideContentViewId());
+        ButterKnife.bind(this);
+
+        setupAppBarAndToolbar();
+
+        // 沉浸式状态栏
+        StatusBarUtil.setColor(this, UIUtils.getColor(R.color.colorPrimaryDark), 10);
+
+        initView();
+        initData();
+        initListener();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        if (null != this.presenter) {
+            this.presenter.detachView();
+        }
+    }
+
+    /**
+     * 设置 AppBar 和 Toolbar
+     */
+    private void setupAppBarAndToolbar() {
+        // TODO
+        getSupportActionBar().hide();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                finish();
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    public void init() {
+        // For subclass override
+    }
+
+    public void initView() {
+        // For subclass override
+    }
+
+    public void initData() {
+        // For subclass override
+    }
+
+    public void initListener() {
+        // For subclass override
+    }
+
+    /**
+     * 用于创建 Presenter
+     * @return
+     */
+    protected abstract T createPresenter();
+
+    /**
+     * 提供当前界面的布局文件 ID
+     * @return
+     */
+    protected abstract int provideContentViewId();
+
+    /**
+     * 是否让 Toolbar 有返回按钮。
+     * 默认可以，一般一个应用中除了主界面，其他界面都是可以有返回按钮。
+     * @return
+     */
+    protected boolean isToolbarCanBack() {
+        return true;
     }
 }

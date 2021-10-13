@@ -1,4 +1,4 @@
-package com.shixincube.cube.core;
+package com.shixincube.app.core;
 
 import android.content.Context;
 

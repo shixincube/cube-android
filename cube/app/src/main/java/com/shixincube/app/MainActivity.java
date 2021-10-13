@@ -1,4 +1,4 @@
-package com.shixincube.cube;
+package com.shixincube.app;
 
 import android.os.Bundle;
 

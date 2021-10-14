@@ -24,16 +24,10 @@
  * SOFTWARE.
  */
 
-package cube.core.callback;
-
-import cube.core.Kernel;
+package cube.auth;
 
 /**
- * 内核启动回调。
+ * 授权令牌。
  */
-public interface KernelStartupCallback {
-
-    void startupCompleted(Kernel kernel);
-
-    void startupFailed(Error error);
+public class AuthToken {
 }

@@ -9,5 +9,4 @@ dependencyResolutionManagement {
 rootProject.name = "Cube"
 include ':app'
 include ':cube:core'
-include ':cube:auth'
 include ':cube:engine'

@@ -14,7 +14,6 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/cube" />
-            <option value="$PROJECT_DIR$/cube/auth" />
             <option value="$PROJECT_DIR$/cube/core" />
             <option value="$PROJECT_DIR$/cube/engine" />
           </set>

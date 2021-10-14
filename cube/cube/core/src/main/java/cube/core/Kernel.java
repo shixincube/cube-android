@@ -26,7 +26,13 @@
 
 package cube.core;
 
-import cube.core.callback.KernelStartupCallback;
+import android.content.Context;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import cube.auth.AuthToken;
+import cube.core.handler.KernelHandler;
 
 /**
  * 内核。内核管理所有的模块和通信管道。
@@ -35,16 +41,25 @@ public class Kernel {
 
     private KernelConfig config;
 
+    private boolean working;
+
+    private Pipeline pipeline;
+
+    private Map<String, Module> moduleMap;
+
     public Kernel() {
+        this.working = false;
+        this.moduleMap = new HashMap<>();
     }
 
-    public boolean startup(KernelConfig config, KernelStartupCallback callback) {
-        if (null == config || null == callback) {
+    public boolean startup(Context context, KernelConfig config, KernelHandler handler) {
+        if (null == config || null == handler) {
             return false;
         }
 
         this.config = config;
 
+        // 启动管道
 
 
         return true;
@@ -52,5 +67,48 @@ public class Kernel {
 
     public void shutdown() {
 
+    }
+
+    public void suspend() {
+
+    }
+
+    public void resume() {
+
+    }
+
+    public boolean isReady() {
+        return false;
+    }
+
+    public AuthToken activeToken(Long contactId) {
+        return null;
+    }
+
+    public void installModule(Module module) {
+        module.kernel = this;
+
+        this.moduleMap.put(module.name, module);
+    }
+
+    public void uninstallModule(Module module) {
+        this.moduleMap.remove(module.name);
+    }
+
+    public Module getModule(String moduleName) {
+        return this.moduleMap.get(moduleName);
+    }
+
+    public boolean hasModule(String moduleName) {
+        return this.moduleMap.containsKey(moduleName);
+    }
+
+    /**
+     * 进行数据对象关联
+     */
+    private void bundle() {
+        for (Module module : this.moduleMap.values()) {
+            module.pipeline = this.pipeline;
+        }
     }
 }

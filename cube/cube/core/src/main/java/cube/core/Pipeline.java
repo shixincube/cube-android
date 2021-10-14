@@ -26,12 +26,99 @@
 
 package cube.core;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import cube.core.handler.PipelineHandler;
+
 /**
  * 数据通道服务接口。
  */
 public abstract class Pipeline {
 
-    public Pipeline() {
+    private Map<String, List<PipelineListener>> listeners;
 
+    protected String address;
+
+    protected int port;
+
+    public Pipeline() {
+        this.listeners = new HashMap<>();
     }
+
+    public void setRemoteAddress(String address, int port) {
+        this.address = address;
+        this.port = port;
+    }
+
+    public void addListener(String destination, PipelineListener listener) {
+        synchronized (this) {
+            List<PipelineListener> list = this.listeners.get(destination);
+            if (null == list) {
+                list = new ArrayList<>();
+                list.add(listener);
+                this.listeners.put(destination, list);
+            }
+            else {
+                if (!list.contains(listener)) {
+                    list.add(listener);
+                }
+            }
+        }
+    }
+
+    public void removeListener(String destination, PipelineListener listener) {
+        synchronized (this) {
+            List<PipelineListener> list = this.listeners.get(destination);
+            if (null != list) {
+                list.remove(listener);
+            }
+        }
+    }
+
+    public List<PipelineListener> getListeners(String destination) {
+        return this.listeners.get(destination);
+    }
+
+    protected void triggerListener(String destination, Packet packet) {
+        List<PipelineListener> list = this.listeners.get(destination);
+        if (null != list) {
+            for (PipelineListener listener : list) {
+                listener.received(this, destination, packet);
+            }
+        }
+    }
+
+    /**
+     * 开启数据通道。
+     */
+    public abstract void open();
+
+    /**
+     * 关闭数据通道。
+     */
+    public abstract void close();
+
+    /**
+     * 是否就绪。
+     * @return
+     */
+    public abstract boolean isReady();
+
+    /**
+     * 向指定目标发送数据。
+     * @param destination
+     * @param packet
+     */
+    public abstract void send(String destination, Packet packet);
+
+    /**
+     * 向指定目标发送数据。
+     * @param destination
+     * @param packet
+     * @param handler
+     */
+    public abstract void send(String destination, Packet packet, PipelineHandler handler);
 }

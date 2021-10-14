@@ -90,7 +90,6 @@ public class SplashActivity extends BaseActivity {
 
         this.registerButton.setOnClickListener(v -> {
             jumpToActivity(RegisterActivity.class);
-            finish();
         });
     }
 

@@ -59,7 +59,7 @@ public class RegisterActivity extends BaseActivity<RegisterView, RegisterPresent
     public void initListener() {
         nickNameText.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus) {
-                nickNameLine.setBackgroundColor(UIUtils.getColor(R.color.blue2));
+                nickNameLine.setBackgroundColor(UIUtils.getColor(R.color.theme_blue_dark));
             }
             else {
                 nickNameLine.setBackgroundColor(UIUtils.getColor(R.color.line));

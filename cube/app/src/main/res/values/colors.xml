@@ -54,8 +54,8 @@
     <color name="green3">#1AAD19</color>
 
     <color name="blue0">#576B95</color>
-    <color name="blue1">#287DF6</color>
-    <color name="blue2">#0954E6</color>
+    <color name="theme_blue">#287DF6</color>
+    <color name="theme_blue_dark">#0954E6</color>
 
     <color name="black0">#000000</color>
     <color name="black1">#99000000</color>
@@ -70,4 +70,7 @@
     <!--快速索引bar颜色-->
     <color name="side_bar">#919091</color>
     <color name="side_bar_pressed">#BFBFBF</color>
+
+    <color name="button_red">#E44447</color>
+    <color name="button_red_pressed">#CD3E40</color>
 </resources>

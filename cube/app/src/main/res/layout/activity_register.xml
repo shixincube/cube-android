@@ -81,7 +81,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="22dp"
                 android:text="@string/china"
-                android:textColor="@color/blue1"
+                android:textColor="@color/theme_blue"
                 android:textSize="16sp"/>
 
         </com.zhy.autolayout.AutoLinearLayout>

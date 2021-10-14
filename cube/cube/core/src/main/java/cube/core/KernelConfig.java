@@ -87,15 +87,24 @@ public class KernelConfig {
      * 构造函数。
      *
      * @param address 指定服务器地址。
+     * @param port 指定服务器访问端口。
      * @param domain 指定所属域名称。
      * @param appKey 指定该 App 的 Key 串。
-     * @param port 指定服务器访问端口。
      */
-    public KernelConfig(String address, String domain, String appKey, int port) {
+    public KernelConfig(String address, int port, String domain, String appKey) {
         this.address = address;
+        this.port = port;
         this.domain = domain;
         this.appKey = appKey;
-        this.port = port;
         this.pipelineReady = false;
+    }
+
+    public String print() {
+        StringBuilder buf = new StringBuilder("Cube Kernel Config:\n");
+        buf.append("address: ").append(this.address).append("\n");
+        buf.append("port:    ").append(this.port).append("\n");
+        buf.append("domain:  ").append(this.domain).append("\n");
+        buf.append("appKey:  ").append(this.appKey).append("\n");
+        return buf.toString();
     }
 }

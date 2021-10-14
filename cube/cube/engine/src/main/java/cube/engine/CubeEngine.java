@@ -24,16 +24,42 @@
  * SOFTWARE.
  */
 
-package cube.core.callback;
+package cube.engine;
 
-import cube.core.Kernel;
+import cube.core.KernelConfig;
 
 /**
- * 内核启动回调。
+ * 魔方引擎 API 入口类。
  */
-public interface KernelStartupCallback {
+public class CubeEngine {
 
-    void startupCompleted(Kernel kernel);
+    protected static CubeEngine instance = null;
 
-    void startupFailed(Error error);
+    private KernelConfig config;
+
+    private CubeEngine() {
+    }
+
+    protected static CubeEngine getInstance() {
+        if (null == CubeEngine.instance) {
+            CubeEngine.instance = new CubeEngine();
+        }
+        return CubeEngine.instance;
+    }
+
+    public void setConfig(KernelConfig config) {
+        this.config = config;
+    }
+
+    public KernelConfig getConfig() {
+        return this.config;
+    }
+
+    public boolean start() {
+        return false;
+    }
+
+    public void stop() {
+
+    }
 }

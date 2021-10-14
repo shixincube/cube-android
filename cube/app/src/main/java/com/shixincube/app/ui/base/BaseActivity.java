@@ -140,9 +140,10 @@ public abstract class BaseActivity<V, T extends BasePresenter<V>> extends AppCom
         startActivity(intent);
     }
 
-    public void jumpToActivity(Class<?> activity) {
+    public BaseActivity jumpToActivity(Class<?> activity) {
         Intent intent = new Intent(this, activity);
         startActivity(intent);
+        return this;
     }
 
     public void jumpToActivityAndClearTask(Class<?> activity) {

@@ -28,17 +28,20 @@ package com.shixincube.app.ui.activity;
 
 
 import android.Manifest;
+import android.content.Intent;
 import android.view.animation.AlphaAnimation;
 import android.widget.Button;
 import android.widget.RelativeLayout;
 
 import com.jaeger.library.StatusBarUtil;
 import com.shixincube.app.R;
+import com.shixincube.app.manager.CubeServiceConnection;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.util.UIUtils;
 
 import butterknife.BindView;
+import cube.engine.CubeService;
 import kr.co.namee.permissiongen.PermissionGen;
 
 /**
@@ -55,6 +58,8 @@ public class SplashActivity extends BaseActivity {
     @BindView(R.id.btnRegister)
     Button registerButton;
 
+    private CubeServiceConnection connection;
+
     public SplashActivity() {
         super();
     }
@@ -69,8 +74,9 @@ public class SplashActivity extends BaseActivity {
                         Manifest.permission.WRITE_SETTINGS
                 )
                 .request();
-        // 判断是否有有效令牌
-        // TODO
+
+        // 启动
+        this.launch();
     }
 
     @Override
@@ -90,6 +96,7 @@ public class SplashActivity extends BaseActivity {
 
         this.registerButton.setOnClickListener(v -> {
             jumpToActivity(RegisterActivity.class);
+            overridePendingTransition(R.anim.entry_from_bottom, 0);
         });
     }
 
@@ -101,5 +108,27 @@ public class SplashActivity extends BaseActivity {
     @Override
     protected int provideContentViewId() {
         return R.layout.activity_splash;
+    }
+
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        if (null != this.connection) {
+            Intent intent = new Intent(this, CubeService.class);
+            unbindService(this.connection);
+            this.connection = null;
+        }
+    }
+
+    private void launch() {
+        // 判断是否有有效令牌
+        // TODO
+
+        this.connection = new CubeServiceConnection(getApplicationContext());
+        Intent intent = new Intent(this, CubeService.class);
+        startService(intent);
+        bindService(intent, this.connection, BIND_AUTO_CREATE);
     }
 }

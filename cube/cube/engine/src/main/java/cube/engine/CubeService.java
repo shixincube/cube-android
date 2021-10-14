@@ -24,16 +24,49 @@
  * SOFTWARE.
  */
 
-package cube.core.callback;
+package cube.engine;
 
-import cube.core.Kernel;
+import android.app.Service;
+import android.content.Intent;
+import android.os.IBinder;
+
+import androidx.annotation.Nullable;
 
 /**
- * 内核启动回调。
+ * 自动化配置魔方服务。
  */
-public interface KernelStartupCallback {
+public class CubeService extends Service {
 
-    void startupCompleted(Kernel kernel);
+    private CubeBinder binder;
 
-    void startupFailed(Error error);
+    public CubeService() {
+        super();
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+//        Log.d("CubeService", "onCreate");
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+//        Log.d("CubeService", "onStartCommand : " + flags + " | " + startId);
+        return super.onStartCommand(intent, flags, startId);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+//        Log.d("CubeService", "onDestroy");
+    }
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        if (null == this.binder) {
+            this.binder = new CubeBinder();
+        }
+        return this.binder;
+    }
 }

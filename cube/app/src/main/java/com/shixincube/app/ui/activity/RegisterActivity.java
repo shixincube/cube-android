@@ -56,6 +56,12 @@ public class RegisterActivity extends BaseActivity<RegisterView, RegisterPresent
     }
 
     @Override
+    public void finish() {
+        super.finish();
+        overridePendingTransition(0, R.anim.exit_to_bottom);
+    }
+
+    @Override
     public void initListener() {
         nickNameText.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus) {

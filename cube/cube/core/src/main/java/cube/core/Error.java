@@ -24,47 +24,40 @@
  * SOFTWARE.
  */
 
-package cube.service;
-
-import android.app.Service;
-import android.content.Intent;
-import android.os.IBinder;
-import android.util.Log;
-
-import androidx.annotation.Nullable;
+package cube.core;
 
 /**
- * 自动化配置魔方服务。
+ * 系统错误信息描述。
  */
-public class CubeService extends Service {
+public class Error {
 
-    private static final String TAG = "AutoService";
+    /**
+     * 模块名称。
+     */
+    public final String moduleName;
 
-    public CubeService() {
-        super();
+    /**
+     * 错误码。
+     */
+    public final int code;
+
+    /**
+     * 错误信息描述。
+     */
+    public final String description;
+
+    /**
+     * 发生错误时携带的数据。
+     */
+    public Object data = null;
+
+    public Error(String moduleName, int code) {
+        this(moduleName, code, "");
     }
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        Log.d(TAG, "onCreate");
-    }
-
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(TAG, "onStartCommand");
-        return super.onStartCommand(intent, flags, startId);
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        Log.d(TAG, "onDestroy");
-    }
-
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
+    public Error(String moduleName, int code, String description) {
+        this.moduleName = moduleName;
+        this.code = code;
+        this.description = description;
     }
 }

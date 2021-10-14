@@ -22,10 +22,16 @@
             android:value="1280">
         </meta-data>
 
+        <!-- Cube Config Begin -->
+        <meta-data android:name="CUBE_ADDRESS" android:value="127.0.0.1"></meta-data>
+        <meta-data android:name="CUBE_DOMAIN" android:value="shixincube.com"></meta-data>
+        <meta-data android:name="CUBE_APPKEY" android:value="shixin-cubeteam-opensource-appkey"></meta-data>
+
         <service
-            android:name="cube.service.CubeService"
+            android:name="cube.engine.CubeService"
             android:exported="true">
         </service>
+        <!-- Cube Config End -->
 
         <activity
             android:name=".ui.activity.SplashActivity"

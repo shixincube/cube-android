@@ -26,16 +26,31 @@
 
 package cube.core;
 
+import cube.core.callback.KernelStartupCallback;
+
 /**
  * 内核。内核管理所有的模块和通信管道。
  */
 public class Kernel {
 
+    private KernelConfig config;
+
     public Kernel() {
     }
 
-    public boolean startup(KernelConfig config) {
+    public boolean startup(KernelConfig config, KernelStartupCallback callback) {
+        if (null == config || null == callback) {
+            return false;
+        }
 
-        return false;
+        this.config = config;
+
+
+
+        return true;
+    }
+
+    public void shutdown() {
+
     }
 }

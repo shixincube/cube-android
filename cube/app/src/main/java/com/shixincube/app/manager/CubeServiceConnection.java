@@ -24,16 +24,37 @@
  * SOFTWARE.
  */
 
-package cube.core.callback;
+package com.shixincube.app.manager;
 
-import cube.core.Kernel;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.ServiceConnection;
+import android.os.IBinder;
+
+import com.shixincube.app.CubeApp;
+
+import cube.engine.CubeBinder;
 
 /**
- * 内核启动回调。
+ * 魔方服务连接器。
  */
-public interface KernelStartupCallback {
+public class CubeServiceConnection implements ServiceConnection {
 
-    void startupCompleted(Kernel kernel);
+    private Context context;
 
-    void startupFailed(Error error);
+    public CubeServiceConnection(Context context) {
+        this.context = context;
+    }
+
+    @Override
+    public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+        if (null == CubeApp.engine) {
+            CubeApp.engine = ((CubeBinder) iBinder).getEngine(this.context);
+        }
+    }
+
+    @Override
+    public void onServiceDisconnected(ComponentName componentName) {
+        // Nothing
+    }
 }

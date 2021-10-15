@@ -26,6 +26,8 @@
 
 package cube.core;
 
+import android.content.Context;
+
 import cube.util.Subject;
 
 /**
@@ -95,6 +97,14 @@ public abstract class Module extends Subject {
 
     public void resume() {
         // subclass hook override.
+    }
+
+    protected Context getContext() {
+        return this.kernel.getContext();
+    }
+
+    protected void execute(Runnable task) {
+        this.kernel.getExecutor().execute(task);
     }
 
     public abstract boolean isReady();

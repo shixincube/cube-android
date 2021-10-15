@@ -26,15 +26,13 @@
 
 package cube.core.handler;
 
-import cube.core.Kernel;
+import cube.core.Module;
 import cube.core.ModuleError;
 
 /**
- * 内核启动回调。
+ * 故障处理句柄。
  */
-public interface KernelHandler {
+public interface FailureHandler {
 
-    void handleCompletion(Kernel kernel);
-
-    void handleFailure(ModuleError error);
+    void handleFailure(Module module, ModuleError error);
 }

@@ -24,17 +24,49 @@
  * SOFTWARE.
  */
 
-package cube.core.handler;
+package cube.auth;
 
-import cube.core.Kernel;
-import cube.core.ModuleError;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import cube.util.JSONable;
 
 /**
- * 内核启动回调。
+ * 主访问信息。
  */
-public interface KernelHandler {
+public final class PrimaryDescription implements JSONable {
 
-    void handleCompletion(Kernel kernel);
+    public final String address;
 
-    void handleFailure(ModuleError error);
+    public final int port;
+
+    /**
+     * 主要的控制和访问数据内容。
+     */
+    public final JSONObject primaryContent;
+
+    public PrimaryDescription(JSONObject data) throws JSONException {
+        this.address = data.getString("address");
+        this.primaryContent = data.getJSONObject("primaryContent");
+        this.port = data.has("port") ? data.getInt("port") : 7000;
+    }
+
+
+    @Override
+    public JSONObject toJSON() {
+        JSONObject json = new JSONObject();
+        try {
+            json.put("address", this.address);
+            json.put("port", this.port);
+            json.put("primaryContent", this.primaryContent);
+        } catch (JSONException e) {
+            // Nothing
+        }
+        return json;
+    }
+
+    @Override
+    public JSONObject toCompactJSON() {
+        return this.toJSON();
+    }
 }

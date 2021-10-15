@@ -26,7 +26,12 @@
 
 package cube.auth;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
+import cube.auth.handler.AuthTokenHandler;
 import cube.core.Module;
+import cube.core.ModuleError;
 
 /**
  * 授权服务模块。
@@ -35,7 +40,13 @@ public class AuthService extends Module {
 
     public final static String NAME = "Auth";
 
+    protected final static String ACTION_APPLY_TOKEN = "applyToken";
+
     private AuthToken token;
+
+    private String domain;
+
+    private Timer timer;
 
     public AuthService() {
         super(AuthService.NAME);
@@ -46,7 +57,110 @@ public class AuthService extends Module {
     }
 
     @Override
+    public void stop() {
+        super.stop();
+
+        synchronized (this) {
+            if (null != this.timer) {
+                this.timer.cancel();
+                this.timer = null;
+            }
+        }
+    }
+
+    @Override
     public boolean isReady() {
-        return false;
+        return true;
+    }
+
+    public void check(final String domain, final String appKey, final AuthTokenHandler handler) {
+        this.execute(new Runnable() {
+            @Override
+            public void run() {
+                final AuthStorage storage = new AuthStorage();
+                if (!storage.open(getContext())) {
+                    handler.handleFailure(new ModuleError(NAME, AuthServiceState.StorageError.code));
+                    return;
+                }
+
+                AuthToken token = storage.loadToken(domain, appKey);
+                if (null != token && token.isValid()) {
+                    storage.close();
+
+                    AuthService.this.token = token;
+
+                    handler.handleSuccess(token);
+                }
+                else {
+                    waitPipelineReady(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (!pipeline.isReady()) {
+                                storage.close();
+                                // 超时
+                                ModuleError error = new ModuleError(NAME, AuthServiceState.Timeout.code, "Pipeline timeout");
+                                handler.handleFailure(error);
+                                return;
+                            }
+
+
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    private void waitPipelineReady(final Runnable task) {
+        synchronized (this) {
+            if (null == this.timer) {
+                this.timer = new Timer();
+                this.timer.schedule(new PipelineWaitingTask(task), 100, 100);
+            }
+        }
+    }
+
+    private class PipelineWaitingTask extends TimerTask {
+
+        private Runnable task;
+
+        private int count = 50;
+
+        public PipelineWaitingTask(Runnable task) {
+            super();
+            this.task = task;
+        }
+
+        private void fire() {
+            AuthService.this.execute(new Runnable() {
+                @Override
+                public void run() {
+                    task.run();
+                }
+            });
+
+            (new Thread() {
+                @Override
+                public void run() {
+                    synchronized (AuthService.this) {
+                        AuthService.this.timer.cancel();
+                        AuthService.this.timer = null;
+                    }
+                }
+            }).start();
+        }
+
+        @Override
+        public void run() {
+            --this.count;
+
+            if (pipeline.isReady()) {
+                fire();
+            }
+            else if (this.count <= 0) {
+                // 超时
+                fire();
+            }
+        }
     }
 }

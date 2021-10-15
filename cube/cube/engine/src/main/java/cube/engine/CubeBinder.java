@@ -66,6 +66,7 @@ public class CubeBinder extends Binder {
                 e.printStackTrace();
             }
 
+            // 设置配置
             engine.setConfig(config);
         }
 

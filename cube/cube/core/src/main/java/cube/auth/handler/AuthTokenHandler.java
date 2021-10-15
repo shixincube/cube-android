@@ -24,17 +24,17 @@
  * SOFTWARE.
  */
 
-package cube.core.handler;
+package cube.auth.handler;
 
-import cube.core.Kernel;
+import cube.auth.AuthToken;
 import cube.core.ModuleError;
 
 /**
- * 内核启动回调。
+ * 令牌处理句柄。
  */
-public interface KernelHandler {
+public interface AuthTokenHandler {
 
-    void handleCompletion(Kernel kernel);
+    void handleSuccess(AuthToken authToken);
 
     void handleFailure(ModuleError error);
 }

@@ -27,8 +27,12 @@
 package cube.auth;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import cube.core.Storage;
 
@@ -45,10 +49,11 @@ public class AuthStorage implements Storage {
     }
 
     @Override
-    public void open(Context context) {
+    public boolean open(Context context) {
         if (null == this.sqLite) {
             this.sqLite = new SQLite(context);
         }
+        return true;
     }
 
     @Override
@@ -59,6 +64,26 @@ public class AuthStorage implements Storage {
         }
     }
 
+
+    public AuthToken loadToken(String domain, String appKey) {
+        AuthToken authToken = null;
+
+        SQLiteDatabase db = this.sqLite.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM `token` WHERE `cid`=0 AND `domain`='?' AND `app_key`='?' ORDER BY sn DESC",
+                new String[] { domain, appKey });
+        if (cursor.moveToFirst()) {
+            String data = cursor.getString(cursor.getColumnIndex("data"));
+            try {
+                authToken = new AuthToken(new JSONObject(data));
+            } catch (JSONException e) {
+                // Nothing
+            }
+        }
+        cursor.close();
+        db.close();
+
+        return authToken;
+    }
 
     private class SQLite extends SQLiteOpenHelper {
 
@@ -73,7 +98,6 @@ public class AuthStorage implements Storage {
 
         @Override
         public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
-
         }
     }
 }

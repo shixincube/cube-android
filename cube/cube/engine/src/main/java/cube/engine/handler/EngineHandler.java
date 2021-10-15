@@ -24,40 +24,16 @@
  * SOFTWARE.
  */
 
-package cube.core;
+package cube.engine.handler;
+
+import cube.engine.CubeEngine;
 
 /**
- * 系统错误信息描述。
+ * 引擎句柄。
  */
-public class Error {
+public interface EngineHandler {
 
-    /**
-     * 模块名称。
-     */
-    public final String moduleName;
+    void handleSuccess(CubeEngine engine);
 
-    /**
-     * 错误码。
-     */
-    public final int code;
-
-    /**
-     * 错误信息描述。
-     */
-    public final String description;
-
-    /**
-     * 发生错误时携带的数据。
-     */
-    public Object data = null;
-
-    public Error(String moduleName, int code) {
-        this(moduleName, code, "");
-    }
-
-    public Error(String moduleName, int code, String description) {
-        this.moduleName = moduleName;
-        this.code = code;
-        this.description = description;
-    }
+    void handleFailure(int code, String description);
 }

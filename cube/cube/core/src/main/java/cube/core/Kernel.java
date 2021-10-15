@@ -30,14 +30,22 @@ import android.content.Context;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import cube.auth.AuthToken;
+import cube.auth.handler.AuthTokenHandler;
 import cube.core.handler.KernelHandler;
+import cube.pipelline.CellPipeline;
 
 /**
  * 内核。内核管理所有的模块和通信管道。
  */
-public class Kernel {
+public class Kernel implements PipelineListener {
+
+    private final static int MAX_THREADS = 4;
+
+    private Context context;
 
     private KernelConfig config;
 
@@ -47,9 +55,12 @@ public class Kernel {
 
     private Map<String, Module> moduleMap;
 
+    private ExecutorService executor;
+
     public Kernel() {
         this.working = false;
         this.moduleMap = new HashMap<>();
+        this.executor = Executors.newFixedThreadPool(MAX_THREADS);
     }
 
     public boolean startup(Context context, KernelConfig config, KernelHandler handler) {
@@ -57,16 +68,48 @@ public class Kernel {
             return false;
         }
 
+        this.pipeline = new CellPipeline(context);
+
+        this.context = context;
+
         this.config = config;
 
+        if (null == this.executor) {
+            this.executor = Executors.newFixedThreadPool(MAX_THREADS);
+        }
+
+        // 处理模块
+        this.bundle();
+
         // 启动管道
+        this.pipeline.setRemoteAddress(config.address, config.port);
+        this.pipeline.addListener(this);
+//        this.pipeline.open();
 
+        // 检测授权
+        boolean ret = this.checkAuth(config, new AuthTokenHandler() {
+            @Override
+            public void handleSuccess(AuthToken authToken) {
 
-        return true;
+            }
+
+            @Override
+            public void handleFailure(ModuleError error) {
+
+            }
+        });
+
+        return ret;
     }
 
     public void shutdown() {
+        if (null != this.pipeline) {
+            this.pipeline.close();
+            this.pipeline = null;
+        }
 
+        this.executor.shutdown();
+        this.executor = null;
     }
 
     public void suspend() {
@@ -103,6 +146,14 @@ public class Kernel {
         return this.moduleMap.containsKey(moduleName);
     }
 
+    protected Context getContext() {
+        return this.context;
+    }
+
+    protected ExecutorService getExecutor() {
+        return this.executor;
+    }
+
     /**
      * 进行数据对象关联
      */
@@ -110,5 +161,29 @@ public class Kernel {
         for (Module module : this.moduleMap.values()) {
             module.pipeline = this.pipeline;
         }
+    }
+
+    private boolean checkAuth(KernelConfig config, AuthTokenHandler handler) {
+        return false;
+    }
+
+    @Override
+    public void received(Pipeline pipeline, String source, Packet packet) {
+
+    }
+
+    @Override
+    public void opened(Pipeline pipeline) {
+
+    }
+
+    @Override
+    public void closed(Pipeline pipeline) {
+
+    }
+
+    @Override
+    public void faultOccurred(Pipeline pipeline, int code, String description) {
+
     }
 }

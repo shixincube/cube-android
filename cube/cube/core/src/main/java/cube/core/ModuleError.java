@@ -24,17 +24,40 @@
  * SOFTWARE.
  */
 
-package cube.core.handler;
-
-import cube.core.Kernel;
-import cube.core.ModuleError;
+package cube.core;
 
 /**
- * 内核启动回调。
+ * 系统错误信息描述。
  */
-public interface KernelHandler {
+public class ModuleError {
 
-    void handleCompletion(Kernel kernel);
+    /**
+     * 模块名称。
+     */
+    public final String moduleName;
 
-    void handleFailure(ModuleError error);
+    /**
+     * 错误码。
+     */
+    public final int code;
+
+    /**
+     * 错误信息描述。
+     */
+    public final String description;
+
+    /**
+     * 发生错误时携带的数据。
+     */
+    public Object data = null;
+
+    public ModuleError(String moduleName, int code) {
+        this(moduleName, code, "");
+    }
+
+    public ModuleError(String moduleName, int code, String description) {
+        this.moduleName = moduleName;
+        this.code = code;
+        this.description = description;
+    }
 }

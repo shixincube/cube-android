@@ -36,8 +36,9 @@ public interface Storage {
     /**
      * 开启存储器。
      * @param context 应用程序上下文。
+     * @return 开启成功返回 {@code true} ，否则返回 {@code false} 。
      */
-    void open(Context context);
+    boolean open(Context context);
 
     /**
      * 关闭存储器。

@@ -26,7 +26,10 @@
 
 package cube.engine;
 
+import android.util.Log;
+
 import cube.core.KernelConfig;
+import cube.engine.handler.EngineHandler;
 
 /**
  * 魔方引擎 API 入口类。
@@ -55,7 +58,8 @@ public class CubeEngine {
         return this.config;
     }
 
-    public boolean start() {
+    public boolean start(EngineHandler handler) {
+        Log.i("CubeEngine", "#start : " + this.config.print());
         return false;
     }
 

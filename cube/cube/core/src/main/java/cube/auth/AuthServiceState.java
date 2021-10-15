@@ -24,17 +24,38 @@
  * SOFTWARE.
  */
 
-package cube.core.handler;
-
-import cube.core.Kernel;
-import cube.core.ModuleError;
+package cube.auth;
 
 /**
- * 内核启动回调。
+ * 授权服务状态。
  */
-public interface KernelHandler {
+public enum AuthServiceState {
 
-    void handleCompletion(Kernel kernel);
+    /**
+     * 状态正常状态码。
+     */
+    Ok(0),
 
-    void handleFailure(ModuleError error);
+    /**
+     * 状态出现异常状态码。
+     */
+    Failure(9),
+
+    /**
+     * 存储故障状态码。
+     */
+    StorageError(20),
+
+    /**
+     * 本地任务超时状态码。
+     */
+    Timeout(21)
+
+    ;
+
+    public final int code;
+
+    AuthServiceState(int code) {
+        this.code = code;
+    }
 }

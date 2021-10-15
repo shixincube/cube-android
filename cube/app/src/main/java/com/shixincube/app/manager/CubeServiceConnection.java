@@ -34,6 +34,8 @@ import android.os.IBinder;
 import com.shixincube.app.CubeApp;
 
 import cube.engine.CubeBinder;
+import cube.engine.CubeEngine;
+import cube.engine.handler.EngineHandler;
 
 /**
  * 魔方服务连接器。
@@ -50,6 +52,25 @@ public class CubeServiceConnection implements ServiceConnection {
     public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
         if (null == CubeApp.engine) {
             CubeApp.engine = ((CubeBinder) iBinder).getEngine(this.context);
+
+            if (null != CubeApp.engine.getConfig()) {
+                // 已读取配置
+                CubeApp.engine.start(new EngineHandler() {
+                    @Override
+                    public void handleSuccess(CubeEngine engine) {
+
+                    }
+
+                    @Override
+                    public void handleFailure(int code, String description) {
+
+                    }
+                });
+            }
+            else {
+                // 没有读取到配置，从服务器获取配置
+                // TODO 从 App 服务器读取配置
+            }
         }
     }
 

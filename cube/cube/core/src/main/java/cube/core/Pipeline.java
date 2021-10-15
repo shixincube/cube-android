@@ -38,6 +38,8 @@ import cube.core.handler.PipelineHandler;
  */
 public abstract class Pipeline {
 
+    private final static String DRIFTLESS_LISTENER = "*";
+
     private Map<String, List<PipelineListener>> listeners;
 
     protected String address;
@@ -69,6 +71,10 @@ public abstract class Pipeline {
         }
     }
 
+    public void addListener(PipelineListener listener) {
+        this.addListener(DRIFTLESS_LISTENER, listener);
+    }
+
     public void removeListener(String destination, PipelineListener listener) {
         synchronized (this) {
             List<PipelineListener> list = this.listeners.get(destination);
@@ -76,6 +82,10 @@ public abstract class Pipeline {
                 list.remove(listener);
             }
         }
+    }
+
+    public void removeListener(PipelineListener listener) {
+        this.removeListener(DRIFTLESS_LISTENER, listener);
     }
 
     public List<PipelineListener> getListeners(String destination) {

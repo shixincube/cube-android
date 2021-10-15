@@ -27,7 +27,8 @@
             android:background="@drawable/shape_splash_login"
             android:text="@string/login"
             android:textColor="@color/white"
-            android:textSize="16sp" />
+            android:textSize="16sp"
+            android:visibility="invisible" />
 
         <Button
             android:id="@+id/btnRegister"
@@ -40,7 +41,8 @@
             android:background="@drawable/shape_splash_register"
             android:text="@string/register"
             android:textColor="@color/white"
-            android:textSize="16sp" />
+            android:textSize="16sp"
+            android:visibility="invisible" />
 
     </com.zhy.autolayout.AutoRelativeLayout>
 

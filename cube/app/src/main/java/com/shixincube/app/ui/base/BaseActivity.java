@@ -86,7 +86,7 @@ public abstract class BaseActivity<V, T extends BasePresenter<V>> extends AppCom
      */
     private void setupAppBarAndToolbar() {
         // TODO
-        getSupportActionBar().hide();
+//        getSupportActionBar().hide();
     }
 
     @Override

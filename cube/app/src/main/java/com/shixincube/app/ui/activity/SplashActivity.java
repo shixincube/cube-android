@@ -29,6 +29,7 @@ package com.shixincube.app.ui.activity;
 
 import android.Manifest;
 import android.content.Intent;
+import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.widget.Button;
 import android.widget.RelativeLayout;
@@ -86,6 +87,9 @@ public class SplashActivity extends BaseActivity {
         AlphaAnimation alphaAnimation = new AlphaAnimation(0, 1);
         alphaAnimation.setDuration(1000);
         this.accountView.startAnimation(alphaAnimation);
+
+        this.loginButton.setVisibility(View.VISIBLE);
+        this.registerButton.setVisibility(View.VISIBLE);
     }
 
     @Override

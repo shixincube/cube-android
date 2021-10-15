@@ -67,6 +67,13 @@ public class CubeEngine {
         return this.config;
     }
 
+    /**
+     * 启动引擎。
+     *
+     * @param context 应用上下文。
+     * @param handler 处理句柄。
+     * @return
+     */
     public boolean start(Context context, EngineHandler handler) {
         Log.i("CubeEngine", "#start : " + this.config.print());
 

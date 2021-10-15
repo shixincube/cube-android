@@ -70,6 +70,8 @@ public class SplashActivity extends BaseActivity {
         PermissionGen.with(this)
                 .addRequestCode(100)
                 .permissions(
+                        // 网络权限
+                        Manifest.permission.ACCESS_NETWORK_STATE,
                         // 存储权限
                         Manifest.permission.WRITE_EXTERNAL_STORAGE,
                         Manifest.permission.WRITE_SETTINGS

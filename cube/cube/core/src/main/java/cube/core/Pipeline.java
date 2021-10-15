@@ -92,11 +92,23 @@ public abstract class Pipeline {
         return this.listeners.get(destination);
     }
 
+    public List<PipelineListener> getAllListeners() {
+        ArrayList<PipelineListener> result = new ArrayList<>();
+        for (List<PipelineListener> list : this.listeners.values()) {
+            for (PipelineListener listener : list) {
+                if (!result.contains(listener)) {
+                    result.add(listener);
+                }
+            }
+        }
+        return result;
+    }
+
     protected void triggerListener(String destination, Packet packet) {
         List<PipelineListener> list = this.listeners.get(destination);
         if (null != list) {
             for (PipelineListener listener : list) {
-                listener.received(this, destination, packet);
+                listener.onReceived(this, destination, packet);
             }
         }
     }
@@ -131,4 +143,11 @@ public abstract class Pipeline {
      * @param handler
      */
     public abstract void send(String destination, Packet packet, PipelineHandler handler);
+
+    /**
+     * 当网络状态改变时触发。
+     *
+     * @param connected
+     */
+    public abstract void fireNetworkStatusChanged(boolean connected);
 }

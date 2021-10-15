@@ -36,7 +36,7 @@ import java.util.concurrent.Executors;
 import cube.auth.AuthToken;
 import cube.auth.handler.AuthTokenHandler;
 import cube.core.handler.KernelHandler;
-import cube.pipelline.CellPipeline;
+import cube.pipeline.CellPipeline;
 
 /**
  * 内核。内核管理所有的模块和通信管道。
@@ -44,6 +44,8 @@ import cube.pipelline.CellPipeline;
 public class Kernel implements PipelineListener {
 
     private final static int MAX_THREADS = 4;
+
+    private static Kernel defaultInstance;
 
     private Context context;
 
@@ -61,6 +63,11 @@ public class Kernel implements PipelineListener {
         this.working = false;
         this.moduleMap = new HashMap<>();
         this.executor = Executors.newFixedThreadPool(MAX_THREADS);
+        this.defaultInstance = this;
+    }
+
+    public final static Kernel getDefault() {
+        return Kernel.defaultInstance;
     }
 
     public boolean startup(Context context, KernelConfig config, KernelHandler handler) {
@@ -84,7 +91,7 @@ public class Kernel implements PipelineListener {
         // 启动管道
         this.pipeline.setRemoteAddress(config.address, config.port);
         this.pipeline.addListener(this);
-//        this.pipeline.open();
+        this.pipeline.open();
 
         // 检测授权
         boolean ret = this.checkAuth(config, new AuthTokenHandler() {
@@ -146,6 +153,10 @@ public class Kernel implements PipelineListener {
         return this.moduleMap.containsKey(moduleName);
     }
 
+    public Pipeline getPipeline() {
+        return this.pipeline;
+    }
+
     protected Context getContext() {
         return this.context;
     }
@@ -168,22 +179,22 @@ public class Kernel implements PipelineListener {
     }
 
     @Override
-    public void received(Pipeline pipeline, String source, Packet packet) {
+    public void onReceived(Pipeline pipeline, String source, Packet packet) {
+        // Nothing
+    }
+
+    @Override
+    public void onOpened(Pipeline pipeline) {
 
     }
 
     @Override
-    public void opened(Pipeline pipeline) {
+    public void onClosed(Pipeline pipeline) {
 
     }
 
     @Override
-    public void closed(Pipeline pipeline) {
-
-    }
-
-    @Override
-    public void faultOccurred(Pipeline pipeline, int code, String description) {
+    public void onFaultOccurred(Pipeline pipeline, int code, String description) {
 
     }
 }

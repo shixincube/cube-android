@@ -24,14 +24,18 @@
  * SOFTWARE.
  */
 
-package cube.pipelline;
+package cube.pipeline;
 
 import android.content.Context;
+import android.util.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
 import cell.api.Nucleus;
@@ -41,8 +45,10 @@ import cell.api.TalkListener;
 import cell.core.talk.Primitive;
 import cell.core.talk.TalkError;
 import cell.core.talk.dialect.ActionDialect;
+import cell.util.NetworkUtils;
 import cube.core.Packet;
 import cube.core.Pipeline;
+import cube.core.PipelineListener;
 import cube.core.PipelineState;
 import cube.core.handler.PipelineHandler;
 
@@ -107,7 +113,7 @@ public class CellPipeline extends Pipeline implements TalkListener {
 
     @Override
     public void send(String destination, Packet packet) {
-        ActionDialect dialect = this.convertPacketToPrimitive(packet);
+        ActionDialect dialect = this.convertPacketToDialect(packet);
         this.nucleus.getTalkService().speak(destination, dialect);
     }
 
@@ -116,46 +122,106 @@ public class CellPipeline extends Pipeline implements TalkListener {
         long timestamp = System.currentTimeMillis();
         this.responseCallbackMap.put(packet.sn, new ResponseCallback(destination, handler, timestamp));
 
-        ActionDialect dialect = this.convertPacketToPrimitive(packet);
+        ActionDialect dialect = this.convertPacketToDialect(packet);
         this.nucleus.getTalkService().speak(destination, dialect);
     }
 
     @Override
-    public void onListened(Speakable speakable, String s, Primitive primitive) {
+    public void fireNetworkStatusChanged(boolean connected) {
+        if (this.opening) {
+            return;
+        }
 
+        if (this.enabled && connected) {
+            if (!this.isReady()) {
+                // 重连
+                this.retry(500, false);
+            }
+        }
     }
 
     @Override
-    public void onSpoke(Speakable speakable, String s, Primitive primitive) {
+    public void onListened(Speakable speakable, String cellet, Primitive primitive) {
+        ActionDialect dialect = new ActionDialect(primitive);
+        // 转为数据包格式
+        Packet packet = this.convertDialectToPacket(dialect);
 
+        ResponseCallback callback = this.responseCallbackMap.remove(packet.sn);
+        if (null != callback) {
+            callback.handler.handleResponse(packet);
+        }
+
+        this.triggerListener(cellet, packet);
     }
 
     @Override
-    public void onAck(Speakable speakable, String s, Primitive primitive) {
-
+    public void onSpoke(Speakable speakable, String cellet, Primitive primitive) {
+        // Nothing
     }
 
     @Override
-    public void onSpeakTimeout(Speakable speakable, String s, Primitive primitive) {
+    public void onAck(Speakable speakable, String cellet, Primitive primitive) {
+        // Nothing
+    }
 
+    @Override
+    public void onSpeakTimeout(Speakable speakable, String cellet, Primitive primitive) {
+        // Nothing
     }
 
     @Override
     public void onContacted(Speakable speakable) {
+        this.opening = false;
 
+        List<PipelineListener> listeners = this.getAllListeners();
+        for (PipelineListener listener : listeners) {
+            listener.onOpened(this);
+        }
     }
 
     @Override
     public void onQuitted(Speakable speakable) {
+        this.opening = false;
 
+        List<PipelineListener> listeners = this.getAllListeners();
+        for (PipelineListener listener : listeners) {
+            listener.onClosed(this);
+        }
     }
 
     @Override
     public void onFailed(Speakable speakable, TalkError talkError) {
+        List<PipelineListener> listeners = this.getAllListeners();
+        for (PipelineListener listener : listeners) {
+            listener.onFaultOccurred(this, talkError.getErrorCode(), "Pipeline error");
+        }
 
+        if (this.enabled) {
+            if (NetworkUtils.isConnected(this.nucleus.getTag().getContext())) {
+                this.retry(2000, true);
+            }
+        }
     }
 
-    private ActionDialect convertPacketToPrimitive(Packet packet) {
+    private void retry(long delay, boolean hangUpBefore) {
+        Log.i("CellPipeline", "Retry connect : " + this.address + ":" + this.port);
+
+        if (hangUpBefore) {
+            this.nucleus.getTalkService().hangup(this.address, this.port, true);
+        }
+
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if (!nucleus.getTalkService().isCalled(address, port)) {
+                    nucleus.getTalkService().call(address, port);
+                }
+            }
+        }, delay);
+    }
+
+    private ActionDialect convertPacketToDialect(Packet packet) {
         ActionDialect dialect = new ActionDialect(packet.name);
         dialect.addParam("sn", packet.sn.longValue());
         dialect.addParam("data", packet.getData());
@@ -165,7 +231,7 @@ public class CellPipeline extends Pipeline implements TalkListener {
         return dialect;
     }
 
-    private Packet convertPrimitiveToPacket(ActionDialect dialect) {
+    private Packet convertDialectToPacket(ActionDialect dialect) {
         Packet packet = new Packet(dialect.getParamAsLong("sn"), dialect.getName(), dialect.getParamAsJson("data"));
         if (dialect.containsParam("state")) {
             packet.state = extractState(dialect.getParamAsJson("state"));

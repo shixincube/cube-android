@@ -24,18 +24,31 @@
  * SOFTWARE.
  */
 
-package cube.core;
+package cube.pipeline;
+
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.util.Log;
+
+import cell.util.NetworkUtils;
+import cube.core.Kernel;
 
 /**
- * 数据通道服务事件监听器。
+ * 网络状态变化接收器。
  */
-public interface PipelineListener {
+public class NetworkConnectChangedReceiver extends BroadcastReceiver {
 
-    void onReceived(Pipeline pipeline, String source, Packet packet);
+    public NetworkConnectChangedReceiver() {
+        super();
+    }
 
-    void onOpened(Pipeline pipeline);
-
-    void onClosed(Pipeline pipeline);
-
-    void onFaultOccurred(Pipeline pipeline, int code, String description);
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        boolean connected = NetworkUtils.isConnected(context);
+        Log.d("NetworkConnectChangedReceiver", "Network status changed: " + connected);
+        if (null != Kernel.getDefault() && null != Kernel.getDefault().getPipeline()) {
+            Kernel.getDefault().getPipeline().fireNetworkStatusChanged(connected);
+        }
+    }
 }

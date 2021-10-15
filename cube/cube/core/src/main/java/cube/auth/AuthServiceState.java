@@ -49,7 +49,12 @@ public enum AuthServiceState {
     /**
      * 本地任务超时状态码。
      */
-    Timeout(21)
+    Timeout(21),
+
+    /**
+     * 数据格式错误。
+     */
+    DataFormatError(22)
 
     ;
 

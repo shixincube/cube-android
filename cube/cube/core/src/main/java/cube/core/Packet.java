@@ -57,8 +57,11 @@ public class Packet {
     public PipelineState state;
 
     public Packet(String name) {
-        this.sn = Utils.generateSerialNumber();
-        this.name = name;
+        this(Utils.generateSerialNumber(), name, null);
+    }
+
+    public Packet(String name, JSONObject data) {
+        this(Utils.generateSerialNumber(), name, data);
     }
 
     public Packet(Long sn, String name, JSONObject data) {

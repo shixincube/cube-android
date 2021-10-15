@@ -26,12 +26,17 @@
 
 package cube.auth;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.Timer;
 import java.util.TimerTask;
 
 import cube.auth.handler.AuthTokenHandler;
 import cube.core.Module;
 import cube.core.ModuleError;
+import cube.core.Packet;
+import cube.core.handler.PipelineHandler;
 
 /**
  * 授权服务模块。
@@ -103,10 +108,30 @@ public class AuthService extends Module {
                                 return;
                             }
 
+                            // 申请令牌
 
                         }
                     });
                 }
+            }
+        });
+    }
+
+    protected void applyToken(String domain, String appKey, AuthTokenHandler handler) {
+        JSONObject data = new JSONObject();
+        try {
+            data.put("domain", domain);
+            data.put("appKey", appKey);
+        } catch (JSONException e) {
+            handler.handleFailure(new ModuleError(NAME, AuthServiceState.DataFormatError.code));
+            return;
+        }
+
+        Packet packet = new Packet(ACTION_APPLY_TOKEN, data);
+        this.pipeline.send(AuthService.NAME, packet, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+
             }
         });
     }

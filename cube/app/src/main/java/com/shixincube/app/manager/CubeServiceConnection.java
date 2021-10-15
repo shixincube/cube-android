@@ -55,7 +55,7 @@ public class CubeServiceConnection implements ServiceConnection {
 
             if (null != CubeApp.engine.getConfig()) {
                 // 已读取配置
-                CubeApp.engine.start(new EngineHandler() {
+                CubeApp.engine.start(this.context, new EngineHandler() {
                     @Override
                     public void handleSuccess(CubeEngine engine) {
 

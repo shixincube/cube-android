@@ -26,9 +26,13 @@
 
 package cube.engine;
 
+import android.content.Context;
 import android.util.Log;
 
+import cube.core.Kernel;
 import cube.core.KernelConfig;
+import cube.core.ModuleError;
+import cube.core.handler.KernelHandler;
 import cube.engine.handler.EngineHandler;
 
 /**
@@ -40,7 +44,10 @@ public class CubeEngine {
 
     private KernelConfig config;
 
+    private Kernel kernel;
+
     private CubeEngine() {
+        this.kernel = new Kernel();
     }
 
     protected static CubeEngine getInstance() {
@@ -58,12 +65,24 @@ public class CubeEngine {
         return this.config;
     }
 
-    public boolean start(EngineHandler handler) {
+    public boolean start(Context context, EngineHandler handler) {
         Log.i("CubeEngine", "#start : " + this.config.print());
-        return false;
+        
+        boolean result = this.kernel.startup(context, this.config, new KernelHandler() {
+            @Override
+            public void handleCompletion(Kernel kernel) {
+                handler.handleSuccess(CubeEngine.instance);
+            }
+
+            @Override
+            public void handleFailure(ModuleError error) {
+                handler.handleFailure(error.code, (null != error.description) ? error.description : error.moduleName);
+            }
+        });
+        return result;
     }
 
     public void stop() {
-
+        this.kernel.shutdown();
     }
 }

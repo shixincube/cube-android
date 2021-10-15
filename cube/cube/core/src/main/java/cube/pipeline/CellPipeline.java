@@ -65,8 +65,6 @@ public class CellPipeline extends Pipeline implements TalkListener {
 
     private Map<Long, ResponseCallback> responseCallbackMap;
 
-    private String tokenCode;
-
     public CellPipeline(Context context) {
         super();
         this.opening = false;
@@ -77,10 +75,6 @@ public class CellPipeline extends Pipeline implements TalkListener {
         this.nucleus.getTalkService().addListener(this);
 
         this.responseCallbackMap = new ConcurrentHashMap<>();
-    }
-
-    public void setTokenCode(String tokenCode) {
-        this.tokenCode = tokenCode;
     }
 
     @Override

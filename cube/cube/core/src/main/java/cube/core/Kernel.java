@@ -27,12 +27,14 @@
 package cube.core;
 
 import android.content.Context;
+import android.util.Log;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import cube.auth.AuthService;
 import cube.auth.AuthToken;
 import cube.auth.handler.AuthTokenHandler;
 import cube.core.handler.KernelHandler;
@@ -85,6 +87,8 @@ public class Kernel implements PipelineListener {
             this.executor = Executors.newFixedThreadPool(MAX_THREADS);
         }
 
+        this.working = true;
+
         // 处理模块
         this.bundle();
 
@@ -97,12 +101,17 @@ public class Kernel implements PipelineListener {
         boolean ret = this.checkAuth(config, new AuthTokenHandler() {
             @Override
             public void handleSuccess(AuthToken authToken) {
+                // 设置数据通道令牌
+                pipeline.setTokenCode(authToken.code);
 
+                handler.handleCompletion(Kernel.this);
             }
 
             @Override
             public void handleFailure(ModuleError error) {
+                working = false;
 
+                handler.handleFailure(error);
             }
         });
 
@@ -175,7 +184,23 @@ public class Kernel implements PipelineListener {
     }
 
     private boolean checkAuth(KernelConfig config, AuthTokenHandler handler) {
-        return false;
+        if (!this.hasModule(AuthService.NAME)) {
+            Log.i("Kernel", "Can NOT find auth module : " + AuthService.NAME);
+            return false;
+        }
+
+        AuthService authService = (AuthService) this.getModule(AuthService.NAME);
+
+        // 查找本地的令牌
+        AuthToken token = authService.loadLocalToken(config.domain, config.appKey);
+        if (null != token) {
+            handler.handleSuccess(token);
+            return true;
+        }
+
+        // 从服务器申请令牌
+        authService.check(config.domain, config.appKey, handler);
+        return true;
     }
 
     @Override

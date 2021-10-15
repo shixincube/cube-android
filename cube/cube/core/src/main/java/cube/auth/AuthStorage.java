@@ -26,6 +26,7 @@
 
 package cube.auth;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -64,12 +65,11 @@ public class AuthStorage implements Storage {
         }
     }
 
-
     public AuthToken loadToken(String domain, String appKey) {
         AuthToken authToken = null;
 
         SQLiteDatabase db = this.sqLite.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM `token` WHERE `cid`=0 AND `domain`='?' AND `app_key`='?' ORDER BY sn DESC",
+        Cursor cursor = db.rawQuery("SELECT * FROM `token` WHERE `cid`=0 AND `domain`=? AND `app_key`=? ORDER BY sn DESC",
                 new String[] { domain, appKey });
         if (cursor.moveToFirst()) {
             String data = cursor.getString(cursor.getColumnIndex("data"));
@@ -83,6 +83,20 @@ public class AuthStorage implements Storage {
         db.close();
 
         return authToken;
+    }
+
+    public void saveToken(AuthToken token) {
+        SQLiteDatabase db = this.sqLite.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put("domain", token.domain);
+        values.put("app_key", token.appKey);
+        values.put("cid", token.cid);
+        values.put("code", token.code);
+        values.put("data", token.toJSON().toString());
+
+        db.insert("token", null, values);
+        db.close();
     }
 
     private class SQLite extends SQLiteOpenHelper {

@@ -29,7 +29,8 @@
         </meta-data>
 
         <!-- Cube Config Begin -->
-        <meta-data android:name="CUBE_ADDRESS" android:value="127.0.0.1"></meta-data>
+        <meta-data android:name="CUBE_ADDRESS" android:value="10.0.2.2"></meta-data>
+        <meta-data android:name="CUBE_PORT" android:value="7000"></meta-data>
         <meta-data android:name="CUBE_DOMAIN" android:value="shixincube.com"></meta-data>
         <meta-data android:name="CUBE_APPKEY" android:value="shixin-cubeteam-opensource-appkey"></meta-data>
 

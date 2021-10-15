@@ -29,6 +29,7 @@ package cube.engine;
 import android.content.Context;
 import android.util.Log;
 
+import cube.auth.AuthService;
 import cube.core.Kernel;
 import cube.core.KernelConfig;
 import cube.core.ModuleError;
@@ -48,6 +49,7 @@ public class CubeEngine {
 
     private CubeEngine() {
         this.kernel = new Kernel();
+        this.kernel.installModule(new AuthService());
     }
 
     protected static CubeEngine getInstance() {
@@ -67,15 +69,17 @@ public class CubeEngine {
 
     public boolean start(Context context, EngineHandler handler) {
         Log.i("CubeEngine", "#start : " + this.config.print());
-        
+
         boolean result = this.kernel.startup(context, this.config, new KernelHandler() {
             @Override
             public void handleCompletion(Kernel kernel) {
+                Log.i("CubeEngine", "Cube engine started");
                 handler.handleSuccess(CubeEngine.instance);
             }
 
             @Override
             public void handleFailure(ModuleError error) {
+                Log.i("CubeEngine", "Cube engine start failed : " + error.code);
                 handler.handleFailure(error.code, (null != error.description) ? error.description : error.moduleName);
             }
         });

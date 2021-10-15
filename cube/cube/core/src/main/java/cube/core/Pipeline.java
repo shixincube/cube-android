@@ -46,6 +46,8 @@ public abstract class Pipeline {
 
     protected int port;
 
+    protected String tokenCode;
+
     public Pipeline() {
         this.listeners = new HashMap<>();
     }
@@ -53,6 +55,10 @@ public abstract class Pipeline {
     public void setRemoteAddress(String address, int port) {
         this.address = address;
         this.port = port;
+    }
+
+    public void setTokenCode(String tokenCode) {
+        this.tokenCode = tokenCode;
     }
 
     public void addListener(String destination, PipelineListener listener) {

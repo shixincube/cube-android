@@ -50,28 +50,33 @@ public class CubeServiceConnection implements ServiceConnection {
 
     @Override
     public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-        if (null == CubeApp.engine) {
-            CubeApp.engine = ((CubeBinder) iBinder).getEngine(this.context);
+        (new Thread() {
+            @Override
+            public void run() {
+                if (null == CubeApp.engine) {
+                    CubeApp.engine = ((CubeBinder) iBinder).getEngine(context);
 
-            if (null != CubeApp.engine.getConfig()) {
-                // 已读取配置
-                CubeApp.engine.start(this.context, new EngineHandler() {
-                    @Override
-                    public void handleSuccess(CubeEngine engine) {
+                    if (null != CubeApp.engine.getConfig()) {
+                        // 已读取配置
+                        CubeApp.engine.start(context, new EngineHandler() {
+                            @Override
+                            public void handleSuccess(CubeEngine engine) {
 
+                            }
+
+                            @Override
+                            public void handleFailure(int code, String description) {
+
+                            }
+                        });
                     }
-
-                    @Override
-                    public void handleFailure(int code, String description) {
-
+                    else {
+                        // 没有读取到配置，从服务器获取配置
+                        // TODO 从 App 服务器读取配置
                     }
-                });
+                }
             }
-            else {
-                // 没有读取到配置，从服务器获取配置
-                // TODO 从 App 服务器读取配置
-            }
-        }
+        }).start();
     }
 
     @Override

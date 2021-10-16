@@ -24,45 +24,20 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app.manager;
-
-import android.content.Context;
-import android.content.SharedPreferences;
-
-import com.shixincube.app.AppConsts;
+package com.shixincube.app;
 
 /**
- * 账号辅助操作函数库。
+ * 应用程序常量。
  */
-public class AccountHelper {
+public final class AppConsts {
 
-    private final static String SP_NAME = "cube.account";
+    /**
+     * 令牌码。
+     */
+    public final static String TOKEN_CODE = "AppTokenCode";
 
-    private static AccountHelper instance;
-
-    private Context context;
-
-    private SharedPreferences sp;
-
-    private AccountHelper(Context context) {
-        this.context = context;
-
-        this.sp = context.getSharedPreferences(SP_NAME, Context.MODE_PRIVATE);
-    }
-
-    public static AccountHelper getInstance(Context context) {
-        if (null == AccountHelper.instance) {
-            AccountHelper.instance = new AccountHelper(context);
-        }
-        return AccountHelper.instance;
-    }
-
-    public boolean checkValidToken() {
-        return false;
-    }
-
-    private String loadTokenCode() {
-        String tokenCode = this.sp.getString(AppConsts.TOKEN_CODE, "");
-        return tokenCode.length() > 0 ? tokenCode : null;
-    }
+    /**
+     * 令牌过期时间戳。
+     */
+    public final static String TOKEN_EXPIRE = "AppTokenExpire";
 }

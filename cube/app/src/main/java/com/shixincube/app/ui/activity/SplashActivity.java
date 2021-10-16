@@ -36,6 +36,7 @@ import android.widget.RelativeLayout;
 
 import com.jaeger.library.StatusBarUtil;
 import com.shixincube.app.R;
+import com.shixincube.app.manager.AccountHelper;
 import com.shixincube.app.manager.CubeServiceConnection;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
@@ -61,8 +62,11 @@ public class SplashActivity extends BaseActivity {
 
     private CubeServiceConnection connection;
 
+    private boolean valid;
+
     public SplashActivity() {
         super();
+        this.valid = true;
     }
 
     @Override
@@ -90,8 +94,10 @@ public class SplashActivity extends BaseActivity {
         alphaAnimation.setDuration(1000);
         this.accountView.startAnimation(alphaAnimation);
 
-        this.loginButton.setVisibility(View.VISIBLE);
-        this.registerButton.setVisibility(View.VISIBLE);
+        if (!this.valid) {
+            this.loginButton.setVisibility(View.VISIBLE);
+            this.registerButton.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override
@@ -122,7 +128,6 @@ public class SplashActivity extends BaseActivity {
         super.onDestroy();
 
         if (null != this.connection) {
-            Intent intent = new Intent(this, CubeService.class);
             unbindService(this.connection);
             this.connection = null;
         }
@@ -130,8 +135,14 @@ public class SplashActivity extends BaseActivity {
 
     private void launch() {
         // 判断是否有有效令牌
-        // TODO
+        if (AccountHelper.getInstance(getApplicationContext()).checkValidToken()) {
+            this.valid = true;
+        }
+        else {
+            this.valid = false;
+        }
 
+        // 创建引擎服务
         this.connection = new CubeServiceConnection(getApplicationContext());
         Intent intent = new Intent(this, CubeService.class);
         startService(intent);

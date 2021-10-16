@@ -107,4 +107,5 @@ public class RegisterActivity extends BaseActivity<RegisterView, RegisterPresent
     public Button getSendCodeButtong() {
         return null;
     }
+
 }

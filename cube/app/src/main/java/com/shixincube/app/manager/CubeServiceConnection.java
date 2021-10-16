@@ -30,6 +30,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.ServiceConnection;
 import android.os.IBinder;
+import android.util.Log;
 
 import com.shixincube.app.CubeApp;
 
@@ -66,7 +67,7 @@ public class CubeServiceConnection implements ServiceConnection {
 
                             @Override
                             public void handleFailure(int code, String description) {
-
+                                Log.w("CubeServiceConnection", "#onServiceConnected : Start cube engine failed");
                             }
                         });
                     }

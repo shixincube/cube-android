@@ -27,8 +27,10 @@
 package com.shixincube.app.ui.base;
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.widget.ImageView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -39,13 +41,18 @@ import com.shixincube.app.CubeApp;
 import com.shixincube.app.R;
 import com.shixincube.app.util.UIUtils;
 
+import butterknife.BindView;
 import butterknife.ButterKnife;
 
 public abstract class BaseActivity<V, T extends BasePresenter<V>> extends AppCompatActivity {
 
     protected T presenter;
 
+    @BindView(R.id.appBar)
     protected AppBarLayout appBar;
+
+    @BindView(R.id.ivToolbarNavigation)
+    public ImageView toolbarNavigation;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -85,7 +92,11 @@ public abstract class BaseActivity<V, T extends BasePresenter<V>> extends AppCom
      * 设置 AppBar 和 Toolbar
      */
     private void setupAppBarAndToolbar() {
-        // TODO
+        if (null != appBar && Build.VERSION.SDK_INT > 21) {
+            appBar.setElevation(10.6f);
+        }
+
+
 //        getSupportActionBar().hide();
     }
 

@@ -30,6 +30,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.shixincube.app.AppConsts;
+import com.shixincube.app.model.Account;
 
 /**
  * 账号辅助操作函数库。
@@ -46,7 +47,6 @@ public class AccountHelper {
 
     private AccountHelper(Context context) {
         this.context = context;
-
         this.sp = context.getSharedPreferences(SP_NAME, Context.MODE_PRIVATE);
     }
 
@@ -58,11 +58,29 @@ public class AccountHelper {
     }
 
     public boolean checkValidToken() {
-        return false;
+        String tokenCode = this.loadTokenCode();
+        if (null == tokenCode) {
+            return false;
+        }
+
+        long expire = this.loadTokenExpire();
+        if (expire <= System.currentTimeMillis()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public Account getCurrentAccount() {
+        return null;
     }
 
     private String loadTokenCode() {
         String tokenCode = this.sp.getString(AppConsts.TOKEN_CODE, "");
         return tokenCode.length() > 0 ? tokenCode : null;
+    }
+
+    private long loadTokenExpire() {
+        return this.sp.getLong(AppConsts.TOKEN_EXPIRE, 0L);
     }
 }

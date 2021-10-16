@@ -26,10 +26,14 @@
 
 package com.shixincube.app.ui.activity;
 
+import android.text.Editable;
 import android.text.TextWatcher;
+import android.text.method.HideReturnsTransformationMethod;
+import android.text.method.PasswordTransformationMethod;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 
 import com.shixincube.app.R;
 import com.shixincube.app.ui.base.BaseActivity;
@@ -39,6 +43,9 @@ import com.shixincube.app.util.UIUtils;
 
 import butterknife.BindView;
 
+/**
+ * 注册账号。
+ */
 public class RegisterActivity extends BaseActivity<RegisterView, RegisterPresenter> implements RegisterView {
 
     @BindView(R.id.etNickname)
@@ -48,11 +55,53 @@ public class RegisterActivity extends BaseActivity<RegisterView, RegisterPresent
 
     @BindView(R.id.etPhoneNumber)
     EditText phoneNumberText;
+    @BindView(R.id.vLinePhoneNumber)
+    View phoneNumberLine;
+
+    @BindView(R.id.etPassword)
+    EditText passwordText;
+    @BindView(R.id.ivSeePwd)
+    ImageView seePassword;
+    @BindView(R.id.vLinePassword)
+    View passwordLine;
+
+    @BindView(R.id.etVerificationCode)
+    EditText verificationCodeText;
+    @BindView(R.id.btnSendCode)
+    Button sendCodeButton;
+    @BindView(R.id.vLineVerificationCode)
+    View verificationCodeLine;
+
+    @BindView(R.id.btnRegister)
+    Button registerButton;
 
     private TextWatcher watcher;
 
     public RegisterActivity() {
         super();
+
+        this.watcher = new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        };
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        this.presenter.dispose();
     }
 
     @Override
@@ -62,8 +111,18 @@ public class RegisterActivity extends BaseActivity<RegisterView, RegisterPresent
     }
 
     @Override
+    public void initView() {
+        setToolbarTitle(getString(R.string.title_register));
+    }
+
+    @Override
     public void initListener() {
-        nickNameText.setOnFocusChangeListener((v, hasFocus) -> {
+        this.nickNameText.addTextChangedListener(this.watcher);
+        this.phoneNumberText.addTextChangedListener(this.watcher);
+        this.passwordText.addTextChangedListener(this.watcher);
+        this.verificationCodeText.addTextChangedListener(this.watcher);
+
+        this.nickNameText.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus) {
                 nickNameLine.setBackgroundColor(UIUtils.getColor(R.color.theme_blue_dark));
             }
@@ -71,11 +130,56 @@ public class RegisterActivity extends BaseActivity<RegisterView, RegisterPresent
                 nickNameLine.setBackgroundColor(UIUtils.getColor(R.color.line));
             }
         });
+        this.phoneNumberText.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) {
+                phoneNumberLine.setBackgroundColor(UIUtils.getColor(R.color.theme_blue_dark));
+            }
+            else {
+                phoneNumberLine.setBackgroundColor(UIUtils.getColor(R.color.line));
+            }
+        });
+        this.passwordText.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) {
+                passwordLine.setBackgroundColor(UIUtils.getColor(R.color.theme_blue_dark));
+            }
+            else {
+                passwordLine.setBackgroundColor(UIUtils.getColor(R.color.line));
+            }
+        });
+        this.verificationCodeText.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) {
+                verificationCodeLine.setBackgroundColor(UIUtils.getColor(R.color.theme_blue_dark));
+            }
+            else {
+                verificationCodeLine.setBackgroundColor(UIUtils.getColor(R.color.line));
+            }
+        });
+
+        seePassword.setOnClickListener(v -> {
+            if (passwordText.getTransformationMethod() == HideReturnsTransformationMethod.getInstance()) {
+                passwordText.setTransformationMethod(PasswordTransformationMethod.getInstance());
+            }
+            else {
+                passwordText.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
+            }
+
+            passwordText.setSelection(passwordText.getText().toString().trim().length());
+        });
+
+        sendCodeButton.setOnClickListener(v -> {
+            if (sendCodeButton.isEnabled()) {
+                presenter.sendVerificationCode();
+            }
+        });
+
+        registerButton.setOnClickListener(v -> {
+            presenter.register();
+        });
     }
 
     @Override
     protected RegisterPresenter createPresenter() {
-        return null;
+        return new RegisterPresenter(this);
     }
 
     @Override

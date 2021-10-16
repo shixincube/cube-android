@@ -30,9 +30,54 @@ import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.RegisterView;
 
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.annotations.NonNull;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.ObservableEmitter;
+import io.reactivex.rxjava3.core.ObservableOnSubscribe;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.functions.Consumer;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+
 public class RegisterPresenter extends BasePresenter<RegisterView> {
+
+    private Disposable disposable;
 
     public RegisterPresenter(BaseActivity context) {
         super(context);
+
+
+    }
+
+    public void register() {
+
+    }
+
+    public void sendVerificationCode() {
+        this.disposable = Observable.create(new ObservableOnSubscribe<Integer>() {
+            @Override
+            public void subscribe(@NonNull ObservableEmitter<Integer> emitter) throws Throwable {
+
+            }
+        }).subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(new Consumer<Integer>() {
+                @Override
+                public void accept(Integer integer) throws Throwable {
+
+                }
+            }, new Consumer<Throwable>() {
+                @Override
+                public void accept(Throwable throwable) throws Throwable {
+
+                }
+            });
+    }
+
+    public void dispose() {
+        if (null != this.disposable) {
+            this.disposable.dispose();
+            this.disposable = null;
+        }
     }
 }

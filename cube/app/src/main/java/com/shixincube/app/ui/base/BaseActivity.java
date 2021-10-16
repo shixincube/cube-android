@@ -30,7 +30,9 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -52,7 +54,16 @@ public abstract class BaseActivity<V, T extends BasePresenter<V>> extends AppCom
     protected AppBarLayout appBar;
 
     @BindView(R.id.ivToolbarNavigation)
-    public ImageView toolbarNavigation;
+    protected ImageView toolbarNavigation;
+
+    @BindView(R.id.vToolbarDivision)
+    protected View toolbarDivision;
+
+    @BindView(R.id.tvToolbarTitle)
+    protected TextView toolbarTitle;
+
+    @BindView(R.id.tvToolbarSubTitle)
+    protected TextView toolbarSubTitle;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -88,6 +99,10 @@ public abstract class BaseActivity<V, T extends BasePresenter<V>> extends AppCom
         }
     }
 
+    public void setToolbarTitle(String title) {
+        toolbarTitle.setText(title);
+    }
+
     /**
      * 设置 AppBar 和 Toolbar
      */
@@ -96,8 +111,12 @@ public abstract class BaseActivity<V, T extends BasePresenter<V>> extends AppCom
             appBar.setElevation(10.6f);
         }
 
+        toolbarNavigation.setVisibility(isToolbarCanBack() ? View.VISIBLE : View.GONE);
+        toolbarDivision.setVisibility(isToolbarCanBack() ? View.VISIBLE : View.GONE);
 
-//        getSupportActionBar().hide();
+        toolbarNavigation.setOnClickListener(v -> onBackPressed());
+
+        toolbarTitle.setPadding(isToolbarCanBack() ? 0 : 40, 0, 0, 0);
     }
 
     @Override

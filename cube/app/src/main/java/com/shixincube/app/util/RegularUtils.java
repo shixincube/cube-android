@@ -24,37 +24,30 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app.ui.base;
+package com.shixincube.app.util;
 
-import java.lang.ref.Reference;
-import java.lang.ref.WeakReference;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-public class BasePresenter<V> {
+/**
+ * 规则判断辅助函数库。
+ */
+public final class RegularUtils {
 
-    protected BaseActivity activity;
-
-    protected Reference<V> viewRef;
-
-    public BasePresenter(BaseActivity activity) {
-        this.activity = activity;
+    private RegularUtils() {
     }
 
-    public void attachView(V view) {
-        this.viewRef = new WeakReference<V>(view);
+    public static boolean isMobile(String phoneNumber) {
+        String MOBILE_PHONE_PATTERN = "^((13[0-9])|(15[0-9])|(18[0-9])|(14[7])|(17[0|6|7|8]))\\d{8}$";
+        Pattern p = Pattern.compile(MOBILE_PHONE_PATTERN);
+        Matcher m = p.matcher(phoneNumber);
+        return m.matches();
     }
 
-    public boolean isViewAttached() {
-        return this.viewRef != null && this.viewRef.get() != null;
-    }
-
-    public void detachView() {
-        if (null != this.viewRef) {
-            this.viewRef.clear();
-            this.viewRef = null;
-        }
-    }
-
-    public V getView() {
-        return (null != this.viewRef) ? this.viewRef.get() : null;
+    public static boolean isEmail(String email) {
+        String str = "^([a-zA-Z0-9_\\-\\.]+)@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.)|(([a-zA-Z0-9\\-]+\\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\\]?)$";
+        Pattern p = Pattern.compile(str);
+        Matcher m = p.matcher(email);
+        return m.matches();
     }
 }

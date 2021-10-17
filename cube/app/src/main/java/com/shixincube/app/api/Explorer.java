@@ -24,37 +24,26 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app.ui.base;
+package com.shixincube.app.api;
 
-import java.lang.ref.Reference;
-import java.lang.ref.WeakReference;
+/**
+ * API Explorer
+ */
+public class Explorer {
 
-public class BasePresenter<V> {
+    private static Explorer instance;
 
-    protected BaseActivity activity;
+    public final static String HOST_URL = "http://127.0.0.1:7777/";
 
-    protected Reference<V> viewRef;
+    private AppInterface api;
 
-    public BasePresenter(BaseActivity activity) {
-        this.activity = activity;
+    private Explorer() {
     }
 
-    public void attachView(V view) {
-        this.viewRef = new WeakReference<V>(view);
-    }
-
-    public boolean isViewAttached() {
-        return this.viewRef != null && this.viewRef.get() != null;
-    }
-
-    public void detachView() {
-        if (null != this.viewRef) {
-            this.viewRef.clear();
-            this.viewRef = null;
+    public final static Explorer getInstance() {
+        if (null == Explorer.instance) {
+            Explorer.instance = new Explorer();
         }
-    }
-
-    public V getView() {
-        return (null != this.viewRef) ? this.viewRef.get() : null;
+        return Explorer.instance;
     }
 }

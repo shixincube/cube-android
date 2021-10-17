@@ -117,6 +117,8 @@
                     android:drawablePadding="10dp"
                     android:hint="@string/search"
                     android:maxLines="1"
+                    android:inputType="text"
+                    android:autofillHints=""
                     android:textColor="@color/white"
                     android:textColorHint="@color/gray1"
                     android:textSize="12sp" />

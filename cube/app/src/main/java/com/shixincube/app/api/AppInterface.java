@@ -24,37 +24,12 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app.ui.base;
+package com.shixincube.app.api;
 
-import java.lang.ref.Reference;
-import java.lang.ref.WeakReference;
+/**
+ * 应用程序接口。
+ */
+public interface AppInterface {
 
-public class BasePresenter<V> {
 
-    protected BaseActivity activity;
-
-    protected Reference<V> viewRef;
-
-    public BasePresenter(BaseActivity activity) {
-        this.activity = activity;
-    }
-
-    public void attachView(V view) {
-        this.viewRef = new WeakReference<V>(view);
-    }
-
-    public boolean isViewAttached() {
-        return this.viewRef != null && this.viewRef.get() != null;
-    }
-
-    public void detachView() {
-        if (null != this.viewRef) {
-            this.viewRef.clear();
-            this.viewRef = null;
-        }
-    }
-
-    public V getView() {
-        return (null != this.viewRef) ? this.viewRef.get() : null;
-    }
 }

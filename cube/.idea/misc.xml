@@ -20,7 +20,7 @@
         <entry key="app/src/main/res/drawable/shape_strip_button_enable.xml" value="0.3203125" />
         <entry key="app/src/main/res/drawable/shape_vertical_line.xml" value="0.11381578947368422" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.14792299898682879" />
-        <entry key="app/src/main/res/layout/activity_register.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/activity_register.xml" value="0.5" />
         <entry key="app/src/main/res/layout/activity_splash.xml" value="0.1" />
         <entry key="app/src/main/res/layout/include_toolbar.xml" value="0.2545289855072464" />
       </map>

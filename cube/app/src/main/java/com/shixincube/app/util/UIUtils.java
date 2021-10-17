@@ -28,6 +28,8 @@ package com.shixincube.app.util;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.os.Handler;
+import android.widget.Toast;
 
 import com.shixincube.app.CubeBaseApp;
 
@@ -36,15 +38,59 @@ import com.shixincube.app.CubeBaseApp;
  */
 public final class UIUtils {
 
+    private static Toast sToast;
+
     private UIUtils() {
+    }
+
+    /**
+     * 弹出吐司提示。
+     *
+     * @param text 提示文本。
+     */
+    public static void showToast(String text) {
+        showToast(text, Toast.LENGTH_SHORT);
+    }
+
+    /**
+     * 弹出吐司提示。
+     *
+     * @param text 提示文本。
+     * @param duration 持续时长模式。
+     */
+    public static void showToast(String text, int duration) {
+        if (null == sToast) {
+            sToast = Toast.makeText(getContext(), "", duration);
+        }
+        sToast.setText(text);
+        sToast.show();
+    }
+
+    /**
+     * 在其他线程中安全地弹出吐司提示。
+     *
+     * @param text 吐司文本。
+     */
+    public static void showToastSafely(final String text) {
+        getMainThreadHandler().post(new Runnable() {
+            @Override
+            public void run() {
+                showToast(text);
+            }
+        });
     }
 
     public static Context getContext() {
         return CubeBaseApp.getContext();
     }
 
+    public static Handler getMainThreadHandler() {
+        return CubeBaseApp.getMainThreadHandler();
+    }
+
     /**
      * 获取资源对象。
+     *
      * @return
      */
     public static Resources getResource() {
@@ -53,10 +99,21 @@ public final class UIUtils {
 
     /**
      * 获取 colors.xml 的颜色值。
+     *
      * @param colorId
      * @return
      */
     public static int getColor(int colorId) {
         return getResource().getColor(colorId, getContext().getTheme());
+    }
+
+    /**
+     * 获取 strings.xml 的字符串值。
+     *
+     * @param stringId
+     * @return
+     */
+    public static String getString(int stringId) {
+        return getResource().getString(stringId);
     }
 }

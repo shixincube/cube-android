@@ -26,10 +26,14 @@
 
 package com.shixincube.app.ui.presenter;
 
+import android.text.TextUtils;
+
 import com.shixincube.app.R;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.RegisterView;
+import com.shixincube.app.util.RegularUtils;
+import com.shixincube.app.util.UIUtils;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -53,8 +57,6 @@ public class RegisterPresenter extends BasePresenter<RegisterView> {
 
     public RegisterPresenter(BaseActivity context) {
         super(context);
-
-
     }
 
     public void register() {
@@ -62,6 +64,18 @@ public class RegisterPresenter extends BasePresenter<RegisterView> {
     }
 
     public void sendVerificationCode() {
+        String phoneNumber = getView().getPhoneNumberEditText().getText().toString().trim();
+        if (TextUtils.isEmpty(phoneNumber)) {
+            UIUtils.showToast(UIUtils.getString(R.string.phone_not_empty));
+            return;
+        }
+
+        // 号码格式
+        if (!RegularUtils.isMobile(phoneNumber)) {
+            UIUtils.showToast(UIUtils.getString(R.string.phone_format_error));
+            return;
+        }
+
         changeSendCodeButton();
     }
 
@@ -97,6 +111,7 @@ public class RegisterPresenter extends BasePresenter<RegisterView> {
                     }
                     else {
                         timer.cancel();
+                        timer = null;
                     }
                 }
             }, new Consumer<Throwable>() {
@@ -111,6 +126,11 @@ public class RegisterPresenter extends BasePresenter<RegisterView> {
         if (null != this.disposable) {
             this.disposable.dispose();
             this.disposable = null;
+        }
+
+        if (null != this.timer) {
+            this.timer.cancel();
+            this.timer = null;
         }
     }
 }

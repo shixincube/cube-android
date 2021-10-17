@@ -83,12 +83,11 @@ public class RegisterActivity extends BaseActivity<RegisterView, RegisterPresent
         this.watcher = new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {
-
             }
 
             @Override
             public void onTextChanged(CharSequence charSequence, int start, int count, int after) {
-
+                registerButton.setEnabled(canRegister());
             }
 
             @Override
@@ -96,6 +95,30 @@ public class RegisterActivity extends BaseActivity<RegisterView, RegisterPresent
 
             }
         };
+    }
+
+    private boolean canRegister() {
+        int nickNameLength = nickNameText.getText().toString().trim().length();
+        if (nickNameLength < 3) {
+            return false;
+        }
+
+        int phoneNumberLength = phoneNumberText.getText().toString().trim().length();
+        if (phoneNumberLength != 11) {
+            return false;
+        }
+
+        int passwordLength = passwordText.getText().toString().trim().length();
+        if (passwordLength < 6) {
+            return false;
+        }
+
+        int verificationCodeLength = verificationCodeText.getText().toString().trim().length();
+        if (verificationCodeLength < 4) {
+            return false;
+        }
+
+        return true;
     }
 
     @Override
@@ -211,5 +234,4 @@ public class RegisterActivity extends BaseActivity<RegisterView, RegisterPresent
     public Button getSendCodeButton() {
         return this.sendCodeButton;
     }
-
 }

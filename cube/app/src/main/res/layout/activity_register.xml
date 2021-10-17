@@ -27,7 +27,7 @@
 
                 <com.zhy.autolayout.AutoLinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="66dp"
+                    android:layout_height="60dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
                     android:paddingLeft="20dp"
@@ -64,7 +64,7 @@
         <com.zhy.autolayout.AutoLinearLayout
             android:id="@+id/llDistrict"
             android:layout_width="match_parent"
-            android:layout_height="66dp"
+            android:layout_height="60dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 

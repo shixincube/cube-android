@@ -109,7 +109,7 @@ public class CubeBaseApp extends MultiDexApplication {
         return CubeBaseApp.mainThreadId;
     }
 
-    public static Handler getHandler() {
+    public static Handler getMainThreadHandler() {
         return CubeBaseApp.handler;
     }
 }

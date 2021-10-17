@@ -26,10 +26,15 @@
 
 package com.shixincube.app.ui.presenter;
 
+import com.shixincube.app.R;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.RegisterView;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
+import cube.util.LogUtils;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Observable;
@@ -43,6 +48,9 @@ public class RegisterPresenter extends BasePresenter<RegisterView> {
 
     private Disposable disposable;
 
+    private Timer timer;
+    private int timeCountdown;
+
     public RegisterPresenter(BaseActivity context) {
         super(context);
 
@@ -54,22 +62,47 @@ public class RegisterPresenter extends BasePresenter<RegisterView> {
     }
 
     public void sendVerificationCode() {
+        changeSendCodeButton();
+    }
+
+    private void changeSendCodeButton() {
+        getView().getSendCodeButton().setEnabled(false);
+
         this.disposable = Observable.create(new ObservableOnSubscribe<Integer>() {
             @Override
             public void subscribe(@NonNull ObservableEmitter<Integer> emitter) throws Throwable {
-
+                timeCountdown = 60;
+                TimerTask task = new TimerTask() {
+                    @Override
+                    public void run() {
+                        emitter.onNext(--timeCountdown);
+                    }
+                };
+                timer = new Timer();
+                timer.schedule(task, 0, 1000);
             }
         }).subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(new Consumer<Integer>() {
                 @Override
-                public void accept(Integer integer) throws Throwable {
-
+                public void accept(Integer time) throws Throwable {
+                    if (null != getView().getSendCodeButton() && !getView().getSendCodeButton().isEnabled()) {
+                        if (time >= 0) {
+                            getView().getSendCodeButton().setText("已发送 (" + time + " 秒)");
+                        }
+                        else {
+                            getView().getSendCodeButton().setEnabled(true);
+                            getView().getSendCodeButton().setText(R.string.send_verification_code);
+                        }
+                    }
+                    else {
+                        timer.cancel();
+                    }
                 }
             }, new Consumer<Throwable>() {
                 @Override
                 public void accept(Throwable throwable) throws Throwable {
-
+                    LogUtils.pe(throwable);
                 }
             });
     }

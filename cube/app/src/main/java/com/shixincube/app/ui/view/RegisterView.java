@@ -33,11 +33,11 @@ public interface RegisterView {
 
     EditText getNickNameEditText();
 
-    EditText getPhoneEditText();
+    EditText getPhoneNumberEditText();
 
     EditText getPasswordEditText();
 
     EditText getVerificationCodeEditText();
 
-    Button getSendCodeButtong();
+    Button getSendCodeButton();
 }

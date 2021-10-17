@@ -189,27 +189,27 @@ public class RegisterActivity extends BaseActivity<RegisterView, RegisterPresent
 
     @Override
     public EditText getNickNameEditText() {
-        return null;
+        return this.nickNameText;
     }
 
     @Override
-    public EditText getPhoneEditText() {
-        return null;
+    public EditText getPhoneNumberEditText() {
+        return this.phoneNumberText;
     }
 
     @Override
     public EditText getPasswordEditText() {
-        return null;
+        return this.passwordText;
     }
 
     @Override
     public EditText getVerificationCodeEditText() {
-        return null;
+        return this.verificationCodeText;
     }
 
     @Override
-    public Button getSendCodeButtong() {
-        return null;
+    public Button getSendCodeButton() {
+        return this.sendCodeButton;
     }
 
 }

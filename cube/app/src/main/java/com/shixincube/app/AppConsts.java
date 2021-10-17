@@ -32,6 +32,11 @@ package com.shixincube.app;
 public final class AppConsts {
 
     /**
+     * 日志 TAG 。
+     */
+    public final static String TAG = "Cube";
+
+    /**
      * 令牌码。
      */
     public final static String TOKEN_CODE = "AppTokenCode";

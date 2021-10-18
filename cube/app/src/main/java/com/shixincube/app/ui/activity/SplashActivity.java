@@ -109,7 +109,8 @@ public class SplashActivity extends BaseActivity {
     @Override
     public void initListener() {
         this.loginButton.setOnClickListener(v -> {
-
+            jumpToActivity(LoginActivity.class);
+            overridePendingTransition(R.anim.entry_from_bottom, 0);
         });
 
         this.registerButton.setOnClickListener(v -> {

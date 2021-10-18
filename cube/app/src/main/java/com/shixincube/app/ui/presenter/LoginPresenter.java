@@ -24,60 +24,18 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app.ui.activity;
+package com.shixincube.app.ui.presenter;
 
-import android.widget.EditText;
-
-import com.shixincube.app.R;
 import com.shixincube.app.ui.base.BaseActivity;
-import com.shixincube.app.ui.presenter.LoginPresenter;
+import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.LoginView;
 
-import butterknife.BindView;
-
 /**
- * 登录。
+ * 账号登录。
  */
-public class LoginActivity extends BaseActivity<LoginView, LoginPresenter> implements LoginView {
+public class LoginPresenter extends BasePresenter<LoginView> {
 
-    @BindView(R.id.etPhoneNumber)
-    EditText phoneNumberText;
-
-    @BindView(R.id.etPassword)
-    EditText passwordText;
-
-    public LoginActivity() {
-        super();
-    }
-
-    @Override
-    public void initView() {
-        setToolbarTitle(getString(R.string.title_login));
-    }
-
-    @Override
-    public void finish() {
-        super.finish();
-        overridePendingTransition(0, R.anim.exit_to_bottom);
-    }
-
-    @Override
-    protected LoginPresenter createPresenter() {
-        return new LoginPresenter(this);
-    }
-
-    @Override
-    protected int provideContentViewId() {
-        return R.layout.activity_login;
-    }
-
-    @Override
-    public EditText getPhoneNumberText() {
-        return this.phoneNumberText;
-    }
-
-    @Override
-    public EditText getPasswordText() {
-        return this.passwordText;
+    public LoginPresenter(BaseActivity activity) {
+        super(activity);
     }
 }

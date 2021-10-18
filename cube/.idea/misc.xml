@@ -6,6 +6,7 @@
         <entry key="app/src/main/res/drawable-v24/ic_launcher_foreground.xml" value="0.3203125" />
         <entry key="app/src/main/res/drawable-v24/shape_splash_register.xml" value="0.3203125" />
         <entry key="app/src/main/res/drawable-v24/shape_strip_button_pressed.xml" value="0.3203125" />
+        <entry key="app/src/main/res/drawable/dialog_waiting.xml" value="0.20230263157894737" />
         <entry key="app/src/main/res/drawable/ic_launcher_background.xml" value="0.3203125" />
         <entry key="app/src/main/res/drawable/selector_register_send_code.xml" value="0.3203125" />
         <entry key="app/src/main/res/drawable/selector_strip_button.xml" value="0.3203125" />
@@ -21,7 +22,7 @@
         <entry key="app/src/main/res/drawable/shape_vertical_line.xml" value="0.11381578947368422" />
         <entry key="app/src/main/res/layout/activity_login.xml" value="0.17827868852459017" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.14792299898682879" />
-        <entry key="app/src/main/res/layout/activity_register.xml" value="0.5" />
+        <entry key="app/src/main/res/layout/activity_register.xml" value="0.125" />
         <entry key="app/src/main/res/layout/activity_splash.xml" value="0.1" />
         <entry key="app/src/main/res/layout/dialog_waiting.xml" value="0.17827868852459017" />
         <entry key="app/src/main/res/layout/include_toolbar.xml" value="0.2545289855072464" />

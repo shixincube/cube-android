@@ -52,6 +52,9 @@ import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.functions.Consumer;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
+/**
+ * 账号注册。
+ */
 public class RegisterPresenter extends BasePresenter<RegisterView> {
 
     private Disposable disposable;

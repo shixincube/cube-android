@@ -19,6 +19,7 @@
             android:layout_marginTop="26dp"
             android:orientation="horizontal">
 
+            <!-- 昵称 -->
             <com.zhy.autolayout.AutoLinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -61,6 +62,7 @@
 
         </com.zhy.autolayout.AutoLinearLayout>
 
+        <!-- 国家/地区 -->
         <com.zhy.autolayout.AutoLinearLayout
             android:id="@+id/llDistrict"
             android:layout_width="match_parent"
@@ -73,7 +75,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="13dp"
                 android:layout_weight="1"
-                android:text="@string/district"
+                android:text="@string/countries_and_regions"
                 android:textColor="@color/black0"
                 android:textSize="18sp"/>
 
@@ -90,6 +92,7 @@
 
         <View style="@style/Line"/>
 
+        <!-- 电话号码 -->
         <com.zhy.autolayout.AutoLinearLayout
             android:layout_width="match_parent"
             android:layout_height="60dp"
@@ -102,7 +105,7 @@
                 android:id="@+id/tvDistrictNumber"
                 android:layout_width="80dp"
                 android:layout_height="wrap_content"
-                android:text="@string/china_district_number"
+                android:text="@string/china_region_number"
                 android:textColor="@color/black0"
                 android:textSize="18sp"/>
 
@@ -123,6 +126,7 @@
             android:id="@+id/vLinePhoneNumber"
             style="@style/Line"/>
 
+        <!-- 密码 -->
         <com.zhy.autolayout.AutoRelativeLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
@@ -172,6 +176,7 @@
             android:id="@+id/vLinePassword"
             style="@style/Line"/>
 
+        <!-- 验证码 -->
         <com.zhy.autolayout.AutoLinearLayout
             android:layout_width="match_parent"
             android:layout_height="60dp"
@@ -214,6 +219,7 @@
             android:id="@+id/vLineVerificationCode"
             style="@style/Line"/>
 
+        <!-- 注册按钮 -->
         <Button
             android:id="@+id/btnRegister"
             android:layout_width="match_parent"
@@ -224,7 +230,7 @@
             android:enabled="false"
             android:text="@string/register"
             android:textColor="@color/white"
-            android:textSize="18sp"/>
+            android:textSize="20sp"/>
 
     </com.zhy.autolayout.AutoLinearLayout>
 

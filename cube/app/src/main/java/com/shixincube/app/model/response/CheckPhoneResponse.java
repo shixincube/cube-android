@@ -24,30 +24,15 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app;
+package com.shixincube.app.model.response;
 
 /**
- * 应用程序常量。
+ * 检查手机 API 应答数据。
  */
-public final class AppConsts {
+public class CheckPhoneResponse {
 
-    /**
-     * 日志 TAG 。
-     */
-    public final static String TAG = "Cube";
+    public int code;
 
-    /**
-     * 默认国际电话区号。
-     */
-    public final static String REGION_CODE = "86";
+    public boolean result;
 
-    /**
-     * 令牌码。
-     */
-    public final static String TOKEN_CODE = "AppTokenCode";
-
-    /**
-     * 令牌过期时间戳。
-     */
-    public final static String TOKEN_EXPIRE = "AppTokenExpire";
 }

@@ -26,9 +26,11 @@
 
 package com.shixincube.app.ui.base;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
@@ -42,6 +44,7 @@ import com.jaeger.library.StatusBarUtil;
 import com.shixincube.app.CubeApp;
 import com.shixincube.app.R;
 import com.shixincube.app.util.UIUtils;
+import com.shixincube.app.widget.CustomDialog;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -49,6 +52,7 @@ import butterknife.ButterKnife;
 public abstract class BaseActivity<V, T extends BasePresenter<V>> extends AppCompatActivity {
 
     protected T presenter;
+    private CustomDialog dialogForWaiting;
 
     @BindView(R.id.appBar)
     protected AppBarLayout appBar;
@@ -101,6 +105,28 @@ public abstract class BaseActivity<V, T extends BasePresenter<V>> extends AppCom
 
     public void setToolbarTitle(String title) {
         toolbarTitle.setText(title);
+    }
+
+    public Dialog showWaitingDialog(String tip) {
+        hideWaitingDialog();
+
+        View view = View.inflate(this, R.layout.dialog_waiting, null);
+        if (!TextUtils.isEmpty(tip)) {
+            ((TextView) view.findViewById(R.id.tvTip)).setText(tip);
+        }
+
+        this.dialogForWaiting = new CustomDialog(this, view, R.style.CustomDialog);
+        this.dialogForWaiting.show();
+        this.dialogForWaiting.setCancelable(false);
+
+        return this.dialogForWaiting;
+    }
+
+    public void hideWaitingDialog() {
+        if (null != this.dialogForWaiting) {
+            this.dialogForWaiting.dismiss();
+            this.dialogForWaiting = null;
+        }
     }
 
     /**

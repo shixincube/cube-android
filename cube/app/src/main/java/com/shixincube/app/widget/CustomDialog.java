@@ -24,30 +24,36 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app;
+package com.shixincube.app.widget;
+
+import android.app.Dialog;
+import android.content.Context;
+import android.content.res.Resources;
+import android.util.DisplayMetrics;
+import android.view.Gravity;
+import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 
 /**
- * 应用程序常量。
+ * 自定义对话框。
  */
-public final class AppConsts {
+public class CustomDialog extends Dialog {
 
-    /**
-     * 日志 TAG 。
-     */
-    public final static String TAG = "Cube";
+    public CustomDialog(Context context, View layout, int style) {
+        super(context, style);
 
-    /**
-     * 默认国际电话区号。
-     */
-    public final static String REGION_CODE = "86";
+        setContentView(layout);
 
-    /**
-     * 令牌码。
-     */
-    public final static String TOKEN_CODE = "AppTokenCode";
+        Window window = getWindow();
+        WindowManager.LayoutParams params = window.getAttributes();
+        params.gravity = Gravity.CENTER;
+        window.setAttributes(params);
+    }
 
-    /**
-     * 令牌过期时间戳。
-     */
-    public final static String TOKEN_EXPIRE = "AppTokenExpire";
+    public float getDensity(Context context) {
+        Resources res = context.getResources();
+        DisplayMetrics dm = res.getDisplayMetrics();
+        return dm.density;
+    }
 }

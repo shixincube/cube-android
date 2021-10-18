@@ -26,10 +26,24 @@
 
 package com.shixincube.app.api;
 
+import com.shixincube.app.model.response.CheckPhoneResponse;
+
+import io.reactivex.rxjava3.core.Observable;
+import okhttp3.RequestBody;
+import retrofit2.http.Body;
+import retrofit2.http.POST;
+
 /**
  * 应用程序接口。
  */
 public interface AppInterface {
 
-
+    /**
+     * 检查手机号码是否可用。支持设置是否发送验证码。
+     *
+     * @param body
+     * @return
+     */
+    @POST("/account/check_phone_available/")
+    Observable<CheckPhoneResponse> checkPhoneAvailable(@Body RequestBody body);
 }

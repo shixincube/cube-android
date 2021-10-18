@@ -28,7 +28,9 @@ package com.shixincube.app.ui.presenter;
 
 import android.text.TextUtils;
 
+import com.shixincube.app.AppConsts;
 import com.shixincube.app.R;
+import com.shixincube.app.api.Explorer;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.RegisterView;
@@ -76,7 +78,21 @@ public class RegisterPresenter extends BasePresenter<RegisterView> {
             return;
         }
 
-        changeSendCodeButton();
+        this.activity.showWaitingDialog(UIUtils.getString(R.string.please_waiting));
+
+        Explorer.getInstance().checkPhoneAvailable(AppConsts.REGION_CODE, phoneNumber, true)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(checkPhoneResponse -> {
+                    activity.hideWaitingDialog();
+
+                    changeSendCodeButton();
+                }, this::sendVerificationCodeError);
+    }
+
+    private void sendVerificationCodeError(Throwable throwable) {
+        this.activity.hideWaitingDialog();
+        LogUtils.e(throwable.getLocalizedMessage());
     }
 
     private void changeSendCodeButton() {

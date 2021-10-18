@@ -33,6 +33,6 @@ public class CheckPhoneResponse {
 
     public int code;
 
-    public boolean result;
+    public boolean verificationCodeRequired;
 
 }

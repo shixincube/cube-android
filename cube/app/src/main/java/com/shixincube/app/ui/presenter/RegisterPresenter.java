@@ -31,6 +31,7 @@ import android.text.TextUtils;
 import com.shixincube.app.AppConsts;
 import com.shixincube.app.R;
 import com.shixincube.app.api.Explorer;
+import com.shixincube.app.api.StateCode;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.RegisterView;
@@ -86,13 +87,21 @@ public class RegisterPresenter extends BasePresenter<RegisterView> {
                 .subscribe(checkPhoneResponse -> {
                     activity.hideWaitingDialog();
 
-                    changeSendCodeButton();
+                    if (checkPhoneResponse.code == StateCode.Success) {
+                        // 号码可用，并已发送验证码
+                        changeSendCodeButton();
+                    }
+                    else {
+                        // 号码不可用
+                        sendVerificationCodeError(new Exception(UIUtils.getString(R.string.phone_not_available)));
+                    }
                 }, this::sendVerificationCodeError);
     }
 
     private void sendVerificationCodeError(Throwable throwable) {
         this.activity.hideWaitingDialog();
         LogUtils.e(throwable.getLocalizedMessage());
+        UIUtils.showToast(throwable.getLocalizedMessage());
     }
 
     private void changeSendCodeButton() {

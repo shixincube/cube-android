@@ -24,26 +24,53 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app.model;
+package com.shixincube.app.api;
 
 /**
- * 账号。
+ * 状态码。
  */
-public class Account {
+public final class StateCode {
 
-    public long id;
+    /**
+     * 成功。
+     */
+    public final static int Success = 0;
 
-    public String account;
+    /**
+     * 不被允许的行为。
+     */
+    public final static int NotAllowed = 1;
 
-    public String phone;
+    /**
+     * 找不到用户。
+     */
+    public final static int NotFindAccount = 5;
 
-    public String name;
+    /**
+     * 无效的令牌。
+     */
+    public final static int InvalidToken = 6;
 
-    public String avatar;
+    /**
+     * 找不到令牌。
+     */
+    public final static int NotFindToken = 7;
 
-    public int state;
+    /**
+     * 无效账号。
+     */
+    public final static int InvalidAccount = 8;
 
-    public String region;
+    /**
+     * 数据错误。
+     */
+    public final static int DataError = 9;
 
-    public String department;
+    /**
+     * 其他状态。
+     */
+    public final static int Other = 99;
+
+    private StateCode() {
+    }
 }

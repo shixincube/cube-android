@@ -24,26 +24,31 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app.model;
+package com.shixincube.app.model.request;
+
+import com.google.gson.annotations.SerializedName;
 
 /**
- * 账号。
+ * 注册账号请求。
  */
-public class Account {
+public class RegisterRequest {
 
-    public long id;
+    @SerializedName("phone")
+    public String phoneNumber;
 
-    public String account;
+    public String password;
 
-    public String phone;
+    public String nickname;
 
-    public String name;
+    public String avatar = "default";
 
-    public String avatar;
+    @SerializedName("vcode")
+    public String verificationCode;
 
-    public int state;
-
-    public String region;
-
-    public String department;
+    public RegisterRequest(String phoneNumber, String password, String nickname, String verificationCode) {
+        this.phoneNumber = phoneNumber;
+        this.password = password;
+        this.nickname = nickname;
+        this.verificationCode = verificationCode;
+    }
 }

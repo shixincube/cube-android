@@ -27,6 +27,7 @@
 package com.shixincube.app.api;
 
 import com.shixincube.app.model.response.CheckPhoneResponse;
+import com.shixincube.app.model.response.RegisterResponse;
 
 import io.reactivex.rxjava3.core.Observable;
 import okhttp3.RequestBody;
@@ -46,4 +47,13 @@ public interface AppInterface {
      */
     @POST("/account/check_phone_available/")
     Observable<CheckPhoneResponse> checkPhoneAvailable(@Body RequestBody body);
+
+    /**
+     * 注册账号。
+     *
+     * @param body
+     * @return
+     */
+    @POST("/account/register/")
+    Observable<RegisterResponse> register(@Body RequestBody body);
 }

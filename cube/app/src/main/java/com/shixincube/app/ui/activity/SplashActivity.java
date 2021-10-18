@@ -26,7 +26,6 @@
 
 package com.shixincube.app.ui.activity;
 
-
 import android.Manifest;
 import android.content.Intent;
 import android.view.View;
@@ -44,6 +43,13 @@ import com.shixincube.app.util.UIUtils;
 
 import butterknife.BindView;
 import cube.engine.CubeService;
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.annotations.NonNull;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.ObservableEmitter;
+import io.reactivex.rxjava3.core.ObservableOnSubscribe;
+import io.reactivex.rxjava3.functions.Consumer;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import kr.co.namee.permissiongen.PermissionGen;
 
 /**
@@ -135,12 +141,29 @@ public class SplashActivity extends BaseActivity {
 
     private void launch() {
         // 判断是否有有效令牌
-        if (AccountHelper.getInstance(getApplicationContext()).checkValidToken()) {
-            this.valid = true;
-        }
-        else {
-            this.valid = false;
-        }
+        Observable.create(new ObservableOnSubscribe<Boolean>() {
+            @Override
+            public void subscribe(@NonNull ObservableEmitter<Boolean> emitter) throws Throwable {
+                if (AccountHelper.getInstance(getApplicationContext()).checkValidToken()) {
+                    valid = true;
+                }
+                else {
+                    valid = false;
+                }
+
+                emitter.onNext(valid);
+            }
+        }).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<Boolean>() {
+            @Override
+            public void accept(Boolean valid) throws Throwable {
+                if (!valid.booleanValue()) {
+                    loginButton.setVisibility(View.VISIBLE);
+                    registerButton.setVisibility(View.VISIBLE);
+                }
+            }
+        });
 
         // 创建引擎服务
         this.connection = new CubeServiceConnection(getApplicationContext());

@@ -24,26 +24,7 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app.model;
+package com.shixincube.app.ui.activity;
 
-/**
- * 账号。
- */
-public class Account {
-
-    public long id;
-
-    public String account;
-
-    public String phone;
-
-    public String name;
-
-    public String avatar;
-
-    public int state;
-
-    public String region;
-
-    public String department;
+public class LoginActivity {
 }

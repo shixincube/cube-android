@@ -35,6 +35,7 @@ import com.shixincube.app.api.StateCode;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.RegisterView;
+import com.shixincube.app.util.HashUtils;
 import com.shixincube.app.util.RegularUtils;
 import com.shixincube.app.util.UIUtils;
 
@@ -62,10 +63,53 @@ public class RegisterPresenter extends BasePresenter<RegisterView> {
         super(context);
     }
 
+    /**
+     * 注册账号。
+     */
     public void register() {
+        String nickname = getView().getNickNameEditText().getText().toString().trim();
+        String phoneNumber = getView().getPhoneNumberEditText().getText().toString().trim();
+        String password = getView().getPasswordEditText().getText().toString().trim();
+        String code = getView().getVerificationCodeEditText().getText().toString().trim();
 
+        if (nickname.length() < 3) {
+            UIUtils.showToast(UIUtils.getString(R.string.nickname_length_error));
+            return;
+        }
+
+        if (TextUtils.isEmpty(phoneNumber)) {
+            UIUtils.showToast(UIUtils.getString(R.string.phone_not_empty));
+            return;
+        }
+
+        if (password.length() < 6) {
+            UIUtils.showToast(UIUtils.getString(R.string.password_length_error));
+            return;
+        }
+
+        if (TextUtils.isEmpty(code)) {
+            UIUtils.showToast(UIUtils.getString(R.string.vcode_not_empty));
+            return;
+        }
+
+        // 生成密码 MD5 码
+        password = HashUtils.makeMD5(password);
+
+        Explorer.getInstance().registerAccount(phoneNumber, password, nickname, code)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(registerResponse -> {
+
+            }, this::registerError);
     }
 
+    private void registerError(Throwable throwable) {
+        UIUtils.showToast(throwable.getLocalizedMessage());
+    }
+
+    /**
+     * 验证号码并发送验证码。
+     */
     public void sendVerificationCode() {
         String phoneNumber = getView().getPhoneNumberEditText().getText().toString().trim();
         if (TextUtils.isEmpty(phoneNumber)) {

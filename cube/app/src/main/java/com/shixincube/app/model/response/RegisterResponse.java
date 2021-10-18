@@ -24,26 +24,16 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app.model;
+package com.shixincube.app.model.response;
+
+import com.shixincube.app.model.Account;
 
 /**
- * 账号。
+ * 注册账号答应。
  */
-public class Account {
+public class RegisterResponse {
 
-    public long id;
+    public int code;
 
-    public String account;
-
-    public String phone;
-
-    public String name;
-
-    public String avatar;
-
-    public int state;
-
-    public String region;
-
-    public String department;
+    public Account account;
 }

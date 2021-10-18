@@ -30,7 +30,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.shixincube.app.CubeApp;
 import com.shixincube.app.model.request.CheckPhoneRequest;
+import com.shixincube.app.model.request.RegisterRequest;
 import com.shixincube.app.model.response.CheckPhoneResponse;
+import com.shixincube.app.model.response.RegisterResponse;
 
 import java.io.File;
 import java.io.IOException;
@@ -91,6 +93,19 @@ public class Explorer {
      */
     public Observable<CheckPhoneResponse> checkPhoneAvailable(String regionCode, String phoneNumber, boolean verificationCodeRequired) {
         return this.api.checkPhoneAvailable(getRequestBody(new CheckPhoneRequest(regionCode, phoneNumber, verificationCodeRequired)));
+    }
+
+    /**
+     * 注册账号。
+     *
+     * @param phoneNumber
+     * @param password
+     * @param nickname
+     * @param verificationCode
+     * @return
+     */
+    public Observable<RegisterResponse> registerAccount(String phoneNumber, String password, String nickname, String verificationCode) {
+        return this.api.register(getRequestBody(new RegisterRequest(phoneNumber, password, nickname, verificationCode)));
     }
 
     private RequestBody getRequestBody(Object object) {

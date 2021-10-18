@@ -24,26 +24,40 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app.model;
+package com.shixincube.app.util;
+
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Locale;
 
 /**
- * 账号。
+ * 散列实用函数库。
  */
-public class Account {
+public final class HashUtils {
 
-    public long id;
+    private HashUtils() {
+    }
 
-    public String account;
+    public static String makeMD5(String input) {
+        byte[] bytes = null;
+        try {
+            bytes = MessageDigest.getInstance("MD5").digest(input.getBytes(StandardCharsets.UTF_8));
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        if (null == bytes) {
+            return null;
+        }
 
-    public String phone;
+        return printHexBinary(bytes);
+    }
 
-    public String name;
-
-    public String avatar;
-
-    public int state;
-
-    public String region;
-
-    public String department;
+    private static String printHexBinary(byte[] data) {
+        StringBuilder r = new StringBuilder(data.length * 2);
+        for (byte b : data) {
+            r.append(String.format("%02X", (int)(b & 0xFF)));
+        }
+        return r.toString().toLowerCase(Locale.ROOT);
+    }
 }

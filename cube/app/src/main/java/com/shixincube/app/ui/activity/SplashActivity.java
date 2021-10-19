@@ -129,7 +129,6 @@ public class SplashActivity extends BaseActivity {
         return R.layout.activity_splash;
     }
 
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -159,9 +158,13 @@ public class SplashActivity extends BaseActivity {
                 .subscribe(new Consumer<Boolean>() {
             @Override
             public void accept(Boolean valid) throws Throwable {
-                if (!valid.booleanValue()) {
+                if (!valid.booleanValue() && null != loginButton && null != registerButton) {
                     loginButton.setVisibility(View.VISIBLE);
                     registerButton.setVisibility(View.VISIBLE);
+                }
+
+                if (valid.booleanValue()) {
+                    jumpToActivityAndClearTask(MainActivity.class);
                 }
             }
         });

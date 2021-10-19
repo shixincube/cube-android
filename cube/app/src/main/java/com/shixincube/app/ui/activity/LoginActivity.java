@@ -26,12 +26,17 @@
 
 package com.shixincube.app.ui.activity;
 
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 
 import com.shixincube.app.R;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.presenter.LoginPresenter;
 import com.shixincube.app.ui.view.LoginView;
+import com.shixincube.app.util.UIUtils;
 
 import butterknife.BindView;
 
@@ -42,12 +47,36 @@ public class LoginActivity extends BaseActivity<LoginView, LoginPresenter> imple
 
     @BindView(R.id.etPhoneNumber)
     EditText phoneNumberText;
+    @BindView(R.id.vLinePhoneNumber)
+    View phoneNumberLine;
 
     @BindView(R.id.etPassword)
     EditText passwordText;
+    @BindView(R.id.vLinePassword)
+    View passwordLine;
+
+    @BindView(R.id.btnLogin)
+    Button loginButton;
+
+    private TextWatcher watcher;
 
     public LoginActivity() {
         super();
+
+        this.watcher = new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int start, int count, int after) {
+                loginButton.setEnabled(canLogin());
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+            }
+        };
     }
 
     @Override
@@ -56,9 +85,51 @@ public class LoginActivity extends BaseActivity<LoginView, LoginPresenter> imple
     }
 
     @Override
+    public void initListener() {
+        this.phoneNumberText.addTextChangedListener(this.watcher);
+        this.passwordText.addTextChangedListener(this.watcher);
+
+        this.phoneNumberText.setOnFocusChangeListener((view, hasFocus) -> {
+            if (hasFocus) {
+                phoneNumberLine.setBackgroundColor(UIUtils.getColor(R.color.theme_blue_dark));
+            }
+            else {
+                phoneNumberLine.setBackgroundColor(UIUtils.getColor(R.color.line));
+            }
+        });
+
+        this.passwordText.setOnFocusChangeListener((view, hasFocus) -> {
+            if (hasFocus) {
+                passwordLine.setBackgroundColor(UIUtils.getColor(R.color.theme_blue_dark));
+            }
+            else {
+                passwordLine.setBackgroundColor(UIUtils.getColor(R.color.line));
+            }
+        });
+
+        loginButton.setOnClickListener((view) -> {
+            presenter.login();
+        });
+    }
+
+    @Override
     public void finish() {
         super.finish();
         overridePendingTransition(0, R.anim.exit_to_bottom);
+    }
+
+    private boolean canLogin() {
+        int phoneNumberLength = this.phoneNumberText.getText().toString().trim().length();
+        if (phoneNumberLength < 11) {
+            return false;
+        }
+
+        int passwordLength = this.passwordText.getText().toString().trim().length();
+        if (passwordLength < 6) {
+            return false;
+        }
+
+        return true;
     }
 
     @Override

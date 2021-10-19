@@ -27,6 +27,7 @@
 package com.shixincube.app.api;
 
 import com.shixincube.app.model.response.CheckPhoneResponse;
+import com.shixincube.app.model.response.LoginResponse;
 import com.shixincube.app.model.response.RegisterResponse;
 
 import io.reactivex.rxjava3.core.Observable;
@@ -56,4 +57,13 @@ public interface AppInterface {
      */
     @POST("/account/register/")
     Observable<RegisterResponse> register(@Body RequestBody body);
+
+    /**
+     * 账号登录。
+     *
+     * @param body
+     * @return
+     */
+    @POST("/account/login/")
+    Observable<LoginResponse> login(@Body RequestBody body);
 }

@@ -92,7 +92,6 @@ public class RegisterActivity extends BaseActivity<RegisterView, RegisterPresent
 
             @Override
             public void afterTextChanged(Editable editable) {
-
             }
         };
     }
@@ -114,7 +113,7 @@ public class RegisterActivity extends BaseActivity<RegisterView, RegisterPresent
         }
 
         int verificationCodeLength = verificationCodeText.getText().toString().trim().length();
-        if (verificationCodeLength < 4) {
+        if (verificationCodeLength != 6) {
             return false;
         }
 

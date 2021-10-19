@@ -24,16 +24,18 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app.ui.view;
-
-import android.widget.EditText;
+package com.shixincube.app.model.response;
 
 /**
  * 账号登录。
  */
-public interface LoginView {
+public class LoginResponse {
 
-    EditText getPhoneNumberText();
+    public int code;
 
-    EditText getPasswordText();
+    public String token;
+
+    public long creation;
+
+    public long expire;
 }

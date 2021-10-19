@@ -30,8 +30,10 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.shixincube.app.CubeApp;
 import com.shixincube.app.model.request.CheckPhoneRequest;
+import com.shixincube.app.model.request.LoginRequest;
 import com.shixincube.app.model.request.RegisterRequest;
 import com.shixincube.app.model.response.CheckPhoneResponse;
+import com.shixincube.app.model.response.LoginResponse;
 import com.shixincube.app.model.response.RegisterResponse;
 
 import java.io.File;
@@ -106,6 +108,18 @@ public class Explorer {
      */
     public Observable<RegisterResponse> registerAccount(String phoneNumber, String password, String nickname, String verificationCode) {
         return this.api.register(getRequestBody(new RegisterRequest(phoneNumber, password, nickname, verificationCode)));
+    }
+
+    /**
+     * 账号登录。
+     *
+     * @param phoneNumber
+     * @param password
+     * @param device
+     * @return
+     */
+    public Observable<LoginResponse> login(String phoneNumber, String password, String device) {
+        return this.api.login(getRequestBody(new LoginRequest(phoneNumber, password, device)));
     }
 
     private RequestBody getRequestBody(Object object) {

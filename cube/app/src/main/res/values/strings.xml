@@ -32,8 +32,9 @@
 
     <!-- 账号登录 -->
     <string name="title_login">登录</string>
-    <string name="countries_and_regions">国家/地区</string>de
+    <string name="countries_and_regions">国家/地区</string>
+    <string name="login_error">请确认您的手机号码和密码后再尝试登录</string>
 
     <!-- 常用 -->
-    <string name="please_waiting">请稍候</string>
+    <string name="please_wait_a_moment">请稍候</string>
 </resources>

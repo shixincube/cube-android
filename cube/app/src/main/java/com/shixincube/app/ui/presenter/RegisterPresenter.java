@@ -126,7 +126,7 @@ public class RegisterPresenter extends BasePresenter<RegisterView> {
             return;
         }
 
-        this.activity.showWaitingDialog(UIUtils.getString(R.string.please_waiting));
+        this.activity.showWaitingDialog(UIUtils.getString(R.string.please_wait_a_moment));
 
         Explorer.getInstance().checkPhoneAvailable(AppConsts.REGION_CODE, phoneNumber, true)
                 .subscribeOn(Schedulers.io())
@@ -174,7 +174,7 @@ public class RegisterPresenter extends BasePresenter<RegisterView> {
                 public void accept(Integer time) throws Throwable {
                     if (null != getView().getSendCodeButton() && !getView().getSendCodeButton().isEnabled()) {
                         if (time >= 0) {
-                            getView().getSendCodeButton().setText("已发送 (" + time + " 秒)");
+                            getView().getSendCodeButton().setText("重新发送 (" + time + "秒)");
                         }
                         else {
                             getView().getSendCodeButton().setEnabled(true);

@@ -44,10 +44,12 @@ public class AccountHelper {
     private Context context;
 
     private SharedPreferences sp;
+    private SharedPreferences.Editor editor;
 
     private AccountHelper(Context context) {
         this.context = context;
         this.sp = context.getSharedPreferences(SP_NAME, Context.MODE_PRIVATE);
+        this.editor = this.sp.edit();
     }
 
     public static AccountHelper getInstance(Context context) {
@@ -73,6 +75,11 @@ public class AccountHelper {
 
     public Account getCurrentAccount() {
         return null;
+    }
+
+    public void saveToken(String tokenCode, long expire) {
+        this.editor.putString(AppConsts.TOKEN_CODE, tokenCode);
+        this.editor.putLong(AppConsts.TOKEN_EXPIRE, expire);
     }
 
     private String loadTokenCode() {

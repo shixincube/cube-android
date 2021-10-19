@@ -24,16 +24,25 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app.ui.view;
+package com.shixincube.app.model.request;
 
-import android.widget.EditText;
+import com.google.gson.annotations.SerializedName;
 
 /**
  * 账号登录。
  */
-public interface LoginView {
+public class LoginRequest {
 
-    EditText getPhoneNumberText();
+    @SerializedName("phone")
+    public String phoneNumber;
 
-    EditText getPasswordText();
+    public String password;
+
+    public String device;
+
+    public LoginRequest(String phoneNumber, String password, String device) {
+        this.phoneNumber = phoneNumber;
+        this.password = password;
+        this.device = device;
+    }
 }

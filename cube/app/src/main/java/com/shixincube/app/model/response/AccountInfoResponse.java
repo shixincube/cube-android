@@ -24,28 +24,24 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app.model;
+package com.shixincube.app.model.response;
 
 import com.google.gson.annotations.SerializedName;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import cube.util.JSONable;
+import com.shixincube.app.model.Account;
 
 /**
- * 账号。
+ * 账号信息。
  */
-public class Account implements JSONable {
+public class AccountInfoResponse {
 
     public long id;
 
     public String account;
 
+    public String name;
+
     @SerializedName("phone")
     public String phoneNumber;
-
-    public String name;
 
     public String avatar;
 
@@ -55,44 +51,18 @@ public class Account implements JSONable {
 
     public String department;
 
-    public Account() {
+    public AccountInfoResponse() {
     }
 
-    public Account(JSONObject json) {
-        try {
-            this.id = json.getLong("id");
-            this.account = json.getString("account");
-            this.phoneNumber = json.getString("phone");
-            this.name = json.getString("name");
-            this.avatar = json.getString("avatar");
-            this.state = json.getInt("state");
-            this.region = json.getString("region");
-            this.department = json.getString("department");
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public JSONObject toJSON() {
-        JSONObject json = new JSONObject();
-        try {
-            json.put("id", this.id);
-            json.put("account", this.account);
-            json.put("phone", this.phoneNumber);
-            json.put("name", this.name);
-            json.put("avatar", this.avatar);
-            json.put("state", this.state);
-            json.put("region", this.region);
-            json.put("department", this.department);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return json;
-    }
-
-    @Override
-    public JSONObject toCompactJSON() {
-        return this.toJSON();
+    public Account toAccount() {
+        Account account = new Account();
+        account.id = this.id;
+        account.account = this.account;
+        account.phoneNumber = this.phoneNumber;
+        account.avatar = this.avatar;
+        account.state = this.state;
+        account.region = this.region;
+        account.department = this.department;
+        return account;
     }
 }

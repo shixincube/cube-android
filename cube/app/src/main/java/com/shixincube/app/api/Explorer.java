@@ -32,6 +32,7 @@ import com.shixincube.app.CubeApp;
 import com.shixincube.app.model.request.CheckPhoneRequest;
 import com.shixincube.app.model.request.LoginRequest;
 import com.shixincube.app.model.request.RegisterRequest;
+import com.shixincube.app.model.response.AccountInfoResponse;
 import com.shixincube.app.model.response.CheckPhoneResponse;
 import com.shixincube.app.model.response.LoginResponse;
 import com.shixincube.app.model.response.RegisterResponse;
@@ -120,6 +121,16 @@ public class Explorer {
      */
     public Observable<LoginResponse> login(String phoneNumber, String password, String device) {
         return this.api.login(getRequestBody(new LoginRequest(phoneNumber, password, device)));
+    }
+
+    /**
+     * 获取自己的账号信息。
+     *
+     * @param token
+     * @return
+     */
+    public Observable<AccountInfoResponse> getAccountInfo(String token) {
+        return this.api.getAccountInfo(token);
     }
 
     private RequestBody getRequestBody(Object object) {

@@ -27,13 +27,16 @@
 package com.shixincube.app.api;
 
 import com.shixincube.app.model.response.CheckPhoneResponse;
+import com.shixincube.app.model.response.AccountInfoResponse;
 import com.shixincube.app.model.response.LoginResponse;
 import com.shixincube.app.model.response.RegisterResponse;
 
 import io.reactivex.rxjava3.core.Observable;
 import okhttp3.RequestBody;
 import retrofit2.http.Body;
+import retrofit2.http.GET;
 import retrofit2.http.POST;
+import retrofit2.http.Query;
 
 /**
  * 应用程序接口。
@@ -66,4 +69,13 @@ public interface AppInterface {
      */
     @POST("/account/login/")
     Observable<LoginResponse> login(@Body RequestBody body);
+
+    /**
+     * 查询自己的账号数据。
+     *
+     * @param token
+     * @return
+     */
+    @GET("/account/info/")
+    Observable<AccountInfoResponse> getAccountInfo(@Query("token") String token);
 }

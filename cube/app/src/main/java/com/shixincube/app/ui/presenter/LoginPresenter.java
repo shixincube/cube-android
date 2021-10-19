@@ -32,6 +32,9 @@ import com.shixincube.app.R;
 import com.shixincube.app.api.Explorer;
 import com.shixincube.app.api.StateCode;
 import com.shixincube.app.manager.AccountHelper;
+import com.shixincube.app.model.Account;
+import com.shixincube.app.model.response.AccountInfoResponse;
+import com.shixincube.app.model.response.LoginResponse;
 import com.shixincube.app.ui.activity.MainActivity;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
@@ -43,6 +46,9 @@ import com.shixincube.app.util.UIUtils;
 
 import cube.util.LogUtils;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.ObservableSource;
+import io.reactivex.rxjava3.functions.Function;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
 /**
@@ -75,20 +81,35 @@ public class LoginPresenter extends BasePresenter<LoginView> {
         password = HashUtils.makeMD5(password);
 
         String device = DeviceUtils.getDeviceDescription(this.activity.getApplicationContext());
+        // 登录
         Explorer.getInstance().login(phoneNumber, password, device)
+                .flatMap(new Function<LoginResponse, ObservableSource<AccountInfoResponse>>() {
+                    @Override
+                    public ObservableSource<AccountInfoResponse> apply(LoginResponse loginResponse) throws Throwable {
+                        if (loginResponse.code == StateCode.Success) {
+                            // 保存令牌
+                            AccountHelper.getInstance(activity.getApplicationContext())
+                                    .saveToken(loginResponse.token, loginResponse.expire);
+                            // 使用令牌获取账号信息
+                            return Explorer.getInstance().getAccountInfo(loginResponse.token);
+                        }
+                        else {
+                            return Observable.error(new Exception(UIUtils.getString(R.string.login_error)));
+                        }
+                    }
+                })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(loginResponse -> {
+                .subscribe(accountInfoResponse -> {
                     activity.hideWaitingDialog();
 
-                    if (loginResponse.code == StateCode.Success) {
-                        AccountHelper.getInstance(activity.getApplicationContext()).saveToken(loginResponse.token, loginResponse.expire);
-                        activity.jumpToActivityAndClearTask(MainActivity.class);
-                        activity.finish();
-                    }
-                    else {
-                        loginError(new Exception(UIUtils.getString(R.string.login_error)));
-                    }
+                    // 账号
+                    Account account = accountInfoResponse.toAccount();
+                    AccountHelper.getInstance(activity.getApplicationContext())
+                            .setCurrentAccount(account);
+
+                    activity.jumpToActivityAndClearTask(MainActivity.class);
+                    activity.finish();
                 }, this::loginError);
     }
 

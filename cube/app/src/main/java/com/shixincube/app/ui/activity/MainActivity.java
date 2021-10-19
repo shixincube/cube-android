@@ -26,7 +26,12 @@
 
 package com.shixincube.app.ui.activity;
 
+import android.util.Log;
+
+import com.shixincube.app.CubeApp;
 import com.shixincube.app.R;
+import com.shixincube.app.manager.AccountHelper;
+import com.shixincube.app.model.Account;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 
@@ -41,7 +46,7 @@ public class MainActivity extends BaseActivity {
 
     @Override
     public void init() {
-
+        this.signIn();
     }
 
     @Override
@@ -52,5 +57,27 @@ public class MainActivity extends BaseActivity {
     @Override
     protected int provideContentViewId() {
         return R.layout.activity_main;
+    }
+
+    private void signIn() {
+        (new Thread() {
+            @Override
+            public void run() {
+                while (null == CubeApp.engine) {
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                if (CubeApp.engine.hasStarted()) {
+                    // 已启动，账号签入
+
+                    Account account = AccountHelper.getInstance().getCurrentAccount();
+                    Log.d("XJW", "Account id : " + account.id);
+                }
+            }
+        }).start();
     }
 }

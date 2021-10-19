@@ -47,12 +47,15 @@ public class CubeEngine {
 
     private Kernel kernel;
 
+    private boolean started;
+
     private CubeEngine() {
+        this.started = false;
         this.kernel = new Kernel();
         this.kernel.installModule(new AuthService());
     }
 
-    protected static CubeEngine getInstance() {
+    public static CubeEngine getInstance() {
         if (null == CubeEngine.instance) {
             CubeEngine.instance = new CubeEngine();
         }
@@ -77,7 +80,7 @@ public class CubeEngine {
     public boolean start(Context context, EngineHandler handler) {
         Log.i("CubeEngine", "#start : " + this.config.print());
 
-        boolean result = this.kernel.startup(context, this.config, new KernelHandler() {
+        this.started = this.kernel.startup(context, this.config, new KernelHandler() {
             @Override
             public void handleCompletion(Kernel kernel) {
                 Log.i("CubeEngine", "Cube engine started");
@@ -86,14 +89,28 @@ public class CubeEngine {
 
             @Override
             public void handleFailure(ModuleError error) {
+                // 启动失败
+                started = false;
+
                 Log.i("CubeEngine", "Cube engine start failed : " + error.code);
                 handler.handleFailure(error.code, (null != error.description) ? error.description : error.moduleName);
             }
         });
-        return result;
+        return this.started;
     }
 
     public void stop() {
         this.kernel.shutdown();
     }
+
+    /**
+     * 引擎是否已启动。
+     *
+     * @return
+     */
+    public boolean hasStarted() {
+        return this.started;
+    }
+
+//    public
 }

@@ -24,35 +24,14 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app;
+package com.shixincube.app.model.request;
 
 /**
- * 应用程序常量。
+ * 账号信息。
  */
-public final class AppConsts {
+public class AccountInfoRequest {
 
-    /**
-     * 日志 TAG 。
-     */
-    public final static String TAG = "Cube";
+    public String token;
 
-    /**
-     * 默认国际电话区号。
-     */
-    public final static String REGION_CODE = "86";
 
-    /**
-     * 令牌码。
-     */
-    public final static String TOKEN_CODE = "AppTokenCode";
-
-    /**
-     * 令牌过期时间戳。
-     */
-    public final static String TOKEN_EXPIRE = "AppTokenExpire";
-
-    /**
-     * 令牌对应的账号。
-     */
-    public final static String APP_ACCOUNT = "AppAccount";
 }

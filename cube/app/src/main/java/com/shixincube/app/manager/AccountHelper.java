@@ -32,6 +32,9 @@ import android.content.SharedPreferences;
 import com.shixincube.app.AppConsts;
 import com.shixincube.app.model.Account;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 /**
  * 账号辅助操作函数库。
  */
@@ -46,6 +49,8 @@ public class AccountHelper {
     private SharedPreferences sp;
     private SharedPreferences.Editor editor;
 
+    private Account current;
+
     private AccountHelper(Context context) {
         this.context = context;
         this.sp = context.getSharedPreferences(SP_NAME, Context.MODE_PRIVATE);
@@ -59,6 +64,15 @@ public class AccountHelper {
         return AccountHelper.instance;
     }
 
+    public static AccountHelper getInstance() {
+        return AccountHelper.instance;
+    }
+
+    /**
+     * 检查令牌是否有效。
+     *
+     * @return
+     */
     public boolean checkValidToken() {
         String tokenCode = this.loadTokenCode();
         if (null == tokenCode) {
@@ -70,11 +84,33 @@ public class AccountHelper {
             return false;
         }
 
+        // 令牌有效，检查账号数据
+        Account account = getCurrentAccount();
+        if (null == account) {
+            return false;
+        }
+
         return true;
     }
 
+    public void setCurrentAccount(Account account) {
+        this.current = account;
+        this.editor.putString(AppConsts.APP_ACCOUNT, account.toJSON().toString());
+    }
+
     public Account getCurrentAccount() {
-        return null;
+        if (null == this.current) {
+            String jsonString = this.sp.getString(AppConsts.APP_ACCOUNT, "");
+            if (jsonString.length() > 3) {
+                try {
+                    this.current = new Account(new JSONObject(jsonString));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return this.current;
     }
 
     public void saveToken(String tokenCode, long expire) {

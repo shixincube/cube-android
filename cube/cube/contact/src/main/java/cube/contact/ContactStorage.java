@@ -24,40 +24,45 @@
  * SOFTWARE.
  */
 
-package cube.auth;
+package cube.contact;
 
-import android.content.ContentValues;
 import android.content.Context;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import cube.core.Storage;
 
 /**
- * 存储器。
+ * 联系人模块存储器。
  */
-public class AuthStorage implements Storage {
+public class ContactStorage implements Storage {
 
     private final static int VERSION = 1;
 
     private SQLite sqLite;
 
-    public AuthStorage() {
+    private Long contactId;
+
+    private String domain;
+
+    public ContactStorage() {
     }
 
     /**
-     * 开启存储器。
-     * @param context 应用程序上下文。
-     * @return 开启成功返回 {@code true} ，否则返回 {@code false} 。
+     * 开启存储。
+     *
+     * @param context
+     * @param contactId
+     * @param domain
+     * @return
      */
-    public boolean open(Context context) {
+    public boolean open(Context context, Long contactId, String domain) {
         if (null == this.sqLite) {
+            this.contactId = contactId;
+            this.domain = domain;
             this.sqLite = new SQLite(context);
         }
+
         return true;
     }
 
@@ -69,49 +74,31 @@ public class AuthStorage implements Storage {
         }
     }
 
-    public AuthToken loadToken(String domain, String appKey) {
-        AuthToken authToken = null;
-
-        SQLiteDatabase db = this.sqLite.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM `token` WHERE `cid`=0 AND `domain`=? AND `app_key`=? ORDER BY sn DESC",
-                new String[] { domain, appKey });
-        if (cursor.moveToFirst()) {
-            String data = cursor.getString(cursor.getColumnIndex("data"));
-            try {
-                authToken = new AuthToken(new JSONObject(data));
-            } catch (JSONException e) {
-                // Nothing
-            }
-        }
-        cursor.close();
-        db.close();
-
-        return authToken;
-    }
-
-    public void saveToken(AuthToken token) {
-        SQLiteDatabase db = this.sqLite.getWritableDatabase();
-
-        ContentValues values = new ContentValues();
-        values.put("domain", token.domain);
-        values.put("app_key", token.appKey);
-        values.put("cid", token.cid);
-        values.put("code", token.code);
-        values.put("data", token.toJSON().toString());
-
-        db.insert("token", null, values);
-        db.close();
-    }
-
     private class SQLite extends SQLiteOpenHelper {
 
         public SQLite(Context context) {
-            super(context, "CubeAuth.db", null, VERSION);
+            super(context, "CubeContact_" + domain + "_" + contactId + ".db", null, VERSION);
         }
 
         @Override
         public void onCreate(SQLiteDatabase sqLiteDatabase) {
-            sqLiteDatabase.execSQL("CREATE TABLE IF NOT EXISTS `token` (`sn` INTEGER PRIMARY KEY AUTOINCREMENT, `domain` TEXT, `app_key` TEXT, `cid` BIGINT DEFAULT 0, `code` TEXT, `data` TEXT)");
+            // 联系人表
+            sqLiteDatabase.execSQL("CREATE TABLE IF NOT EXISTS `contact` (`sn` INTEGER PRIMARY KEY AUTOINCREMENT, `id` BIGINT, `name` TEXT, `context` TEXT, `timestamp` BIGINT)");
+
+            // 群组表
+            sqLiteDatabase.execSQL("CREATE TABLE IF NOT EXISTS `group` (`sn` INTEGER PRIMARY KEY AUTOINCREMENT, `id` BIGINT, `name` TEXT, `owner` TEXT, `tag` TEXT, `creation` BIGINT, `last_active` BIGINT, `state` INTEGER, `context` TEXT)");
+
+            // 群成员表
+            sqLiteDatabase.execSQL("CREATE TABLE IF NOT EXISTS `group_member` (`sn` INTEGER PRIMARY KEY AUTOINCREMENT, `group` BIGINT, `contact_id` BIGINT, `contact_name` TEXT, `contact_context` TEXT)");
+
+            // 附录表
+            sqLiteDatabase.execSQL("CREATE TABLE IF NOT EXISTS `appendix` (`id` BIGINT PRIMARY KEY, `data` TEXT)");
+
+            // 联系人分区
+            sqLiteDatabase.execSQL("CREATE TABLE IF NOT EXISTS `contact_zone` (`id` BIGINT PRIMARY KEY, `name` TEXT, `display_name` TEXT, `state` INTEGER, `timestamp` BIGINT)");
+
+            // 联系人分区参与者
+            sqLiteDatabase.execSQL("CREATE TABLE IF NOT EXISTS `contact_zone_participant` (`contact_zone_id` BIGINT, `contact_id` BIGINT, `state` INTEGER, `timestamp` BIGINT, `postscript` TEXT)");
         }
 
         @Override

@@ -24,92 +24,76 @@
  * SOFTWARE.
  */
 
-package cube.core;
+package cube.contact;
 
-import android.content.Context;
-
-import cube.util.Subject;
+import cube.contact.handler.SignHandler;
+import cube.contact.model.Self;
+import cube.core.Module;
 
 /**
- * 内核模块。
+ * 联系人模块。
  */
-public abstract class Module extends Subject {
+public class ContactService extends Module {
 
     /**
      * 模块名。
      */
-    public final String name;
+    public final static String NAME = "Contact";
 
-    /**
-     * 全局内核。
-     */
-    protected Kernel kernel;
+    private ContactPipelineListener pipelineListener;
 
-    /**
-     * 数据管道。
-     */
-    protected Pipeline pipeline;
+    private boolean selfReady;
 
-    private boolean started;
-
-    public Module(String name) {
-        this.name = name;
-        this.started = false;
+    public ContactService() {
+        super(NAME);
+        this.selfReady = false;
     }
 
-    public final String getName() {
-        return this.name;
-    }
-
-    /**
-     * 模块是否已启动。
-     *
-     * @return
-     */
-    public boolean hasStarted() {
-        return this.started;
-    }
-
-    /**
-     * 启动模块。
-     *
-     * @return
-     */
+    @Override
     public boolean start() {
-        if (this.started) {
+        if (!super.start()) {
             return false;
         }
 
-        this.started = true;
+        this.pipelineListener = new ContactPipelineListener(this);
+        this.pipeline.addListener(NAME, this.pipelineListener);
+
         return true;
     }
 
-    /**
-     * 停止模块。
-     */
+    @Override
     public void stop() {
-        this.started = false;
+        super.stop();
+
+        if (null != this.pipelineListener) {
+            this.pipeline.removeListener(NAME, this.pipelineListener);
+            this.pipelineListener = null;
+        }
     }
 
-    public void suspend() {
-        // subclass hook override.
+    @Override
+    public boolean isReady() {
+        return false;
     }
 
-    public void resume() {
-        // subclass hook override.
-    }
+    /**
+     * 签入。
+     *
+     * @param self
+     * @param handler
+     * @return
+     */
+    public boolean signIn(Self self, SignHandler handler) {
+        if (this.selfReady) {
+            return false;
+        }
 
-    protected Pipeline getPipeline() {
-        return this.pipeline;
-    }
+        if (!this.hasStarted()) {
+            this.start();
+        }
 
-    protected Context getContext() {
-        return this.kernel.getContext();
-    }
 
-    protected void execute(Runnable task) {
-        this.kernel.getExecutor().execute(task);
-    }
 
-    public abstract boolean isReady();
+        return true;
+    }
 }

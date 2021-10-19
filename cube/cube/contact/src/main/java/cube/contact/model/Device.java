@@ -24,83 +24,76 @@
  * SOFTWARE.
  */
 
-package cube.core;
+package cube.contact.model;
+
+import android.os.Build;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import cell.util.Utils;
+import cube.core.Kernel;
+import cube.util.JSONable;
 
 /**
- * 数据包描述。
+ * 设备实体。
  */
-public class Packet {
+public class Device implements JSONable {
 
-    /**
-     * 数据包序号。
-     */
-    public final Long sn;
-
-    /**
-     * 数据包包名。
-     */
     public final String name;
 
-    /**
-     * 数据包负载数据。
-     */
-    private JSONObject data;
+    public final String platform;
 
-    /**
-     * 数据包应答状态。
-     */
-    public PipelineState state;
-
-    public Packet(String name) {
-        this(Utils.generateUnsignedSerialNumber(), name, null);
+    public Device() {
+        this.name = "Android";
+        this.platform = Build.MODEL + " " + Build.VERSION.RELEASE
+                + "/" + Build.BRAND
+                + "/" + Kernel.getDefault().getDeviceSerial();
     }
 
-    public Packet(String name, JSONObject data) {
-        this(Utils.generateUnsignedSerialNumber(), name, data);
-    }
-
-    public Packet(Long sn, String name, JSONObject data) {
-        this.sn = sn;
+    public Device(String name, String platform) {
         this.name = name;
-        this.data = data;
+        this.platform = platform;
     }
 
-    public void setData(JSONObject data) {
-        this.data = data;
+    public Device(JSONObject json) throws JSONException {
+        this.name = json.getString("name");
+        this.platform = json.getString("platform");
     }
 
-    public JSONObject getData() {
-        return this.data;
+    @Override
+    public boolean equals(Object object) {
+        if (null == object || !(object instanceof Device)) {
+            return false;
+        }
+
+        Device other = (Device) object;
+        if (other.name.equals(this.name) && other.platform.equals(this.platform)) {
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
-    /**
-     * 提取服务的状态码。
-     * @return
-     */
-    public int extractServiceStateCode() {
+    @Override
+    public int hashCode() {
+        return this.name.hashCode() + this.platform.hashCode();
+    }
+
+    @Override
+    public JSONObject toJSON() {
+        JSONObject json = new JSONObject();
         try {
-            return this.data.getInt("code");
+            json.put("name", this.name);
+            json.put("platform", this.platform);
         } catch (JSONException e) {
             // Nothing
         }
-        return -1;
+        return json;
     }
 
-    /**
-     * 提取服务模块的数据。
-     * @return
-     */
-    public JSONObject extractServiceData() {
-        try {
-            return this.data.getJSONObject("data");
-        } catch (JSONException e) {
-            // Nothing
-        }
-        return null;
+    @Override
+    public JSONObject toCompactJSON() {
+        return this.toJSON();
     }
 }

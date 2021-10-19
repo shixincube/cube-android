@@ -24,92 +24,66 @@
  * SOFTWARE.
  */
 
-package cube.core;
+package cube.contact.model;
 
-import android.content.Context;
+import org.json.JSONException;
+import org.json.JSONObject;
 
-import cube.util.Subject;
+import cube.core.model.Entity;
 
 /**
- * 内核模块。
+ * 抽象联系人。
  */
-public abstract class Module extends Subject {
+public class AbstractContact extends Entity {
 
     /**
-     * 模块名。
+     * 联系人名称。
      */
     public final String name;
 
     /**
-     * 全局内核。
+     * 联系人所属的域。
      */
-    protected Kernel kernel;
+    public final String domain;
 
     /**
-     * 数据管道。
+     * 自定义数据，为应用程序提供关联其他数据对象的属性。
      */
-    protected Pipeline pipeline;
+    public Object customData = null;
 
-    private boolean started;
-
-    public Module(String name) {
+    public AbstractContact(Long id, String name, String domain) {
+        super(id);
         this.name = name;
-        this.started = false;
+        this.domain = domain;
     }
 
-    public final String getName() {
-        return this.name;
+    public AbstractContact(JSONObject json) throws JSONException {
+        super(json);
+        this.name = json.getString("name");
+        this.domain = json.getString("domain");
     }
 
-    /**
-     * 模块是否已启动。
-     *
-     * @return
-     */
-    public boolean hasStarted() {
-        return this.started;
-    }
-
-    /**
-     * 启动模块。
-     *
-     * @return
-     */
-    public boolean start() {
-        if (this.started) {
-            return false;
+    @Override
+    public JSONObject toJSON() {
+        JSONObject json = super.toJSON();
+        try {
+            json.put("name", this.name);
+            json.put("domain", this.domain);
+        } catch (JSONException e) {
+            // Nothing
         }
-
-        this.started = true;
-        return true;
+        return json;
     }
 
-    /**
-     * 停止模块。
-     */
-    public void stop() {
-        this.started = false;
+    @Override
+    public JSONObject toCompactJSON() {
+        JSONObject json = super.toCompactJSON();
+        try {
+            json.put("name", this.name);
+            json.put("domain", this.domain);
+        } catch (JSONException e) {
+            // Nothing
+        }
+        return json;
     }
-
-    public void suspend() {
-        // subclass hook override.
-    }
-
-    public void resume() {
-        // subclass hook override.
-    }
-
-    protected Pipeline getPipeline() {
-        return this.pipeline;
-    }
-
-    protected Context getContext() {
-        return this.kernel.getContext();
-    }
-
-    protected void execute(Runnable task) {
-        this.kernel.getExecutor().execute(task);
-    }
-
-    public abstract boolean isReady();
 }

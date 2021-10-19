@@ -26,8 +26,6 @@
 
 package com.shixincube.app.ui.activity;
 
-import android.util.Log;
-
 import com.shixincube.app.CubeApp;
 import com.shixincube.app.R;
 import com.shixincube.app.manager.AccountHelper;
@@ -47,6 +45,11 @@ public class MainActivity extends BaseActivity {
     @Override
     public void init() {
         this.signIn();
+    }
+
+    @Override
+    protected boolean isToolbarCanBack() {
+        return false;
     }
 
     @Override
@@ -75,7 +78,6 @@ public class MainActivity extends BaseActivity {
                     // 已启动，账号签入
 
                     Account account = AccountHelper.getInstance().getCurrentAccount();
-                    Log.d("XJW", "Account id : " + account.id);
                 }
             }
         }).start();

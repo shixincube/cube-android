@@ -27,13 +27,20 @@
 package cube.core;
 
 import android.content.Context;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
+import android.os.Build;
+import android.provider.Settings;
 import android.util.Log;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import cell.util.Cryptology;
 import cube.auth.AuthService;
 import cube.auth.AuthToken;
 import cube.auth.handler.AuthTokenHandler;
@@ -54,6 +61,8 @@ public class Kernel implements PipelineListener {
     private KernelConfig config;
 
     private boolean working;
+
+    private String deviceSerial;
 
     private Pipeline pipeline;
 
@@ -166,6 +175,10 @@ public class Kernel implements PipelineListener {
         return this.pipeline;
     }
 
+    public String getDeviceSerial() {
+        return this.deviceSerial;
+    }
+
     protected Context getContext() {
         return this.context;
     }
@@ -178,9 +191,38 @@ public class Kernel implements PipelineListener {
      * 进行数据对象关联
      */
     private void bundle() {
+        // 生成设备序号
+        String serial = Build.SERIAL;
+        if (null == serial || serial.length() == 0 || serial.equalsIgnoreCase("unknown")) {
+            serial = Settings.System.getString(context.getContentResolver(), Settings.System.ANDROID_ID);
+
+            WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+            if (null != wifiManager && wifiManager.isWifiEnabled()) {
+                WifiInfo info = wifiManager.getConnectionInfo();
+                if (null != info) {
+                    String macAddress = info.getMacAddress();
+                    serial = serial + "-" + macAddress.replaceAll(":", "");
+                }
+            }
+        }
+        else {
+            serial = serial + "-" +  Settings.System.getString(context.getContentResolver(), Settings.System.ANDROID_ID);
+        }
+
+        // 进行散列
+        this.deviceSerial = printHexBinary(Cryptology.getInstance().hashWithMD5(serial.getBytes(StandardCharsets.UTF_8)));
+
         for (Module module : this.moduleMap.values()) {
             module.pipeline = this.pipeline;
         }
+    }
+
+    private static String printHexBinary(byte[] data) {
+        StringBuilder r = new StringBuilder(data.length * 2);
+        for (byte b : data) {
+            r.append(String.format("%02X", (int)(b & 0xFF)));
+        }
+        return r.toString().toLowerCase(Locale.ROOT);
     }
 
     private boolean checkAuth(KernelConfig config, AuthTokenHandler handler) {

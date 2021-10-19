@@ -10,3 +10,4 @@ rootProject.name = "Cube"
 include ':app'
 include ':cube:core'
 include ':cube:engine'
+include ':cube:contact'

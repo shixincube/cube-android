@@ -24,15 +24,19 @@
  * SOFTWARE.
  */
 
-package cube.core;
+package cube.contact.handler;
+
+
+import cube.contact.ContactService;
+import cube.contact.model.Self;
+import cube.core.ModuleError;
 
 /**
- * 存储器。
+ * 签入/签出账号句柄。
  */
-public interface Storage {
+public interface SignHandler {
 
-    /**
-     * 关闭存储器。
-     */
-    void close();
+    void handleSuccess(ContactService service, Self self);
+
+    void handleFailure(ContactService service, ModuleError error);
 }

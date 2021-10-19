@@ -24,15 +24,54 @@
  * SOFTWARE.
  */
 
-package cube.core;
+package cube.contact.model;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import cube.auth.AuthService;
 
 /**
- * 存储器。
+ * 用户描述自己的账号。
  */
-public interface Storage {
+public class Self extends Contact {
 
-    /**
-     * 关闭存储器。
-     */
-    void close();
+    public final Device device;
+
+    public Self(Long id, String name) {
+        super(id, name, AuthService.getDomain());
+        this.device = new Device();
+    }
+
+    public Self(Long id, String name, JSONObject context) {
+        super(id, name, AuthService.getDomain(), context);
+        this.device = new Device();
+    }
+
+    public Self(JSONObject json) throws JSONException {
+        super(json);
+        this.device = new Device(json.getJSONObject("device"));
+    }
+
+    @Override
+    public JSONObject toJSON() {
+        JSONObject json = super.toJSON();
+        try {
+            json.put("device", this.device.toJSON());
+        } catch (JSONException e) {
+            // Nothing
+        }
+        return json;
+    }
+
+    @Override
+    public JSONObject toCompactJSON() {
+        JSONObject json = super.toCompactJSON();
+        try {
+            json.put("device", this.device.toJSON());
+        } catch (JSONException e) {
+            // Nothing
+        }
+        return json;
+    }
 }

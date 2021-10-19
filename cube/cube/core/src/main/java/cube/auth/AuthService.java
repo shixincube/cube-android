@@ -46,11 +46,11 @@ public class AuthService extends Module {
 
     public final static String NAME = "Auth";
 
+    private static String sDomain;
+
     protected final static String ACTION_APPLY_TOKEN = "applyToken";
 
     private AuthToken token;
-
-    private String domain;
 
     private Timer timer;
 
@@ -60,6 +60,10 @@ public class AuthService extends Module {
 
     public AuthToken getToken() {
         return this.token;
+    }
+
+    public final static String getDomain() {
+        return sDomain;
     }
 
     @Override
@@ -113,6 +117,8 @@ public class AuthService extends Module {
      * @param handler
      */
     public void check(final String domain, final String appKey, final AuthTokenHandler handler) {
+        sDomain = domain;
+
         this.execute(new Runnable() {
             @Override
             public void run() {

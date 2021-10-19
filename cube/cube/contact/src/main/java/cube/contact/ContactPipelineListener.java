@@ -24,15 +24,40 @@
  * SOFTWARE.
  */
 
-package cube.core;
+package cube.contact;
+
+import cube.core.Packet;
+import cube.core.Pipeline;
+import cube.core.PipelineListener;
 
 /**
- * 存储器。
+ * 联系模块数据通道监听器。
  */
-public interface Storage {
+public class ContactPipelineListener implements PipelineListener {
 
-    /**
-     * 关闭存储器。
-     */
-    void close();
+    private ContactService service;
+
+    public ContactPipelineListener(ContactService service) {
+        this.service = service;
+    }
+
+    @Override
+    public void onReceived(Pipeline pipeline, String source, Packet packet) {
+
+    }
+
+    @Override
+    public void onOpened(Pipeline pipeline) {
+
+    }
+
+    @Override
+    public void onClosed(Pipeline pipeline) {
+
+    }
+
+    @Override
+    public void onFaultOccurred(Pipeline pipeline, int code, String description) {
+
+    }
 }

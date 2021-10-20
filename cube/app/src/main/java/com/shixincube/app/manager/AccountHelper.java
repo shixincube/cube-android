@@ -96,6 +96,7 @@ public class AccountHelper {
     public void setCurrentAccount(Account account) {
         this.current = account;
         this.editor.putString(AppConsts.APP_ACCOUNT, account.toJSON().toString());
+        this.editor.commit();
     }
 
     public Account getCurrentAccount() {
@@ -106,6 +107,7 @@ public class AccountHelper {
                     this.current = new Account(new JSONObject(jsonString));
                 } catch (JSONException e) {
                     e.printStackTrace();
+                    this.current = null;
                 }
             }
         }
@@ -116,6 +118,7 @@ public class AccountHelper {
     public void saveToken(String tokenCode, long expire) {
         this.editor.putString(AppConsts.TOKEN_CODE, tokenCode);
         this.editor.putLong(AppConsts.TOKEN_EXPIRE, expire);
+        this.editor.commit();
     }
 
     private String loadTokenCode() {

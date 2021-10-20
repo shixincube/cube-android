@@ -29,8 +29,12 @@ package cube.engine;
 import android.content.Context;
 import android.util.Log;
 
+import org.json.JSONObject;
+
 import cube.auth.AuthService;
 import cube.contact.ContactService;
+import cube.contact.handler.SignHandler;
+import cube.contact.model.Self;
 import cube.core.Kernel;
 import cube.core.KernelConfig;
 import cube.core.ModuleError;
@@ -86,6 +90,10 @@ public class CubeEngine {
             @Override
             public void handleCompletion(Kernel kernel) {
                 Log.i("CubeEngine", "Cube engine started");
+
+                // 启动联系人模块
+                getContactService().start();
+
                 handler.handleSuccess(CubeEngine.instance);
             }
 
@@ -130,5 +138,29 @@ public class CubeEngine {
      */
     public boolean isReady() {
         return this.started && this.kernel.isReady();
+    }
+
+    /**
+     * 获取联系人服务模块。
+     *
+     * @return
+     */
+    public ContactService getContactService() {
+        return (ContactService) this.kernel.getModule(ContactService.NAME);
+    }
+
+    /**
+     * 签入指定的联系人。
+     *
+     * @param contactId 指定联系人 ID 。
+     * @param name 指定联系人名称。
+     * @param context 指定联系人的上下文数据。
+     * @param handler 指定回调句柄。
+     * @return 如果返回 {@code false} 表示当前状态下不能进行该操作，请检查是否正确启动魔方。
+     */
+    public boolean signIn(Long contactId, String name, JSONObject context, SignHandler handler) {
+        ContactService contactService = this.getContactService();
+        Self self = new Self(contactId, name, context);
+        return contactService.signIn(self, handler);
     }
 }

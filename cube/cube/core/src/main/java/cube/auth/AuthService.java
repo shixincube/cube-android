@@ -63,7 +63,7 @@ public class AuthService extends Module {
     }
 
     public final static String getDomain() {
-        return sDomain;
+        return AuthService.sDomain;
     }
 
     @Override
@@ -100,6 +100,8 @@ public class AuthService extends Module {
         if (null != token && token.isValid()) {
             // 令牌赋值
             this.token = token;
+
+            sDomain = domain.toString();
 
             storage.close();
             return token;
@@ -141,6 +143,10 @@ public class AuthService extends Module {
             }
 
             storage.close();
+        }
+
+        if (null == sDomain) {
+            sDomain = this.token.domain;
         }
 
         return this.token;

@@ -123,6 +123,10 @@ public class Contact extends AbstractContact {
 
     @Override
     public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+
         if (null == object || !(object instanceof Contact)) {
             return false;
         }

@@ -82,9 +82,11 @@ public class Kernel implements PipelineListener {
     }
 
     public boolean startup(Context context, KernelConfig config, KernelHandler handler) {
-        if (null == config || null == handler) {
+        if (null == config || null == handler || this.working) {
             return false;
         }
+
+        this.working = true;
 
         this.pipeline = new CellPipeline(context);
 
@@ -95,8 +97,6 @@ public class Kernel implements PipelineListener {
         if (null == this.executor) {
             this.executor = Executors.newFixedThreadPool(MAX_THREADS);
         }
-
-        this.working = true;
 
         // 处理模块
         this.bundle();
@@ -128,6 +128,10 @@ public class Kernel implements PipelineListener {
     }
 
     public void shutdown() {
+        for (Module module : this.moduleMap.values()) {
+            module.stop();
+        }
+
         if (null != this.pipeline) {
             this.pipeline.close();
             this.pipeline = null;
@@ -250,7 +254,12 @@ public class Kernel implements PipelineListener {
         // 查找本地的令牌
         AuthToken token = authService.loadLocalToken(config.domain, config.appKey);
         if (null != token) {
-            handler.handleSuccess(token);
+            this.executor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    handler.handleSuccess(token);
+                }
+            });
             return true;
         }
 

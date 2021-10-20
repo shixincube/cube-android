@@ -58,19 +58,15 @@ public class Account implements JSONable {
     public Account() {
     }
 
-    public Account(JSONObject json) {
-        try {
-            this.id = json.getLong("id");
-            this.account = json.getString("account");
-            this.phoneNumber = json.getString("phone");
-            this.name = json.getString("name");
-            this.avatar = json.getString("avatar");
-            this.state = json.getInt("state");
-            this.region = json.getString("region");
-            this.department = json.getString("department");
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+    public Account(JSONObject json) throws JSONException {
+        this.id = json.getLong("id");
+        this.account = json.getString("account");
+        this.phoneNumber = json.getString("phone");
+        this.name = json.getString("name");
+        this.avatar = json.getString("avatar");
+        this.state = json.getInt("state");
+        this.region = json.getString("region");
+        this.department = json.getString("department");
     }
 
     @Override

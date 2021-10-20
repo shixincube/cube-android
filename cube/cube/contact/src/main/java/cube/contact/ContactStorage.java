@@ -67,9 +67,11 @@ public class ContactStorage implements Storage {
             this.contactId = contactId;
             this.domain = domain;
             this.sqlite = new SQLite(context);
+            return true;
         }
-
-        return true;
+        else {
+            return false;
+        }
     }
 
     @Override

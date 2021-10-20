@@ -104,9 +104,6 @@ public class SplashActivity extends BaseActivity {
             this.loginButton.setVisibility(View.VISIBLE);
             this.registerButton.setVisibility(View.VISIBLE);
         }
-        else {
-            jumpToActivityAndClearTask(MainActivity.class);
-        }
     }
 
     @Override
@@ -166,7 +163,7 @@ public class SplashActivity extends BaseActivity {
                     registerButton.setVisibility(View.VISIBLE);
                 }
 
-                if (valid.booleanValue() && null != accountView) {
+                if (valid.booleanValue()) {
                     jumpToActivityAndClearTask(MainActivity.class);
                 }
             }

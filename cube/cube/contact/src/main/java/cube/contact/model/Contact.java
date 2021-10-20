@@ -43,6 +43,8 @@ public class Contact extends AbstractContact {
      */
     public final List<Device> devices;
 
+    private ContactAppendix appendix;
+
     public Contact(Long id, String name, String domain) {
         super(id, name, domain);
         this.devices = new ArrayList<>();
@@ -51,6 +53,11 @@ public class Contact extends AbstractContact {
     public Contact(Long id, String name, String domain, JSONObject context) {
         super(id, name, domain);
         this.context = context;
+        this.devices = new ArrayList<>();
+    }
+
+    public Contact(Long id, String name, String domain, long timestamp) {
+        super(id, name, domain, timestamp);
         this.devices = new ArrayList<>();
     }
 
@@ -94,6 +101,24 @@ public class Contact extends AbstractContact {
      */
     public void removeDevice(Device device) {
         this.devices.remove(device);
+    }
+
+    /**
+     * 设置附录。
+     *
+     * @param appendix
+     */
+    public void setAppendix(ContactAppendix appendix) {
+        this.appendix = appendix;
+    }
+
+    /**
+     * 获取附录。
+     *
+     * @return
+     */
+    public ContactAppendix getAppendix() {
+        return this.appendix;
     }
 
     @Override

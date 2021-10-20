@@ -30,6 +30,7 @@ import android.content.Context;
 import android.util.Log;
 
 import cube.auth.AuthService;
+import cube.contact.ContactService;
 import cube.core.Kernel;
 import cube.core.KernelConfig;
 import cube.core.ModuleError;
@@ -53,6 +54,7 @@ public class CubeEngine {
         this.started = false;
         this.kernel = new Kernel();
         this.kernel.installModule(new AuthService());
+        this.kernel.installModule(new ContactService());
     }
 
     public static CubeEngine getInstance() {

@@ -39,7 +39,7 @@ public class AbstractContact extends Entity {
     /**
      * 联系人名称。
      */
-    public final String name;
+    protected String name;
 
     /**
      * 联系人所属的域。
@@ -57,10 +57,20 @@ public class AbstractContact extends Entity {
         this.domain = domain;
     }
 
+    public AbstractContact(Long id, String name, String domain, long timestamp) {
+        super(id, timestamp);
+        this.name = name;
+        this.domain = domain;
+    }
+
     public AbstractContact(JSONObject json) throws JSONException {
         super(json);
         this.name = json.getString("name");
         this.domain = json.getString("domain");
+    }
+
+    public String getName() {
+        return this.name;
     }
 
     @Override

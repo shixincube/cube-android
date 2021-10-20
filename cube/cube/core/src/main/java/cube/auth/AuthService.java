@@ -110,6 +110,43 @@ public class AuthService extends Module {
     }
 
     /**
+     * 将当前令牌分配给指定联系人。
+     *
+     * @param contactId
+     * @return
+     */
+    public AuthToken allocToken(Long contactId) {
+        if (null == this.token) {
+            return null;
+        }
+
+        if (this.token.cid != contactId.longValue()) {
+            AuthStorage storage = new AuthStorage();
+            if (!storage.open(getContext())) {
+                return null;
+            }
+
+            // 查找对应的令牌
+            AuthToken contactToken = storage.loadToken(contactId, this.token.domain, this.token.appKey);
+            if (null == contactToken) {
+                // 没有对应的令牌，将当前令牌进行更新
+                this.token.cid = contactId;
+
+                // 更新令牌
+                storage.updateToken(this.token);
+            }
+            else {
+                // 覆盖当前令牌
+                this.token = contactToken;
+            }
+
+            storage.close();
+        }
+
+        return this.token;
+    }
+
+    /**
      * 异步方式申请可用的令牌。
      *
      * @param domain

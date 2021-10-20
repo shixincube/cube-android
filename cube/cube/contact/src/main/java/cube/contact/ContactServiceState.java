@@ -24,48 +24,91 @@
  * SOFTWARE.
  */
 
-package cube.util;
+package cube.contact;
 
 /**
- * 观察者事件。
+ * 联系人服务状态码。
  */
-public class ObservableEvent {
+public enum ContactServiceState {
 
     /**
-     * 事件名称。
+     * 成功。
      */
-    public final String name;
+    Ok(0),
 
     /**
-     * 事件数据。
+     * 无效的参数。
      */
-    protected Object data;
+    InvalidParameter(5),
 
     /**
-     * 事件发生时的主题。
+     * 数据结构错误。
      */
-    protected Subject subject;
+    DataStructureError(8),
 
     /**
-     * 构造函数。
-     *
-     * @param name 指定事件名。
-     *
+     * 遇到故障。
      */
-    public ObservableEvent(String name) {
-        this.name = name;
-    }
+    Failure(9),
 
-    public ObservableEvent(String name, Object data) {
-        this.name = name;
-        this.data = data;
-    }
+    /**
+     * 无效域信息。
+     */
+    InvalidDomain(11),
 
-    public String getName() {
-        return this.name;
-    }
+    /**
+     * 未签入联系人。
+     */
+    NoSignIn(12),
 
-    public Object getData() {
-        return this.data;
+    /**
+     * 未找到联系人。
+     */
+    NotFindContact(14),
+
+    /**
+     * 未找到群组。
+     */
+    NotFindGroup(15),
+
+    /**
+     * 未找到联系人分区。
+     */
+    NotFindContactZone(16),
+
+    /**
+     * 令牌不一致。
+     */
+    InconsistentToken(21),
+
+    /**
+     * 不被接受的非法操作。
+     */
+    IllegalOperation(25),
+
+    /**
+     * 服务器错误。
+     */
+    ServerError(101),
+
+    /**
+     * 不被允许的操作。
+     */
+    NotAllowed(102),
+
+    /**
+     * 无网络连接。
+     */
+    NoNetwork(103),
+
+    /**
+     * 未知的状态。
+     */
+    Unknown(99);
+
+    public final int code;
+
+    ContactServiceState(int code) {
+        this.code = code;
     }
 }

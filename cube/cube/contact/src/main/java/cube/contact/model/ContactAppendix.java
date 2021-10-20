@@ -24,48 +24,14 @@
  * SOFTWARE.
  */
 
-package cube.util;
+package cube.contact.model;
 
 /**
- * 观察者事件。
+ * 联系人附件。
  */
-public class ObservableEvent {
+public class ContactAppendix {
 
-    /**
-     * 事件名称。
-     */
-    public final String name;
+    public ContactAppendix() {
 
-    /**
-     * 事件数据。
-     */
-    protected Object data;
-
-    /**
-     * 事件发生时的主题。
-     */
-    protected Subject subject;
-
-    /**
-     * 构造函数。
-     *
-     * @param name 指定事件名。
-     *
-     */
-    public ObservableEvent(String name) {
-        this.name = name;
-    }
-
-    public ObservableEvent(String name, Object data) {
-        this.name = name;
-        this.data = data;
-    }
-
-    public String getName() {
-        return this.name;
-    }
-
-    public Object getData() {
-        return this.data;
     }
 }

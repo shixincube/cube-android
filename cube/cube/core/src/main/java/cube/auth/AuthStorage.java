@@ -44,7 +44,7 @@ public class AuthStorage implements Storage {
 
     private final static int VERSION = 1;
 
-    private SQLite sqLite;
+    private SQLite sqlite;
 
     public AuthStorage() {
     }
@@ -55,25 +55,25 @@ public class AuthStorage implements Storage {
      * @return 开启成功返回 {@code true} ，否则返回 {@code false} 。
      */
     public boolean open(Context context) {
-        if (null == this.sqLite) {
-            this.sqLite = new SQLite(context);
+        if (null == this.sqlite) {
+            this.sqlite = new SQLite(context);
         }
         return true;
     }
 
     @Override
     public void close() {
-        if (null != this.sqLite) {
-            this.sqLite.close();
-            this.sqLite = null;
+        if (null != this.sqlite) {
+            this.sqlite.close();
+            this.sqlite = null;
         }
     }
 
     public AuthToken loadToken(String domain, String appKey) {
         AuthToken authToken = null;
 
-        SQLiteDatabase db = this.sqLite.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM `token` WHERE `cid`=0 AND `domain`=? AND `app_key`=? ORDER BY sn DESC",
+        SQLiteDatabase db = this.sqlite.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM `token` WHERE `cid`=0 AND `domain`=? AND `app_key`=? ORDER BY `sn` DESC",
                 new String[] { domain, appKey });
         if (cursor.moveToFirst()) {
             String data = cursor.getString(cursor.getColumnIndex("data"));
@@ -89,8 +89,28 @@ public class AuthStorage implements Storage {
         return authToken;
     }
 
+    public AuthToken loadToken(Long contactId, String domain, String appKey) {
+        AuthToken authToken = null;
+
+        SQLiteDatabase db = this.sqlite.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM `token` WHERE `cid`=? AND `domain`=? AND `app_key`=? ORDER BY `sn` DESC",
+                new String[] { contactId.toString(), domain, appKey });
+        if (cursor.moveToFirst()) {
+            String data = cursor.getString(cursor.getColumnIndex("data"));
+            try {
+                authToken = new AuthToken(new JSONObject(data));
+            } catch (JSONException e) {
+                // Nothing
+            }
+        }
+
+        cursor.close();
+        db.close();
+        return authToken;
+    }
+
     public void saveToken(AuthToken token) {
-        SQLiteDatabase db = this.sqLite.getWritableDatabase();
+        SQLiteDatabase db = this.sqlite.getWritableDatabase();
 
         ContentValues values = new ContentValues();
         values.put("domain", token.domain);
@@ -100,6 +120,17 @@ public class AuthStorage implements Storage {
         values.put("data", token.toJSON().toString());
 
         db.insert("token", null, values);
+        db.close();
+    }
+
+    public void updateToken(AuthToken token) {
+        SQLiteDatabase db = this.sqlite.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put("cid", token.cid);
+        values.put("data", token.toJSON().toString());
+        db.update("token", values, "code=?", new String[] { token.code });
+
         db.close();
     }
 

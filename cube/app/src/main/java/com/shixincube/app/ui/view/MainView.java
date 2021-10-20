@@ -24,48 +24,10 @@
  * SOFTWARE.
  */
 
-package cube.util;
+package com.shixincube.app.ui.view;
 
 /**
- * 观察者事件。
+ * 主界面。
  */
-public class ObservableEvent {
-
-    /**
-     * 事件名称。
-     */
-    public final String name;
-
-    /**
-     * 事件数据。
-     */
-    protected Object data;
-
-    /**
-     * 事件发生时的主题。
-     */
-    protected Subject subject;
-
-    /**
-     * 构造函数。
-     *
-     * @param name 指定事件名。
-     *
-     */
-    public ObservableEvent(String name) {
-        this.name = name;
-    }
-
-    public ObservableEvent(String name, Object data) {
-        this.name = name;
-        this.data = data;
-    }
-
-    public String getName() {
-        return this.name;
-    }
-
-    public Object getData() {
-        return this.data;
-    }
+public interface MainView {
 }

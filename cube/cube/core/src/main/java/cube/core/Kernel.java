@@ -135,6 +135,8 @@ public class Kernel implements PipelineListener {
 
         this.executor.shutdown();
         this.executor = null;
+
+        this.working = false;
     }
 
     public void suspend() {
@@ -146,11 +148,23 @@ public class Kernel implements PipelineListener {
     }
 
     public boolean isReady() {
-        return false;
+        AuthService service = (AuthService) this.getModule(AuthService.NAME);
+        AuthToken authToken = service.getToken();
+        
+        return this.working && (null != authToken && authToken.isValid());
     }
 
     public AuthToken activeToken(Long contactId) {
-        return null;
+        AuthService service = (AuthService) this.getModule(AuthService.NAME);
+        AuthToken token = service.allocToken(contactId);
+        if (null == token) {
+            return null;
+        }
+
+        // 更新管道令牌码
+        this.pipeline.setTokenCode(token.code);
+
+        return token;
     }
 
     public void installModule(Module module) {

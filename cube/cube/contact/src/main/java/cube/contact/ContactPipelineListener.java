@@ -26,9 +26,15 @@
 
 package cube.contact;
 
+import android.util.Log;
+
+import cube.contact.handler.SignHandler;
+import cube.contact.model.Self;
+import cube.core.ModuleError;
 import cube.core.Packet;
 import cube.core.Pipeline;
 import cube.core.PipelineListener;
+import cube.core.PipelineState;
 
 /**
  * 联系模块数据通道监听器。
@@ -43,21 +49,49 @@ public class ContactPipelineListener implements PipelineListener {
 
     @Override
     public void onReceived(Pipeline pipeline, String source, Packet packet) {
+        if (packet.state.code != PipelineState.Ok.code) {
+            Log.e("ContactPipelineListener", "#onReceived : " + packet.state.code);
+            return;
+        }
 
+        if (ContactServiceAction.SignIn.equals(packet.name)) {
+            this.service.triggerSignIn(packet.extractServiceStateCode(), packet.extractServiceData());
+        }
+        else if (ContactServiceAction.SignOut.equals(packet.name)) {
+            this.service.triggerSignOut();
+        }
     }
 
     @Override
     public void onOpened(Pipeline pipeline) {
+        // 如果用户请求签入但是签入失败（在签入时可能没有网络），则在连接建立后尝试自动签入
+        if (null != this.service.self && !this.service.selfReady) {
+            (new Thread() {
+                @Override
+                public void run() {
+                    service.signIn(service.self, new SignHandler() {
+                        @Override
+                        public void handleSuccess(ContactService service, Self self) {
+                            // Nothing
+                        }
 
+                        @Override
+                        public void handleFailure(ContactService service, ModuleError error) {
+                            // Nothing
+                        }
+                    });
+                }
+            }).start();
+        }
     }
 
     @Override
     public void onClosed(Pipeline pipeline) {
-
+        // Nothing
     }
 
     @Override
     public void onFaultOccurred(Pipeline pipeline, int code, String description) {
-
+        // Nothing
     }
 }

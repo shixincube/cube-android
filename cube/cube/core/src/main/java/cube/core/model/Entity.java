@@ -99,12 +99,28 @@ public class Entity implements JSONable {
         }
     }
 
+    public Long getId() {
+        return this.id;
+    }
+
     public long getTimestamp() {
         return this.timestamp;
     }
 
     public long getExpiry() {
         return this.expiry;
+    }
+
+    public boolean isValid() {
+        return this.expiry > System.currentTimeMillis();
+    }
+
+    public void setContext(JSONObject context) {
+        this.context = context;
+    }
+
+    public JSONObject getContext() {
+        return this.context;
     }
 
     /**

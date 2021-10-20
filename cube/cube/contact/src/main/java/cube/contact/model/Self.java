@@ -26,6 +26,7 @@
 
 package cube.contact.model;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -51,6 +52,22 @@ public class Self extends Contact {
     public Self(JSONObject json) throws JSONException {
         super(json);
         this.device = new Device(json.getJSONObject("device"));
+    }
+
+    public void update(JSONObject json) throws JSONException {
+        this.name = json.getString("name");
+
+        if (json.has("context")) {
+            this.context = json.getJSONObject("context");
+        }
+
+        if (json.has("devices")) {
+            JSONArray array = json.getJSONArray("devices");
+            for (int i = 0; i < array.length(); ++i) {
+                JSONObject data = array.getJSONObject(i);
+                this.addDevice(new Device(data));
+            }
+        }
     }
 
     @Override

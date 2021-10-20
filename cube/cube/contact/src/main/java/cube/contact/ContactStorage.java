@@ -26,10 +26,16 @@
 
 package cube.contact;
 
+import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import cube.contact.model.Contact;
 import cube.core.Storage;
 
 /**
@@ -39,7 +45,7 @@ public class ContactStorage implements Storage {
 
     private final static int VERSION = 1;
 
-    private SQLite sqLite;
+    private SQLite sqlite;
 
     private Long contactId;
 
@@ -57,10 +63,10 @@ public class ContactStorage implements Storage {
      * @return
      */
     public boolean open(Context context, Long contactId, String domain) {
-        if (null == this.sqLite) {
+        if (null == this.sqlite) {
             this.contactId = contactId;
             this.domain = domain;
-            this.sqLite = new SQLite(context);
+            this.sqlite = new SQLite(context);
         }
 
         return true;
@@ -68,10 +74,91 @@ public class ContactStorage implements Storage {
 
     @Override
     public void close() {
-        if (null != this.sqLite) {
-            this.sqLite.close();
-            this.sqLite = null;
+        if (null != this.sqlite) {
+            this.sqlite.close();
+            this.sqlite = null;
         }
+    }
+
+    public Contact readContact(Long contactId) {
+        Contact contact = null;
+        SQLiteDatabase db = this.sqlite.getReadableDatabase();
+        Cursor cursor = db.query("contact", new String[] { "name", "context", "timestamp" },
+                "id=?", new String[] { contactId.toString() }, null, null, null);
+        if (cursor.moveToFirst()) {
+            String name = cursor.getString(0);
+            String contextString = cursor.getString(1);
+            long timestamp = cursor.getLong(2);
+            // 实例化
+            contact = new Contact(contactId, name, this.domain, timestamp);
+            if (contextString.length() > 3) {
+                try {
+                    JSONObject context = new JSONObject(contextString);
+                    contact.setContext(context);
+                } catch (JSONException e) {
+                    // Nothing
+                }
+            }
+        }
+        cursor.close();
+        db.close();
+        return contact;
+    }
+
+    public boolean writeContact(Contact contact) {
+        String context = (null != contact.getContext()) ? contact.getContext().toString() : "";
+
+        SQLiteDatabase db = this.sqlite.getWritableDatabase();
+        Cursor cursor = db.query("contact", new String[] { "sn" },
+                "id=?", new String[] { contact.id.toString() }, null, null, null);
+        if (cursor.moveToFirst()) {
+            cursor.close();
+
+            // 更新数据
+            ContentValues values = new ContentValues();
+            values.put("name", contact.getName());
+            values.put("context", context);
+            values.put("timestamp", contact.getTimestamp());
+            db.update("contact", values, "id=?", new String[] { contact.id.toString() });
+
+            // 更新附录
+            // TODO
+        }
+        else {
+            cursor.close();
+
+            // 插入数据
+            ContentValues values = new ContentValues();
+            values.put("id", contact.id.longValue());
+            values.put("name", contact.getName());
+            values.put("context", context);
+            values.put("timestamp", contact.getTimestamp());
+            db.insert("contact", null, values);
+
+            // 插入附录
+            // TODO
+        }
+
+        db.close();
+        return true;
+    }
+
+    /**
+     * 更新联系人的上下文数据。
+     *
+     * @param contactId
+     * @param context
+     */
+    public void updateContactContext(Long contactId, JSONObject context) {
+        SQLiteDatabase db = this.sqlite.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put("context", context.toString());
+        values.put("timestamp", System.currentTimeMillis());
+        // 执行更新
+        db.update("contact", values, "id=?", new String[] { contactId.toString() });
+
+        db.close();
     }
 
     private class SQLite extends SQLiteOpenHelper {

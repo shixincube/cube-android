@@ -98,11 +98,20 @@ public class CubeEngine {
                 handler.handleFailure(error.code, (null != error.description) ? error.description : error.moduleName);
             }
         });
+
         return this.started;
     }
 
     public void stop() {
         this.kernel.shutdown();
+    }
+
+    public void suspend() {
+
+    }
+
+    public void resume() {
+
     }
 
     /**
@@ -114,4 +123,12 @@ public class CubeEngine {
         return this.started;
     }
 
+    /**
+     * 内核是否已就绪。
+     *
+     * @return
+     */
+    public boolean isReady() {
+        return this.started && this.kernel.isReady();
+    }
 }

@@ -26,14 +26,10 @@
 
 package com.shixincube.app;
 
-import cube.engine.CubeEngine;
-
 /**
  * 魔方应用程序入口。
  */
 public class CubeApp extends CubeBaseApp {
-
-    public static CubeEngine engine = null;
 
     public CubeApp() {
         super();

@@ -97,6 +97,7 @@ public abstract class BaseActivity<V, T extends BasePresenter<V>> extends AppCom
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        CubeApp.removeActivity(this);
 
         if (null != this.presenter) {
             this.presenter.detachView();

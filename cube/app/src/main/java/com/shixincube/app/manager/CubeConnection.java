@@ -27,57 +27,36 @@
 package com.shixincube.app.manager;
 
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.ServiceConnection;
 import android.os.IBinder;
-import android.util.Log;
-
-import com.shixincube.app.CubeApp;
 
 import cube.engine.CubeBinder;
 import cube.engine.CubeEngine;
 import cube.engine.handler.EngineHandler;
+import cube.util.LogUtils;
 
 /**
  * 魔方服务连接器。
  */
-public class CubeServiceConnection implements ServiceConnection {
+public class CubeConnection implements ServiceConnection {
 
-    private Context context;
-
-    public CubeServiceConnection(Context context) {
-        this.context = context;
+    public CubeConnection() {
     }
 
     @Override
     public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-        (new Thread() {
+        CubeBinder cubeBinder = (CubeBinder) iBinder;
+        cubeBinder.setEngineHandler(new EngineHandler() {
             @Override
-            public void run() {
-                if (null == CubeApp.engine) {
-                    CubeApp.engine = ((CubeBinder) iBinder).getEngine(context);
-
-                    if (null != CubeApp.engine.getConfig()) {
-                        // 已读取配置
-                        CubeApp.engine.start(context, new EngineHandler() {
-                            @Override
-                            public void handleSuccess(CubeEngine engine) {
-
-                            }
-
-                            @Override
-                            public void handleFailure(int code, String description) {
-                                Log.w("CubeServiceConnection", "#onServiceConnected : Start cube engine failed");
-                            }
-                        });
-                    }
-                    else {
-                        // 没有读取到配置，从服务器获取配置
-                        // TODO 从 App 服务器读取配置
-                    }
-                }
+            public void handleSuccess(CubeEngine engine) {
+                LogUtils.i("CubeApp", "Success");
             }
-        }).start();
+
+            @Override
+            public void handleFailure(int code, String description) {
+                LogUtils.i("CubeApp", "Failure");
+            }
+        });
     }
 
     @Override

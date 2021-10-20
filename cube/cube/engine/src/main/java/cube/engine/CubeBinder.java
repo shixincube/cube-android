@@ -26,50 +26,26 @@
 
 package cube.engine;
 
-import android.content.Context;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
 import android.os.Binder;
 
-import cube.core.KernelConfig;
+import cube.engine.handler.EngineHandler;
 
 /**
- *
+ * 魔方的 Binder 交互。
  */
 public class CubeBinder extends Binder {
 
-    private boolean readConfig;
+    private CubeService service;
 
-    public CubeBinder() {
+    protected EngineHandler engineHandler;
+
+    public CubeBinder(CubeService service) {
         super();
-        this.readConfig = false;
+        this.service = service;
     }
 
-    public CubeEngine getEngine(Context context) {
-        CubeEngine engine = CubeEngine.getInstance();
-
-        if (!this.readConfig) {
-            this.readConfig = true;
-
-            KernelConfig config = null;
-            try {
-                ApplicationInfo appInfo = context.getPackageManager().getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
-                String address = appInfo.metaData.getString("CUBE_ADDRESS");
-                int port = appInfo.metaData.containsKey("CUBE_PORT") ? appInfo.metaData.getInt("CUBE_PORT") : 7000;
-                String domain = appInfo.metaData.getString("CUBE_DOMAIN");
-                String appKey = appInfo.metaData.getString("CUBE_APPKEY");
-
-                if (null != address && null != domain && null != appKey) {
-                    config = new KernelConfig(address, port, domain, appKey);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            // 设置配置
-            engine.setConfig(config);
-        }
-
-        return engine;
+    public void setEngineHandler(EngineHandler engineHandler) {
+        this.engineHandler = engineHandler;
+        this.service.tryFireEngineHandler();
     }
 }

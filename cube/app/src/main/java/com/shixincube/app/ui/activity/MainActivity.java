@@ -26,12 +26,13 @@
 
 package com.shixincube.app.ui.activity;
 
-import com.shixincube.app.CubeApp;
 import com.shixincube.app.R;
 import com.shixincube.app.manager.AccountHelper;
 import com.shixincube.app.model.Account;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
+
+import cube.engine.CubeEngine;
 
 /**
  * 主界面。
@@ -66,19 +67,21 @@ public class MainActivity extends BaseActivity {
         (new Thread() {
             @Override
             public void run() {
-                while (null == CubeApp.engine) {
+                int count = 10;
+                while (!CubeEngine.getInstance().isReady()) {
+                    if ((--count) <= 0) {
+                        break;
+                    }
+
                     try {
-                        Thread.sleep(10);
+                        Thread.sleep(100L);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
 
-                if (CubeApp.engine.hasStarted()) {
-                    // 已启动，账号签入
-
-                    Account account = AccountHelper.getInstance().getCurrentAccount();
-                }
+                // 已启动，账号签入
+                Account account = AccountHelper.getInstance().getCurrentAccount();
             }
         }).start();
     }

@@ -36,7 +36,7 @@ import android.widget.RelativeLayout;
 import com.jaeger.library.StatusBarUtil;
 import com.shixincube.app.R;
 import com.shixincube.app.manager.AccountHelper;
-import com.shixincube.app.manager.CubeServiceConnection;
+import com.shixincube.app.manager.CubeConnection;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.util.UIUtils;
@@ -66,7 +66,7 @@ public class SplashActivity extends BaseActivity {
     @BindView(R.id.btnRegister)
     Button registerButton;
 
-    private CubeServiceConnection connection;
+    private CubeConnection connection;
 
     private boolean valid;
 
@@ -103,6 +103,9 @@ public class SplashActivity extends BaseActivity {
         if (!this.valid) {
             this.loginButton.setVisibility(View.VISIBLE);
             this.registerButton.setVisibility(View.VISIBLE);
+        }
+        else {
+            jumpToActivityAndClearTask(MainActivity.class);
         }
     }
 
@@ -163,16 +166,20 @@ public class SplashActivity extends BaseActivity {
                     registerButton.setVisibility(View.VISIBLE);
                 }
 
-                if (valid.booleanValue()) {
+                if (valid.booleanValue() && null != accountView) {
                     jumpToActivityAndClearTask(MainActivity.class);
                 }
             }
         });
 
         // 创建引擎服务
-        this.connection = new CubeServiceConnection(getApplicationContext());
         Intent intent = new Intent(this, CubeService.class);
+        intent.setAction(CubeService.ACTION_START);
         startService(intent);
+
+        // 监听引擎启动
+        this.connection = new CubeConnection();
+        intent = new Intent(this, CubeService.class);
         bindService(intent, this.connection, BIND_AUTO_CREATE);
     }
 }

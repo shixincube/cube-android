@@ -93,6 +93,10 @@ public class CubeBaseApp extends MultiDexApplication {
         }
     }
 
+    public static void removeActivity(Activity activity) {
+        CubeBaseApp.activities.remove(activity);
+    }
+
     public static Context getContext() {
         return CubeBaseApp.context;
     }

@@ -33,10 +33,15 @@ import android.widget.TextView;
 import androidx.viewpager.widget.ViewPager;
 
 import com.shixincube.app.R;
+import com.shixincube.app.ui.adapter.CommonFragmentPagerAdapter;
 import com.shixincube.app.ui.base.BaseActivity;
+import com.shixincube.app.ui.base.BaseFragment;
+import com.shixincube.app.ui.fragment.FragmentFactory;
 import com.shixincube.app.ui.presenter.MainPresenter;
 import com.shixincube.app.ui.view.MainView;
 import com.shixincube.app.widget.MainTabBar;
+
+import java.util.ArrayList;
 
 import butterknife.BindView;
 
@@ -101,6 +106,11 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
+
+    @Override
     public void init() {
 
     }
@@ -109,6 +119,13 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
     public void initView() {
         this.mainTabBar = new MainTabBar(this.presenter.getView());
         this.mainTabBar.toggleToConversation();
+
+        // 设置缓存
+        this.contentViewPager.setOffscreenPageLimit(3);
+
+        ArrayList<BaseFragment> fragmentList = new ArrayList<>(4);
+        fragmentList.add(FragmentFactory.getInstance().getConversationFragment());
+        this.contentViewPager.setAdapter(new CommonFragmentPagerAdapter(getSupportFragmentManager(), fragmentList));
     }
 
     @Override
@@ -117,6 +134,8 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
         this.filesLayout.setOnClickListener(this::onBottomTabBarClick);
         this.contactsLayout.setOnClickListener(this::onBottomTabBarClick);
         this.profileLayout.setOnClickListener(this::onBottomTabBarClick);
+
+        this.contentViewPager.addOnPageChangeListener(this);
     }
 
     @Override

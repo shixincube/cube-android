@@ -28,7 +28,9 @@ package com.shixincube.app.widget;
 
 import android.view.View;
 
+import com.shixincube.app.R;
 import com.shixincube.app.ui.view.MainView;
+import com.shixincube.app.util.UIUtils;
 
 /**
  * 主标签栏。
@@ -50,6 +52,8 @@ public class MainTabBar {
         this.view.getConversationPressedTitle().setVisibility(View.VISIBLE);
         this.view.getConversationNormalIcon().setVisibility(View.INVISIBLE);
         this.view.getConversationNormalTitle().setVisibility(View.INVISIBLE);
+
+        this.view.setToolbarTitle(UIUtils.getString(R.string.conversation));
     }
 
     public void toggleToFiles() {
@@ -59,6 +63,8 @@ public class MainTabBar {
         this.view.getFilesPressedTitle().setVisibility(View.VISIBLE);
         this.view.getFilesNormalIcon().setVisibility(View.INVISIBLE);
         this.view.getFilesNormalTitle().setVisibility(View.INVISIBLE);
+
+        this.view.setToolbarTitle(UIUtils.getString(R.string.files));
     }
 
     public void toggleToContacts() {
@@ -68,6 +74,8 @@ public class MainTabBar {
         this.view.getContactsPressedTitle().setVisibility(View.VISIBLE);
         this.view.getContactsNormalIcon().setVisibility(View.INVISIBLE);
         this.view.getContactsNormalTitle().setVisibility(View.INVISIBLE);
+
+        this.view.setToolbarTitle(UIUtils.getString(R.string.contacts));
     }
 
     public void toggleToProfile() {
@@ -77,6 +85,8 @@ public class MainTabBar {
         this.view.getProfilePressedTitle().setVisibility(View.VISIBLE);
         this.view.getProfileNormalIcon().setVisibility(View.INVISIBLE);
         this.view.getProfileNormalTitle().setVisibility(View.INVISIBLE);
+
+        this.view.setToolbarTitle(UIUtils.getString(R.string.profile));
     }
 
     private void reset() {

@@ -34,12 +34,18 @@ import org.json.JSONObject;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import cube.auth.AuthToken;
+import cube.contact.handler.ContactAppendixHandler;
+import cube.contact.handler.ContactHandler;
 import cube.contact.handler.SignHandler;
 import cube.contact.model.Contact;
+import cube.contact.model.ContactAppendix;
 import cube.contact.model.Self;
 import cube.core.Module;
 import cube.core.ModuleError;
 import cube.core.Packet;
+import cube.core.PipelineState;
+import cube.core.handler.FailureHandler;
+import cube.core.handler.PipelineHandler;
 import cube.util.ObservableEvent;
 
 /**
@@ -61,6 +67,8 @@ public class ContactService extends Module {
     private SignHandler signInHandler;
 
     protected Self self;
+
+    private ContactDataProvider contactDataProvider;
 
     public ContactService() {
         super(NAME);
@@ -101,6 +109,15 @@ public class ContactService extends Module {
     @Override
     public boolean isReady() {
         return false;
+    }
+
+    /**
+     * 设置联系人数据提供者。
+     *
+     * @param provider 指定数据提供者。
+     */
+    public void setContactDataProvider(ContactDataProvider provider) {
+        this.contactDataProvider = provider;
     }
 
     /**
@@ -246,7 +263,184 @@ public class ContactService extends Module {
         this.self = null;
     }
 
+    /**
+     * 获取指定 ID 的联系人。
+     *
+     * @param contactId 指定联系人 ID 。
+     * @param successHandler 成功获取到数据回调该句柄。
+     */
+    public void getContact(Long contactId, ContactHandler successHandler) {
+        this.getContact(contactId, successHandler, null);
+    }
 
+    /**
+     * 获取指定 ID 的联系人。
+     *
+     * @param contactId 指定联系人 ID 。
+     * @param successHandler 成功获取到数据回调该句柄。
+     * @param failureHandler 获取数据时故障回调该句柄。该句柄可以设置为 {@code null} 值。
+     */
+    public void getContact(Long contactId, ContactHandler successHandler, FailureHandler failureHandler) {
+        // 从数据库读取
+        Contact contact = this.storage.readContact(contactId);
+        if (null != contact) {
+            // 判断是否过期
+            if (contact.isValid()) {
+                // 有效的数据
+
+                // 检查上下文
+                if (null == contact.getContext() && null != this.contactDataProvider) {
+                    contact.setContext(this.contactDataProvider.needContactContext(contact));
+                    if (null != contact.getContext()) {
+                        this.storage.updateContactContext(contact.id, contact.getContext());
+                    }
+                }
+
+                this.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        successHandler.handleContact(contact);
+                    }
+                });
+                return;
+            }
+        }
+
+        if (!this.pipeline.isReady()) {
+            // 数据通道未就绪
+            if (null != failureHandler) {
+                this.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        ModuleError error = new ModuleError(NAME, ContactServiceState.NoNetwork.code);
+                        failureHandler.handleFailure(ContactService.this, error);
+                    }
+                });
+            }
+            return;
+        }
+
+        JSONObject packetData = new JSONObject();
+        try {
+            packetData.put("id", contactId.longValue());
+            packetData.put("domain", this.getAuthToken().domain);
+        } catch (JSONException e) {
+            Log.w(ContactService.class.getName(), "#getContact", e);
+        }
+
+        Packet requestPacket = new Packet(ContactServiceAction.GetContact, packetData);
+        this.pipeline.send(ContactService.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    if (null != failureHandler) {
+                        execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                ModuleError error = new ModuleError(ContactService.NAME, ContactServiceState.ServerError.code);
+                                failureHandler.handleFailure(ContactService.this, error);
+                            }
+                        });
+                    }
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != ContactServiceState.Ok.code) {
+                    if (null != failureHandler) {
+                        execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                ModuleError error = new ModuleError(ContactService.NAME, stateCode);
+                                failureHandler.handleFailure(ContactService.this, error);
+                            }
+                        });
+                    }
+                    return;
+                }
+
+                try {
+                    JSONObject json = packet.extractServiceData();
+                    json.put("domain", getAuthToken().domain);
+                    Contact contact = new Contact(json);
+
+                    if (null == contact.getContext() && null != contactDataProvider) {
+                        contact.setContext(contactDataProvider.needContactContext(contact));
+                    }
+
+                    // 写入数据库
+                    storage.writeContact(contact);
+
+                    // 获取附录
+                } catch (JSONException e) {
+                    // Nothing
+                }
+            }
+        });
+    }
+
+    protected void getAppendix(Contact contact, ContactAppendixHandler successHandler, FailureHandler failureHandler) {
+        JSONObject data = new JSONObject();
+        try {
+            data.put("contactId", contact.id.longValue());
+        } catch (JSONException e) {
+            // Nothing
+        }
+        Packet request = new Packet(ContactServiceAction.GetAppendix, data);
+        this.pipeline.send(ContactService.NAME, request, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            ModuleError error = new ModuleError(ContactService.NAME, packet.state.code);
+                            failureHandler.handleFailure(ContactService.this, error);
+                        }
+                    });
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != ContactServiceState.Ok.code) {
+                    execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            ModuleError error = new ModuleError(ContactService.NAME, stateCode);
+                            failureHandler.handleFailure(ContactService.this, error);
+                        }
+                    });
+                    return;
+                }
+
+                try {
+                    ContactAppendix appendix = new ContactAppendix(ContactService.this, contact,
+                            packet.extractServiceData());
+                    // 更新存储
+                    storage.writeAppendix(appendix);
+
+                    // 赋值
+                    contact.setAppendix(appendix);
+
+                    execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            successHandler.handleAppendix(contact, appendix);
+                        }
+                    });
+                }
+                catch (JSONException e) {
+                    execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            ModuleError error = new ModuleError(ContactService.NAME, ContactServiceState.DataStructureError.code);
+                            failureHandler.handleFailure(ContactService.this, error);
+                        }
+                    });
+                }
+            }
+        });
+    }
 
     private void fireSignInCompleted() {
         Log.d("ContactService", "#fireSignInCompleted");

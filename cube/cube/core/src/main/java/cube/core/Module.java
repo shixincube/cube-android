@@ -28,6 +28,7 @@ package cube.core;
 
 import android.content.Context;
 
+import cube.auth.AuthToken;
 import cube.util.Subject;
 
 /**
@@ -105,6 +106,10 @@ public abstract class Module extends Subject {
 
     protected Context getContext() {
         return this.kernel.getContext();
+    }
+
+    protected AuthToken getAuthToken() {
+        return this.kernel.getAuthToken();
     }
 
     protected void execute(Runnable task) {

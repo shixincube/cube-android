@@ -52,6 +52,10 @@ public class ContactAppendix implements JSONable {
         }
     }
 
+    public Contact getOwner() {
+        return this.owner;
+    }
+
     /**
      * 设置该联系人的备注名。
      *

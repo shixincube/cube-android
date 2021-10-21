@@ -229,7 +229,36 @@ public class ContactStorage implements Storage {
         db.close();
     }
 
+    /**
+     * 写入联系人附录。
+     *
+     * @param appendix
+     */
+    public void writeAppendix(ContactAppendix appendix) {
+        SQLiteDatabase db = this.sqlite.getWritableDatabase();
 
+        Cursor cursor = db.query("appendix", new String[] { "id" },
+                "id=?", new String[] { appendix.getOwner().id.toString() }, null, null, null);
+        if (cursor.moveToFirst()) {
+            cursor.close();
+
+            // 更新
+            ContentValues values = new ContentValues();
+            values.put("data", appendix.toJSON().toString());
+            db.update("appendix", values, "id=?", new String[] { appendix.getOwner().id.toString() });
+        }
+        else {
+            cursor.close();
+
+            // 插入
+            ContentValues values = new ContentValues();
+            values.put("id", appendix.getOwner().id.longValue());
+            values.put("data", appendix.toJSON().toString());
+            db.insert("appendix", null, values);
+        }
+
+        db.close();
+    }
 
     private class SQLite extends SQLiteOpenHelper {
 

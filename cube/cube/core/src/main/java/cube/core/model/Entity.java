@@ -111,6 +111,11 @@ public class Entity implements JSONable {
         return this.expiry;
     }
 
+    /**
+     * 实体数据是否在有效期内。
+     *
+     * @return 如果数据在有效期内返回 {@code true} ，否则返回 {@code false} 。
+     */
     public boolean isValid() {
         return this.expiry > System.currentTimeMillis();
     }

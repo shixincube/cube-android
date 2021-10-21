@@ -197,6 +197,11 @@ public class Kernel implements PipelineListener {
         return this.deviceSerial;
     }
 
+    protected AuthToken getAuthToken() {
+        AuthService service = (AuthService) this.getModule(AuthService.NAME);
+        return service.getToken();
+    }
+
     protected Context getContext() {
         return this.context;
     }

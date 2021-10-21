@@ -1,6 +1,12 @@
 <resources>
     <string name="app_name">Cube</string>
 
+    <!-- 主界面 -->
+    <string name="conversation">消息</string>
+    <string name="files">文件</string>
+    <string name="contacts">联系人</string>
+    <string name="profile">我的</string>
+
     <!-- 工具栏 -->
     <string name="add_contact">添加联系人</string>
     <string name="search">搜索</string>
@@ -37,4 +43,5 @@
 
     <!-- 常用 -->
     <string name="please_wait_a_moment">请稍候</string>
+    <string name="number_1">1</string>
 </resources>

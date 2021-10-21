@@ -26,23 +26,75 @@
 
 package com.shixincube.app.ui.activity;
 
-import com.shixincube.app.R;
-import com.shixincube.app.manager.AccountHelper;
-import com.shixincube.app.model.Account;
-import com.shixincube.app.ui.base.BaseActivity;
-import com.shixincube.app.ui.base.BasePresenter;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
-import cube.contact.ContactService;
-import cube.contact.handler.SignHandler;
-import cube.contact.model.Self;
-import cube.core.ModuleError;
-import cube.engine.CubeEngine;
-import cube.util.LogUtils;
+import androidx.viewpager.widget.ViewPager;
+
+import com.shixincube.app.R;
+import com.shixincube.app.ui.base.BaseActivity;
+import com.shixincube.app.ui.presenter.MainPresenter;
+import com.shixincube.app.ui.view.MainView;
+import com.shixincube.app.widget.MainTabBar;
+
+import butterknife.BindView;
 
 /**
  * 主界面。
  */
-public class MainActivity extends BaseActivity {
+public class MainActivity extends BaseActivity<MainView, MainPresenter> implements ViewPager.OnPageChangeListener, MainView {
+
+    private MainTabBar mainTabBar;
+
+    @BindView(R.id.vpContent)
+    ViewPager contentViewPager;
+
+    @BindView(R.id.llConversation)
+    LinearLayout conversationLayout;
+    @BindView(R.id.tvConversationNormal)
+    TextView conversationNormal;
+    @BindView(R.id.tvConversationPressed)
+    TextView conversationPressed;
+    @BindView(R.id.tvConversationTextNormal)
+    TextView conversationTextNormal;
+    @BindView(R.id.tvConversationTextPressed)
+    TextView conversationTextPressed;
+    @BindView(R.id.tvConversationBadge)
+    TextView conversationBadge;
+
+    @BindView(R.id.llFiles)
+    LinearLayout filesLayout;
+    @BindView(R.id.tvFilesNormal)
+    TextView filesNormal;
+    @BindView(R.id.tvFilesPressed)
+    TextView filesPressed;
+    @BindView(R.id.tvFilesTextNormal)
+    TextView filesTextNormal;
+    @BindView(R.id.tvFilesTextPressed)
+    TextView filesTextPressed;
+
+    @BindView(R.id.llContacts)
+    LinearLayout contactsLayout;
+    @BindView(R.id.tvContactsNormal)
+    TextView contactsNormal;
+    @BindView(R.id.tvContactsPressed)
+    TextView contactsPressed;
+    @BindView(R.id.tvContactsTextNormal)
+    TextView contactsTextNormal;
+    @BindView(R.id.tvContactsTextPressed)
+    TextView contactsTextPressed;
+
+    @BindView(R.id.llProfile)
+    LinearLayout profileLayout;
+    @BindView(R.id.tvProfileNormal)
+    TextView profileNormal;
+    @BindView(R.id.tvProfilePressed)
+    TextView profilePressed;
+    @BindView(R.id.tvProfileTextNormal)
+    TextView profileTextNormal;
+    @BindView(R.id.tvProfileTextPressed)
+    TextView profileTextPressed;
 
     public MainActivity() {
         super();
@@ -50,7 +102,25 @@ public class MainActivity extends BaseActivity {
 
     @Override
     public void init() {
-        this.signIn();
+
+    }
+
+    @Override
+    public void initView() {
+        this.mainTabBar = new MainTabBar(this.presenter.getView());
+        this.mainTabBar.toggleToConversation();
+    }
+
+    @Override
+    public void initListener() {
+        this.conversationLayout.setOnClickListener(this::onBottomTabBarClick);
+        this.filesLayout.setOnClickListener(this::onBottomTabBarClick);
+        this.contactsLayout.setOnClickListener(this::onBottomTabBarClick);
+        this.profileLayout.setOnClickListener(this::onBottomTabBarClick);
+    }
+
+    @Override
+    public void initData() {
     }
 
     @Override
@@ -59,8 +129,8 @@ public class MainActivity extends BaseActivity {
     }
 
     @Override
-    protected BasePresenter createPresenter() {
-        return null;
+    protected MainPresenter createPresenter() {
+        return new MainPresenter(this);
     }
 
     @Override
@@ -68,40 +138,110 @@ public class MainActivity extends BaseActivity {
         return R.layout.activity_main;
     }
 
-    private void signIn() {
-        (new Thread() {
-            @Override
-            public void run() {
-                int count = 100;
-                while (!CubeEngine.getInstance().isReady()) {
-                    if ((--count) <= 0) {
-                        break;
-                    }
+    private void onBottomTabBarClick(View view) {
+        switch (view.getId()) {
+            case R.id.llConversation:
+                this.mainTabBar.toggleToConversation();
+                break;
+            case R.id.llFiles:
+                this.mainTabBar.toggleToFiles();
+                break;
+            case R.id.llContacts:
+                this.mainTabBar.toggleToContacts();
+                break;
+            case R.id.llProfile:
+                this.mainTabBar.toggleToProfile();
+                break;
+            default:
+                break;
+        }
+    }
 
-                    try {
-                        Thread.sleep(10L);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
+    @Override
+    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
 
-                // 已启动，账号签入
-                Account account = AccountHelper.getInstance().getCurrentAccount();
-                boolean result = CubeEngine.getInstance().signIn(account.id, account.name, account.toJSON(), new SignHandler() {
-                    @Override
-                    public void handleSuccess(ContactService service, Self self) {
-                        LogUtils.i("CubeApp", "SignIn success");
-                    }
+    }
 
-                    @Override
-                    public void handleFailure(ContactService service, ModuleError error) {
-                        LogUtils.i("CubeApp", "SignIn failure");
-                    }
-                });
-                if (!result) {
-                    LogUtils.w("CubeApp", "SignIn Error");
-                }
-            }
-        }).start();
+    @Override
+    public void onPageSelected(int position) {
+
+    }
+
+    @Override
+    public void onPageScrollStateChanged(int state) {
+
+    }
+
+    @Override
+    public void setToolbarTitle(String title) {
+        super.setToolbarTitle(title);
+    }
+
+    @Override
+    public TextView getConversationNormalIcon() {
+        return this.conversationNormal;
+    }
+    @Override
+    public TextView getConversationNormalTitle() {
+        return this.conversationTextNormal;
+    }
+    @Override
+    public TextView getConversationPressedIcon() {
+        return this.conversationPressed;
+    }
+    @Override
+    public TextView getConversationPressedTitle() {
+        return this.conversationTextPressed;
+    }
+
+    @Override
+    public TextView getFilesNormalIcon() {
+        return this.filesNormal;
+    }
+    @Override
+    public TextView getFilesNormalTitle() {
+        return this.filesTextNormal;
+    }
+    @Override
+    public TextView getFilesPressedIcon() {
+        return this.filesPressed;
+    }
+    @Override
+    public TextView getFilesPressedTitle() {
+        return this.filesTextPressed;
+    }
+
+    @Override
+    public TextView getContactsNormalIcon() {
+        return this.contactsNormal;
+    }
+    @Override
+    public TextView getContactsNormalTitle() {
+        return this.contactsTextNormal;
+    }
+    @Override
+    public TextView getContactsPressedIcon() {
+        return this.contactsPressed;
+    }
+    @Override
+    public TextView getContactsPressedTitle() {
+        return this.contactsTextPressed;
+    }
+
+    @Override
+    public TextView getProfileNormalIcon() {
+        return this.profileNormal;
+    }
+    @Override
+    public TextView getProfileNormalTitle() {
+        return this.profileTextNormal;
+    }
+    @Override
+    public TextView getProfilePressedIcon() {
+        return this.profilePressed;
+    }
+    @Override
+    public TextView getProfilePressedTitle() {
+        return this.profileTextPressed;
     }
 }

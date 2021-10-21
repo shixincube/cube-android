@@ -53,7 +53,7 @@ public class CubeBaseApp extends MultiDexApplication {
     // 循环队列
     private static Looper mainLooper;
     // 主线程 Handler
-    private static Handler handler;
+    private static Handler mainHandler;
 
     public CubeBaseApp() {
         super();
@@ -66,7 +66,8 @@ public class CubeBaseApp extends MultiDexApplication {
         CubeBaseApp.context = getApplicationContext();
         CubeBaseApp.mainThread = Thread.currentThread();
         CubeBaseApp.mainThreadId = android.os.Process.myTid();
-        CubeBaseApp.handler = new Handler();
+        CubeBaseApp.mainLooper = Looper.getMainLooper();
+        CubeBaseApp.mainHandler = new Handler(Looper.getMainLooper());
     }
 
     /**
@@ -114,6 +115,6 @@ public class CubeBaseApp extends MultiDexApplication {
     }
 
     public static Handler getMainThreadHandler() {
-        return CubeBaseApp.handler;
+        return CubeBaseApp.mainHandler;
     }
 }

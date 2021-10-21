@@ -104,7 +104,7 @@ public class ContactService extends Module {
     }
 
     /**
-     * 签入。
+     * 签入指定联系人。
      *
      * @param self
      * @param handler
@@ -170,12 +170,12 @@ public class ContactService extends Module {
                 this.execute(new Runnable() {
                     @Override
                     public void run() {
+                        ObservableEvent event = new ObservableEvent(ContactServiceEvent.SelfReady, ContactService.this.self);
+                        notifyObservers(event);
+
                         if (null != handler) {
                             handler.handleSuccess(ContactService.this, ContactService.this.self);
                         }
-
-                        ObservableEvent event = new ObservableEvent(ContactServiceEvent.SelfReady, ContactService.this.self);
-                        notifyObservers(event);
                     }
                 });
             }
@@ -239,9 +239,14 @@ public class ContactService extends Module {
         return true;
     }
 
+    /**
+     * 当前联系人签出。
+     */
     public void signOut() {
         this.self = null;
     }
+
+
 
     private void fireSignInCompleted() {
         Log.d("ContactService", "#fireSignInCompleted");

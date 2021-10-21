@@ -26,8 +26,32 @@
 
 package com.shixincube.app.ui.view;
 
+import android.widget.TextView;
+
 /**
  * 主界面。
  */
 public interface MainView {
+
+    void setToolbarTitle(String title);
+
+    TextView getConversationNormalIcon();
+    TextView getConversationNormalTitle();
+    TextView getConversationPressedIcon();
+    TextView getConversationPressedTitle();
+
+    TextView getFilesNormalIcon();
+    TextView getFilesNormalTitle();
+    TextView getFilesPressedIcon();
+    TextView getFilesPressedTitle();
+
+    TextView getContactsNormalIcon();
+    TextView getContactsNormalTitle();
+    TextView getContactsPressedIcon();
+    TextView getContactsPressedTitle();
+
+    TextView getProfileNormalIcon();
+    TextView getProfileNormalTitle();
+    TextView getProfilePressedIcon();
+    TextView getProfilePressedTitle();
 }

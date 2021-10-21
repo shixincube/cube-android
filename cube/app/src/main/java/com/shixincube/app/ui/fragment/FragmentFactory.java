@@ -34,6 +34,9 @@ public final class FragmentFactory {
     private final static FragmentFactory instance = new FragmentFactory();
 
     private ConversationFragment conversationFragment;
+    private FilesFragment filesFragment;
+    private ContactsFragment contactsFragment;
+    private ProfileFragment profileFragment;
 
     private FragmentFactory() {
     }
@@ -47,5 +50,26 @@ public final class FragmentFactory {
             this.conversationFragment = new ConversationFragment();
         }
         return this.conversationFragment;
+    }
+
+    public FilesFragment getFilesFragment() {
+        if (null == this.filesFragment) {
+            this.filesFragment = new FilesFragment();
+        }
+        return this.filesFragment;
+    }
+
+    public ContactsFragment getContactsFragment() {
+        if (null == this.contactsFragment) {
+            this.contactsFragment = new ContactsFragment();
+        }
+        return this.contactsFragment;
+    }
+
+    public ProfileFragment getProfileFragment() {
+        if (null == this.profileFragment) {
+            this.profileFragment = new ProfileFragment();
+        }
+        return this.profileFragment;
     }
 }

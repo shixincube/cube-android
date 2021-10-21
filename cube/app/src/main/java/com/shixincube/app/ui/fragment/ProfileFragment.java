@@ -29,33 +29,25 @@ package com.shixincube.app.ui.fragment;
 import com.shixincube.app.R;
 import com.shixincube.app.ui.activity.MainActivity;
 import com.shixincube.app.ui.base.BaseFragment;
-import com.shixincube.app.ui.presenter.ConversationPresenter;
-import com.shixincube.app.ui.view.ConversationView;
-import com.shixincube.app.widget.recyclerview.RecyclerView;
-
-import butterknife.BindView;
+import com.shixincube.app.ui.presenter.ProfilePresenter;
+import com.shixincube.app.ui.view.ProfileView;
 
 /**
- * 最近消息会话界面。
+ * 个人与应用信息管理。
  */
-public class ConversationFragment extends BaseFragment<ConversationView, ConversationPresenter> implements ConversationView {
+public class ProfileFragment extends BaseFragment<ProfileView, ProfilePresenter> implements ProfileView {
 
-    @BindView(R.id.rvConversations)
-    RecyclerView conversationsView;
-
-    private boolean first = true;
-
-    public ConversationFragment() {
+    public ProfileFragment() {
         super();
     }
 
     @Override
-    protected ConversationPresenter createPresenter() {
-        return new ConversationPresenter((MainActivity) getActivity());
+    protected ProfilePresenter createPresenter() {
+        return new ProfilePresenter((MainActivity) getActivity());
     }
 
     @Override
     protected int provideContentViewId() {
-        return R.layout.fragment_conversation;
+        return R.layout.fragment_profile;
     }
 }

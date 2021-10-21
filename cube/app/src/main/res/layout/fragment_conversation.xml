@@ -7,7 +7,7 @@
     android:orientation="vertical">
 
     <com.shixincube.app.widget.recyclerview.RecyclerView
-        android:id="@+id/rvConversation"
+        android:id="@+id/rvConversations"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:rv_divider_color="@color/line"

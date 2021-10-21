@@ -125,6 +125,9 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
 
         ArrayList<BaseFragment> fragmentList = new ArrayList<>(4);
         fragmentList.add(FragmentFactory.getInstance().getConversationFragment());
+        fragmentList.add(FragmentFactory.getInstance().getFilesFragment());
+        fragmentList.add(FragmentFactory.getInstance().getContactsFragment());
+        fragmentList.add(FragmentFactory.getInstance().getProfileFragment());
         this.contentViewPager.setAdapter(new CommonFragmentPagerAdapter(getSupportFragmentManager(), fragmentList));
     }
 
@@ -160,15 +163,19 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
     private void onBottomTabBarClick(View view) {
         switch (view.getId()) {
             case R.id.llConversation:
+                this.contentViewPager.setCurrentItem(0, false);
                 this.mainTabBar.toggleToConversation();
                 break;
             case R.id.llFiles:
+                this.contentViewPager.setCurrentItem(1, false);
                 this.mainTabBar.toggleToFiles();
                 break;
             case R.id.llContacts:
+                this.contentViewPager.setCurrentItem(2, false);
                 this.mainTabBar.toggleToContacts();
                 break;
             case R.id.llProfile:
+                this.contentViewPager.setCurrentItem(3, false);
                 this.mainTabBar.toggleToProfile();
                 break;
             default:

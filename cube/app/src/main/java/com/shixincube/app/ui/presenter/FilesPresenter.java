@@ -24,38 +24,18 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app.ui.fragment;
+package com.shixincube.app.ui.presenter;
 
-import com.shixincube.app.R;
-import com.shixincube.app.ui.activity.MainActivity;
-import com.shixincube.app.ui.base.BaseFragment;
-import com.shixincube.app.ui.presenter.ConversationPresenter;
-import com.shixincube.app.ui.view.ConversationView;
-import com.shixincube.app.widget.recyclerview.RecyclerView;
-
-import butterknife.BindView;
+import com.shixincube.app.ui.base.BaseActivity;
+import com.shixincube.app.ui.base.BasePresenter;
+import com.shixincube.app.ui.view.FilesView;
 
 /**
- * 最近消息会话界面。
+ * 文件清单。
  */
-public class ConversationFragment extends BaseFragment<ConversationView, ConversationPresenter> implements ConversationView {
+public class FilesPresenter extends BasePresenter<FilesView> {
 
-    @BindView(R.id.rvConversations)
-    RecyclerView conversationsView;
-
-    private boolean first = true;
-
-    public ConversationFragment() {
-        super();
-    }
-
-    @Override
-    protected ConversationPresenter createPresenter() {
-        return new ConversationPresenter((MainActivity) getActivity());
-    }
-
-    @Override
-    protected int provideContentViewId() {
-        return R.layout.fragment_conversation;
+    public FilesPresenter(BaseActivity activity) {
+        super(activity);
     }
 }

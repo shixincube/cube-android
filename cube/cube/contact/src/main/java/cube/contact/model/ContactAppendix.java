@@ -26,12 +26,77 @@
 
 package cube.contact.model;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import cube.contact.ContactService;
+import cube.util.JSONable;
+
 /**
  * 联系人附件。
  */
-public class ContactAppendix {
+public class ContactAppendix implements JSONable {
 
-    public ContactAppendix() {
+    private ContactService service;
 
+    private Contact owner;
+
+    private String remarkName;
+
+    public ContactAppendix(ContactService service, Contact owner, JSONObject json) throws JSONException {
+        this.service = service;
+        this.owner = owner;
+
+        if (json.has("remarkName")) {
+            this.remarkName = json.getString("remarkName");
+        }
+    }
+
+    /**
+     * 设置该联系人的备注名。
+     *
+     * @param remarkName
+     */
+    public void setRemarkName(String remarkName) {
+        this.remarkName = remarkName;
+    }
+
+    /**
+     * 返回备注名。
+     *
+     * @return
+     */
+    public String getRemarkName() {
+        return this.remarkName;
+    }
+
+    public boolean hasRemarkName() {
+        return (null != this.remarkName) && (this.remarkName.length() > 0);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public JSONObject toJSON() {
+        JSONObject json = new JSONObject();
+        try {
+            json.put("owner", this.owner.toCompactJSON());
+
+            if (this.hasRemarkName()) {
+                json.put("remarkName", this.remarkName);
+            }
+        } catch (JSONException e) {
+            // Nothing
+        }
+        return json;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public JSONObject toCompactJSON() {
+        return this.toJSON();
     }
 }

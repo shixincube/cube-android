@@ -73,7 +73,7 @@ public class ContactService extends Module {
             return false;
         }
 
-        this.storage = new ContactStorage();
+        this.storage = new ContactStorage(this);
 
         this.pipelineListener = new ContactPipelineListener(this);
         this.pipeline.addListener(NAME, this.pipelineListener);
@@ -111,119 +111,73 @@ public class ContactService extends Module {
      * @return 如果返回 {@code false} 表示当前状态下不能进行该操作，请检查是否正确启动魔方。
      */
     public boolean signIn(Self self, SignHandler handler) {
-        synchronized (this.selfReady) {
-            if (null != this.self && !this.self.equals(self)) {
-                Log.w("ContactService", "Can NOT use different contact to sign-in");
+        if (null != this.self && !this.self.equals(self)) {
+            Log.w("ContactService", "Can NOT use different contact to sign-in");
+            return false;
+        }
+
+        if (this.selfReady.get()) {
+            return false;
+        }
+
+        if (!this.hasStarted()) {
+            if (!this.start()) {
+                // 启动模块失败
                 return false;
             }
+        }
 
-            if (this.selfReady.get()) {
-                return false;
+        // 等待内核就绪
+        int count = 100;
+        while (!this.kernel.isReady() && count > 0) {
+            --count;
+            try {
+                Thread.sleep(10L);
+            } catch (InterruptedException e) {
+                // Nothing
             }
+        }
 
-            if (!this.hasStarted()) {
-                if (!this.start()) {
-                    // 启动模块失败
-                    return false;
-                }
-            }
+        if (!this.kernel.isReady()) {
+            // 内核未就绪
+            return false;
+        }
 
-            // 等待内核就绪
-            int count = 100;
-            while (!this.kernel.isReady() && count > 0) {
-                --count;
-                try {
-                    Thread.sleep(10L);
-                } catch (InterruptedException e) {
-                    // Nothing
-                }
-            }
+        // 开启存储
+        this.storage.open(this.getContext(), self.id, self.domain);
 
-            if (!this.kernel.isReady()) {
-                // 内核未就绪
-                return false;
-            }
+        // 设置 Self
+        this.self = self;
 
-            // 开启存储
-            this.storage.open(this.getContext(), self.id, self.domain);
-
-            // 设置 Self
-            this.self = self;
-
-            if (!this.pipeline.isReady()) {
-                // 数据通道未就绪从数据库读取数据
-                Contact contact = this.storage.readContact(self.id);
-                // 激活令牌
-                AuthToken authToken = this.kernel.activeToken(self.id);
-
-                if (null != contact && null != authToken) {
-                    // 设置附录
-                    this.self.setAppendix(contact.getAppendix());
-                    // 设置上下文
-                    if (null != this.self.getContext()) {
-                        // 更新联系人的附加上下文
-                        this.storage.updateContactContext(this.self.id, this.self.getContext());
-                    }
-                    else {
-                        this.self.setContext(contact.getContext());
-                    }
-
-                    this.execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (null != handler) {
-                                handler.handleSuccess(ContactService.this, ContactService.this.self);
-                            }
-
-                            ObservableEvent event = new ObservableEvent(ContactServiceEvent.SelfReady, ContactService.this.self);
-                            notifyObservers(event);
-                        }
-                    });
-                }
-                else {
-                    if (null != handler) {
-                        this.execute(new Runnable() {
-                            @Override
-                            public void run() {
-                                handler.handleFailure(ContactService.this,
-                                        new ModuleError(ContactService.NAME, ContactServiceState.NoNetwork.code));
-                            }
-                        });
-                    }
-                }
-
-                return true;
-            }
-
-            // 访问服务器进行签入
-
-            // 通知系统 Self 实例就绪
-            this.execute(new Runnable() {
-                @Override
-                public void run() {
-                    ObservableEvent event = new ObservableEvent(ContactServiceEvent.SelfReady, ContactService.this.self);
-                    notifyObservers(event);
-                }
-            });
-
+        if (!this.pipeline.isReady()) {
+            // 数据通道未就绪从数据库读取数据
+            Contact contact = this.storage.readContact(self.id);
             // 激活令牌
             AuthToken authToken = this.kernel.activeToken(self.id);
-            if (null != authToken) {
-                if (null != handler) {
-                    // 设置回调
-                    this.signInHandler = handler;
+
+            if (null != contact && null != authToken) {
+                // 设置附录
+                this.self.setAppendix(contact.getAppendix());
+                // 设置上下文
+                if (null != this.self.getContext()) {
+                    // 更新联系人的附加上下文
+                    this.storage.updateContactContext(this.self.id, this.self.getContext());
+                }
+                else {
+                    this.self.setContext(contact.getContext());
                 }
 
-                // 请求服务器进行签入
-                JSONObject payload = new JSONObject();
-                try {
-                    payload.put("self", this.self.toJSON());
-                    payload.put("token", authToken.toJSON());
-                } catch (JSONException e) {
-                    Log.e(ContactService.class.getSimpleName(), "#signIn", e);
-                }
-                Packet signInPacket = new Packet(ContactServiceAction.SignIn, payload);
-                this.pipeline.send(ContactService.NAME, signInPacket);
+                this.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (null != handler) {
+                            handler.handleSuccess(ContactService.this, ContactService.this.self);
+                        }
+
+                        ObservableEvent event = new ObservableEvent(ContactServiceEvent.SelfReady, ContactService.this.self);
+                        notifyObservers(event);
+                    }
+                });
             }
             else {
                 if (null != handler) {
@@ -231,10 +185,54 @@ public class ContactService extends Module {
                         @Override
                         public void run() {
                             handler.handleFailure(ContactService.this,
-                                    new ModuleError(ContactService.NAME, ContactServiceState.InconsistentToken.code));
+                                    new ModuleError(ContactService.NAME, ContactServiceState.NoNetwork.code));
                         }
                     });
                 }
+            }
+
+            return true;
+        }
+
+        // 访问服务器进行签入
+
+        // 通知系统 Self 实例就绪
+        this.execute(new Runnable() {
+            @Override
+            public void run() {
+                ObservableEvent event = new ObservableEvent(ContactServiceEvent.SelfReady, ContactService.this.self);
+                notifyObservers(event);
+            }
+        });
+
+        // 激活令牌
+        AuthToken authToken = this.kernel.activeToken(self.id);
+        if (null != authToken) {
+            if (null != handler) {
+                // 设置回调
+                this.signInHandler = handler;
+            }
+
+            // 请求服务器进行签入
+            JSONObject payload = new JSONObject();
+            try {
+                payload.put("self", this.self.toJSON());
+                payload.put("token", authToken.toJSON());
+            } catch (JSONException e) {
+                Log.e(ContactService.class.getSimpleName(), "#signIn", e);
+            }
+            Packet signInPacket = new Packet(ContactServiceAction.SignIn, payload);
+            this.pipeline.send(ContactService.NAME, signInPacket);
+        }
+        else {
+            if (null != handler) {
+                this.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        handler.handleFailure(ContactService.this,
+                                new ModuleError(ContactService.NAME, ContactServiceState.InconsistentToken.code));
+                    }
+                });
             }
         }
 
@@ -247,6 +245,12 @@ public class ContactService extends Module {
 
     private void fireSignInCompleted() {
         Log.d("ContactService", "#fireSignInCompleted");
+
+        if (this.selfReady.get()) {
+            return;
+        }
+
+        this.selfReady.set(true);
 
         // 写入数据库
         this.storage.writeContact(this.self);
@@ -270,26 +274,18 @@ public class ContactService extends Module {
             return;
         }
 
-        synchronized (this.selfReady) {
-            if (this.selfReady.get()) {
-                return;
+        try {
+            if (null != this.self) {
+                this.self.update(payload);
             }
-
-            this.selfReady.set(true);
-
-            try {
-                if (null != this.self) {
-                    this.self.update(payload);
-                }
-                else {
-                    this.self = new Self(payload);
-                }
-            } catch (JSONException e) {
-                Log.e(ContactService.class.getSimpleName(), "#triggerSignIn", e);
+            else {
+                this.self = new Self(payload);
             }
-
-            fireSignInCompleted();
+        } catch (JSONException e) {
+            Log.e(ContactService.class.getSimpleName(), "#triggerSignIn", e);
         }
+
+        fireSignInCompleted();
     }
 
     protected void triggerSignOut() {

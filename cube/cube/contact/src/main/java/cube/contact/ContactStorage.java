@@ -36,6 +36,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import cube.contact.model.Contact;
+import cube.contact.model.ContactAppendix;
 import cube.core.Storage;
 
 /**
@@ -45,13 +46,16 @@ public class ContactStorage implements Storage {
 
     private final static int VERSION = 1;
 
+    private ContactService service;
+
     private SQLite sqlite;
 
     private Long contactId;
 
     private String domain;
 
-    public ContactStorage() {
+    public ContactStorage(ContactService service) {
+        this.service = service;
     }
 
     /**
@@ -82,6 +86,12 @@ public class ContactStorage implements Storage {
         }
     }
 
+    /**
+     * 读取联系人数据。
+     *
+     * @param contactId
+     * @return
+     */
     public Contact readContact(Long contactId) {
         Contact contact = null;
         SQLiteDatabase db = this.sqlite.getReadableDatabase();
@@ -93,6 +103,7 @@ public class ContactStorage implements Storage {
             long timestamp = cursor.getLong(2);
             // 实例化
             contact = new Contact(contactId, name, this.domain, timestamp);
+            // 设置上下文数据
             if (contextString.length() > 3) {
                 try {
                     JSONObject context = new JSONObject(contextString);
@@ -101,13 +112,42 @@ public class ContactStorage implements Storage {
                     // Nothing
                 }
             }
+
+            cursor.close();
+
+            // 查找附录
+            cursor = db.query("appendix", new String[] { "data" }, "id=?", new String[] { contactId.toString() },
+                    null, null, null);
+            if (cursor.moveToFirst()) {
+                String data = cursor.getString(0);
+                // 实例化附录
+                try {
+                    ContactAppendix appendix = new ContactAppendix(this.service, contact, new JSONObject(data));
+                    contact.setAppendix(appendix);
+                } catch (JSONException e) {
+                    // Nothing
+                }
+            }
+
+            cursor.close();
         }
-        cursor.close();
+        else {
+            cursor.close();
+        }
+
         db.close();
         return contact;
     }
 
+    /**
+     * 写入联系人数据。
+     *
+     * @param contact
+     * @return
+     */
     public boolean writeContact(Contact contact) {
+        boolean result = true;
+
         String context = (null != contact.getContext()) ? contact.getContext().toString() : "";
 
         SQLiteDatabase db = this.sqlite.getWritableDatabase();
@@ -121,10 +161,27 @@ public class ContactStorage implements Storage {
             values.put("name", contact.getName());
             values.put("context", context);
             values.put("timestamp", contact.getTimestamp());
-            db.update("contact", values, "id=?", new String[] { contact.id.toString() });
+            db.update("contact", values,
+                    "id=?", new String[] { contact.id.toString() });
 
             // 更新附录
-            // TODO
+            ContactAppendix appendix = contact.getAppendix();
+            if (null != appendix) {
+                values = new ContentValues();
+                values.put("data", appendix.toJSON().toString());
+                int ret = db.update("appendix", values,
+                        "id=?", new String[] { contact.id.toString() });
+                if (ret == 0) {
+                    // 尝试插入
+                    values = new ContentValues();
+                    values.put("id", contact.id.longValue());
+                    values.put("data", appendix.toJSON().toString());
+                    long tid = db.insert("appendix", null, values);
+                    if (tid < 0) {
+                        result = false;
+                    }
+                }
+            }
         }
         else {
             cursor.close();
@@ -138,11 +195,20 @@ public class ContactStorage implements Storage {
             db.insert("contact", null, values);
 
             // 插入附录
-            // TODO
+            ContactAppendix appendix = contact.getAppendix();
+            if (null != appendix) {
+                values = new ContentValues();
+                values.put("id", contact.id.longValue());
+                values.put("data", appendix.toJSON().toString());
+                long tid = db.insert("appendix", null, values);
+                if (tid < 0) {
+                    result = false;
+                }
+            }
         }
 
         db.close();
-        return true;
+        return result;
     }
 
     /**
@@ -162,6 +228,8 @@ public class ContactStorage implements Storage {
 
         db.close();
     }
+
+
 
     private class SQLite extends SQLiteOpenHelper {
 

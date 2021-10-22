@@ -21,24 +21,16 @@ import com.shixincube.app.R;
  */
 public class OptionItemView extends View {
 
-    /**
-     * 控件的宽
-     */
+    /** 控件的宽 */
     private int mWidth;
-    /**
-     * 控件的高
-     */
+    /** 控件的高 */
     private int mHeight;
 
     private Context mContext;
 
-    /**
-     * 左图bitmap
-     */
+    /** 左图 bitmap */
     private Bitmap leftImage;
-    /**
-     * 右图bitmap
-     */
+    /** 右图 bitmap */
     private Bitmap rightImage;
 
     private boolean isShowLeftImg = true;
@@ -46,7 +38,7 @@ public class OptionItemView extends View {
     private boolean isShowRightImg = true;
     private boolean isShowRightText = true;
 
-    //拆分模式(默认是false，也就是一个整体)
+    // 拆分模式(默认是false，也就是一个整体)
     private boolean mSpliteMode = false;
     /**
      * 判断按下开始的位置是否在左

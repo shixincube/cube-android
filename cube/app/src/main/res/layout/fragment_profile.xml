@@ -17,14 +17,15 @@
         android:paddingEnd="4dp">
 
         <!-- Avatar -->
-        <ImageView
+        <com.shixincube.app.widget.AdvancedImageView
             android:id="@+id/ivAvatar"
-            android:layout_width="93dp"
-            android:layout_height="93dp"
+            android:layout_width="90dp"
+            android:layout_height="90dp"
             android:layout_marginStart="20dp"
             android:layout_marginEnd="@dimen/option_item_margin_right"
             android:scaleType="centerCrop"
-            android:src="@mipmap/avatar_default"/>
+            android:src="@mipmap/avatar_default"
+            auto:corner_radius="8dp"/>
 
         <!-- Name & Cube ID -->
         <com.zhy.autolayout.AutoLinearLayout
@@ -40,7 +41,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="4dp"
                 android:singleLine="true"
-                android:text=""
+                android:text="@string/my_nickname"
                 android:textColor="@color/text"
                 android:textSize="22sp"/>
 

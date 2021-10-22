@@ -116,4 +116,9 @@ public final class UIUtils {
     public static String getString(int stringId) {
         return getResource().getString(stringId);
     }
+
+    public static int dp2px(Context context, float dipValue) {
+        final float scale = context.getResources().getDisplayMetrics().density;
+        return (int) (dipValue * scale + 0.5f);
+    }
 }

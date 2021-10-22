@@ -11,20 +11,20 @@
 
         <com.zhy.autolayout.AutoRelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="64dp"
+            android:layout_height="57dp"
             android:background="@color/toolbar_bg">
 
             <ImageView
                 android:id="@+id/ivToolbarNavigation"
-                android:layout_width="26dp"
-                android:layout_height="26dp"
+                android:layout_width="23dp"
+                android:layout_height="23dp"
                 android:layout_centerVertical="true"
-                android:layout_marginStart="13dp"
+                android:layout_marginStart="12dp"
                 android:src="@mipmap/ic_back" />
 
             <View
                 android:id="@+id/vToolbarDivision"
-                android:layout_width="22dp"
+                android:layout_width="20dp"
                 android:layout_height="match_parent"
                 android:layout_toEndOf="@id/ivToolbarNavigation"
                 android:background="@drawable/shape_vertical_line"
@@ -61,8 +61,8 @@
             <!-- 加号菜单 -->
             <ImageButton
                 android:id="@+id/ibAddMenu"
-                android:layout_width="26dp"
-                android:layout_height="26dp"
+                android:layout_width="23dp"
+                android:layout_height="23dp"
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
                 android:layout_marginEnd="@dimen/item_margin_left_and_right"
@@ -90,7 +90,7 @@
                     android:id="@+id/tvToolbarAddContact"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="13dp"
+                    android:layout_marginEnd="12dp"
                     android:text="@string/add_contact"
                     android:textColor="@color/toolbar_text"
                     android:textSize="20sp" />
@@ -134,10 +134,10 @@
             <!-- 发送按钮 -->
             <Button
                 android:id="@+id/btnToolbarSend"
-                android:layout_width="80dp"
+                android:layout_width="72dp"
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
-                android:layout_margin="13dp"
+                android:layout_margin="12dp"
                 android:background="@drawable/selector_theme_btn"
                 android:text="@string/send"
                 android:textColor="@color/theme_blue"
@@ -149,11 +149,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
-                android:layout_margin="13dp"
+                android:layout_margin="12dp"
                 android:background="@null"
                 android:src="@mipmap/ic_contact_more"
                 android:visibility="gone" />
 
         </com.zhy.autolayout.AutoRelativeLayout>
+
     </com.zhy.autolayout.AutoFrameLayout>
+
 </com.google.android.material.appbar.AppBarLayout>

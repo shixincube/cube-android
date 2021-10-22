@@ -42,6 +42,7 @@
     <string name="login_error">请确认您的手机号码和密码后再尝试登录</string>
 
     <!-- 个人信息 -->
+    <string name="my_nickname">我的昵称</string>
     <string name="my_cube_id">魔方号：%1$s</string>
     <string name="setting">设置</string>
 

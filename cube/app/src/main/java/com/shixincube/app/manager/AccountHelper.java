@@ -30,6 +30,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.shixincube.app.AppConsts;
+import com.shixincube.app.R;
 import com.shixincube.app.model.Account;
 
 import org.json.JSONException;
@@ -119,6 +120,15 @@ public class AccountHelper {
         this.editor.putString(AppConsts.TOKEN_CODE, tokenCode);
         this.editor.putLong(AppConsts.TOKEN_EXPIRE, expire);
         this.editor.commit();
+    }
+
+    public static int explainAvatarForResource(String avatarName) {
+        if (avatarName.equals("avatar01")) {
+            return R.mipmap.avatar_default;
+        }
+        else {
+            return R.mipmap.avatar_default;
+        }
     }
 
     private String loadTokenCode() {

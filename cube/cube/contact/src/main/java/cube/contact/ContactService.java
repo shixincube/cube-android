@@ -27,18 +27,26 @@
 package cube.contact;
 
 import android.util.Log;
+import android.util.MutableBoolean;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import cube.auth.AuthToken;
 import cube.contact.handler.ContactAppendixHandler;
 import cube.contact.handler.ContactHandler;
+import cube.contact.handler.ContactListHandler;
+import cube.contact.handler.GroupListHandler;
 import cube.contact.handler.SignHandler;
+import cube.contact.handler.TopListHandler;
 import cube.contact.model.Contact;
 import cube.contact.model.ContactAppendix;
+import cube.contact.model.Group;
+import cube.contact.model.MutableContact;
 import cube.contact.model.Self;
 import cube.core.Module;
 import cube.core.ModuleError;
@@ -46,6 +54,7 @@ import cube.core.Packet;
 import cube.core.PipelineState;
 import cube.core.handler.FailureHandler;
 import cube.core.handler.PipelineHandler;
+import cube.core.model.TimeSortable;
 import cube.util.ObservableEvent;
 
 /**
@@ -57,6 +66,11 @@ public class ContactService extends Module {
      * 模块名。
      */
     public final static String NAME = "Contact";
+
+    /** 阻塞调用方法的超时时间。 */
+    private final long blockingTimeout = 3000L;
+
+    private long retrospectDuration = 30L * 24L * 60L * 60000L;
 
     private ContactStorage storage;
 
@@ -266,6 +280,47 @@ public class ContactService extends Module {
     /**
      * 获取指定 ID 的联系人。
      *
+     * <b>不建议在主线程里调用该方法。</b>
+     *
+     * @param contactId 指定联系人 ID 。
+     * @return 返回联系人实例。如果没有获取到数据返回 {code null} 值。
+     */
+    public Contact getContact(Long contactId) {
+        final MutableContact mutableContact = new MutableContact();
+
+        this.getContact(contactId, new ContactHandler() {
+            @Override
+            public void handleContact(Contact contact) {
+                // 赋值
+                mutableContact.contact = contact;
+
+                synchronized (mutableContact) {
+                    mutableContact.notify();
+                }
+            }
+        }, new FailureHandler() {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                synchronized (mutableContact) {
+                    mutableContact.notify();
+                }
+            }
+        });
+
+        synchronized (mutableContact) {
+            try {
+                mutableContact.wait(this.blockingTimeout);
+            } catch (InterruptedException e) {
+                // Nothing
+            }
+        }
+
+        return mutableContact.contact;
+    }
+
+    /**
+     * 获取指定 ID 的联系人。
+     *
      * @param contactId 指定联系人 ID 。
      * @param successHandler 成功获取到数据回调该句柄。
      */
@@ -372,6 +427,19 @@ public class ContactService extends Module {
                     storage.writeContact(contact);
 
                     // 获取附录
+                    getAppendix(contact, new ContactAppendixHandler() {
+                        @Override
+                        public void handleAppendix(Contact contact, ContactAppendix appendix) {
+                            successHandler.handleContact(contact);
+                        }
+                    }, new FailureHandler() {
+                        @Override
+                        public void handleFailure(Module module, ModuleError error) {
+                            if (null != failureHandler) {
+                                failureHandler.handleFailure(module, error);
+                            }
+                        }
+                    });
                 } catch (JSONException e) {
                     // Nothing
                 }
@@ -442,6 +510,39 @@ public class ContactService extends Module {
         });
     }
 
+    private void listGroups(long beginning, long ending, GroupListHandler handler) {
+        // TODO
+        ArrayList<Group> list = new ArrayList<>(1);
+        this.execute(new Runnable() {
+            @Override
+            public void run() {
+                handler.handleList(list);
+            }
+        });
+    }
+
+    private void listBlockList(ContactListHandler handler) {
+        // TODO
+        ArrayList<Contact> list = new ArrayList<>(1);
+        this.execute(new Runnable() {
+            @Override
+            public void run() {
+                handler.handleList(list);
+            }
+        });
+    }
+
+    private void listTopList(TopListHandler handler) {
+        // TODO
+        ArrayList<TimeSortable> list = new ArrayList<>(1);
+        this.execute(new Runnable() {
+            @Override
+            public void run() {
+                handler.handleList(list);
+            }
+        });
+    }
+
     private void fireSignInCompleted() {
         Log.d("ContactService", "#fireSignInCompleted");
 
@@ -484,10 +585,67 @@ public class ContactService extends Module {
             Log.e(ContactService.class.getSimpleName(), "#triggerSignIn", e);
         }
 
-        fireSignInCompleted();
+        MutableBoolean gotAppendix = new MutableBoolean(false);
+        MutableBoolean gotGroups = new MutableBoolean(false);
+        MutableBoolean gotBlockList = new MutableBoolean(false);
+        MutableBoolean gotTopList = new MutableBoolean(false);
+
+        SignInCompletion completion = () -> {
+            if (gotAppendix.value && gotGroups.value && gotBlockList.value && gotTopList.value) {
+                fireSignInCompleted();
+            }
+        };
+
+        long now = System.currentTimeMillis();
+
+        // 获取附录
+        this.getAppendix(this.self, new ContactAppendixHandler() {
+            @Override
+            public void handleAppendix(Contact contact, ContactAppendix appendix) {
+                gotAppendix.value = true;
+                completion.check();
+            }
+        }, new FailureHandler() {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                gotAppendix.value = true;
+                completion.check();
+            }
+        });
+
+        // 更新群组列表
+        this.listGroups(now - this.retrospectDuration, now, new GroupListHandler() {
+            @Override
+            public void handleList(List<Group> groupList) {
+                gotGroups.value = true;
+                completion.check();
+            }
+        });
+
+        // 更新阻止清单
+        this.listBlockList(new ContactListHandler() {
+            @Override
+            public void handleList(List<Contact> contactList) {
+                gotBlockList.value = true;
+                completion.check();
+            }
+        });
+
+        // 更新置顶清单
+        this.listTopList(new TopListHandler() {
+            @Override
+            public void handleList(List<TimeSortable> list) {
+                gotTopList.value = true;
+                completion.check();
+            }
+        });
     }
 
     protected void triggerSignOut() {
         // TODO
+    }
+
+    interface SignInCompletion {
+        void check();
     }
 }

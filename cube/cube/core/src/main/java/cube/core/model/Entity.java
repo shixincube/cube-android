@@ -35,7 +35,7 @@ import cube.util.JSONable;
 /**
  * 信息实体对象。所有实体对象的基类。
  */
-public class Entity implements JSONable {
+public class Entity implements TimeSortable, JSONable {
 
     private final static long LIFECYCLE_IN_MSEC = 7L * 24L * 60L * 60L * 1000L;
 
@@ -103,6 +103,7 @@ public class Entity implements JSONable {
         return this.id;
     }
 
+    @Override
     public long getTimestamp() {
         return this.timestamp;
     }

@@ -70,10 +70,13 @@
     <!--遮盖层颜色-->
     <color name="mask">#32000000</color>
 
-    <!--快速索引bar颜色-->
+    <!--快速索引 Bar 颜色-->
     <color name="side_bar">#919091</color>
     <color name="side_bar_pressed">#BFBFBF</color>
 
     <color name="button_red">#E44447</color>
     <color name="button_red_pressed">#CD3E40</color>
+
+    <color name="toolbar_text">#000000</color>
+    <color name="toolbar_bg">#EFEFF4</color>
 </resources>

@@ -22,7 +22,7 @@
         android:layout_width="match_parent"
         android:layout_height="80dp"
         android:layout_alignParentBottom="true"
-        android:background="@color/white">
+        android:background="@color/tabbar_bg">
 
         <!-- Conversation - Begin -->
         <com.zhy.autolayout.AutoLinearLayout
@@ -56,7 +56,7 @@
                         android:background="@mipmap/tabbar_conversation"
                         android:button="@null"
                         android:gravity="center"
-                        android:textColor="@color/gray0"
+                        android:textColor="@color/tabbar_text"
                         android:textSize="14sp"/>
 
                     <TextView
@@ -100,7 +100,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/conversation"
-                    android:textColor="@color/gray0"
+                    android:textColor="@color/tabbar_text"
                     android:textSize="14sp"/>
 
                 <TextView
@@ -146,7 +146,7 @@
                         android:background="@mipmap/tabbar_files"
                         android:button="@null"
                         android:gravity="center"
-                        android:textColor="@color/gray0"
+                        android:textColor="@color/tabbar_text"
                         android:textSize="14sp"/>
 
                     <TextView
@@ -189,7 +189,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/files"
-                    android:textColor="@color/gray0"
+                    android:textColor="@color/tabbar_text"
                     android:textSize="14sp"/>
 
                 <TextView
@@ -235,7 +235,7 @@
                         android:background="@mipmap/tabbar_contacts"
                         android:button="@null"
                         android:gravity="center"
-                        android:textColor="@color/gray0"
+                        android:textColor="@color/tabbar_text"
                         android:textSize="12sp"/>
 
                     <TextView
@@ -290,7 +290,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/contacts"
-                    android:textColor="@color/gray0"
+                    android:textColor="@color/tabbar_text"
                     android:textSize="14sp"/>
 
                 <TextView
@@ -336,7 +336,7 @@
                         android:background="@mipmap/tabbar_profile"
                         android:button="@null"
                         android:gravity="center"
-                        android:textColor="@color/gray0"
+                        android:textColor="@color/tabbar_text"
                         android:textSize="14sp"/>
 
                     <TextView
@@ -377,7 +377,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/profile"
-                    android:textColor="@color/gray0"
+                    android:textColor="@color/tabbar_text"
                     android:textSize="14sp"/>
 
                 <TextView

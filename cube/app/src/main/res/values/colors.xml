@@ -1,18 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <color name="line">#D2D2D2</color>
+
+    <color name="button_red">#E44447</color>
+    <color name="button_red_pressed">#CD3E40</color>
+
+    <color name="theme_blue">#287DF6</color>
+    <color name="theme_blue_dark">#0854E6</color>
+    <color name="theme_blue_light">#368CF2</color>
+
+    <color name="theme_bg">#EBEBEB</color>
+    <color name="theme_dark_bg">#191919</color>
+
+    <color name="text">#101010</color>
+    <color name="text_secondary">#969696</color>
+
+    <color name="toolbar_text">#101010</color>
+    <color name="toolbar_bg">#EFEFF4</color>
+
+    <color name="pressed">#D9D9D9</color>
+
+
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>
     <color name="purple_700">#FF3700B3</color>
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
 
     <color name="colorPrimary">#393A3F</color>
     <color name="colorPrimaryDark">#303135</color>
     <color name="colorAccent">#7e7e7e</color>
-
-    <color name="line">#D2D2D2</color>
 
     <color name="main">#26AAFD</color>
     <color name="main_bg0">#f0f0f0</color>
@@ -55,11 +75,6 @@
 
     <color name="blue0">#576B95</color>
 
-
-    <color name="theme_blue">#287DF6</color>
-    <color name="theme_blue_dark">#0854E6</color>
-    <color name="theme_blue_light">#368CF2</color>
-
     <color name="black0">#000000</color>
     <color name="black1">#99000000</color>
 
@@ -73,10 +88,4 @@
     <!--快速索引 Bar 颜色-->
     <color name="side_bar">#919091</color>
     <color name="side_bar_pressed">#BFBFBF</color>
-
-    <color name="button_red">#E44447</color>
-    <color name="button_red_pressed">#CD3E40</color>
-
-    <color name="toolbar_text">#000000</color>
-    <color name="toolbar_bg">#EFEFF4</color>
 </resources>

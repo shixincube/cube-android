@@ -41,6 +41,10 @@
     <string name="countries_and_regions">国家/地区</string>
     <string name="login_error">请确认您的手机号码和密码后再尝试登录</string>
 
+    <!-- 个人信息 -->
+    <string name="my_cube_id">魔方号：%1$s</string>
+    <string name="setting">设置</string>
+
     <!-- 常用 -->
     <string name="please_wait_a_moment">请稍候</string>
     <string name="number_1">1</string>

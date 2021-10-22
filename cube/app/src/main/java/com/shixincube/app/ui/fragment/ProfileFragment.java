@@ -26,16 +26,23 @@
 
 package com.shixincube.app.ui.fragment;
 
+import android.widget.ImageView;
+
 import com.shixincube.app.R;
 import com.shixincube.app.ui.activity.MainActivity;
 import com.shixincube.app.ui.base.BaseFragment;
 import com.shixincube.app.ui.presenter.ProfilePresenter;
 import com.shixincube.app.ui.view.ProfileView;
 
+import butterknife.BindView;
+
 /**
  * 个人与应用信息管理。
  */
 public class ProfileFragment extends BaseFragment<ProfileView, ProfilePresenter> implements ProfileView {
+
+    @BindView(R.id.ivAvatar)
+    ImageView avatarView;
 
     public ProfileFragment() {
         super();

@@ -80,6 +80,14 @@ public class Contact extends AbstractContact {
      * @return 返回联系人优先显示的名称。
      */
     public String getPriorityName() {
+        if (null == this.appendix) {
+            return this.name;
+        }
+
+        if (this.appendix.hasRemarkName()) {
+            return this.appendix.getRemarkName();
+        }
+
         return this.name;
     }
 

@@ -278,6 +278,15 @@ public class ContactService extends Module {
     }
 
     /**
+     * 获取当前签入的联系人。
+     *
+     * @return 返回当前签入的联系人。
+     */
+    public Self getSelf() {
+        return this.self;
+    }
+
+    /**
      * 获取指定 ID 的联系人。
      *
      * <b>不建议在主线程里调用该方法。</b>

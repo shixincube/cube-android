@@ -102,7 +102,7 @@ public class RegisterPresenter extends BasePresenter<RegisterView> {
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(registerResponse -> {
-
+                // TODO
             }, this::registerError);
     }
 

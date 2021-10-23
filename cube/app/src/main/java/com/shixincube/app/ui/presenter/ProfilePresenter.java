@@ -26,9 +26,22 @@
 
 package com.shixincube.app.ui.presenter;
 
+import com.shixincube.app.manager.AccountHelper;
+import com.shixincube.app.model.Account;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.ProfileView;
+
+import cube.contact.model.Self;
+import cube.engine.CubeEngine;
+import cube.util.LogUtils;
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.annotations.NonNull;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.ObservableEmitter;
+import io.reactivex.rxjava3.core.ObservableOnSubscribe;
+import io.reactivex.rxjava3.functions.Consumer;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 /**
  * 个人与应用信息管理。
@@ -37,5 +50,30 @@ public class ProfilePresenter extends BasePresenter<ProfileView> {
 
     public ProfilePresenter(BaseActivity activity) {
         super(activity);
+    }
+
+    public void loadAccountInfo() {
+        Observable.create(new ObservableOnSubscribe<Self>() {
+            @Override
+            public void subscribe(@NonNull ObservableEmitter<Self> emitter) throws Throwable {
+                emitter.onNext(CubeEngine.getInstance().getContactService().getSelf());
+            }
+        }).subscribeOn(Schedulers.io())
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(new Consumer<Self>() {
+            @Override
+            public void accept(Self self) throws Throwable {
+                getView().getAvatarImage().setImageResource(AccountHelper
+                        .explainAvatarForResource(Account.getAvatar(self.getContext())));
+                getView().getNickNameText().setText(self.getPriorityName());
+                getView().getCubeIdText().setText(self.getId().toString());
+            }
+        }, new Consumer<Throwable>() {
+            @Override
+            public void accept(Throwable throwable) throws Throwable {
+                LogUtils.w("ProfilePresenter", throwable);
+            }
+        });
+
     }
 }

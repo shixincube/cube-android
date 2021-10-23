@@ -57,6 +57,14 @@
 
         </com.zhy.autolayout.AutoLinearLayout>
 
+        <ImageView
+            android:id="@+id/iv"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginEnd="@dimen/option_item_margin_right"
+            android:src="@mipmap/ic_more"/>
+
     </com.zhy.autolayout.AutoLinearLayout>
     <!-- Account Info - End -->
 

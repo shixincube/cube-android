@@ -36,10 +36,13 @@ import com.shixincube.app.model.Account;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import cube.contact.ContactDataProvider;
+import cube.contact.model.Contact;
+
 /**
  * 账号辅助操作函数库。
  */
-public class AccountHelper {
+public class AccountHelper implements ContactDataProvider {
 
     private final static String SP_NAME = "cube.account";
 
@@ -120,6 +123,12 @@ public class AccountHelper {
         this.editor.putString(AppConsts.TOKEN_CODE, tokenCode);
         this.editor.putLong(AppConsts.TOKEN_EXPIRE, expire);
         this.editor.commit();
+    }
+
+    @Override
+    public JSONObject needContactContext(Contact contact) {
+
+        return null;
     }
 
     public static int explainAvatarForResource(String avatarName) {

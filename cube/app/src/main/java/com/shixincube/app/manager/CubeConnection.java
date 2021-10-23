@@ -50,6 +50,8 @@ public class CubeConnection implements ServiceConnection {
             @Override
             public void handleSuccess(CubeEngine engine) {
                 LogUtils.i("CubeApp", "Success");
+                // 设置联系人数据提供器
+                engine.getContactService().setContactDataProvider(AccountHelper.getInstance());
             }
 
             @Override

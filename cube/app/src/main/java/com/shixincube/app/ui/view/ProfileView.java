@@ -26,8 +26,18 @@
 
 package com.shixincube.app.ui.view;
 
+import android.widget.TextView;
+
+import com.shixincube.app.widget.AdvancedImageView;
+
 /**
  * 个人与应用信息管理界面。
  */
 public interface ProfileView {
+
+    AdvancedImageView getAvatarImage();
+
+    TextView getNickNameText();
+
+    TextView getCubeIdText();
 }

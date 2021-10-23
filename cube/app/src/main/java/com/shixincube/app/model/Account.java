@@ -69,6 +69,14 @@ public class Account implements JSONable {
         this.department = json.getString("department");
     }
 
+    public static String getAvatar(JSONObject json) {
+        try {
+            return json.getString("avatar");
+        } catch (JSONException e) {
+            return "default";
+        }
+    }
+
     @Override
     public JSONObject toJSON() {
         JSONObject json = new JSONObject();

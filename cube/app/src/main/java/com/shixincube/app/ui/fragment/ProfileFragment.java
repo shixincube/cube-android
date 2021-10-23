@@ -26,6 +26,8 @@
 
 package com.shixincube.app.ui.fragment;
 
+import android.widget.TextView;
+
 import com.shixincube.app.R;
 import com.shixincube.app.ui.activity.MainActivity;
 import com.shixincube.app.ui.base.BaseFragment;
@@ -41,10 +43,20 @@ import butterknife.BindView;
 public class ProfileFragment extends BaseFragment<ProfileView, ProfilePresenter> implements ProfileView {
 
     @BindView(R.id.ivAvatar)
-    AdvancedImageView avatarView;
+    AdvancedImageView avatarImage;
+
+    @BindView(R.id.tvNickname)
+    TextView nickNameText;
+    @BindView(R.id.tvCubeId)
+    TextView cubeIdText;
 
     public ProfileFragment() {
         super();
+    }
+
+    @Override
+    public void initData() {
+        this.presenter.loadAccountInfo();
     }
 
     @Override
@@ -55,5 +67,20 @@ public class ProfileFragment extends BaseFragment<ProfileView, ProfilePresenter>
     @Override
     protected int provideContentViewId() {
         return R.layout.fragment_profile;
+    }
+
+    @Override
+    public AdvancedImageView getAvatarImage() {
+        return this.avatarImage;
+    }
+
+    @Override
+    public TextView getNickNameText() {
+        return this.nickNameText;
+    }
+
+    @Override
+    public TextView getCubeIdText() {
+        return this.cubeIdText;
     }
 }

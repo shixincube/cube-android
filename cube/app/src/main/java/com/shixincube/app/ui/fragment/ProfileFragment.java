@@ -60,6 +60,11 @@ public class ProfileFragment extends BaseFragment<ProfileView, ProfilePresenter>
     }
 
     @Override
+    public void initListener() {
+
+    }
+
+    @Override
     protected ProfilePresenter createPresenter() {
         return new ProfilePresenter((MainActivity) getActivity());
     }

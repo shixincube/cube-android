@@ -4,6 +4,9 @@
     <color name="white">#FFFFFFFF</color>
 
     <color name="line">#D2D2D2</color>
+    <color name="hint">#C8969696</color>
+
+    <color name="color_primary">#DFDFDF</color>
 
     <color name="button_red">#E44447</color>
     <color name="button_red_pressed">#CD3E40</color>

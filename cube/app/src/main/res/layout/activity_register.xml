@@ -16,7 +16,7 @@
         <com.zhy.autolayout.AutoLinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="26dp"
+            android:layout_marginTop="10dp"
             android:orientation="horizontal">
 
             <!-- 昵称 -->
@@ -28,18 +28,18 @@
 
                 <com.zhy.autolayout.AutoLinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="60dp"
+                    android:layout_height="50dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingLeft="20dp"
-                    android:paddingRight="20dp">
+                    android:paddingStart="10dp"
+                    android:paddingEnd="20dp">
 
                     <TextView
-                        android:layout_width="80dp"
+                        android:layout_width="70dp"
                         android:layout_height="wrap_content"
                         android:text="@string/nickname"
-                        android:textColor="@color/black0"
-                        android:textSize="18sp"/>
+                        android:textColor="@color/black"
+                        android:textSize="16sp"/>
 
                     <EditText
                         android:id="@+id/etNickname"
@@ -49,8 +49,8 @@
                         android:hint="@string/nickname_hint"
                         android:inputType="text"
                         android:autofillHints=""
-                        android:textColorHint="@color/gray3"
-                        android:textSize="18sp"/>
+                        android:textColorHint="@color/hint"
+                        android:textSize="16sp"/>
 
                 </com.zhy.autolayout.AutoLinearLayout>
 
@@ -66,27 +66,28 @@
         <com.zhy.autolayout.AutoLinearLayout
             android:id="@+id/llDistrict"
             android:layout_width="match_parent"
-            android:layout_height="60dp"
+            android:layout_height="50dp"
             android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:paddingStart="10dp"
+            android:paddingEnd="20dp">
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="13dp"
                 android:layout_weight="1"
                 android:text="@string/countries_and_regions"
                 android:textColor="@color/black0"
-                android:textSize="18sp"/>
+                android:textSize="16sp"/>
 
             <TextView
                 android:id="@+id/tvDistrict"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="13dp"
+                android:layout_marginEnd="0dp"
                 android:text="@string/china"
                 android:textColor="@color/theme_blue"
-                android:textSize="18sp"/>
+                android:textSize="16sp"/>
 
         </com.zhy.autolayout.AutoLinearLayout>
 
@@ -95,19 +96,19 @@
         <!-- 电话号码 -->
         <com.zhy.autolayout.AutoLinearLayout
             android:layout_width="match_parent"
-            android:layout_height="60dp"
+            android:layout_height="50dp"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingLeft="20dp"
-            android:paddingRight="20dp">
+            android:paddingStart="10dp"
+            android:paddingEnd="20dp">
 
             <TextView
                 android:id="@+id/tvDistrictNumber"
-                android:layout_width="80dp"
+                android:layout_width="70dp"
                 android:layout_height="wrap_content"
                 android:text="@string/china_region_number"
-                android:textColor="@color/black0"
-                android:textSize="18sp"/>
+                android:textColor="@color/black"
+                android:textSize="16sp"/>
 
             <EditText
                 android:id="@+id/etPhoneNumber"
@@ -117,8 +118,8 @@
                 android:hint="@string/enter_phone_number"
                 android:inputType="phone"
                 android:autofillHints=""
-                android:textColorHint="@color/gray3"
-                android:textSize="18sp"/>
+                android:textColorHint="@color/hint"
+                android:textSize="16sp"/>
 
         </com.zhy.autolayout.AutoLinearLayout>
 
@@ -133,40 +134,40 @@
 
             <com.zhy.autolayout.AutoLinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="60dp"
+                android:layout_height="50dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingLeft="20dp"
-                android:paddingRight="20dp">
+                android:paddingStart="10dp"
+                android:paddingEnd="20dp">
 
                 <TextView
-                    android:layout_width="80dp"
+                    android:layout_width="70dp"
                     android:layout_height="wrap_content"
                     android:text="@string/password"
-                    android:textColor="@color/black0"
-                    android:textSize="18sp"/>
+                    android:textColor="@color/black"
+                    android:textSize="16sp"/>
 
                 <EditText
                     android:id="@+id/etPassword"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="37dp"
+                    android:layout_marginEnd="38dp"
                     android:background="@null"
                     android:hint="@string/enter_password"
                     android:inputType="textPassword"
-                    android:textColorHint="@color/gray3"
-                    android:textSize="18sp"
+                    android:textColorHint="@color/hint"
+                    android:textSize="16sp"
                     android:autofillHints=""/>
 
             </com.zhy.autolayout.AutoLinearLayout>
 
             <ImageView
                 android:id="@+id/ivSeePwd"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
-                android:layout_marginEnd="13dp"
+                android:layout_marginEnd="10dp"
                 android:contentDescription="@string/see_password"
                 android:src="@mipmap/ic_see_pwd"/>
 
@@ -182,15 +183,15 @@
             android:layout_height="60dp"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingStart="20dp"
-            android:paddingEnd="13dp">
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp">
 
             <TextView
-                android:layout_width="80dp"
+                android:layout_width="70dp"
                 android:layout_height="wrap_content"
                 android:text="@string/verification_code"
-                android:textColor="@color/black0"
-                android:textSize="18sp"/>
+                android:textColor="@color/black"
+                android:textSize="16sp"/>
 
             <EditText
                 android:id="@+id/etVerificationCode"
@@ -201,17 +202,17 @@
                 android:hint="@string/enter_verification_code"
                 android:autofillHints=""
                 android:inputType="number"
-                android:textColorHint="@color/gray3"
-                android:textSize="18sp" />
+                android:textColorHint="@color/hint"
+                android:textSize="16sp" />
 
             <Button
                 android:id="@+id/btnSendCode"
-                android:layout_width="133dp"
-                android:layout_height="46dp"
+                android:layout_width="128dp"
+                android:layout_height="40dp"
                 android:background="@drawable/selector_register_send_code"
                 android:text="@string/send_verification_code"
                 android:textColor="@color/white"
-                android:textSize="16sp"/>
+                android:textSize="14sp"/>
 
         </com.zhy.autolayout.AutoLinearLayout>
 
@@ -223,14 +224,14 @@
         <Button
             android:id="@+id/btnRegister"
             android:layout_width="match_parent"
-            android:layout_height="60dp"
+            android:layout_height="50dp"
             android:layout_marginBottom="20dp"
-            android:layout_marginTop="26dp"
+            android:layout_marginTop="20dp"
             android:background="@drawable/selector_strip_button"
             android:enabled="false"
             android:text="@string/register"
             android:textColor="@color/white"
-            android:textSize="20sp"/>
+            android:textSize="18sp"/>
 
     </com.zhy.autolayout.AutoLinearLayout>
 

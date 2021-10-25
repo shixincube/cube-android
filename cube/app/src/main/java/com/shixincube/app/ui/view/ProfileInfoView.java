@@ -24,17 +24,10 @@
  * SOFTWARE.
  */
 
-package cube.core.model;
+package com.shixincube.app.ui.view;
 
 /**
- * 可进行时间排序的对象。
+ * 个人信息详情。
  */
-public interface TimeSortable {
-
-    /**
-     * 获取进行排序的时间戳。
-     *
-     * @return 返回进行排序的时间戳。
-     */
-    long getSortableTime();
+public interface ProfileInfoView {
 }

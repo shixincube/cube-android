@@ -29,6 +29,7 @@ package cube.contact.model;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import cube.auth.AuthService;
 import cube.core.model.Entity;
 
 /**
@@ -66,7 +67,13 @@ public class AbstractContact extends Entity {
     public AbstractContact(JSONObject json) throws JSONException {
         super(json);
         this.name = json.getString("name");
-        this.domain = json.getString("domain");
+
+        if (json.has("domain")) {
+            this.domain = json.getString("domain");
+        }
+        else {
+            this.domain = AuthService.getDomain();
+        }
     }
 
     public String getName() {

@@ -191,8 +191,9 @@ public class ContactService extends Module {
                 this.self.setAppendix(contact.getAppendix());
                 // 设置上下文
                 if (null != this.self.getContext()) {
-                    // 更新联系人的附加上下文
-                    this.storage.updateContactContext(this.self.id, this.self.getContext());
+                    // 更新联系人的上下文
+                    long last = this.storage.updateContactContext(this.self.id, this.self.getContext());
+                    this.self.resetLast(last);
                 }
                 else {
                     this.self.setContext(contact.getContext());
@@ -345,29 +346,49 @@ public class ContactService extends Module {
      * @param failureHandler 获取数据时故障回调该句柄。该句柄可以设置为 {@code null} 值。
      */
     public void getContact(Long contactId, ContactHandler successHandler, FailureHandler failureHandler) {
-        // 从数据库读取
-        Contact contact = this.storage.readContact(contactId);
-        if (null != contact) {
-            // 判断是否过期
-            if (contact.isValid()) {
-                // 有效的数据
-
-                // 检查上下文
-                if (null == contact.getContext() && null != this.contactDataProvider) {
-                    contact.setContext(this.contactDataProvider.needContactContext(contact));
-                    if (null != contact.getContext()) {
-                        this.storage.updateContactContext(contact.id, contact.getContext());
-                    }
-                }
-
+        if (!this.selfReady.get()) {
+            if (null != failureHandler) {
                 this.execute(new Runnable() {
                     @Override
                     public void run() {
-                        successHandler.handleContact(contact);
+                        ModuleError error = new ModuleError(ContactService.NAME, ContactServiceState.IllegalOperation.code);
+                        failureHandler.handleFailure(ContactService.this, error);
                     }
                 });
-                return;
             }
+            return;
+        }
+
+        if (contactId.longValue() == this.self.id.longValue()) {
+            this.execute(new Runnable() {
+                @Override
+                public void run() {
+                    successHandler.handleContact(self);
+                }
+            });
+            return;
+        }
+
+        // 从数据库读取
+        Contact contact = this.storage.readContact(contactId);
+        if (null != contact && contact.isValid()) {
+            // 有效的数据
+            // 检查上下文
+            if (null == contact.getContext() && null != this.contactDataProvider) {
+                contact.setContext(this.contactDataProvider.needContactContext(contact));
+                if (null != contact.getContext()) {
+                    long last = this.storage.updateContactContext(contact.id, contact.getContext());
+                    contact.resetLast(last);
+                }
+            }
+
+            this.execute(new Runnable() {
+                @Override
+                public void run() {
+                    successHandler.handleContact(contact);
+                }
+            });
+            return;
         }
 
         if (!this.pipeline.isReady()) {

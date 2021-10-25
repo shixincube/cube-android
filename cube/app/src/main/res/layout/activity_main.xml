@@ -20,7 +20,7 @@
     <com.zhy.autolayout.AutoLinearLayout
         android:id="@+id/llBottom"
         android:layout_width="match_parent"
-        android:layout_height="80dp"
+        android:layout_height="60dp"
         android:layout_alignParentBottom="true"
         android:background="@color/tabbar_bg">
 
@@ -46,7 +46,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_centerHorizontal="true"
-                    android:layout_marginBottom="6dp">
+                    android:layout_marginBottom="2dp">
 
                     <TextView
                         android:id="@+id/tvConversationNormal"
@@ -74,17 +74,17 @@
 
                 <TextView
                     android:id="@+id/tvConversationBadge"
-                    android:layout_width="25dp"
-                    android:layout_height="26dp"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:layout_alignEnd="@id/rlConversation"
-                    android:layout_marginEnd="-16dp"
-                    android:layout_marginTop="-3dp"
+                    android:layout_marginEnd="-10dp"
+                    android:layout_marginTop="-2dp"
                     android:background="@mipmap/bg_unread"
                     android:gravity="center|bottom"
                     android:paddingBottom="2dp"
                     android:text="@string/number_1"
                     android:textColor="@color/white"
-                    android:textSize="14sp"
+                    android:textSize="12sp"
                     android:visibility="gone"/>
 
             </com.zhy.autolayout.AutoRelativeLayout>
@@ -137,7 +137,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_centerHorizontal="true"
-                    android:layout_marginBottom="6dp">
+                    android:layout_marginBottom="2dp">
 
                     <TextView
                         android:id="@+id/tvFilesNormal"
@@ -163,17 +163,17 @@
 
                 <TextView
                     android:id="@+id/tvFilesBadge"
-                    android:layout_width="25dp"
-                    android:layout_height="26dp"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:layout_alignEnd="@id/rlFiles"
-                    android:layout_marginEnd="-16dp"
-                    android:layout_marginTop="-3dp"
+                    android:layout_marginEnd="-10dp"
+                    android:layout_marginTop="-2dp"
                     android:background="@mipmap/bg_unread"
                     android:gravity="center|bottom"
                     android:paddingBottom="2dp"
                     android:text="@string/number_1"
                     android:textColor="@color/white"
-                    android:textSize="14sp"
+                    android:textSize="12sp"
                     android:visibility="gone"/>
 
             </com.zhy.autolayout.AutoRelativeLayout>
@@ -215,6 +215,7 @@
             android:gravity="center"
             android:orientation="vertical">
 
+            <!-- Icon -->
             <com.zhy.autolayout.AutoRelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
@@ -226,7 +227,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_centerHorizontal="true"
-                    android:layout_marginBottom="6dp">
+                    android:layout_marginBottom="2dp">
 
                     <TextView
                         android:id="@+id/tvContactsNormal"
@@ -236,7 +237,7 @@
                         android:button="@null"
                         android:gravity="center"
                         android:textColor="@color/tabbar_text"
-                        android:textSize="12sp"/>
+                        android:textSize="14sp"/>
 
                     <TextView
                         android:id="@+id/tvContactsPressed"
@@ -246,17 +247,17 @@
                         android:button="@null"
                         android:gravity="center"
                         android:textColor="@color/theme_blue"
-                        android:textSize="12sp"/>
+                        android:textSize="14sp"/>
 
                 </com.zhy.autolayout.AutoRelativeLayout>
 
                 <TextView
                     android:id="@+id/tvContactBadge"
-                    android:layout_width="25dp"
-                    android:layout_height="26dp"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:layout_alignEnd="@id/rlContacts"
-                    android:layout_marginEnd="-16dp"
-                    android:layout_marginTop="-3dp"
+                    android:layout_marginEnd="-10dp"
+                    android:layout_marginTop="-2dp"
                     android:background="@mipmap/bg_unread"
                     android:gravity="center|bottom"
                     android:paddingBottom="2dp"
@@ -267,19 +268,20 @@
 
                 <TextView
                     android:id="@+id/tvContactBadgeOnly"
-                    android:layout_width="13dp"
-                    android:layout_height="13dp"
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
                     android:layout_alignEnd="@id/rlContacts"
-                    android:layout_marginEnd="-6dp"
+                    android:layout_marginEnd="-5dp"
                     android:layout_marginTop="-0dp"
                     android:background="@mipmap/bg_unread"
                     android:gravity="center"
                     android:textColor="@color/white"
-                    android:textSize="14sp"
+                    android:textSize="12sp"
                     android:visibility="gone"/>
 
             </com.zhy.autolayout.AutoRelativeLayout>
 
+            <!-- Text -->
             <com.zhy.autolayout.AutoRelativeLayout
                 android:layout_width="wrap_content"
                 android:layout_height="0dp"
@@ -319,7 +321,6 @@
             <com.zhy.autolayout.AutoRelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_marginBottom="6dp"
                 android:layout_weight="5"
                 android:gravity="bottom">
 
@@ -327,7 +328,8 @@
                     android:id="@+id/rlProfile"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_centerHorizontal="true">
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginBottom="2dp">
 
                     <TextView
                         android:id="@+id/tvProfileNormal"
@@ -353,10 +355,10 @@
 
                 <TextView
                     android:id="@+id/tvProfileBadgeOnly"
-                    android:layout_width="13dp"
-                    android:layout_height="13dp"
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
                     android:layout_alignEnd="@id/rlProfile"
-                    android:layout_marginEnd="-6dp"
+                    android:layout_marginEnd="-5dp"
                     android:layout_marginTop="-0dp"
                     android:background="@mipmap/bg_unread"
                     android:gravity="center"

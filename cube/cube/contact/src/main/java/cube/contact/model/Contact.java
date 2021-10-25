@@ -64,6 +64,7 @@ public class Contact extends AbstractContact {
     public Contact(JSONObject json) throws JSONException {
         super(json);
         this.devices = new ArrayList<>();
+
         if (json.has("devices")) {
             JSONArray array = json.getJSONArray("devices");
             for (int i = 0; i < array.length(); ++i) {

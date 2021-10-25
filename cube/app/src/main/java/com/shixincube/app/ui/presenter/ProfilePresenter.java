@@ -26,11 +26,13 @@
 
 package com.shixincube.app.ui.presenter;
 
+import com.shixincube.app.R;
 import com.shixincube.app.manager.AccountHelper;
 import com.shixincube.app.model.Account;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.ProfileView;
+import com.shixincube.app.util.UIUtils;
 
 import cube.contact.model.Self;
 import cube.engine.CubeEngine;
@@ -66,7 +68,7 @@ public class ProfilePresenter extends BasePresenter<ProfileView> {
                 getView().getAvatarImage().setImageResource(AccountHelper
                         .explainAvatarForResource(Account.getAvatar(self.getContext())));
                 getView().getNickNameText().setText(self.getPriorityName());
-                getView().getCubeIdText().setText(self.getId().toString());
+                getView().getCubeIdText().setText(UIUtils.getString(R.string.my_cube_id, self.getId().toString()));
             }
         }, new Consumer<Throwable>() {
             @Override

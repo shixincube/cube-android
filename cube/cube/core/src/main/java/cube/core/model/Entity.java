@@ -37,7 +37,7 @@ import cube.util.JSONable;
  */
 public class Entity implements TimeSortable, JSONable {
 
-    private final static long LIFECYCLE_IN_MSEC = 7L * 24L * 60L * 60L * 1000L;
+    public final static long LIFECYCLE_IN_MSEC = 7L * 24L * 60L * 60L * 1000L;
 
     /**
      * 实体 ID 。
@@ -45,12 +45,17 @@ public class Entity implements TimeSortable, JSONable {
     public final Long id;
 
     /**
-     * 实体创建时的时间戳。
+     * 数据时间戳。
      */
     protected long timestamp;
 
     /**
-     * 实体的到期时间。
+     * 该实体数据上次更新的时间戳。
+     */
+    protected long last;
+
+    /**
+     * 数据到期时间。
      */
     protected long expiry;
 
@@ -59,57 +64,112 @@ public class Entity implements TimeSortable, JSONable {
      */
     protected JSONObject context;
 
+    /**
+     * 实体创建时的时间戳。
+     */
+    public final long entityCreation;
+
     public Entity() {
         this.id = Utils.generateUnsignedSerialNumber();
-        this.timestamp = System.currentTimeMillis();
-        this.expiry = this.timestamp + LIFECYCLE_IN_MSEC;
+        this.entityCreation = System.currentTimeMillis();
+        this.timestamp = this.entityCreation;
+        this.last = this.timestamp;
+        this.expiry = this.last + LIFECYCLE_IN_MSEC;
     }
 
     public Entity(Long id) {
         this.id = id;
-        this.timestamp = System.currentTimeMillis();
-        this.expiry = this.timestamp + LIFECYCLE_IN_MSEC;
+        this.entityCreation = System.currentTimeMillis();
+        this.timestamp = this.entityCreation;
+        this.last = this.timestamp;
+        this.expiry = this.last + LIFECYCLE_IN_MSEC;
     }
 
     public Entity(Long id, long timestamp) {
         this.id = id;
+        this.entityCreation = System.currentTimeMillis();
         this.timestamp = timestamp;
-        this.expiry = this.timestamp + LIFECYCLE_IN_MSEC;
+        this.last = timestamp;
+        this.expiry = this.last + LIFECYCLE_IN_MSEC;
     }
 
     public Entity(JSONObject json) throws JSONException {
+        this.entityCreation = System.currentTimeMillis();
+
         this.id = json.getLong("id");
 
-        if (json.has("timestamp")) {
+        if (json.has("timestamp"))
             this.timestamp = json.getLong("timestamp");
-        }
-        else {
-            this.timestamp = System.currentTimeMillis();
-        }
+        else
+            this.timestamp = this.entityCreation;
 
-        if (json.has("expiry")) {
+        if (json.has("last"))
+            this.last = json.getLong("last");
+        else
+            this.last = this.entityCreation;
+
+        if (json.has("expiry"))
             this.expiry = json.getLong("expiry");
-        }
-        else {
-            this.expiry = this.timestamp + LIFECYCLE_IN_MSEC;
-        }
+        else
+            this.expiry = this.last + LIFECYCLE_IN_MSEC;
 
         if (json.has("context")) {
             this.context = json.getJSONObject("context");
         }
     }
 
+    /**
+     * 获取实体 ID 。
+     *
+     * @return
+     */
     public Long getId() {
         return this.id;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
+    public long getSortableTime() {
+        return this.timestamp;
+    }
+
+    /**
+     * 获取数据的时间戳。
+     *
+     * @return
+     */
     public long getTimestamp() {
         return this.timestamp;
     }
 
+    /**
+     * 获取最近一次更新该实体数据的时间。
+     *
+     * @return
+     */
+    public long getLast() {
+        return this.last;
+    }
+
+    /**
+     * 获取该实体数据的到期时间。
+     *
+     * @return
+     */
     public long getExpiry() {
         return this.expiry;
+    }
+
+    public void resetLast(long time) {
+        this.last = time;
+        this.expiry = time + LIFECYCLE_IN_MSEC;
+    }
+
+    public void resetExpiry(long expiry, long last) {
+        this.last = last;
+        this.expiry = expiry;
     }
 
     /**
@@ -138,6 +198,7 @@ public class Entity implements TimeSortable, JSONable {
         try {
             json.put("id", this.id.longValue());
             json.put("timestamp", this.timestamp);
+            json.put("last", this.last);
             json.put("expiry", this.expiry);
 
             if (null != this.context) {

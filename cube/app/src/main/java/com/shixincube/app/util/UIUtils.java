@@ -117,6 +117,17 @@ public final class UIUtils {
         return getResource().getString(stringId);
     }
 
+    /**
+     * 获取 strings.xml 的字符串值。
+     *
+     * @param stringId
+     * @param formatArgs
+     * @return
+     */
+    public static String getString(int stringId, Object... formatArgs) {
+        return getResource().getString(stringId, formatArgs);
+    }
+
     public static int dp2px(Context context, float dipValue) {
         final float scale = context.getResources().getDisplayMetrics().density;
         return (int) (dipValue * scale + 0.5f);

@@ -45,6 +45,7 @@
     <string name="my_nickname">我的昵称</string>
     <string name="my_cube_id">魔方号：%1$s</string>
     <string name="setting">设置</string>
+    <string name="title_profile_info">个人信息</string>
 
     <!-- 常用 -->
     <string name="please_wait_a_moment">请稍候</string>

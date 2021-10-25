@@ -63,7 +63,7 @@
             android:layout_height="24dp"
             android:layout_gravity="center_vertical"
             android:layout_marginEnd="@dimen/option_item_margin_right"
-            android:src="@mipmap/ic_more"/>
+            android:src="@mipmap/ic_more_gray"/>
 
     </com.zhy.autolayout.AutoLinearLayout>
     <!-- Account Info - End -->

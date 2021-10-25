@@ -24,17 +24,34 @@
  * SOFTWARE.
  */
 
-package cube.core.model;
+package com.shixincube.app.ui.activity;
+
+import com.shixincube.app.R;
+import com.shixincube.app.ui.base.BaseActivity;
+import com.shixincube.app.ui.presenter.ProfileInfoPresenter;
+import com.shixincube.app.ui.view.ProfileInfoView;
 
 /**
- * 可进行时间排序的对象。
+ * 个人信息详情。
  */
-public interface TimeSortable {
+public class ProfileInfoActivity extends BaseActivity<ProfileInfoView, ProfileInfoPresenter> {
 
-    /**
-     * 获取进行排序的时间戳。
-     *
-     * @return 返回进行排序的时间戳。
-     */
-    long getSortableTime();
+    public ProfileInfoActivity() {
+        super();
+    }
+
+    @Override
+    public void initView() {
+        setToolbarTitle(getString(R.string.title_profile_info));
+    }
+
+    @Override
+    protected ProfileInfoPresenter createPresenter() {
+        return new ProfileInfoPresenter(this);
+    }
+
+    @Override
+    protected int provideContentViewId() {
+        return R.layout.activity_profile_info;
+    }
 }

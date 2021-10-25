@@ -40,7 +40,19 @@ import cube.util.LogUtils;
  */
 public class CubeConnection implements ServiceConnection {
 
+    private Runnable successHandler;
+
+    private Runnable failureHandler;
+
     public CubeConnection() {
+    }
+
+    public void setSuccessHandler(Runnable handler) {
+        this.successHandler = handler;
+    }
+
+    public void setFailureHandler(Runnable handler) {
+        this.failureHandler = handler;
     }
 
     @Override
@@ -52,11 +64,19 @@ public class CubeConnection implements ServiceConnection {
                 LogUtils.i("CubeApp", "Success");
                 // 设置联系人数据提供器
                 engine.getContactService().setContactDataProvider(AccountHelper.getInstance());
+
+                if (null != successHandler) {
+                    successHandler.run();
+                }
             }
 
             @Override
             public void handleFailure(int code, String description) {
                 LogUtils.i("CubeApp", "Failure");
+
+                if (null != failureHandler) {
+                    failureHandler.run();
+                }
             }
         });
     }

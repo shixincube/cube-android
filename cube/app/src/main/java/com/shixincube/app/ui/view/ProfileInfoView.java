@@ -26,8 +26,17 @@
 
 package com.shixincube.app.ui.view;
 
+import com.shixincube.app.widget.AdvancedImageView;
+import com.shixincube.app.widget.optionitemview.OptionItemView;
+
 /**
  * 个人信息详情。
  */
 public interface ProfileInfoView {
+
+    AdvancedImageView getAvatarImage();
+
+    OptionItemView getNickNameItem();
+
+    OptionItemView getCubeIdItem();
 }

@@ -46,6 +46,8 @@
     <string name="my_cube_id">魔方号：%1$s</string>
     <string name="setting">设置</string>
     <string name="title_profile_info">个人信息</string>
+    <string name="avatar">头像</string>
+    <string name="cube_id">魔方号</string>
 
     <!-- 常用 -->
     <string name="please_wait_a_moment">请稍候</string>

@@ -10,6 +10,7 @@
         <entry key="app/src/main/res/drawable/dialog_waiting.xml" value="0.20230263157894737" />
         <entry key="app/src/main/res/drawable/ic_launcher_background.xml" value="0.3203125" />
         <entry key="app/src/main/res/drawable/selector_common_item.xml" value="0.240234375" />
+        <entry key="app/src/main/res/drawable/selector_option_item.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/selector_register_send_code.xml" value="0.3203125" />
         <entry key="app/src/main/res/drawable/selector_strip_button.xml" value="0.3203125" />
         <entry key="app/src/main/res/drawable/selector_theme_btn.xml" value="0.3203125" />

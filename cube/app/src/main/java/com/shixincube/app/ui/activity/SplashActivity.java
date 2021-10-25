@@ -41,6 +41,8 @@ import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.util.UIUtils;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import butterknife.BindView;
 import cube.engine.CubeService;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
@@ -68,11 +70,14 @@ public class SplashActivity extends BaseActivity {
 
     private CubeConnection connection;
 
-    private boolean valid;
+    private boolean valid = true;
+
+    private AtomicBoolean engineStarted = new AtomicBoolean(false);
+
+    private boolean jumpToMain = false;
 
     public SplashActivity() {
         super();
-        this.valid = true;
     }
 
     @Override
@@ -144,6 +149,8 @@ public class SplashActivity extends BaseActivity {
         Observable.create(new ObservableOnSubscribe<Boolean>() {
             @Override
             public void subscribe(@NonNull ObservableEmitter<Boolean> emitter) throws Throwable {
+                // 先置为 false
+                valid = false;
                 if (AccountHelper.getInstance(getApplicationContext()).checkValidToken()) {
                     valid = true;
                 }
@@ -163,8 +170,13 @@ public class SplashActivity extends BaseActivity {
                     registerButton.setVisibility(View.VISIBLE);
                 }
 
-                if (valid.booleanValue()) {
-                    jumpToActivityAndClearTask(MainActivity.class);
+                synchronized (SplashActivity.this) {
+                    if (!jumpToMain) {
+                        if (valid.booleanValue() && engineStarted.get()) {
+                            jumpToMain = true;
+                            jumpToActivityAndClearTask(MainActivity.class);
+                        }
+                    }
                 }
             }
         });
@@ -176,6 +188,25 @@ public class SplashActivity extends BaseActivity {
 
         // 监听引擎启动
         this.connection = new CubeConnection();
+        this.connection.setSuccessHandler(new Runnable() {
+            @Override
+            public void run() {
+                engineStarted.set(true);
+                synchronized (SplashActivity.this) {
+                    if (!jumpToMain) {
+                        if (valid) {
+                            jumpToMain = true;
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    jumpToActivityAndClearTask(MainActivity.class);
+                                }
+                            });
+                        }
+                    }
+                }
+            }
+        });
         intent = new Intent(this, CubeService.class);
         bindService(intent, this.connection, BIND_AUTO_CREATE);
     }

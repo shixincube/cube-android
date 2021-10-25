@@ -6,9 +6,9 @@
     android:background="@color/theme_bg"
     android:orientation="vertical">
 
-    <!-- Account Info - Begin -->
+    <!-- Profile Info - Begin -->
     <com.zhy.autolayout.AutoLinearLayout
-        android:id="@+id/llInfo"
+        android:id="@+id/llProfileInfo"
         android:layout_width="match_parent"
         android:layout_height="110dp"
         android:layout_marginTop="@dimen/option_item_margin_top"
@@ -66,7 +66,7 @@
             android:src="@mipmap/ic_more_gray"/>
 
     </com.zhy.autolayout.AutoLinearLayout>
-    <!-- Account Info - End -->
+    <!-- Profile Info - End -->
 
     <!-- Setting -->
     <com.shixincube.app.widget.optionitemview.OptionItemView
@@ -76,11 +76,11 @@
         android:background="@drawable/selector_common_item"
         android:clickable="true"
         android:focusable="true"
-        auto:left_image_margin_left="@dimen/option_item_margin_left"
-        auto:left_image_margin_right="@dimen/option_item_margin_right"
-        auto:left_src="@mipmap/ic_setting_blue"
-        auto:left_text="@string/setting"
-        auto:left_text_color="@color/text"
-        auto:left_text_size="18sp"/>
+        auto:start_image_margin_left="@dimen/option_item_margin_left"
+        auto:start_image_margin_right="@dimen/option_item_margin_right"
+        auto:start_src="@mipmap/ic_setting_blue"
+        auto:start_text="@string/setting"
+        auto:start_text_color="@color/text"
+        auto:start_text_size="18sp"/>
 
 </com.zhy.autolayout.AutoLinearLayout>

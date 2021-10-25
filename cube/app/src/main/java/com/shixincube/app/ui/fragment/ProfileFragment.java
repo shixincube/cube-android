@@ -26,10 +26,12 @@
 
 package com.shixincube.app.ui.fragment;
 
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.shixincube.app.R;
 import com.shixincube.app.ui.activity.MainActivity;
+import com.shixincube.app.ui.activity.ProfileInfoActivity;
 import com.shixincube.app.ui.base.BaseFragment;
 import com.shixincube.app.ui.presenter.ProfilePresenter;
 import com.shixincube.app.ui.view.ProfileView;
@@ -42,9 +44,11 @@ import butterknife.BindView;
  */
 public class ProfileFragment extends BaseFragment<ProfileView, ProfilePresenter> implements ProfileView {
 
+    @BindView(R.id.llProfileInfo)
+    LinearLayout profileInfoLayout;
+
     @BindView(R.id.ivAvatar)
     AdvancedImageView avatarImage;
-
     @BindView(R.id.tvNickname)
     TextView nickNameText;
     @BindView(R.id.tvCubeId)
@@ -61,7 +65,9 @@ public class ProfileFragment extends BaseFragment<ProfileView, ProfilePresenter>
 
     @Override
     public void initListener() {
-
+        this.profileInfoLayout.setOnClickListener(view -> {
+            ((MainActivity) getActivity()).jumpToActivityAndClearTop(ProfileInfoActivity.class);
+        });
     }
 
     @Override

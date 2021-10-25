@@ -26,9 +26,14 @@
 
 package com.shixincube.app.ui.presenter;
 
+import com.shixincube.app.manager.AccountHelper;
+import com.shixincube.app.model.Account;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.ProfileInfoView;
+
+import cube.contact.model.Self;
+import cube.engine.CubeEngine;
 
 /**
  * 个人信息详情。
@@ -37,5 +42,13 @@ public class ProfileInfoPresenter extends BasePresenter<ProfileInfoView> {
 
     public ProfileInfoPresenter(BaseActivity activity) {
         super(activity);
+    }
+
+    public void loadAccountInfo() {
+        Self self = CubeEngine.getInstance().getContactService().getSelf();
+        getView().getAvatarImage().setImageResource(AccountHelper
+                .explainAvatarForResource(Account.getAvatar(self.getContext())));
+        getView().getNickNameItem().setEndText(self.getPriorityName());
+        getView().getCubeIdItem().setEndText(self.getId().toString());
     }
 }

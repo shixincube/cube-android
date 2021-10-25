@@ -11,8 +11,74 @@
     <com.zhy.autolayout.AutoLinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="13dp"
+        android:layout_marginTop="@dimen/option_item_margin_top"
         android:orientation="vertical">
+
+        <com.zhy.autolayout.AutoLinearLayout
+            android:id="@+id/llAvatar"
+            android:layout_width="match_parent"
+            android:layout_height="74dp"
+            android:background="@drawable/selector_option_item"
+            android:gravity="center_vertical"
+            android:paddingEnd="3dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="15dp"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:text="@string/avatar"
+                android:textColor="@color/black"
+                android:textSize="16sp"/>
+
+            <com.shixincube.app.widget.AdvancedImageView
+                android:id="@+id/aivAvatar"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_marginLeft="15dp"
+                android:layout_marginRight="15dp"
+                android:scaleType="centerCrop"
+                android:src="@mipmap/avatar_default"
+                auto:corner_radius="4dp"/>
+
+        </com.zhy.autolayout.AutoLinearLayout>
+
+        <View
+            style="@style/Line"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"/>
+
+        <com.shixincube.app.widget.optionitemview.OptionItemView
+            android:id="@+id/oivNickName"
+            style="@style/OptionItem"
+            android:background="@drawable/selector_option_item"
+            auto:start_text="@string/nickname"
+            auto:start_text_color="@color/black"
+            auto:start_text_margin_left="15dp"
+            auto:start_text_size="16sp"
+            auto:end_text=""
+            auto:end_text_color="@color/text_secondary"
+            auto:end_text_margin_right="20dp"
+            auto:end_text_size="16sp"/>
+
+        <View
+            style="@style/Line"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"/>
+
+        <com.shixincube.app.widget.optionitemview.OptionItemView
+            android:id="@+id/oivCubeId"
+            style="@style/OptionItem"
+            android:background="@drawable/selector_option_item"
+            auto:start_text="@string/cube_id"
+            auto:start_text_color="@color/black"
+            auto:start_text_margin_left="15dp"
+            auto:start_text_size="16sp"
+            auto:end_text=""
+            auto:end_text_color="@color/text_secondary"
+            auto:end_text_margin_right="20dp"
+            auto:end_text_size="16sp"/>
 
     </com.zhy.autolayout.AutoLinearLayout>
 

@@ -30,11 +30,22 @@ import com.shixincube.app.R;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.presenter.ProfileInfoPresenter;
 import com.shixincube.app.ui.view.ProfileInfoView;
+import com.shixincube.app.widget.AdvancedImageView;
+import com.shixincube.app.widget.optionitemview.OptionItemView;
+
+import butterknife.BindView;
 
 /**
  * 个人信息详情。
  */
-public class ProfileInfoActivity extends BaseActivity<ProfileInfoView, ProfileInfoPresenter> {
+public class ProfileInfoActivity extends BaseActivity<ProfileInfoView, ProfileInfoPresenter> implements ProfileInfoView {
+
+    @BindView(R.id.aivAvatar)
+    AdvancedImageView avatarImage;
+    @BindView(R.id.oivNickName)
+    OptionItemView nicknameItem;
+    @BindView(R.id.oivCubeId)
+    OptionItemView cubeIdItem;
 
     public ProfileInfoActivity() {
         super();
@@ -46,6 +57,11 @@ public class ProfileInfoActivity extends BaseActivity<ProfileInfoView, ProfileIn
     }
 
     @Override
+    public void initData() {
+        this.presenter.loadAccountInfo();
+    }
+
+    @Override
     protected ProfileInfoPresenter createPresenter() {
         return new ProfileInfoPresenter(this);
     }
@@ -53,5 +69,20 @@ public class ProfileInfoActivity extends BaseActivity<ProfileInfoView, ProfileIn
     @Override
     protected int provideContentViewId() {
         return R.layout.activity_profile_info;
+    }
+
+    @Override
+    public AdvancedImageView getAvatarImage() {
+        return this.avatarImage;
+    }
+
+    @Override
+    public OptionItemView getNickNameItem() {
+        return this.nicknameItem;
+    }
+
+    @Override
+    public OptionItemView getCubeIdItem() {
+        return this.cubeIdItem;
     }
 }

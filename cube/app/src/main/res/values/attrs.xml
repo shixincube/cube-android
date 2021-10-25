@@ -19,21 +19,21 @@
         <attr name="title" format="string"/>
         <attr name="title_size" format="dimension"/>
         <attr name="title_color" format="color"/>
-        <attr name="left_src" format="reference|color"/>
-        <attr name="left_text" format="string"/>
-        <attr name="left_text_size" format="dimension"/>
-        <attr name="left_image_margin_left" format="dimension"/>
-        <attr name="left_text_margin_left" format="dimension"/>
-        <attr name="left_image_margin_right" format="dimension"/>
-        <attr name="left_text_color" format="color"/>
-        <attr name="right_src" format="reference|color"/>
-        <attr name="right_text" format="string"/>
-        <attr name="right_text_size" format="dimension"/>
-        <attr name="right_image_margin_left" format="dimension"/>
-        <attr name="right_image_margin_right" format="dimension"/>
-        <attr name="right_text_margin_right" format="dimension"/>
-        <attr name="right_text_color" format="color"/>
-        <attr name="splite_mode" format="boolean"/>
+        <attr name="start_src" format="reference|color"/>
+        <attr name="start_text" format="string"/>
+        <attr name="start_text_size" format="dimension"/>
+        <attr name="start_image_margin_left" format="dimension"/>
+        <attr name="start_text_margin_left" format="dimension"/>
+        <attr name="start_image_margin_right" format="dimension"/>
+        <attr name="start_text_color" format="color"/>
+        <attr name="end_src" format="reference|color"/>
+        <attr name="end_text" format="string"/>
+        <attr name="end_text_size" format="dimension"/>
+        <attr name="end_image_margin_left" format="dimension"/>
+        <attr name="end_image_margin_right" format="dimension"/>
+        <attr name="end_text_margin_right" format="dimension"/>
+        <attr name="end_text_color" format="color"/>
+        <attr name="split_mode" format="boolean"/>
     </declare-styleable>
 
     <declare-styleable name="RecyclerView">

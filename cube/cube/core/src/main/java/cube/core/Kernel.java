@@ -64,6 +64,8 @@ public class Kernel implements PipelineListener {
 
     private String deviceSerial;
 
+    private EntityInspector inspector;
+
     private Pipeline pipeline;
 
     private Map<String, Module> moduleMap;
@@ -74,6 +76,7 @@ public class Kernel implements PipelineListener {
         this.working = false;
         this.moduleMap = new HashMap<>();
         this.executor = Executors.newFixedThreadPool(MAX_THREADS);
+        this.inspector = new EntityInspector();
         this.defaultInstance = this;
     }
 

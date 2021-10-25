@@ -50,6 +50,7 @@ dependencies {
     implementation project(path: ':cube:engine')
     implementation fileTree(dir: '../libs', include: '*.jar')
     implementation project(path: ':cube:contact')
+    implementation project(path: ':cube:messaging')
     annotationProcessor 'com.jakewharton:butterknife-compiler:10.2.3'
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'

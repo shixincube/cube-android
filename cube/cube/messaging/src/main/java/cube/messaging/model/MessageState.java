@@ -24,71 +24,95 @@
  * SOFTWARE.
  */
 
-package cube.contact;
+package cube.messaging.model;
 
 /**
- * 联系人事件。
+ * 消息状态。
  */
-public final class ContactServiceEvent {
+public enum MessageState {
 
     /**
-     * 当前客户端的联系人签入。
+     * 消息处理失败。
      */
-    public final static String SignIn = "SignIn";
+    Fault(1),
 
     /**
-     * 当前客户端的联系人签出。
+     * 未发送状态。
      */
-    public final static String SignOut = "SignOut";
+    Unsent(5),
 
     /**
-     * 当前客户端的联系人恢复连接。
+     * 正在发送状态。
      */
-    public final static String Comeback = "Comeback";
+    Sending(9),
 
     /**
-     * 当前客户端的联系人数据就绪。该事件依据网络连通情况和签入账号情况可能被多次触发。
+     * 已发送状态。
      */
-    public final static String SelfReady = "SelfReady";
+    Sent(10),
 
     /**
-     * 群组已更新。
+     * 已被阅读状态。
      */
-    public final static String GroupUpdated = "GroupUpdated";
+    Read(20),
 
     /**
-     * 群组被创建。
+     * 已召回。
      */
-    public final static String GroupCreated = "GroupCreated";
+    Recalled(30),
 
     /**
-     * 群组已解散。
+     * 已删除。
      */
-    public final static String GroupDissolved = "GroupDissolved";
+    Deleted(40),
 
     /**
-     * 群成员加入。
+     * 被阻止发送。
      */
-    public final static String GroupMemberAdded = "GroupMemberAdded";
+    SendBlocked(51),
 
     /**
-     * 群成员移除。
+     * 被阻止接收。
      */
-    public final static String GroupMemberRemoved = "GroupMemberRemoved";
+    ReceiveBlocked(52),
 
     /**
-     * 群组的附录进行了实时更新。
+     * 未知状态。
      */
-    public final static String GroupAppendixUpdated = "GroupAppendixUpdated";
+    Unknown(0);
 
-    /**
-     * 遇到程序故障。
-     */
-    public final static String Fault = "Fault";
+    public final int code;
 
-    /**
-     * 未知事件。
-     */
-    public final static String Unknown = "Unknown";
+    MessageState(int code) {
+        this.code = code;
+    }
 
+    public int getCode() {
+        return this.code;
+    }
+
+    public static MessageState parse(int code) {
+        switch (code) {
+            case 5:
+                return Unsent;
+            case 9:
+                return Sending;
+            case 10:
+                return Sent;
+            case 20:
+                return Read;
+            case 30:
+                return Recalled;
+            case 40:
+                return Deleted;
+            case 51:
+                return SendBlocked;
+            case 52:
+                return ReceiveBlocked;
+            case 1:
+                return Fault;
+            default:
+                return Unknown;
+        }
+    }
 }

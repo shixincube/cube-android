@@ -24,25 +24,10 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app.model.request;
-
-import com.google.gson.annotations.SerializedName;
+package cube.messaging.model;
 
 /**
- * 账号登录。
+ * 消息类型。
  */
-public class LoginRequest {
-
-    @SerializedName("phone")
-    public String phoneNumber;
-
-    public String password;
-
-    public String device;
-
-    public LoginRequest(String phoneNumber, String password, String device) {
-        this.phoneNumber = phoneNumber;
-        this.password = password;
-        this.device = device;
-    }
+public enum MessageType {
 }

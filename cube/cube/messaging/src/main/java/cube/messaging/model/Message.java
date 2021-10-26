@@ -101,8 +101,64 @@ public class Message extends Entity {
         }
     }
 
+    public long getFrom() {
+        return this.from;
+    }
+
+    public Contact getSender() {
+        return this.sender;
+    }
+
+    public long getTo() {
+        return this.to;
+    }
+
+    public Contact getReceiver() {
+        return this.receiver;
+    }
+
+    public long getSource() {
+        return this.source;
+    }
+
+    public long getRemoteTimestamp() {
+        return this.remoteTS;
+    }
+
+    public long getLocalTimestamp() {
+        return this.localTS;
+    }
+
+    public MessageState getState() {
+        return this.state;
+    }
+
+    public int getScope() {
+        return this.scope;
+    }
+
     public Contact getPartner() {
         return this.selfTyper ? this.receiver : this.sender;
+    }
+
+    public boolean isFromGroup() {
+        return this.source > 0;
+    }
+
+    public boolean isSelfTyper() {
+        return this.selfTyper;
+    }
+
+    public void setSelfTyper(boolean value) {
+        this.selfTyper = value;
+    }
+
+    public void setSender(Contact sender) {
+        this.sender = sender;
+    }
+
+    public void setReceiver(Contact receiver) {
+        this.receiver = receiver;
     }
 
     @Override

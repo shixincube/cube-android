@@ -26,9 +26,12 @@
 
 package cube.messaging;
 
+import android.util.Log;
+
 import cube.core.Packet;
 import cube.core.Pipeline;
 import cube.core.PipelineListener;
+import cube.core.PipelineState;
 
 /**
  * 消息模块数据通道监听器。
@@ -43,21 +46,31 @@ public class MessagingPipelineListener implements PipelineListener {
 
     @Override
     public void onReceived(Pipeline pipeline, String source, Packet packet) {
+        if (packet.state.code != PipelineState.Ok.code) {
+            Log.d("MessagingPipelineListener", "#onReceived code : " + packet.state.code);
+            return;
+        }
 
+        if (MessagingAction.Notify.equals(packet.name)) {
+            this.service.triggerNotify(packet.extractServiceData());
+        }
+        else if (MessagingAction.Pull.equals(packet.name)) {
+            this.service.triggerPull(packet.extractServiceStateCode(), packet.extractServiceData());
+        }
     }
 
     @Override
     public void onOpened(Pipeline pipeline) {
-
+        // Nothing
     }
 
     @Override
     public void onClosed(Pipeline pipeline) {
-
+        // Nothing
     }
 
     @Override
     public void onFaultOccurred(Pipeline pipeline, int code, String description) {
-
+        // Nothing
     }
 }

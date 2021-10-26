@@ -238,18 +238,18 @@ public class ContactService extends Module {
 
         // 访问服务器进行签入
 
-        // 通知系统 Self 实例就绪
-        this.execute(new Runnable() {
-            @Override
-            public void run() {
-                ObservableEvent event = new ObservableEvent(ContactServiceEvent.SelfReady, ContactService.this.self);
-                notifyObservers(event);
-            }
-        });
-
         // 激活令牌
         AuthToken authToken = this.kernel.activeToken(self.id);
         if (null != authToken) {
+            // 通知系统 Self 实例就绪
+            this.execute(new Runnable() {
+                @Override
+                public void run() {
+                    ObservableEvent event = new ObservableEvent(ContactServiceEvent.SelfReady, ContactService.this.self);
+                    notifyObservers(event);
+                }
+            });
+
             if (null != handler) {
                 // 设置回调
                 this.signInHandler = handler;

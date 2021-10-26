@@ -89,7 +89,7 @@ public class ContactService extends Module {
     private ConcurrentHashMap<Long, AbstractContact> cache;
 
     public ContactService() {
-        super(NAME);
+        super(ContactService.NAME);
         this.selfReady = new AtomicBoolean(false);
         this.cache = new ConcurrentHashMap<>();
     }
@@ -132,7 +132,7 @@ public class ContactService extends Module {
 
     @Override
     public boolean isReady() {
-        return false;
+        return this.selfReady.get() && (null != this.self);
     }
 
     /**
@@ -148,7 +148,7 @@ public class ContactService extends Module {
      * 签入指定联系人。
      *
      * @param self
-     * @param handler
+     * @param handler 该操作的回调句柄。
      * @return 如果返回 {@code false} 表示当前状态下不能进行该操作，请检查是否正确启动魔方。
      */
     public boolean signIn(Self self, SignHandler handler) {
@@ -283,9 +283,79 @@ public class ContactService extends Module {
 
     /**
      * 当前联系人签出。
+     *
+     * @param handler 该操作的回调句柄。
+     * @retrun 如果返回 {@code false} 表示当前状态下不能进行该操作。
      */
-    public void signOut() {
-        this.self = null;
+    public boolean signOut(SignHandler handler) {
+        if (!this.selfReady.get()) {
+            return false;
+        }
+
+        if (!this.pipeline.isReady()) {
+            // 无网络状态下签出
+            this.selfReady.set(false);
+
+            // 关闭存储
+            this.storage.close();
+
+            this.execute(new Runnable() {
+                @Override
+                public void run() {
+                    ObservableEvent event = new ObservableEvent(ContactServiceEvent.SignOut, self);
+                    notifyObservers(event);
+
+                    handler.handleSuccess(ContactService.this, self);
+                    self = null;
+                }
+            });
+
+            return true;
+        }
+
+        Packet signOutPacket = new Packet(ContactServiceAction.SignOut, this.self.toJSON());
+        this.pipeline.send(ContactService.NAME, signOutPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            ModuleError error = new ModuleError(ContactService.NAME, packet.state.code);
+                            handler.handleFailure(ContactService.this, error);
+                        }
+                    });
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != ContactServiceState.Ok.code) {
+                    execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            ModuleError error = new ModuleError(ContactService.NAME, stateCode);
+                            handler.handleFailure(ContactService.this, error);
+                        }
+                    });
+                    return;
+                }
+
+                selfReady.set(false);
+
+                // 关闭存储器
+                storage.close();
+
+                final Self current = self;
+                execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        handler.handleSuccess(ContactService.this, current);
+                    }
+                });
+            }
+        });
+
+        return true;
     }
 
     /**
@@ -616,6 +686,10 @@ public class ContactService extends Module {
         this.execute(new Runnable() {
             @Override
             public void run() {
+                // 通知 Sign-In 事件
+                ObservableEvent event = new ObservableEvent(ContactServiceEvent.SignIn, self);
+                notifyObservers(event);
+
                 if (null != ContactService.this.signInHandler) {
                     ContactService.this.signInHandler.handleSuccess(ContactService.this,
                             ContactService.this.self);
@@ -700,7 +774,10 @@ public class ContactService extends Module {
     }
 
     protected void triggerSignOut() {
-        // TODO
+        ObservableEvent event = new ObservableEvent(ContactServiceEvent.SignOut, this.self);
+        this.notifyObservers(event);
+
+        this.self = null;
     }
 
     interface SignInCompletion {

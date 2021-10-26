@@ -49,11 +49,9 @@ public class ContactStorage implements Storage {
 
     private ContactService service;
 
-    private SQLite sqlite;
-
-    private Long contactId;
-
     private String domain;
+
+    private SQLite sqlite;
 
     public ContactStorage(ContactService service) {
         this.service = service;
@@ -69,9 +67,8 @@ public class ContactStorage implements Storage {
      */
     public boolean open(Context context, Long contactId, String domain) {
         if (null == this.sqlite) {
-            this.contactId = contactId;
             this.domain = domain;
-            this.sqlite = new SQLite(context);
+            this.sqlite = new SQLite(context, contactId, domain);
             return true;
         }
         else {
@@ -282,7 +279,7 @@ public class ContactStorage implements Storage {
 
     private class SQLite extends SQLiteOpenHelper {
 
-        public SQLite(Context context) {
+        public SQLite(Context context, Long contactId, String domain) {
             super(context, "CubeContact_" + domain + "_" + contactId + ".db", null, VERSION);
         }
 

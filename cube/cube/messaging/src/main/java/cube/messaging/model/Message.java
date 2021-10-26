@@ -74,7 +74,7 @@ public class Message extends Entity {
         super();
         this.domain = AuthService.getDomain();
         this.payload = payload;
-        this.localTS = System.currentTimeMillis();
+        this.localTS = super.entityCreation;
         this.remoteTS = 0;
         this.from = 0;
         this.to = 0;
@@ -87,9 +87,46 @@ public class Message extends Entity {
     public Message(JSONObject json, MessagingService service) throws JSONException {
         super(json);
         this.domain = json.getString("domain");
+        this.from = json.getLong("from");
+        this.to = json.getLong("to");
+        this.source = json.getLong("source");
+        this.owner = json.getLong("owner");
+        this.localTS = json.getLong("lts");
+        this.remoteTS = json.getLong("rts");
+        this.state = MessageState.parse(json.getInt("state"));
+        this.scope = json.getInt("scope");
+
+        if (json.has("payload")) {
+            this.payload = json.getJSONObject("payload");
+        }
     }
 
     public Contact getPartner() {
-        return null;
+        return this.selfTyper ? this.receiver : this.sender;
+    }
+
+    @Override
+    public JSONObject toJSON() {
+        JSONObject json = super.toJSON();
+        try {
+            json.put("domain", this.domain);
+            json.put("from", this.from);
+            json.put("to", this.to);
+            json.put("source", this.source);
+            json.put("owner", this.owner);
+            json.put("lts", this.localTS);
+            json.put("rts", this.remoteTS);
+            json.put("state", this.state.code);
+            json.put("scope", this.scope);
+            json.put("payload", this.payload);
+        } catch (JSONException e) {
+            // Nothing
+        }
+        return json;
+    }
+
+    @Override
+    public JSONObject toCompactJSON() {
+        return this.toJSON();
     }
 }

@@ -91,6 +91,8 @@ public class Kernel implements PipelineListener {
 
         this.working = true;
 
+        this.inspector.start();
+
         this.pipeline = new CellPipeline(context);
 
         this.context = context;
@@ -131,6 +133,8 @@ public class Kernel implements PipelineListener {
     }
 
     public void shutdown() {
+        this.inspector.stop();
+
         for (Module module : this.moduleMap.values()) {
             module.stop();
         }
@@ -198,6 +202,10 @@ public class Kernel implements PipelineListener {
 
     public String getDeviceSerial() {
         return this.deviceSerial;
+    }
+
+    public EntityInspector getInspector() {
+        return this.inspector;
     }
 
     protected AuthToken getAuthToken() {

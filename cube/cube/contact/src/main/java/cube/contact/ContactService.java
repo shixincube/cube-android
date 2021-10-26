@@ -34,6 +34,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import cube.auth.AuthToken;
@@ -43,6 +44,7 @@ import cube.contact.handler.ContactListHandler;
 import cube.contact.handler.GroupListHandler;
 import cube.contact.handler.SignHandler;
 import cube.contact.handler.TopListHandler;
+import cube.contact.model.AbstractContact;
 import cube.contact.model.Contact;
 import cube.contact.model.ContactAppendix;
 import cube.contact.model.Group;
@@ -84,9 +86,12 @@ public class ContactService extends Module {
 
     private ContactDataProvider contactDataProvider;
 
+    private ConcurrentHashMap<Long, AbstractContact> cache;
+
     public ContactService() {
         super(NAME);
         this.selfReady = new AtomicBoolean(false);
+        this.cache = new ConcurrentHashMap<>();
     }
 
     @Override
@@ -100,12 +105,17 @@ public class ContactService extends Module {
         this.pipelineListener = new ContactPipelineListener(this);
         this.pipeline.addListener(NAME, this.pipelineListener);
 
+        this.kernel.getInspector().depositMap(this.cache);
+
         return true;
     }
 
     @Override
     public void stop() {
         super.stop();
+
+        this.kernel.getInspector().withdrawMap(this.cache);
+        this.cache.clear();
 
         this.signInHandler = null;
 
@@ -369,6 +379,18 @@ public class ContactService extends Module {
             return;
         }
 
+        // 从缓存里读取
+        AbstractContact abstractContact = this.cache.get(contactId);
+        if (null != abstractContact && (abstractContact instanceof Contact)) {
+            this.execute(new Runnable() {
+                @Override
+                public void run() {
+                    successHandler.handleContact((Contact) abstractContact);
+                }
+            });
+            return;
+        }
+
         // 从数据库读取
         Contact contact = this.storage.readContact(contactId);
         if (null != contact && contact.isValid()) {
@@ -381,6 +403,9 @@ public class ContactService extends Module {
                     contact.resetLast(last);
                 }
             }
+
+            // 写入缓存
+            this.cache.put(contactId, contact);
 
             this.execute(new Runnable() {
                 @Override
@@ -470,6 +495,9 @@ public class ContactService extends Module {
                             }
                         }
                     });
+
+                    // 写入缓存
+                    cache.put(contactId, contact);
                 } catch (JSONException e) {
                     // Nothing
                 }

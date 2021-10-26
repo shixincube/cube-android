@@ -26,6 +26,7 @@
 
 package cube.core;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
@@ -33,6 +34,7 @@ import java.util.TimerTask;
 import java.util.Vector;
 
 import cube.core.model.Entity;
+import cube.util.LogUtils;
 
 /**
  * 实体管理器，用于维护实体的生命周期。
@@ -41,12 +43,18 @@ public final class EntityInspector extends TimerTask {
 
     private Timer timer;
 
-    private List<Map<Long, Entity>> depositedMapArray;
+    private List<Map<Long, ? extends Entity>> depositedMapArray;
+
+    private long lifecycle;
 
     public EntityInspector() {
         this.depositedMapArray = new Vector<>();
+        this.lifecycle = 10L * 1000L;
     }
 
+    /**
+     * 启动。
+     */
     public void start() {
         if (null == this.timer) {
             this.timer = new Timer();
@@ -54,6 +62,9 @@ public final class EntityInspector extends TimerTask {
         }
     }
 
+    /**
+     * 停止。
+     */
     public void stop() {
         if (null != this.timer) {
             this.timer.cancel();
@@ -61,16 +72,43 @@ public final class EntityInspector extends TimerTask {
         }
     }
 
-    public void depositMap(Map<Long, Entity> map) {
-
+    /**
+     * 存入指定映射进行生命周期管理。
+     *
+     * @param map
+     */
+    public void depositMap(Map<Long, ? extends Entity> map) {
+        if (!this.depositedMapArray.contains(map)) {
+            this.depositedMapArray.add(map);
+        }
     }
 
-    public void withdrawMap(Map<Long, Entity> map) {
-
+    /**
+     * 解除指定映射的生命周期管理。
+     *
+     * @param map
+     */
+    public void withdrawMap(Map<Long, ? extends Entity> map) {
+        this.depositedMapArray.remove(map);
     }
 
     @Override
     public void run() {
+        int count = 0;
 
+        long now = System.currentTimeMillis();
+        for (Map<Long, ? extends Entity> map : this.depositedMapArray) {
+            Iterator<? extends Map.Entry<Long, ? extends Entity>> iter = map.entrySet().iterator();
+            while (iter.hasNext()) {
+                Map.Entry<Long, ? extends Entity> e = iter.next();
+                Entity entity = e.getValue();
+                if (now - entity.entityCreation > this.lifecycle) {
+                    iter.remove();
+                    ++count;
+                }
+            }
+        }
+
+        LogUtils.d("EntityInspector", "Clear count: " + count);
     }
 }

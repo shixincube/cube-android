@@ -24,65 +24,28 @@
  * SOFTWARE.
  */
 
-package cube.messaging.model;
+package cube.core;
 
 /**
- * 消息类型。
+ * 事件钩子。
  */
-public enum MessageType {
+public class Hook<T> {
+
+    protected PluginSystem system;
+
+    public final String name;
+
+    public Hook(String name) {
+        this.name = name;
+    }
 
     /**
-     * 文字。
+     * 应用钩子。
+     *
+     * @param data 传递给插件的数据。
+     * @return 插件处理完返回的数据。
      */
-    Text,
-
-    /**
-     * 文件。
-     */
-    File,
-
-    /**
-     * 图片。
-     */
-    Image,
-
-    /**
-     * 语音。
-     */
-    Voice,
-
-    /**
-     * 视频。
-     */
-    Video,
-
-    /**
-     * 超链接。
-     */
-    URL,
-
-    /**
-     * 定位。
-     */
-    Location,
-
-    /**
-     * 卡片。
-     */
-    Card,
-
-    /**
-     * 系统。
-     */
-    System,
-
-    /**
-     * 其他。
-     */
-    Other,
-
-    /**
-     * 未知。
-     */
-    Unknown
+    public T apply(T data) {
+        return this.system.syncApply(this.name, data);
+    }
 }

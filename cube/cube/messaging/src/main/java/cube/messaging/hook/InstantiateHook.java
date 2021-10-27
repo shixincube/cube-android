@@ -24,65 +24,19 @@
  * SOFTWARE.
  */
 
-package cube.messaging.model;
+package cube.messaging.hook;
+
+import cube.core.Hook;
+import cube.messaging.model.Message;
 
 /**
- * 消息类型。
+ * 实例化消息的钩子。
  */
-public enum MessageType {
+public class InstantiateHook extends Hook<Message> {
 
-    /**
-     * 文字。
-     */
-    Text,
+    public final static String NAME = "Instantiate";
 
-    /**
-     * 文件。
-     */
-    File,
-
-    /**
-     * 图片。
-     */
-    Image,
-
-    /**
-     * 语音。
-     */
-    Voice,
-
-    /**
-     * 视频。
-     */
-    Video,
-
-    /**
-     * 超链接。
-     */
-    URL,
-
-    /**
-     * 定位。
-     */
-    Location,
-
-    /**
-     * 卡片。
-     */
-    Card,
-
-    /**
-     * 系统。
-     */
-    System,
-
-    /**
-     * 其他。
-     */
-    Other,
-
-    /**
-     * 未知。
-     */
-    Unknown
+    public InstantiateHook() {
+        super(InstantiateHook.NAME);
+    }
 }

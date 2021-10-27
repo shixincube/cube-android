@@ -24,65 +24,18 @@
  * SOFTWARE.
  */
 
-package cube.messaging.model;
+package cube.messaging.extension;
 
 /**
  * 消息类型。
  */
-public enum MessageType {
+public final class MessageTypeName {
 
     /**
-     * 文字。
+     * 超文本消息类型。
      */
-    Text,
+    public final static String Hypertext = "hypertext";
 
-    /**
-     * 文件。
-     */
-    File,
-
-    /**
-     * 图片。
-     */
-    Image,
-
-    /**
-     * 语音。
-     */
-    Voice,
-
-    /**
-     * 视频。
-     */
-    Video,
-
-    /**
-     * 超链接。
-     */
-    URL,
-
-    /**
-     * 定位。
-     */
-    Location,
-
-    /**
-     * 卡片。
-     */
-    Card,
-
-    /**
-     * 系统。
-     */
-    System,
-
-    /**
-     * 其他。
-     */
-    Other,
-
-    /**
-     * 未知。
-     */
-    Unknown
+    private MessageTypeName() {
+    }
 }

@@ -24,65 +24,51 @@
  * SOFTWARE.
  */
 
-package cube.messaging.model;
+package cube.messaging.extension;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import cube.core.Plugin;
+import cube.messaging.hook.InstantiateHook;
+import cube.messaging.model.Message;
 
 /**
- * 消息类型。
+ * 消息分类实例化插件。
  */
-public enum MessageType {
+public class MessageTypePlugin implements Plugin<Message> {
+
+    public MessageTypePlugin() {
+    }
+
+    @Override
+    public Message onEvent(String name, Message data) {
+        if (InstantiateHook.NAME.equals(name)) {
+            return this.onInstantiate(data);
+        }
+
+        return data;
+    }
 
     /**
-     * 文字。
+     * 当消息需要实例化（分化）时调用该回调。
+     *
+     * @param message 原始消息实例。
+     * @return 消息实例。
      */
-    Text,
+    protected Message onInstantiate(Message message) {
+        JSONObject payload = message.getPayload();
+        if (payload.has("type")) {
+            try {
+                String type = payload.getString("type");
+                if (MessageTypeName.Hypertext.equals(type)) {
+                    return new HyperTextMessage(message);
+                }
+            } catch (JSONException e) {
+                // Nothing
+            }
+        }
 
-    /**
-     * 文件。
-     */
-    File,
-
-    /**
-     * 图片。
-     */
-    Image,
-
-    /**
-     * 语音。
-     */
-    Voice,
-
-    /**
-     * 视频。
-     */
-    Video,
-
-    /**
-     * 超链接。
-     */
-    URL,
-
-    /**
-     * 定位。
-     */
-    Location,
-
-    /**
-     * 卡片。
-     */
-    Card,
-
-    /**
-     * 系统。
-     */
-    System,
-
-    /**
-     * 其他。
-     */
-    Other,
-
-    /**
-     * 未知。
-     */
-    Unknown
+        return message;
+    }
 }

@@ -51,11 +51,17 @@ public abstract class Module extends Subject {
      */
     protected Pipeline pipeline;
 
+    protected final PluginSystem pluginSystem;
+
+    /**
+     * 是否已启动。
+     */
     private boolean started;
 
     public Module(String name) {
         this.name = name;
         this.started = false;
+        this.pluginSystem = new PluginSystem();
     }
 
     public final String getName() {

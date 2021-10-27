@@ -40,35 +40,90 @@ import cube.messaging.MessagingService;
  */
 public class Message extends Entity {
 
+    /**
+     * 消息所在的域。
+     */
     public final String domain;
 
+    /**
+     * 消息发送方 ID 。
+     */
     private long from;
 
+    /**
+     * 消息发件人。
+     */
     private Contact sender;
 
+    /**
+     * 消息接收方 ID 。
+     */
     private long to;
 
+    /**
+     * 消息收件人。
+     */
     private Contact receiver;
 
+    /**
+     * 消息的收发源。该属性表示消息在一个广播域里的域标识或者域 ID 。
+     */
     private long source;
 
+    /**
+     * 消息的收发群组。
+     */
     private Group sourceGroup;
 
+    /**
+     * 消息当前的持有人。
+     */
     private long owner;
 
+    /**
+     * 本地时间戳。
+     */
     private long localTS;
 
+    /**
+     * 服务器端时间戳。
+     */
     private long remoteTS;
 
-    private JSONObject payload;
+    /**
+     * 消息负载数据。
+     */
+    protected JSONObject payload;
 
+    /**
+     * 消息的摘要内容。
+     */
     protected String summary;
 
+    /**
+     * 消息状态描述。
+     */
     private MessageState state;
 
+    /**
+     * 自己是否是该消息的撰写人。
+     */
     private boolean selfTyper;
 
+    /**
+     * 消息的作用域。
+     * @see MessageScope
+     */
     private int scope;
+
+    /**
+     * 消息类型。
+     */
+    protected MessageType type = MessageType.Unknown;
+
+    public Message() {
+        this(new JSONObject());
+    }
 
     public Message(JSONObject payload) {
         super();
@@ -82,7 +137,6 @@ public class Message extends Entity {
         this.owner = 0;
         this.state = MessageState.Unknown;
         this.scope = MessageScope.Unlimited;
-        this.summary = "";
     }
 
     public Message(JSONObject json, MessagingService service) throws JSONException {
@@ -104,9 +158,25 @@ public class Message extends Entity {
         if (json.has("summary")) {
             this.summary = json.getString("summary");
         }
-        else {
-            this.summary = "";
-        }
+    }
+
+    public Message(Message message) {
+        super(message.id, message.timestamp);
+        this.domain = message.domain;
+        this.from = message.from;
+        this.sender = message.sender;
+        this.to = message.to;
+        this.receiver = message.receiver;
+        this.source = message.source;
+        this.sourceGroup = message.sourceGroup;
+        this.localTS = message.localTS;
+        this.remoteTS = message.remoteTS;
+        this.payload = message.payload;
+        this.state = message.state;
+        this.scope = message.scope;
+        this.owner = message.owner;
+        this.selfTyper = message.selfTyper;
+        this.summary = message.summary;
     }
 
     public long getFrom() {
@@ -157,6 +227,14 @@ public class Message extends Entity {
         return this.selfTyper ? this.receiver : this.sender;
     }
 
+    public JSONObject getPayload() {
+        return this.payload;
+    }
+
+    public MessageType getType() {
+        return this.type;
+    }
+
     public boolean isFromGroup() {
         return this.source > 0;
     }
@@ -191,7 +269,10 @@ public class Message extends Entity {
             json.put("state", this.state.code);
             json.put("scope", this.scope);
             json.put("payload", this.payload);
-            json.put("summary", this.summary);
+
+            if (null != this.summary) {
+                json.put("summary", this.summary);
+            }
         } catch (JSONException e) {
             // Nothing
         }

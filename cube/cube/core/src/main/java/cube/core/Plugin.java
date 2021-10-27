@@ -24,65 +24,20 @@
  * SOFTWARE.
  */
 
-package cube.messaging.model;
+package cube.core;
 
 /**
- * 消息类型。
+ * 插件接口。
  */
-public enum MessageType {
+public interface Plugin<T> {
 
     /**
-     * 文字。
+     * 当指定的钩子事件发生时回调该函数。
+     *
+     * @param name 事件名称。
+     * @param data 事件发生时的数据。
+     * @return 返回处理后的数据。
      */
-    Text,
+    T onEvent(String name, T data);
 
-    /**
-     * 文件。
-     */
-    File,
-
-    /**
-     * 图片。
-     */
-    Image,
-
-    /**
-     * 语音。
-     */
-    Voice,
-
-    /**
-     * 视频。
-     */
-    Video,
-
-    /**
-     * 超链接。
-     */
-    URL,
-
-    /**
-     * 定位。
-     */
-    Location,
-
-    /**
-     * 卡片。
-     */
-    Card,
-
-    /**
-     * 系统。
-     */
-    System,
-
-    /**
-     * 其他。
-     */
-    Other,
-
-    /**
-     * 未知。
-     */
-    Unknown
 }

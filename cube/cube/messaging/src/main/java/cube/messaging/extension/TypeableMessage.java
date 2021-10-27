@@ -24,65 +24,37 @@
  * SOFTWARE.
  */
 
-package cube.messaging.model;
+package cube.messaging.extension;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import cube.messaging.model.Message;
 
 /**
- * 消息类型。
+ * 可分类消息。
  */
-public enum MessageType {
+public class TypeableMessage extends Message {
 
-    /**
-     * 文字。
-     */
-    Text,
+    public TypeableMessage() {
+        super();
+    }
 
-    /**
-     * 文件。
-     */
-    File,
+    public TypeableMessage(Message message) {
+        super(message);
+    }
 
-    /**
-     * 图片。
-     */
-    Image,
+    public TypeableMessage(JSONObject payload) {
+        super(payload);
+    }
 
-    /**
-     * 语音。
-     */
-    Voice,
-
-    /**
-     * 视频。
-     */
-    Video,
-
-    /**
-     * 超链接。
-     */
-    URL,
-
-    /**
-     * 定位。
-     */
-    Location,
-
-    /**
-     * 卡片。
-     */
-    Card,
-
-    /**
-     * 系统。
-     */
-    System,
-
-    /**
-     * 其他。
-     */
-    Other,
-
-    /**
-     * 未知。
-     */
-    Unknown
+    public String getTypeName() {
+        String type = null;
+        try {
+            type = this.payload.getString("type");
+        } catch (JSONException e) {
+            // Nothing
+        }
+        return type;
+    }
 }

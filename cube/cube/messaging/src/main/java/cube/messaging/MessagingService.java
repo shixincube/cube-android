@@ -33,6 +33,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -42,9 +43,12 @@ import cube.contact.ContactServiceEvent;
 import cube.contact.handler.ContactHandler;
 import cube.contact.model.Contact;
 import cube.contact.model.Self;
+import cube.core.Hook;
 import cube.core.Module;
 import cube.core.Packet;
 import cube.core.handler.CompletionHandler;
+import cube.messaging.extension.MessageTypePlugin;
+import cube.messaging.hook.InstantiateHook;
 import cube.messaging.model.Message;
 import cube.util.ObservableEvent;
 
@@ -87,6 +91,9 @@ public class MessagingService extends Module {
             return false;
         }
 
+        // 组装插件
+        this.assemble();
+
         this.pipeline.addListener(MessagingService.NAME, this.pipelineListener);
 
         // 监听联系人模块
@@ -114,6 +121,9 @@ public class MessagingService extends Module {
     public void stop() {
         super.stop();
 
+        // 拆除插件
+        this.dissolve();
+
         this.contactService.detachWithName(ContactServiceEvent.SelfReady, this.observer);
         this.contactService.detachWithName(ContactServiceEvent.SignIn, this.observer);
         this.contactService.detachWithName(ContactServiceEvent.SignOut, this.observer);
@@ -127,6 +137,18 @@ public class MessagingService extends Module {
     @Override
     public boolean isReady() {
         return this.ready;
+    }
+
+    private void assemble() {
+        this.pluginSystem.addHook(new InstantiateHook());
+
+        // 注册插件
+        this.pluginSystem.registerPlugin(InstantiateHook.NAME, new MessageTypePlugin());
+    }
+
+    private void dissolve() {
+        this.pluginSystem.clearHooks();
+        this.pluginSystem.clearPlugins();
     }
 
     /**
@@ -155,9 +177,15 @@ public class MessagingService extends Module {
             return list;
         }
 
-        // TODO 钩子
+        // 调用插件
+        Hook<Message> hook = (Hook<Message>) this.pluginSystem.getHook(InstantiateHook.NAME);
+        List<Message> result = new ArrayList<>(list.size());
+        for (Message message : list) {
+            Message compMessage = hook.apply(message);
+            result.add(compMessage);
+        }
 
-        return list;
+        return result;
     }
 
     private void prepare(CompletionHandler handler) {
@@ -293,8 +321,9 @@ public class MessagingService extends Module {
         }
 
         if (!exists) {
-            // TODO 调用插件
-            Message compMessage = message;
+            // 调用插件
+            Hook<Message> hook = (Hook<Message>) this.pluginSystem.getHook(InstantiateHook.NAME);
+            Message compMessage = hook.apply(message);
 
             ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Notify, compMessage);
             this.notifyObservers(event);

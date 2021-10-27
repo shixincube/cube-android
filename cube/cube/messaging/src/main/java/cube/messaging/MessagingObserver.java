@@ -44,7 +44,7 @@ public class MessagingObserver implements Observer {
 
     @Override
     public void update(ObservableEvent event) {
-        Module module = (Module) event.getData();
+        Module module = (Module) event.getSubject();
         if (ContactService.NAME.equals(module.name)) {
             this.service.fireContactEvent(event);
         }

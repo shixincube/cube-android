@@ -24,16 +24,16 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/item_margin_top_and_bottom"
                 android:layout_marginTop="@dimen/item_margin_top_and_bottom"
-                android:layout_marginStart="10dp">
+                android:layout_marginStart="12dp">
 
                 <!-- 图标/头像 -->
                 <com.shixincube.app.widget.AdvancedImageView
                     android:id="@+id/aivAvatar"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
                     android:layout_centerInParent="true"
                     android:src="@mipmap/avatar_default"
-                    auto:corner_radius="6dp"/>
+                    auto:corner_radius="8dp"/>
 
             </com.zhy.autolayout.AutoRelativeLayout>
 
@@ -57,7 +57,7 @@
 
         <com.zhy.autolayout.AutoLinearLayout
             android:layout_width="match_parent"
-            android:layout_height="50dp"
+            android:layout_height="60dp"
             android:layout_marginStart="10dp"
             android:gravity="center_vertical"
             android:orientation="vertical">
@@ -88,7 +88,7 @@
                     android:maxLines="1"
                     android:text=""
                     android:textColor="@color/text_secondary"
-                    android:textSize="12sp"/>
+                    android:textSize="14sp"/>
 
             </com.zhy.autolayout.AutoLinearLayout>
 

@@ -32,6 +32,12 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import cube.core.Storage;
 import cube.messaging.model.Message;
 
@@ -99,6 +105,53 @@ public class MessagingStorage implements Storage {
     }
 
     /**
+     * 查询最近消息列表。
+     *
+     * @param limit
+     * @return
+     */
+    public List<Message> queryRecentMessages(int limit) {
+        List<Message> list = new ArrayList<>();
+
+        List<Long> messageIdList = new ArrayList<>();
+
+        // 查询最近记录
+        SQLiteDatabase db = this.sqlite.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT `message_id` FROM `recent_messager` ORDER BY `time` DESC LIMIT ?",
+                new String[]{ Integer.toString(limit) });
+        while (cursor.moveToNext()) {
+            Long messageId = cursor.getLong(0);
+            messageIdList.add(messageId);
+        }
+        cursor.close();
+
+        // 查询消息
+        for (Long messageId : messageIdList) {
+            cursor = db.query("message", new String[]{ "data" },
+                    "id=?", new String[]{ messageId.toString() }, null, null, null);
+            if (cursor.moveToFirst()) {
+                String dataString = cursor.getString(0);
+                try {
+                    JSONObject json = new JSONObject(dataString);
+                    Message message = new Message(json, this.service);
+
+                    // 填充数据
+                    this.service.fillMessage(message);
+
+                    list.add(message);
+                } catch (JSONException e) {
+                    // Nothing
+                }
+            }
+            cursor.close();
+        }
+
+        db.close();
+
+        return list;
+    }
+
+    /**
      * 更新消息数据。
      *
      * @param message
@@ -129,8 +182,8 @@ public class MessagingStorage implements Storage {
             // 插入消息数据
             ContentValues values = new ContentValues();
             values.put("id", message.id.longValue());
-            values.put("from", message.getFrom());
-            values.put("to", message.getTo());
+            values.put("`from`", message.getFrom());
+            values.put("`to`", message.getTo());
             values.put("source", message.getSource());
             values.put("lts", message.getLocalTimestamp());
             values.put("rts", message.getRemoteTimestamp());

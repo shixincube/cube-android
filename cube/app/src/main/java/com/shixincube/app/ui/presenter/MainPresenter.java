@@ -109,7 +109,7 @@ public class MainPresenter extends BasePresenter<MainView> {
                     }
                 });
                 if (!result) {
-                    LogUtils.w("CubeApp", "SignIn Error");
+                    LogUtils.w("CubeApp", "SignIn error");
                 }
             }
         }).start();

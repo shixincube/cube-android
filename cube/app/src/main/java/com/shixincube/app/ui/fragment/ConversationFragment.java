@@ -34,6 +34,7 @@ import com.shixincube.app.ui.view.ConversationView;
 import com.shixincube.app.widget.recyclerview.RecyclerView;
 
 import butterknife.BindView;
+import cube.engine.CubeEngine;
 
 /**
  * 最近消息会话界面。
@@ -60,6 +61,26 @@ public class ConversationFragment extends BaseFragment<ConversationView, Convers
 
     @Override
     public void initData() {
+        (new Thread() {
+            @Override
+            public void run() {
+                int count = 100;
+                while (!CubeEngine.getInstance().getMessagingService().isReady()) {
+                    try {
+                        Thread.sleep(10L);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    --count;
+                    if (count <= 0) {
+                        break;
+                    }
+                }
+
+                presenter.loadConversations();
+                first = false;
+            }
+        }).start();
     }
 
     @Override

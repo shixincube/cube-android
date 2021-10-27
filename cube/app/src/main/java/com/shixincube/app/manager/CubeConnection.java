@@ -65,6 +65,9 @@ public class CubeConnection implements ServiceConnection {
                 // 设置联系人数据提供器
                 engine.getContactService().setContactDataProvider(AccountHelper.getInstance());
 
+                // 启动消息模块
+                engine.getMessagingService().start();
+
                 if (null != successHandler) {
                     successHandler.run();
                 }

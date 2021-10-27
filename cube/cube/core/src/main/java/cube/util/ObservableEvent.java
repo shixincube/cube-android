@@ -61,6 +61,10 @@ public class ObservableEvent {
         this.data = data;
     }
 
+    public Subject getSubject() {
+        return this.subject;
+    }
+
     public String getName() {
         return this.name;
     }

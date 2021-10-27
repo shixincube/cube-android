@@ -33,6 +33,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -125,7 +126,38 @@ public class MessagingService extends Module {
 
     @Override
     public boolean isReady() {
-        return this.ready && this.pipeline.isReady();
+        return this.ready;
+    }
+
+    /**
+     * 获取最近的消息清单，返回的每条消息都来自不同的会话联系人或群组。
+     * 最大数量 50 条记录。
+     *
+     * @return 返回消息列表。如果返回 {@code null} 值表示消息服务模块未启动。
+     */
+    public List<Message> getRecentMessages() {
+        return this.getRecentMessages(50);
+    }
+
+    /**
+     * 获取最近的消息清单，返回的每条消息都来自不同的会话联系人或群组。
+     *
+     * @param maxLimit 指定最大记录数量。
+     * @return 返回消息列表。如果返回 {@code null} 值表示消息服务模块未启动。
+     */
+    public List<Message> getRecentMessages(int maxLimit) {
+        if (!this.hasStarted()) {
+            return null;
+        }
+
+        List<Message> list = this.storage.queryRecentMessages(maxLimit);
+        if (list.isEmpty()) {
+            return list;
+        }
+
+        // TODO 钩子
+
+        return list;
     }
 
     private void prepare(CompletionHandler handler) {
@@ -307,7 +339,7 @@ public class MessagingService extends Module {
         }
     }
 
-    private void fillMessage(Message message) {
+    protected void fillMessage(Message message) {
         Self self = this.contactService.getSelf();
         message.setSelfTyper(message.getFrom() == self.id.longValue());
 
@@ -331,7 +363,7 @@ public class MessagingService extends Module {
             }
         });
 
-        if (message.getSource() > 0) {
+        if (message.isFromGroup()) {
             // TODO 获取群组
             gotToOrSource.value = true;
             handler.handleCompletion(MessagingService.this);

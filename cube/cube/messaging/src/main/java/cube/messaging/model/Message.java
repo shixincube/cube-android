@@ -82,6 +82,7 @@ public class Message extends Entity {
         this.owner = 0;
         this.state = MessageState.Unknown;
         this.scope = MessageScope.Unlimited;
+        this.summary = "";
     }
 
     public Message(JSONObject json, MessagingService service) throws JSONException {
@@ -98,6 +99,13 @@ public class Message extends Entity {
 
         if (json.has("payload")) {
             this.payload = json.getJSONObject("payload");
+        }
+
+        if (json.has("summary")) {
+            this.summary = json.getString("summary");
+        }
+        else {
+            this.summary = "";
         }
     }
 
@@ -183,6 +191,7 @@ public class Message extends Entity {
             json.put("state", this.state.code);
             json.put("scope", this.scope);
             json.put("payload", this.payload);
+            json.put("summary", this.summary);
         } catch (JSONException e) {
             // Nothing
         }

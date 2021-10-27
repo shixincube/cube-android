@@ -48,6 +48,7 @@ import java.util.List;
 
 import cube.engine.CubeEngine;
 import cube.messaging.MessagingService;
+import cube.messaging.model.Message;
 import cube.util.LogUtils;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.annotations.NonNull;
@@ -78,7 +79,7 @@ public class ConversationPresenter extends BasePresenter<ConversationView> {
 
     private void setAdapter() {
         if (null == this.adapter) {
-            this.adapter = new AdapterForRecyclerView<Conversation>(activity, conversations, R.layout.item_conversation) {
+            this.adapter = new AdapterForRecyclerView<Conversation>(this.activity, this.conversations, R.layout.item_conversation) {
                 @Override
                 public void convert(ViewHolderForRecyclerView helper, Conversation item, int position) {
                     if (item.getType() == ConversationType.Contact) {
@@ -122,6 +123,18 @@ public class ConversationPresenter extends BasePresenter<ConversationView> {
             @Override
             public void subscribe(@NonNull ObservableEmitter<List<Conversation>> emitter) throws Throwable {
                 MessagingService messaging = CubeEngine.getInstance().getMessagingService();
+
+                // 从引擎获取最近消息列表
+                List<Message> list = messaging.getRecentMessages();
+                if (null != list && !list.isEmpty()) {
+                    conversations.clear();
+
+                    for (Message message : list) {
+                        Conversation conversation = new Conversation(message);
+                        conversations.add(conversation);
+                    }
+                }
+
                 emitter.onNext(conversations);
             }
         }).subscribeOn(Schedulers.io())
@@ -129,7 +142,7 @@ public class ConversationPresenter extends BasePresenter<ConversationView> {
         .subscribe(new Consumer<List<Conversation>>() {
             @Override
             public void accept(List<Conversation> list) throws Throwable {
-
+                adapter.notifyDataSetChangedWrapper();
             }
         }, new Consumer<Throwable>() {
             @Override

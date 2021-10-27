@@ -40,6 +40,7 @@ import cube.core.KernelConfig;
 import cube.core.ModuleError;
 import cube.core.handler.KernelHandler;
 import cube.engine.handler.EngineHandler;
+import cube.messaging.MessagingService;
 
 /**
  * 魔方引擎 API 入口类。
@@ -59,6 +60,7 @@ public class CubeEngine {
         this.kernel = new Kernel();
         this.kernel.installModule(new AuthService());
         this.kernel.installModule(new ContactService());
+        this.kernel.installModule(new MessagingService());
     }
 
     public static CubeEngine getInstance() {
@@ -143,10 +145,19 @@ public class CubeEngine {
     /**
      * 获取联系人服务模块。
      *
-     * @return
+     * @return 返回联系人服务模块。
      */
     public ContactService getContactService() {
         return (ContactService) this.kernel.getModule(ContactService.NAME);
+    }
+
+    /**
+     * 获取消息传输服务模块。
+     *
+     * @return 返回消息传输服务模块。
+     */
+    public MessagingService getMessagingService() {
+        return (MessagingService) this.kernel.getModule(MessagingService.NAME);
     }
 
     /**

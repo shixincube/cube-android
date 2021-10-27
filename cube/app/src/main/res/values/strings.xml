@@ -49,7 +49,11 @@
     <string name="avatar">头像</string>
     <string name="cube_id">魔方号</string>
 
+    <!-- 会话项 -->
+    <string name="draft">[草稿]</string>
+
     <!-- 常用 -->
     <string name="please_wait_a_moment">请稍候</string>
     <string name="number_1">1</string>
+    <string name="number_99">99</string>
 </resources>

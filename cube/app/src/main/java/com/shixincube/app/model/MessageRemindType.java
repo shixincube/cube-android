@@ -24,14 +24,30 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app.ui.view;
-
-import com.shixincube.app.widget.recyclerview.RecyclerView;
+package com.shixincube.app.model;
 
 /**
- * 最近消息会话。
+ * 消息提示类型。
  */
-public interface ConversationView {
+public enum MessageRemindType {
 
-    RecyclerView getRecentConversationView();
+    /**
+     * 正常接收。
+     */
+    Normal,
+
+    /**
+     * 接收但不提示。
+     */
+    Closed,
+
+    /**
+     * 不关注。
+     */
+    NotCare,
+
+    /**
+     * 拒绝接收。
+     */
+    Refused
 }

@@ -62,7 +62,7 @@ public class Message extends Entity {
 
     private JSONObject payload;
 
-    private String summary;
+    protected String summary;
 
     private MessageState state;
 
@@ -121,6 +121,10 @@ public class Message extends Entity {
         return this.source;
     }
 
+    public Group getSourceGroup() {
+        return this.sourceGroup;
+    }
+
     public long getRemoteTimestamp() {
         return this.remoteTS;
     }
@@ -135,6 +139,10 @@ public class Message extends Entity {
 
     public int getScope() {
         return this.scope;
+    }
+
+    public String getSummary() {
+        return this.summary;
     }
 
     public Contact getPartner() {

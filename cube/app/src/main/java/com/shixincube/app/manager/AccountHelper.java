@@ -133,7 +133,7 @@ public class AccountHelper implements ContactDataProvider {
 
     public static int explainAvatarForResource(String avatarName) {
         if (avatarName.equals("avatar01")) {
-            return R.mipmap.avatar_default;
+            return R.mipmap.avatar_01;
         }
         else {
             return R.mipmap.avatar_default;

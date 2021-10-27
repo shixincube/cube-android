@@ -38,6 +38,11 @@ import cube.util.JSONable;
  */
 public class Account implements JSONable {
 
+    /**
+     * 默认的头像图片名称。
+     */
+    public final static String DefaultAvatarName = "default";
+
     public long id;
 
     public String account;

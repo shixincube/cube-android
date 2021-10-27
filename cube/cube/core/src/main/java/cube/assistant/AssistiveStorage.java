@@ -24,14 +24,20 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app.ui.view;
+package cube.assistant;
 
-import com.shixincube.app.widget.recyclerview.RecyclerView;
+import cube.core.Storage;
 
 /**
- * 最近消息会话。
+ * 辅助存储器。
  */
-public interface ConversationView {
+public class AssistiveStorage implements Storage {
 
-    RecyclerView getRecentConversationView();
+    public AssistiveStorage() {
+    }
+
+    @Override
+    public void close() {
+
+    }
 }

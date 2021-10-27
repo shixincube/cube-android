@@ -41,12 +41,25 @@ import butterknife.BindView;
 public class ConversationFragment extends BaseFragment<ConversationView, ConversationPresenter> implements ConversationView {
 
     @BindView(R.id.rvConversations)
-    RecyclerView conversationsView;
+    RecyclerView recentConversationView;
 
     private boolean first = true;
 
     public ConversationFragment() {
         super();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if (!this.first) {
+            this.presenter.loadConversations();
+        }
+    }
+
+    @Override
+    public void initData() {
     }
 
     @Override
@@ -57,5 +70,10 @@ public class ConversationFragment extends BaseFragment<ConversationView, Convers
     @Override
     protected int provideContentViewId() {
         return R.layout.fragment_conversation;
+    }
+
+    @Override
+    public RecyclerView getRecentConversationView() {
+        return this.recentConversationView;
     }
 }

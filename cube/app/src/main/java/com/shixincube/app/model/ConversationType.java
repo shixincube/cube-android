@@ -24,14 +24,30 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app.ui.view;
-
-import com.shixincube.app.widget.recyclerview.RecyclerView;
+package com.shixincube.app.model;
 
 /**
- * 最近消息会话。
+ * 会话类型。
  */
-public interface ConversationView {
+public enum ConversationType {
 
-    RecyclerView getRecentConversationView();
+    /**
+     * 联系人的消息。
+     */
+    Contact,
+
+    /**
+     * 群组的消息。
+     */
+    Group,
+
+    /**
+     * 企业及组织消息。
+     */
+    Organization,
+
+    /**
+     * 系统通知。
+     */
+    Notifier
 }

@@ -254,7 +254,19 @@ public class MessagingService extends Module {
         this.fillMessage(message);
 
         // 数据写入数据库
+        boolean exists = this.storage.updateMessage(message);
 
+        if (message.getRemoteTimestamp() > this.lastMessageTime) {
+            this.lastMessageTime = message.getRemoteTimestamp();
+        }
+
+        if (!exists) {
+            // TODO 调用插件
+            Message compMessage = message;
+
+            ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Notify, compMessage);
+            this.notifyObservers(event);
+        }
     }
 
     protected void triggerPull(int code, JSONObject data) {

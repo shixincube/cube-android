@@ -204,6 +204,18 @@ public class Conversation extends Entity {
         return this.recentMessage.getSummary();
     }
 
+    public void setRecentMessage(Message recentMessage) {
+        this.recentMessage = recentMessage;
+    }
+
+    public void setPivotal(Contact contact) {
+        this.contact = contact;
+    }
+
+    public void setPivotal(Group group) {
+        this.group = group;
+    }
+
     @Override
     public JSONObject toJSON() {
         JSONObject json = super.toJSON();

@@ -30,10 +30,12 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.shixincube.app.R;
-import com.shixincube.app.model.Conversation;
+import com.shixincube.app.model.MessageConversation;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.ConversationView;
+import com.shixincube.app.util.DateUtils;
+import com.shixincube.app.widget.AdvancedImageView;
 import com.shixincube.app.widget.adapter.AdapterForRecyclerView;
 import com.shixincube.app.widget.adapter.OnItemClickListener;
 import com.shixincube.app.widget.adapter.OnItemLongClickListener;
@@ -45,6 +47,8 @@ import java.util.List;
 
 import cube.engine.CubeEngine;
 import cube.messaging.MessagingService;
+import cube.messaging.model.Conversation;
+import cube.messaging.model.ConversationType;
 import cube.util.LogUtils;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.annotations.NonNull;
@@ -59,13 +63,13 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
  */
 public class ConversationPresenter extends BasePresenter<ConversationView> {
 
-    private List<Conversation> cubeConversations;
+    private List<MessageConversation> messageConversations;
 
-    private AdapterForRecyclerView<Conversation> adapter;
+    private AdapterForRecyclerView<MessageConversation> adapter;
 
     public ConversationPresenter(BaseActivity activity) {
         super(activity);
-        this.cubeConversations = new ArrayList<>();
+        this.messageConversations = new ArrayList<>();
     }
 
     public void loadConversations() {
@@ -75,21 +79,20 @@ public class ConversationPresenter extends BasePresenter<ConversationView> {
 
     private void setAdapter() {
         if (null == this.adapter) {
-            this.adapter = new AdapterForRecyclerView<Conversation>(this.activity, this.cubeConversations, R.layout.item_conversation) {
+            this.adapter = new AdapterForRecyclerView<MessageConversation>(this.activity, this.messageConversations, R.layout.item_conversation) {
                 @Override
-                public void convert(ViewHolderForRecyclerView helper, Conversation item, int position) {
-                    /*if (item.getType() == ConversationType.Contact) {
-                        // 设置头像
+                public void convert(ViewHolderForRecyclerView helper, MessageConversation item, int position) {
+                    if (item.conversation.getType() == ConversationType.Contact) {
                         AdvancedImageView avatar = helper.getView(R.id.aivAvatar);
-                        avatar.setImageResource(item.getAvatarResourceId());
+                        avatar.setImageResource(item.avatarResourceId);
 
-                        helper.setText(R.id.tvDisplayName, item.getContact().getPriorityName());
-                        helper.setText(R.id.tvDate, DateUtils.formatConversationTime(item.getDate()));
-                        helper.setText(R.id.tvContent, item.getContentText());
+                        helper.setText(R.id.tvDisplayName, item.conversation.getContact().getPriorityName());
+                        helper.setText(R.id.tvDate, DateUtils.formatConversationTime(item.conversation.getDate()));
+                        helper.setText(R.id.tvContent, item.conversation.getRecentSummary());
                     }
-                    else if (item.getType() == ConversationType.Group) {
+                    else {
                         // TODO
-                    }*/
+                    }
                 }
             };
 
@@ -115,29 +118,31 @@ public class ConversationPresenter extends BasePresenter<ConversationView> {
     }
 
     private void reloadData() {
-        Observable.create(new ObservableOnSubscribe<List<Conversation>>() {
+        Observable.create(new ObservableOnSubscribe<List<MessageConversation>>() {
             @Override
-            public void subscribe(@NonNull ObservableEmitter<List<Conversation>> emitter) throws Throwable {
+            public void subscribe(@NonNull ObservableEmitter<List<MessageConversation>> emitter) throws Throwable {
                 MessagingService messaging = CubeEngine.getInstance().getMessagingService();
 
-                // 从引擎获取最近消息列表
-//                List<Message> list = messaging.getRecentMessages();
-//                if (null != list && !list.isEmpty()) {
-//                    conversations.clear();
-//
-//                    for (Message message : list) {
-//                        Conversation conversation = new Conversation(message);
-//                        conversations.add(conversation);
-//                    }
-//                }
+                // 从引擎获取最近会话列表
+                List<Conversation> list = messaging.getRecentConversations();
+                if (!list.isEmpty()) {
+                    messageConversations.clear();
 
-                emitter.onNext(cubeConversations);
+                    for (Conversation conversation : list) {
+                        messageConversations.add(new MessageConversation(conversation));
+                    }
+                }
+                else {
+                    // TODO
+                }
+
+                emitter.onNext(messageConversations);
             }
         }).subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(new Consumer<List<Conversation>>() {
+        .subscribe(new Consumer<List<MessageConversation>>() {
             @Override
-            public void accept(List<Conversation> list) throws Throwable {
+            public void accept(List<MessageConversation> list) throws Throwable {
                 adapter.notifyDataSetChangedWrapper();
             }
         }, new Consumer<Throwable>() {

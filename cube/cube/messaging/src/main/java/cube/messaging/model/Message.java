@@ -125,6 +125,11 @@ public class Message extends Entity {
         this(new JSONObject());
     }
 
+    /**
+     * 构造函数。
+     *
+     * @param payload 指定消息负载。
+     */
     public Message(JSONObject payload) {
         super();
         this.domain = AuthService.getDomain();

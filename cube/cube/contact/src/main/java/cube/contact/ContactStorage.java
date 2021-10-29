@@ -37,21 +37,19 @@ import org.json.JSONObject;
 
 import cube.contact.model.Contact;
 import cube.contact.model.ContactAppendix;
-import cube.core.Storage;
+import cube.core.AbstractStorage;
 import cube.core.model.Entity;
 
 /**
  * 联系人模块存储器。
  */
-public class ContactStorage implements Storage {
+public class ContactStorage extends AbstractStorage {
 
     private final static int VERSION = 1;
 
     private ContactService service;
 
     private String domain;
-
-    private SQLite sqlite;
 
     public ContactStorage(ContactService service) {
         this.service = service;
@@ -66,9 +64,9 @@ public class ContactStorage implements Storage {
      * @return
      */
     public boolean open(Context context, Long contactId, String domain) {
-        if (null == this.sqlite) {
+        if (null == this.sqliteHelper) {
             this.domain = domain;
-            this.sqlite = new SQLite(context, contactId, domain);
+            this.sqliteHelper = new SQLite(context, contactId, domain);
             return true;
         }
         else {
@@ -78,9 +76,9 @@ public class ContactStorage implements Storage {
 
     @Override
     public void close() {
-        if (null != this.sqlite) {
-            this.sqlite.close();
-            this.sqlite = null;
+        if (null != this.sqliteHelper) {
+            this.sqliteHelper.close();
+            this.sqliteHelper = null;
         }
     }
 
@@ -92,7 +90,7 @@ public class ContactStorage implements Storage {
      */
     public Contact readContact(Long contactId) {
         Contact contact = null;
-        SQLiteDatabase db = this.sqlite.getReadableDatabase();
+        SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.query("contact", new String[] { "name", "context", "timestamp", "last", "expiry" },
                 "id=?", new String[] { contactId.toString() }, null, null, null);
         if (cursor.moveToFirst()) {
@@ -137,7 +135,7 @@ public class ContactStorage implements Storage {
             cursor.close();
         }
 
-        db.close();
+        this.closeReadableDatabase();
         return contact;
     }
 
@@ -152,7 +150,7 @@ public class ContactStorage implements Storage {
 
         String context = (null != contact.getContext()) ? contact.getContext().toString() : "";
 
-        SQLiteDatabase db = this.sqlite.getWritableDatabase();
+        SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.query("contact", new String[] { "sn" },
                 "id=?", new String[] { contact.id.toString() }, null, null, null);
         if (cursor.moveToFirst()) {
@@ -167,46 +165,33 @@ public class ContactStorage implements Storage {
             values.put("expiry", contact.getExpiry());
             db.update("contact", values,
                     "id=?", new String[] { contact.id.toString() });
-
-            // 更新附录
-            ContactAppendix appendix = contact.getAppendix();
-            if (null != appendix) {
-                values = new ContentValues();
-                values.put("data", appendix.toJSON().toString());
-                values.put("timestamp", contact.getLast());
-                int ret = db.update("appendix", values,
-                        "id=?", new String[] { contact.id.toString() });
-                if (ret == 0) {
-                    // 尝试插入
-                    values = new ContentValues();
-                    values.put("id", contact.id.longValue());
-                    values.put("data", appendix.toJSON().toString());
-                    values.put("timestamp", contact.getLast());
-                    long tid = db.insert("appendix", null, values);
-                    if (tid < 0) {
-                        result = false;
-                    }
-                }
-            }
         }
         else {
             cursor.close();
 
             // 插入数据
             ContentValues values = new ContentValues();
-            values.put("id", contact.id.longValue());
+            values.put("id", contact.id);
             values.put("name", contact.getName());
             values.put("context", context);
             values.put("timestamp", contact.getTimestamp());
             values.put("last", contact.getLast());
             values.put("expiry", contact.getExpiry());
             db.insert("contact", null, values);
+        }
 
-            // 插入附录
-            ContactAppendix appendix = contact.getAppendix();
-            if (null != appendix) {
+        // 更新附录
+        ContactAppendix appendix = contact.getAppendix();
+        if (null != appendix) {
+            ContentValues values = new ContentValues();
+            values.put("data", appendix.toJSON().toString());
+            values.put("timestamp", contact.getLast());
+            int ret = db.update("appendix", values,
+                    "id=?", new String[] { contact.id.toString() });
+            if (ret == 0) {
+                // 尝试插入
                 values = new ContentValues();
-                values.put("id", contact.id.longValue());
+                values.put("id", contact.id);
                 values.put("data", appendix.toJSON().toString());
                 values.put("timestamp", contact.getLast());
                 long tid = db.insert("appendix", null, values);
@@ -216,7 +201,7 @@ public class ContactStorage implements Storage {
             }
         }
 
-        db.close();
+        this.closeWritableDatabase();
         return result;
     }
 
@@ -228,7 +213,7 @@ public class ContactStorage implements Storage {
      * @return 返回当前更新的时间戳。
      */
     public long updateContactContext(Long contactId, JSONObject context) {
-        SQLiteDatabase db = this.sqlite.getWritableDatabase();
+        SQLiteDatabase db = this.getWritableDatabase();
 
         long now = System.currentTimeMillis();
 
@@ -239,7 +224,7 @@ public class ContactStorage implements Storage {
         // 执行更新
         db.update("contact", values, "id=?", new String[] { contactId.toString() });
 
-        db.close();
+        this.closeWritableDatabase();
 
         return now;
     }
@@ -250,7 +235,7 @@ public class ContactStorage implements Storage {
      * @param appendix
      */
     public void writeAppendix(ContactAppendix appendix) {
-        SQLiteDatabase db = this.sqlite.getWritableDatabase();
+        SQLiteDatabase db = this.getWritableDatabase();
 
         Cursor cursor = db.query("appendix", new String[] { "id" },
                 "id=?", new String[] { appendix.getOwner().id.toString() }, null, null, null);
@@ -268,13 +253,13 @@ public class ContactStorage implements Storage {
 
             // 插入
             ContentValues values = new ContentValues();
-            values.put("id", appendix.getOwner().id.longValue());
+            values.put("id", appendix.getOwner().id);
             values.put("timestamp", System.currentTimeMillis());
             values.put("data", appendix.toJSON().toString());
             db.insert("appendix", null, values);
         }
 
-        db.close();
+        this.closeWritableDatabase();
     }
 
     private class SQLite extends SQLiteOpenHelper {
@@ -286,13 +271,13 @@ public class ContactStorage implements Storage {
         @Override
         public void onCreate(SQLiteDatabase sqLiteDatabase) {
             // 联系人表
-            sqLiteDatabase.execSQL("CREATE TABLE IF NOT EXISTS `contact` (`sn` INTEGER PRIMARY KEY AUTOINCREMENT, `id` BIGINT, `name` TEXT, `context` TEXT, `timestamp` BIGINT DEFAULT 0, `last` BIGINT DEFAULT 0, `expiry` BIGINT DEFAULT 0)");
+            sqLiteDatabase.execSQL("CREATE TABLE IF NOT EXISTS `contact` (`sn` BIGINT PRIMARY KEY AUTOINCREMENT, `id` BIGINT, `name` TEXT, `context` TEXT, `timestamp` BIGINT DEFAULT 0, `last` BIGINT DEFAULT 0, `expiry` BIGINT DEFAULT 0)");
 
             // 群组表
-            sqLiteDatabase.execSQL("CREATE TABLE IF NOT EXISTS `group` (`sn` INTEGER PRIMARY KEY AUTOINCREMENT, `id` BIGINT, `name` TEXT, `owner` TEXT, `tag` TEXT, `creation` BIGINT, `last_active` BIGINT, `state` INTEGER, `context` TEXT)");
+            sqLiteDatabase.execSQL("CREATE TABLE IF NOT EXISTS `group` (`sn` BIGINT PRIMARY KEY AUTOINCREMENT, `id` BIGINT, `name` TEXT, `owner` TEXT, `tag` TEXT, `creation` BIGINT, `last_active` BIGINT, `state` INTEGER, `context` TEXT)");
 
             // 群成员表
-            sqLiteDatabase.execSQL("CREATE TABLE IF NOT EXISTS `group_member` (`sn` INTEGER PRIMARY KEY AUTOINCREMENT, `group` BIGINT, `contact_id` BIGINT, `contact_name` TEXT, `contact_context` TEXT)");
+            sqLiteDatabase.execSQL("CREATE TABLE IF NOT EXISTS `group_member` (`sn` BIGINT PRIMARY KEY AUTOINCREMENT, `group` BIGINT, `contact_id` BIGINT, `contact_name` TEXT, `contact_context` TEXT)");
 
             // 附录表
             sqLiteDatabase.execSQL("CREATE TABLE IF NOT EXISTS `appendix` (`id` BIGINT PRIMARY KEY, `timestamp` BIGINT, `data` TEXT)");

@@ -36,6 +36,7 @@ import java.util.Map;
 
 import cell.util.collection.FlexibleByteBuffer;
 import cube.messaging.model.Message;
+import cube.messaging.model.MessageType;
 
 /**
  * 超文本消息。
@@ -53,7 +54,7 @@ public class HyperTextMessage extends TypeableMessage {
     private String plaintext;
 
     public HyperTextMessage(Message message) {
-        super(message);
+        super(message, MessageType.Text);
 
         try {
             if (!this.payload.has("type")) {
@@ -68,8 +69,13 @@ public class HyperTextMessage extends TypeableMessage {
         this.parse(this.plaintext);
     }
 
+    /**
+     * 构造函数。
+     *
+     * @param text 指定文本。
+     */
     public HyperTextMessage(String text) {
-        super();
+        super(MessageType.Text);
         try {
             this.payload.put("type", MessageTypeName.Hypertext);
             this.payload.put("content", text);

@@ -24,43 +24,30 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app.model;
+package cube.messaging;
+
+import java.util.List;
+
+import cube.messaging.model.Conversation;
 
 /**
- * 会话描述。
+ * 消息模块最近事件监听器。
  */
-public class Conversation {
-
-    private cube.messaging.model.Conversation cubeConversation;
+public interface MessagingRecentEventListener {
 
     /**
-     * 会话显示的名称。
+     * 当有相关会话更新时该方法被回调。
+     *
+     * @param conversation 被更新的会话。
+     * @param service 消息服务。
      */
-    private String displayName;
+    void conversationUpdated(Conversation conversation, MessagingService service);
 
     /**
-     * 头像图片名称。
+     * 当会话清单更新时该方法被回调。
+     *
+     * @param conversationList 被更新的会话清单。
+     * @param service 消息服务。
      */
-    private String avatarName;
-
-    /**
-     * 头像图片 URL 。
-     */
-    private String avatarURL;
-
-    /**
-     * 内置头像的资源 ID 。
-     */
-    private int avatarResourceId;
-
-
-
-    /**
-     * 未读数量。
-     */
-    private int unread;
-
-    public Conversation() {
-
-    }
+    void conversationListUpdated(List<Conversation> conversationList, MessagingService service);
 }

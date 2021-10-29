@@ -143,7 +143,7 @@ public class Entity implements TimeSortable, JSONable {
      *
      * @return
      */
-    public Long getId() {
+    public final Long getId() {
         return this.id;
     }
 

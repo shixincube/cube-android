@@ -78,4 +78,14 @@ public interface AppInterface {
      */
     @GET("/account/info/")
     Observable<AccountInfoResponse> getAccountInfo(@Query("token") String token);
+
+    /**
+     * 查询指定联系人的账号。
+     *
+     * @param id
+     * @param token
+     * @return
+     */
+    @GET("/account/info/")
+    Observable<AccountInfoResponse> getAccountInfo(@Query("id") Long id, @Query("token") String token);
 }

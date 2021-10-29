@@ -38,7 +38,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-import cube.core.Storage;
+import cube.core.AbstractStorage;
 import cube.messaging.model.Conversation;
 import cube.messaging.model.ConversationReminded;
 import cube.messaging.model.ConversationState;
@@ -48,15 +48,13 @@ import cube.messaging.model.Message;
 /**
  * 消息服务的存储器。
  */
-public class MessagingStorage implements Storage {
+public class MessagingStorage extends AbstractStorage {
 
     private final static int VERSION = 1;
 
     private MessagingService service;
 
     private String domain;
-
-    private SQLite sqlite;
 
     public MessagingStorage(MessagingService service) {
         this.service = service;
@@ -71,9 +69,9 @@ public class MessagingStorage implements Storage {
      * @return
      */
     public boolean open(Context context, Long contactId, String domain) {
-        if (null == this.sqlite) {
+        if (null == this.sqliteHelper) {
             this.domain = domain;
-            this.sqlite = new SQLite(context, contactId, domain);
+            this.sqliteHelper = new SQLite(context, contactId, domain);
             return true;
         }
         else {
@@ -83,9 +81,9 @@ public class MessagingStorage implements Storage {
 
     @Override
     public void close() {
-        if (null != this.sqlite) {
-            this.sqlite.close();
-            this.sqlite = null;
+        if (null != this.sqliteHelper) {
+            this.sqliteHelper.close();
+            this.sqliteHelper = null;
         }
     }
 
@@ -98,7 +96,7 @@ public class MessagingStorage implements Storage {
     public List<Conversation> queryRecentConversations(int limit) {
         List<Conversation> list = new ArrayList<>();
 
-        SQLiteDatabase db = this.sqlite.getReadableDatabase();
+        SQLiteDatabase db = this.getReadableDatabase();
 
         try {
             Cursor cursor = db.rawQuery("SELECT * FROM `conversation` WHERE `state`=? OR `state`=? ORDER BY `timestamp` DESC LIMIT ?",
@@ -106,7 +104,7 @@ public class MessagingStorage implements Storage {
                             ConversationState.Important.toString(), Integer.toString(limit)});
             while (cursor.moveToNext()) {
                 String messageString = cursor.getString(cursor.getColumnIndex("recent_message"));
-                Message recentMessage = new Message(new JSONObject(messageString));
+                Message recentMessage = new Message(new JSONObject(messageString), this.service);
 
                 Conversation conversation = new Conversation(cursor.getLong(cursor.getColumnIndex("id")),
                         cursor.getLong(cursor.getColumnIndex("timestamp")),
@@ -124,7 +122,7 @@ public class MessagingStorage implements Storage {
             // Nothing
         }
 
-        db.close();
+        this.closeReadableDatabase();
 
         return list;
     }
@@ -135,7 +133,7 @@ public class MessagingStorage implements Storage {
      * @param conversations 指定会话清单。
      */
     public void updateConversations(List<Conversation> conversations) {
-        SQLiteDatabase db = this.sqlite.getWritableDatabase();
+        SQLiteDatabase db = this.getWritableDatabase();
 
         for (Conversation conversation : conversations) {
             Cursor cursor = db.query("conversation", new String[]{ "id" },
@@ -167,7 +165,7 @@ public class MessagingStorage implements Storage {
             }
         }
 
-        db.close();
+        this.closeWritableDatabase();
     }
 
     /**
@@ -178,13 +176,13 @@ public class MessagingStorage implements Storage {
     public long queryLastMessageTime() {
         long time = 0;
 
-        SQLiteDatabase db = this.sqlite.getReadableDatabase();
+        SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT `rts` FROM `message` WHERE `scope`=0 ORDER BY `rts` DESC LIMIT 1", new String[] {});
         if (cursor.moveToFirst()) {
             time = cursor.getLong(0);
         }
         cursor.close();
-        db.close();
+        this.closeReadableDatabase();
 
         return time;
     }
@@ -201,7 +199,7 @@ public class MessagingStorage implements Storage {
         List<Long> messageIdList = new ArrayList<>();
 
         // 查询最近记录
-        SQLiteDatabase db = this.sqlite.getReadableDatabase();
+        SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT `message_id` FROM `recent_messager` ORDER BY `time` DESC LIMIT ?",
                 new String[]{ Integer.toString(limit) });
         while (cursor.moveToNext()) {
@@ -231,7 +229,7 @@ public class MessagingStorage implements Storage {
             cursor.close();
         }
 
-        db.close();
+        this.closeReadableDatabase();
 
         return list;
     }
@@ -245,7 +243,7 @@ public class MessagingStorage implements Storage {
     public boolean updateMessage(Message message) {
         boolean exists = false;
 
-        SQLiteDatabase db = this.sqlite.getWritableDatabase();
+        SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.query("message", new String[]{ "id" },
                 "id=?", new String[]{ message.id.toString() }, null, null, null);
         if (cursor.moveToFirst()) {
@@ -289,7 +287,7 @@ public class MessagingStorage implements Storage {
             messagerId = message.getSource();
         }
         else {
-            messagerId = message.getPartner().id;
+            messagerId = message.isSelfTyper() ? message.getTo() : message.getFrom();
         }
 
         cursor = db.query("recent_messager", new String[]{ "time" },
@@ -322,7 +320,7 @@ public class MessagingStorage implements Storage {
             db.insert("recent_messager", null, values);
         }
 
-        db.close();
+        this.closeWritableDatabase();
 
         return exists;
     }

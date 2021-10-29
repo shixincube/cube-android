@@ -31,6 +31,7 @@ import android.content.SharedPreferences;
 
 import com.shixincube.app.AppConsts;
 import com.shixincube.app.R;
+import com.shixincube.app.api.Explorer;
 import com.shixincube.app.model.Account;
 
 import org.json.JSONException;
@@ -38,6 +39,9 @@ import org.json.JSONObject;
 
 import cube.contact.ContactDataProvider;
 import cube.contact.model.Contact;
+import cube.util.LogUtils;
+import cube.util.MutableJSONObject;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 /**
  * 账号辅助操作函数库。
@@ -52,6 +56,8 @@ public class AccountHelper implements ContactDataProvider {
 
     private SharedPreferences sp;
     private SharedPreferences.Editor editor;
+
+    private String tokenCode;
 
     private Account current;
 
@@ -94,6 +100,8 @@ public class AccountHelper implements ContactDataProvider {
             return false;
         }
 
+        this.tokenCode = tokenCode;
+
         return true;
     }
 
@@ -127,8 +135,35 @@ public class AccountHelper implements ContactDataProvider {
 
     @Override
     public JSONObject needContactContext(Contact contact) {
+        MutableJSONObject data = new MutableJSONObject();
 
-        return null;
+        Explorer.getInstance().getAccountInfo(contact.getId(), this.tokenCode)
+            .subscribeOn(Schedulers.io())
+            .observeOn(Schedulers.io())
+            .subscribe(accountInfoResponse -> {
+                // 转为 JSON
+                data.jsonObject = accountInfoResponse.toAccount().toJSON();
+
+                synchronized (data) {
+                    data.notify();
+                }
+            }, throwable -> {
+                LogUtils.w("AccountHelper", throwable);
+
+                synchronized (data) {
+                    data.notify();
+                }
+            });
+
+        synchronized (data) {
+            try {
+                data.wait(2000L);
+            } catch (InterruptedException e) {
+                // Nothing
+            }
+        }
+
+        return data.jsonObject;
     }
 
     public static int explainAvatarForResource(String avatarName) {

@@ -75,6 +75,10 @@ public class Account implements JSONable {
     }
 
     public static String getAvatar(JSONObject json) {
+        if (null == json) {
+            return "default";
+        }
+
         try {
             return json.getString("avatar");
         } catch (JSONException e) {

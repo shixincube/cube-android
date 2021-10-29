@@ -56,7 +56,9 @@ import cube.messaging.extension.MessageTypePlugin;
 import cube.messaging.hook.InstantiateHook;
 import cube.messaging.model.Conversation;
 import cube.messaging.model.ConversationState;
+import cube.messaging.model.ConversationType;
 import cube.messaging.model.Message;
+import cube.messaging.model.MessageType;
 import cube.util.ObservableEvent;
 
 /**
@@ -75,6 +77,8 @@ public class MessagingService extends Module {
     private MessagingObserver observer;
 
     private ContactService contactService;
+
+    private MessagingRecentEventListener recentEventListener;
 
     private boolean ready;
 
@@ -148,6 +152,10 @@ public class MessagingService extends Module {
         return this.ready;
     }
 
+    public void setRecentEventListener(MessagingRecentEventListener listener) {
+        this.recentEventListener = listener;
+    }
+
     private void assemble() {
         this.pluginSystem.addHook(new InstantiateHook());
 
@@ -163,6 +171,15 @@ public class MessagingService extends Module {
     /**
      * 获取最近的会话清单。
      *
+     * @return 返回消息列表。如果返回 {@code null} 值表示消息服务模块未启动。
+     */
+    public List<Conversation> getRecentConversations() {
+        return this.getRecentConversations(100);
+    }
+
+    /**
+     * 获取最近的会话清单。
+     *
      * @param maxLimit 指定最大记录数量。
      * @return 返回消息列表。如果返回 {@code null} 值表示消息服务模块未启动。
      */
@@ -172,9 +189,16 @@ public class MessagingService extends Module {
         }
 
         synchronized (this) {
-            if (null == this.conversations) {
+            if (null == this.conversations || this.conversations.isEmpty()) {
                 List<Conversation> list = this.storage.queryRecentConversations(maxLimit);
-                this.conversations = new Vector<>(list);
+
+                if (null == this.conversations) {
+                    this.conversations = new Vector<>(list);
+                }
+                else {
+                    this.conversations.addAll(list);
+                }
+
                 this.sortConversationList(this.conversations);
             }
         }
@@ -229,11 +253,34 @@ public class MessagingService extends Module {
         // 服务就绪
         this.ready = true;
 
+        MutableBoolean gotMessages = new MutableBoolean(false);
+        MutableBoolean gotConversations = new MutableBoolean(false);
+
         // 从服务器上拉取自上一次时间戳之后的所有消息
         this.queryRemoteMessage(this.lastMessageTime + 1, now, new CompletionHandler() {
             @Override
             public void handleCompletion(Module module) {
-                handler.handleCompletion(MessagingService.this);
+                gotMessages.value = true;
+                if (gotConversations.value) {
+                    handler.handleCompletion(MessagingService.this);
+                }
+            }
+        });
+
+        // 获取最新的会话列表
+        // 根据最近一次消息时间戳更新数量
+        int limit = 50;
+        if (now - this.lastMessageTime > 1L * 60L * 60L * 1000L) {
+            // 大于一小时
+            limit = 200;
+        }
+        this.queryRemoteConversations(limit, new CompletionHandler() {
+            @Override
+            public void handleCompletion(Module module) {
+                gotConversations.value = true;
+                if (gotMessages.value) {
+                    handler.handleCompletion(MessagingService.this);
+                }
             }
         });
     }
@@ -285,7 +332,7 @@ public class MessagingService extends Module {
         this.pipeline.send(MessagingService.NAME, packet);
     }
 
-    private void queryRemoteConversations(CompletionHandler completionHandler) {
+    private void queryRemoteConversations(int limit, CompletionHandler completionHandler) {
         if (!this.pipeline.isReady()) {
             completionHandler.handleCompletion(null);
             return;
@@ -293,7 +340,7 @@ public class MessagingService extends Module {
 
         JSONObject payload = new JSONObject();
         try {
-            payload.put("limit", 200);
+            payload.put("limit", limit);
         } catch (JSONException e) {
             // Nothing
         }
@@ -311,13 +358,41 @@ public class MessagingService extends Module {
                     return;
                 }
 
-                synchronized (MessagingService.this) {
-                    if (null == conversations) {
-                        conversations = new Vector<>();
+                List<Conversation> conversationList = new ArrayList<>();
+                JSONObject data = packet.extractServiceData();
+                try {
+                    // 读取列表
+                    JSONArray list = data.getJSONArray("list");
+                    for (int i = 0; i < list.length(); ++i) {
+                        Conversation conversation = new Conversation(list.getJSONObject(i));
+                        fillConversation(conversation);
+                        conversationList.add(conversation);
                     }
-
-                    JSONObject data = packet.extractServiceData();
+                } catch (JSONException e) {
+                    // Nothing
                 }
+
+                execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        // 更新到数据
+                        storage.updateConversations(conversationList);
+
+                        // 回调
+                        completionHandler.handleCompletion(MessagingService.this);
+
+                        // 回调事件监听器
+                        if (null != recentEventListener) {
+                            synchronized (MessagingService.this) {
+                                if (null != conversations) {
+                                    conversations.clear();
+                                }
+                            }
+
+                            recentEventListener.conversationListUpdated(getRecentConversations(), MessagingService.this);
+                        }
+                    }
+                });
             }
         });
     }
@@ -476,7 +551,23 @@ public class MessagingService extends Module {
     }
 
     protected void fillConversation(Conversation conversation) {
+        // 填充消息
+        this.fillMessage(conversation.getRecentMessage());
 
+        // 按类型实例化
+        if (MessageType.Unknown == conversation.getRecentMessage().getType()) {
+            Hook<Message> hook = (Hook<Message>) this.pluginSystem.getHook(InstantiateHook.NAME);
+            Message compMessage = hook.apply(conversation.getRecentMessage());
+            conversation.setRecentMessage(compMessage);
+        }
+
+        if (ConversationType.Contact == conversation.getType()) {
+            Contact contact = this.contactService.getContact(conversation.getPivotalId());
+            conversation.setPivotal(contact);
+        }
+        else if (ConversationType.Group == conversation.getType()) {
+            // TODO
+        }
     }
 
     private void sortConversationList(List<Conversation> list) {

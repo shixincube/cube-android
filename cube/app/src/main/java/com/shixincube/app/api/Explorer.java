@@ -133,11 +133,21 @@ public class Explorer {
         return this.api.getAccountInfo(token);
     }
 
+    /**
+     * 查询指定联系人的账号。
+     *
+     * @param id
+     * @param token
+     * @return
+     */
+    public Observable<AccountInfoResponse> getAccountInfo(Long id, String token) {
+        return this.api.getAccountInfo(id, token);
+    }
+
     private RequestBody getRequestBody(Object object) {
         String content = new Gson().toJson(object);
         MediaType mediaType = MediaType.Companion.parse("application/json; charset=utf-8");
         RequestBody body = RequestBody.Companion.create(content, mediaType);
-//        RequestBody body = RequestBody.create(okhttp3.MediaType.parse("application/json; charset=utf-8"), content);
         return body;
     }
 

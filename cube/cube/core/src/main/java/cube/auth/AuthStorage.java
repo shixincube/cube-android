@@ -35,16 +35,14 @@ import android.database.sqlite.SQLiteOpenHelper;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import cube.core.Storage;
+import cube.core.AbstractStorage;
 
 /**
  * 存储器。
  */
-public class AuthStorage implements Storage {
+public class AuthStorage extends AbstractStorage {
 
     private final static int VERSION = 1;
-
-    private SQLite sqlite;
 
     public AuthStorage() {
     }
@@ -55,24 +53,24 @@ public class AuthStorage implements Storage {
      * @return 开启成功返回 {@code true} ，否则返回 {@code false} 。
      */
     public boolean open(Context context) {
-        if (null == this.sqlite) {
-            this.sqlite = new SQLite(context);
+        if (null == this.sqliteHelper) {
+            this.sqliteHelper = new SQLite(context);
         }
         return true;
     }
 
     @Override
     public void close() {
-        if (null != this.sqlite) {
-            this.sqlite.close();
-            this.sqlite = null;
+        if (null != this.sqliteHelper) {
+            this.sqliteHelper.close();
+            this.sqliteHelper = null;
         }
     }
 
     public AuthToken loadToken(String domain, String appKey) {
         AuthToken authToken = null;
 
-        SQLiteDatabase db = this.sqlite.getReadableDatabase();
+        SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT * FROM `token` WHERE `cid`=0 AND `domain`=? AND `app_key`=? ORDER BY `sn` DESC",
                 new String[] { domain, appKey });
         if (cursor.moveToFirst()) {
@@ -84,7 +82,8 @@ public class AuthStorage implements Storage {
             }
         }
         cursor.close();
-        db.close();
+
+        this.closeReadableDatabase();
 
         return authToken;
     }
@@ -92,7 +91,7 @@ public class AuthStorage implements Storage {
     public AuthToken loadToken(Long contactId, String domain, String appKey) {
         AuthToken authToken = null;
 
-        SQLiteDatabase db = this.sqlite.getReadableDatabase();
+        SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT * FROM `token` WHERE `cid`=? AND `domain`=? AND `app_key`=? ORDER BY `sn` DESC",
                 new String[] { contactId.toString(), domain, appKey });
         if (cursor.moveToFirst()) {
@@ -103,14 +102,14 @@ public class AuthStorage implements Storage {
                 // Nothing
             }
         }
-
         cursor.close();
-        db.close();
+
+        this.closeReadableDatabase();
         return authToken;
     }
 
     public void saveToken(AuthToken token) {
-        SQLiteDatabase db = this.sqlite.getWritableDatabase();
+        SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
         values.put("domain", token.domain);
@@ -120,18 +119,19 @@ public class AuthStorage implements Storage {
         values.put("data", token.toJSON().toString());
 
         db.insert("token", null, values);
-        db.close();
+
+        this.closeWritableDatabase();
     }
 
     public void updateToken(AuthToken token) {
-        SQLiteDatabase db = this.sqlite.getWritableDatabase();
+        SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
         values.put("cid", token.cid);
         values.put("data", token.toJSON().toString());
         db.update("token", values, "code=?", new String[] { token.code });
 
-        db.close();
+        this.closeWritableDatabase();
     }
 
     private class SQLite extends SQLiteOpenHelper {

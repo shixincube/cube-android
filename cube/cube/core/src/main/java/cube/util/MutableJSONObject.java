@@ -24,40 +24,21 @@
  * SOFTWARE.
  */
 
-package cube.messaging.extension;
+package cube.util;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
-import cube.messaging.model.Message;
-import cube.messaging.model.MessageType;
-
 /**
- * 可分类消息。
+ * 可变 JSON 值对象。
  */
-public class TypeableMessage extends Message {
+public class MutableJSONObject {
 
-    public TypeableMessage(MessageType type) {
-        super();
-        this.type = type;
+    public JSONObject jsonObject;
+
+    public MutableJSONObject() {
     }
 
-    public TypeableMessage(Message message, MessageType type) {
-        super(message);
-        this.type = type;
-    }
-
-    public TypeableMessage(JSONObject payload) {
-        super(payload);
-    }
-
-    public String getTypeName() {
-        String type = null;
-        try {
-            type = this.payload.getString("type");
-        } catch (JSONException e) {
-            // Nothing
-        }
-        return type;
+    public MutableJSONObject(JSONObject jsonObject) {
+        this.jsonObject = jsonObject;
     }
 }

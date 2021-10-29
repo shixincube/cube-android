@@ -24,30 +24,46 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app.model;
+package cube.messaging.model;
 
 /**
- * 会话类型。
+ * 会话的状态。
  */
-public enum ConversationType {
+public enum ConversationState {
 
     /**
-     * 联系人的消息。
+     * 正常状态。
      */
-    Contact,
+    Normal(1),
 
     /**
-     * 群组的消息。
+     * 重要的或置顶的状态。
      */
-    Group,
+    Important(2),
 
     /**
-     * 企业及组织消息。
+     * 已删除。
      */
-    Organization,
+    Deleted(3);
 
-    /**
-     * 系统通知。
-     */
-    Notifier
+    public final int code;
+
+    ConversationState(int code) {
+        this.code = code;
+    }
+
+    @Override
+    public String toString() {
+        return Integer.toString(this.code);
+    }
+
+    public static ConversationState parse(int code) {
+        for (ConversationState state : ConversationState.values()) {
+            if (state.code == code) {
+                return state;
+            }
+        }
+
+        return Normal;
+    }
 }

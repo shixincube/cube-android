@@ -31,12 +31,9 @@ import android.view.ViewGroup;
 
 import com.shixincube.app.R;
 import com.shixincube.app.model.Conversation;
-import com.shixincube.app.model.ConversationType;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.ConversationView;
-import com.shixincube.app.util.DateUtils;
-import com.shixincube.app.widget.AdvancedImageView;
 import com.shixincube.app.widget.adapter.AdapterForRecyclerView;
 import com.shixincube.app.widget.adapter.OnItemClickListener;
 import com.shixincube.app.widget.adapter.OnItemLongClickListener;
@@ -48,7 +45,6 @@ import java.util.List;
 
 import cube.engine.CubeEngine;
 import cube.messaging.MessagingService;
-import cube.messaging.model.Message;
 import cube.util.LogUtils;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.annotations.NonNull;
@@ -63,13 +59,13 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
  */
 public class ConversationPresenter extends BasePresenter<ConversationView> {
 
-    private List<Conversation> conversations;
+    private List<Conversation> cubeConversations;
 
     private AdapterForRecyclerView<Conversation> adapter;
 
     public ConversationPresenter(BaseActivity activity) {
         super(activity);
-        this.conversations = new ArrayList<>();
+        this.cubeConversations = new ArrayList<>();
     }
 
     public void loadConversations() {
@@ -79,10 +75,10 @@ public class ConversationPresenter extends BasePresenter<ConversationView> {
 
     private void setAdapter() {
         if (null == this.adapter) {
-            this.adapter = new AdapterForRecyclerView<Conversation>(this.activity, this.conversations, R.layout.item_conversation) {
+            this.adapter = new AdapterForRecyclerView<Conversation>(this.activity, this.cubeConversations, R.layout.item_conversation) {
                 @Override
                 public void convert(ViewHolderForRecyclerView helper, Conversation item, int position) {
-                    if (item.getType() == ConversationType.Contact) {
+                    /*if (item.getType() == ConversationType.Contact) {
                         // 设置头像
                         AdvancedImageView avatar = helper.getView(R.id.aivAvatar);
                         avatar.setImageResource(item.getAvatarResourceId());
@@ -93,7 +89,7 @@ public class ConversationPresenter extends BasePresenter<ConversationView> {
                     }
                     else if (item.getType() == ConversationType.Group) {
                         // TODO
-                    }
+                    }*/
                 }
             };
 
@@ -125,17 +121,17 @@ public class ConversationPresenter extends BasePresenter<ConversationView> {
                 MessagingService messaging = CubeEngine.getInstance().getMessagingService();
 
                 // 从引擎获取最近消息列表
-                List<Message> list = messaging.getRecentMessages();
-                if (null != list && !list.isEmpty()) {
-                    conversations.clear();
+//                List<Message> list = messaging.getRecentMessages();
+//                if (null != list && !list.isEmpty()) {
+//                    conversations.clear();
+//
+//                    for (Message message : list) {
+//                        Conversation conversation = new Conversation(message);
+//                        conversations.add(conversation);
+//                    }
+//                }
 
-                    for (Message message : list) {
-                        Conversation conversation = new Conversation(message);
-                        conversations.add(conversation);
-                    }
-                }
-
-                emitter.onNext(conversations);
+                emitter.onNext(cubeConversations);
             }
         }).subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread())

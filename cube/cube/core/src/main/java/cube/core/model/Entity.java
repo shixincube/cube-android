@@ -69,6 +69,9 @@ public class Entity implements TimeSortable, JSONable {
      */
     public final long entityCreation;
 
+    /**
+     * 构造函数。
+     */
     public Entity() {
         this.id = Utils.generateUnsignedSerialNumber();
         this.entityCreation = System.currentTimeMillis();
@@ -77,6 +80,11 @@ public class Entity implements TimeSortable, JSONable {
         this.expiry = this.last + LIFECYCLE_IN_MSEC;
     }
 
+    /**
+     * 构造函数。
+     *
+     * @param id 指定实体 ID 。
+     */
     public Entity(Long id) {
         this.id = id;
         this.entityCreation = System.currentTimeMillis();
@@ -85,6 +93,12 @@ public class Entity implements TimeSortable, JSONable {
         this.expiry = this.last + LIFECYCLE_IN_MSEC;
     }
 
+    /**
+     * 构造函数。
+     *
+     * @param id 指定实体 ID 。
+     * @param timestamp 指定时间戳。
+     */
     public Entity(Long id, long timestamp) {
         this.id = id;
         this.entityCreation = System.currentTimeMillis();
@@ -93,6 +107,12 @@ public class Entity implements TimeSortable, JSONable {
         this.expiry = this.last + LIFECYCLE_IN_MSEC;
     }
 
+    /**
+     * 构造函数。
+     *
+     * @param json 指定 JSON 数据。
+     * @throws JSONException 如果 JSON 数据项错误则抛出该异常。
+     */
     public Entity(JSONObject json) throws JSONException {
         this.entityCreation = System.currentTimeMillis();
 
@@ -218,6 +238,7 @@ public class Entity implements TimeSortable, JSONable {
         JSONObject json = new JSONObject();
         try {
             json.put("id", this.id.longValue());
+            json.put("timestamp", this.timestamp);
 
             if (null != this.context) {
                 json.put("context", this.context);

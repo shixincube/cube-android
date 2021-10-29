@@ -82,11 +82,6 @@ public class HyperTextMessage extends TypeableMessage {
         this.parse(text);
     }
 
-    @Override
-    public String getSummary() {
-        return this.plaintext;
-    }
-
     private void parse(String text) {
         // AT Format: [@ name # id ]
         // Emoji Format: [E desc # code ]
@@ -179,6 +174,26 @@ public class HyperTextMessage extends TypeableMessage {
         content.clear();
 
         // 生成平滑文本
+        StringBuilder plain = new StringBuilder();
+        for (FormattedContent fc : this.formattedContents) {
+            if (fc.format == FormattedContentFormat.Text) {
+                plain.append(fc.getText());
+            }
+            else if (fc.format == FormattedContentFormat.Emoji) {
+                plain.append("[");
+                plain.append(fc.getDesc());
+                plain.append("]");
+            }
+            else if (fc.format == FormattedContentFormat.At) {
+                plain.append(" @");
+                plain.append(fc.getName());
+                plain.append(" ");
+            }
+        }
+
+        this.plaintext = plain.toString();
+        this.summary = this.plaintext;
+        plain = null;
     }
 
     private Map<String, String> parseEmoji(String input) {
@@ -245,6 +260,26 @@ public class HyperTextMessage extends TypeableMessage {
         protected FormattedContent(FormattedContentFormat format, Map<String, String> content) {
             this.format = format;
             this.content = content;
+        }
+
+        public String getText() {
+            return this.content.get(FORMAT_KEY_TEXT);
+        }
+
+        public String getDesc() {
+            return this.content.get(FORMAT_KEY_DESC);
+        }
+
+        public String getName() {
+            return this.content.get(FORMAT_KEY_NAME);
+        }
+
+        public String getCode() {
+            return this.content.get(FORMAT_KEY_CODE);
+        }
+
+        public String getID() {
+            return this.content.get(FORMAT_KEY_ID);
         }
     }
 }

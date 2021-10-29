@@ -24,21 +24,61 @@
  * SOFTWARE.
  */
 
-package cube.contact.model;
-
-import org.json.JSONException;
-import org.json.JSONObject;
+package cube.messaging.model;
 
 /**
- * 群组对象。
+ * 会话类型。
  */
-public class Group extends AbstractContact {
+public enum ConversationType {
 
-    public Group(JSONObject json) throws JSONException {
-        super(json);
+    /**
+     * 与联系人的会话。
+     */
+    Contact(1),
+
+    /**
+     * 与群组的会话。
+     */
+    Group(2),
+
+    /**
+     * 与组织的会话。
+     */
+    Organization(3),
+
+    /**
+     * 系统类型会话。
+     */
+    System(4),
+
+    /**
+     * 通知类型会话。
+     */
+    Notifier(5),
+
+    /**
+     * 助手类型会话。
+     */
+    Assistant(6),
+
+    /**
+     * 其他会话类型。
+     */
+    Other(9);
+
+    public final int code;
+
+    ConversationType(int code) {
+        this.code = code;
     }
 
-    public String getPriorityName() {
-        return this.name;
+    public static ConversationType parse(int code) {
+        for (ConversationType type : ConversationType.values()) {
+            if (type.code == code) {
+                return type;
+            }
+        }
+
+        return Other;
     }
 }

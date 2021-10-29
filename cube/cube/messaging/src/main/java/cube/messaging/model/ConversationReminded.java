@@ -24,21 +24,46 @@
  * SOFTWARE.
  */
 
-package cube.contact.model;
-
-import org.json.JSONException;
-import org.json.JSONObject;
+package cube.messaging.model;
 
 /**
- * 群组对象。
+ * 会话提醒类型。
  */
-public class Group extends AbstractContact {
+public enum ConversationReminded {
 
-    public Group(JSONObject json) throws JSONException {
-        super(json);
+    /**
+     * 正常接收。
+     */
+    Normal(1),
+
+    /**
+     * 接收不提醒。
+     */
+    Closed(2),
+
+    /**
+     * 接收但不关注。
+     */
+    NotCare(3),
+
+    /**
+     * 不接收。
+     */
+    Refused(4);
+
+    public final int code;
+
+    ConversationReminded(int code) {
+        this.code = code;
     }
 
-    public String getPriorityName() {
-        return this.name;
+    public static ConversationReminded parse(int code) {
+        for (ConversationReminded type : ConversationReminded.values()) {
+            if (type.code == code) {
+                return type;
+            }
+        }
+
+        return Normal;
     }
 }

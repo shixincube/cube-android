@@ -24,30 +24,70 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app.model;
+package cube.messaging;
 
 /**
- * 消息提示类型。
+ * 消息服务状态码。
  */
-public enum MessageRemindType {
+public enum MessagingServiceState {
 
-    /**
-     * 正常接收。
-     */
-    Normal,
+    /** 成功。 */
+    Ok(0),
 
-    /**
-     * 接收但不提示。
-     */
-    Closed,
+    /** 无效参数。 */
+    InvalidParameter(5),
 
-    /**
-     * 不关注。
-     */
-    NotCare,
+    /** 遇到故障。 */
+    Failure(9),
 
-    /**
-     * 拒绝接收。
-     */
-    Refused
+    /** 无效域信息。 */
+    InvalidDomain(11),
+
+    /** 数据结构错误。 */
+    DataStructureError(12),
+
+    /** 没有域信息。 */
+    NoDomain(13),
+
+    /** 没有设备信息。 */
+    NoDevice(14),
+
+    /** 没有找到联系人。 */
+    NoContact(15),
+
+    /** 没有找到群组。 */
+    NoGroup(16),
+
+    /** 附件错误。 */
+    AttachmentError(17),
+
+    /** 群组错误。 */
+    GroupError(18),
+
+    /** 被对方阻止。 */
+    BeBlocked(30),
+
+    /** 禁止操作。 */
+    Forbidden(101),
+
+    /** 不能被执行的操作。 */
+    IllegalOperation(103),
+
+    /** 数据超时。 */
+    DataTimeout(104),
+
+    /** 服务器故障。 */
+    ServerFault(105),
+
+    /** 存储里没有读取到数据。 */
+    StorageNoData(106),
+
+    /** 未知的状态。 */
+    Unknown(99);
+
+    public final int code;
+
+    MessagingServiceState(int code) {
+        this.code = code;
+    }
 }

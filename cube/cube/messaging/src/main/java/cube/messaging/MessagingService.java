@@ -34,9 +34,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.Vector;
 
 import cube.contact.ContactService;
 import cube.contact.ContactServiceEvent;
@@ -46,9 +49,13 @@ import cube.contact.model.Self;
 import cube.core.Hook;
 import cube.core.Module;
 import cube.core.Packet;
+import cube.core.PipelineState;
 import cube.core.handler.CompletionHandler;
+import cube.core.handler.PipelineHandler;
 import cube.messaging.extension.MessageTypePlugin;
 import cube.messaging.hook.InstantiateHook;
+import cube.messaging.model.Conversation;
+import cube.messaging.model.ConversationState;
 import cube.messaging.model.Message;
 import cube.util.ObservableEvent;
 
@@ -75,6 +82,8 @@ public class MessagingService extends Module {
 
     private Timer pullTimer;
     private CompletionHandler pullCompletionHandler;
+
+    private List<Conversation> conversations;
 
     public MessagingService() {
         super(MessagingService.NAME);
@@ -152,13 +161,25 @@ public class MessagingService extends Module {
     }
 
     /**
-     * 获取最近的消息清单，返回的每条消息都来自不同的会话联系人或群组。
-     * 最大数量 50 条记录。
+     * 获取最近的会话清单。
      *
+     * @param maxLimit 指定最大记录数量。
      * @return 返回消息列表。如果返回 {@code null} 值表示消息服务模块未启动。
      */
-    public List<Message> getRecentMessages() {
-        return this.getRecentMessages(50);
+    public List<Conversation> getRecentConversations(int maxLimit) {
+        if (!this.hasStarted()) {
+            return null;
+        }
+
+        synchronized (this) {
+            if (null == this.conversations) {
+                List<Conversation> list = this.storage.queryRecentConversations(maxLimit);
+                this.conversations = new Vector<>(list);
+                this.sortConversationList(this.conversations);
+            }
+        }
+
+        return this.conversations;
     }
 
     /**
@@ -262,6 +283,43 @@ public class MessagingService extends Module {
         // 向服务器请求数据
         Packet packet = new Packet(MessagingAction.Pull, payload);
         this.pipeline.send(MessagingService.NAME, packet);
+    }
+
+    private void queryRemoteConversations(CompletionHandler completionHandler) {
+        if (!this.pipeline.isReady()) {
+            completionHandler.handleCompletion(null);
+            return;
+        }
+
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("limit", 200);
+        } catch (JSONException e) {
+            // Nothing
+        }
+        Packet requestPacket = new Packet(MessagingAction.GetConversations, payload);
+        this.pipeline.send(MessagingService.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    completionHandler.handleCompletion(null);
+                    return;
+                }
+
+                if (packet.extractServiceStateCode() != MessagingServiceState.Ok.code) {
+                    completionHandler.handleCompletion(null);
+                    return;
+                }
+
+                synchronized (MessagingService.this) {
+                    if (null == conversations) {
+                        conversations = new Vector<>();
+                    }
+
+                    JSONObject data = packet.extractServiceData();
+                }
+            }
+        });
     }
 
     protected void fireContactEvent(ObservableEvent event) {
@@ -415,5 +473,41 @@ public class MessagingService extends Module {
                 // Nothing
             }
         }
+    }
+
+    protected void fillConversation(Conversation conversation) {
+
+    }
+
+    private void sortConversationList(List<Conversation> list) {
+        // 将 Important 置顶
+        Collections.sort(list, new Comparator<Conversation>() {
+            @Override
+            public int compare(Conversation c1, Conversation c2) {
+                if (c1.getState().code == c2.getState().code) {
+                    // 相同状态，判断时间戳
+                    if (c1.getTimestamp() < c2.getTimestamp()) {
+                        return 1;
+                    }
+                    else if (c1.getTimestamp() > c2.getTimestamp()) {
+                        return -1;
+                    }
+                    else {
+                        return 0;
+                    }
+                }
+                else {
+                    if (c1.getState() == ConversationState.Normal && c2.getState() == ConversationState.Important) {
+                        // 交换顺序，把 c2 排到前面
+                        return 1;
+                    }
+                    else if (c1.getState() == ConversationState.Important && c2.getState() == ConversationState.Normal) {
+                        return -1;
+                    }
+                }
+
+                return 0;
+            }
+        });
     }
 }

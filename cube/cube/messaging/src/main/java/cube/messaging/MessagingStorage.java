@@ -39,6 +39,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cube.core.Storage;
+import cube.messaging.model.Conversation;
+import cube.messaging.model.ConversationReminded;
+import cube.messaging.model.ConversationState;
+import cube.messaging.model.ConversationType;
 import cube.messaging.model.Message;
 
 /**
@@ -83,6 +87,87 @@ public class MessagingStorage implements Storage {
             this.sqlite.close();
             this.sqlite = null;
         }
+    }
+
+    /**
+     * 查询最近的会话列表。
+     *
+     * @param limit 指定最大查询数量。
+     * @return 返回查询结构数组。
+     */
+    public List<Conversation> queryRecentConversations(int limit) {
+        List<Conversation> list = new ArrayList<>();
+
+        SQLiteDatabase db = this.sqlite.getReadableDatabase();
+
+        try {
+            Cursor cursor = db.rawQuery("SELECT * FROM `conversation` WHERE `state`=? OR `state`=? ORDER BY `timestamp` DESC LIMIT ?",
+                    new String[] { ConversationState.Normal.toString(),
+                            ConversationState.Important.toString(), Integer.toString(limit)});
+            while (cursor.moveToNext()) {
+                String messageString = cursor.getString(cursor.getColumnIndex("recent_message"));
+                Message recentMessage = new Message(new JSONObject(messageString));
+
+                Conversation conversation = new Conversation(cursor.getLong(cursor.getColumnIndex("id")),
+                        cursor.getLong(cursor.getColumnIndex("timestamp")),
+                        ConversationType.parse(cursor.getInt(cursor.getColumnIndex("type"))),
+                        ConversationState.parse(cursor.getInt(cursor.getColumnIndex("state"))),
+                        cursor.getLong(cursor.getColumnIndex("pivotal_id")),
+                        recentMessage,
+                        ConversationReminded.parse(cursor.getInt(cursor.getColumnIndex("remind"))));
+                // 填充实例
+                this.service.fillConversation(conversation);
+
+                list.add(conversation);
+            }
+        } catch (JSONException e) {
+            // Nothing
+        }
+
+        db.close();
+
+        return list;
+    }
+
+    /**
+     * 更新列表里的所有会话。
+     *
+     * @param conversations 指定会话清单。
+     */
+    public void updateConversations(List<Conversation> conversations) {
+        SQLiteDatabase db = this.sqlite.getWritableDatabase();
+
+        for (Conversation conversation : conversations) {
+            Cursor cursor = db.query("conversation", new String[]{ "id" },
+                    "id=?", new String[]{ conversation.id.toString() }, null, null, null);
+            if (cursor.moveToFirst()) {
+                cursor.close();
+
+                // 更新
+                ContentValues values = new ContentValues();
+                values.put("timestamp", conversation.getTimestamp());
+                values.put("state", conversation.getState().code);
+                values.put("remind", conversation.getReminded().code);
+                values.put("recent_message", conversation.getRecentMessage().toJSON().toString());
+                db.update("conversation", values, "id=?", new String[]{ conversation.id.toString() });
+            }
+            else {
+                cursor.close();
+
+                // 插入
+                ContentValues values = new ContentValues();
+                values.put("id", conversation.id);
+                values.put("timestamp", conversation.getTimestamp());
+                values.put("type", conversation.getType().code);
+                values.put("state", conversation.getState().code);
+                values.put("pivotal_id", conversation.getPivotalId());
+                values.put("remind", conversation.getReminded().code);
+                values.put("recent_message", conversation.getRecentMessage().toJSON().toString());
+                db.insert("conversation", null, values);
+            }
+        }
+
+        db.close();
     }
 
     /**
@@ -252,6 +337,9 @@ public class MessagingStorage implements Storage {
         public void onCreate(SQLiteDatabase sqLiteDatabase) {
             // 消息表
             sqLiteDatabase.execSQL("CREATE TABLE IF NOT EXISTS `message` (`id` BIGINT PRIMARY KEY, `from` BIGINT, `to` BIGINT, `source` BIGINT, `lts` BIGINT, `rts` BIGINT, `state` INT, `remote_state` INT DEFAULT 10, `scope` INT DEFAULT 0, `data` TEXT)");
+
+            // 会话表
+            sqLiteDatabase.execSQL("CREATE TABLE IF NOT EXISTS `conversation` (`id` BIGINT PRIMARY KEY, `timestamp` BIGINT, `type` INT, `state` INT, `pivotal_id` BIGINT, `remind` INT, `recent_message` TEXT, `avatar_name` TEXT DEFAULT NULL, `avatar_url` TEXT DEFAULT NULL)");
 
             // 最近消息表，当前联系人和其他每一个联系人的最近消息
             // messager_id - 消息相关发件人或收件人 ID

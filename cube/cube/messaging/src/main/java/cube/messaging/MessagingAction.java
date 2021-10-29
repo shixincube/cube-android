@@ -60,4 +60,9 @@ public final class MessagingAction {
      * 标记已读。
      */
     public final static String Read = "read";
+
+    /**
+     * 获取会话列表。
+     */
+    public final static String GetConversations = "getConversations";
 }

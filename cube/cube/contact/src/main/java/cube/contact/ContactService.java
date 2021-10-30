@@ -54,9 +54,11 @@ import cube.core.Module;
 import cube.core.ModuleError;
 import cube.core.Packet;
 import cube.core.PipelineState;
+import cube.core.handler.CompletionHandler;
 import cube.core.handler.FailureHandler;
 import cube.core.handler.PipelineHandler;
 import cube.core.model.TimeSortable;
+import cube.util.LogUtils;
 import cube.util.ObservableEvent;
 
 /**
@@ -683,20 +685,14 @@ public class ContactService extends Module {
         // 写入数据库
         this.storage.writeContact(this.self);
 
-        this.execute(new Runnable() {
-            @Override
-            public void run() {
-                // 通知 Sign-In 事件
-                ObservableEvent event = new ObservableEvent(ContactServiceEvent.SignIn, self);
-                notifyObservers(event);
+        // 通知 Sign-In 事件
+        ObservableEvent event = new ObservableEvent(ContactServiceEvent.SignIn, self);
+        notifyObservers(event);
 
-                if (null != ContactService.this.signInHandler) {
-                    ContactService.this.signInHandler.handleSuccess(ContactService.this,
-                            ContactService.this.self);
-                    ContactService.this.signInHandler = null;
-                }
-            }
-        });
+        if (null != this.signInHandler) {
+            this.signInHandler.handleSuccess(ContactService.this, this.self);
+            this.signInHandler = null;
+        }
     }
 
     protected void triggerSignIn(int stateCode, JSONObject payload) {
@@ -722,7 +718,7 @@ public class ContactService extends Module {
         MutableBoolean gotBlockList = new MutableBoolean(false);
         MutableBoolean gotTopList = new MutableBoolean(false);
 
-        SignInCompletion completion = () -> {
+        CompletionHandler completion = (module) -> {
             if (gotAppendix.value && gotGroups.value && gotBlockList.value && gotTopList.value) {
                 fireSignInCompleted();
             }
@@ -734,14 +730,16 @@ public class ContactService extends Module {
         this.getAppendix(this.self, new ContactAppendixHandler() {
             @Override
             public void handleAppendix(Contact contact, ContactAppendix appendix) {
+                LogUtils.d(ContactService.class.getSimpleName(), "#getAppendix");
                 gotAppendix.value = true;
-                completion.check();
+                completion.handleCompletion(null);
             }
         }, new FailureHandler() {
             @Override
             public void handleFailure(Module module, ModuleError error) {
+                LogUtils.d(ContactService.class.getSimpleName(), "#getAppendix error : " + error.code);
                 gotAppendix.value = true;
-                completion.check();
+                completion.handleCompletion(null);
             }
         });
 
@@ -749,8 +747,9 @@ public class ContactService extends Module {
         this.listGroups(now - this.retrospectDuration, now, new GroupListHandler() {
             @Override
             public void handleList(List<Group> groupList) {
+                LogUtils.d(ContactService.class.getSimpleName(), "#listGroups");
                 gotGroups.value = true;
-                completion.check();
+                completion.handleCompletion(null);
             }
         });
 
@@ -758,17 +757,19 @@ public class ContactService extends Module {
         this.listBlockList(new ContactListHandler() {
             @Override
             public void handleList(List<Contact> contactList) {
+                LogUtils.d(ContactService.class.getSimpleName(), "#listBlockList");
                 gotBlockList.value = true;
-                completion.check();
+                completion.handleCompletion(null);
             }
         });
 
-        // 更新置顶清单
+        // 更新联系人置顶清单
         this.listTopList(new TopListHandler() {
             @Override
             public void handleList(List<TimeSortable> list) {
+                LogUtils.d(ContactService.class.getSimpleName(), "#listTopList");
                 gotTopList.value = true;
-                completion.check();
+                completion.handleCompletion(null);
             }
         });
     }
@@ -778,9 +779,5 @@ public class ContactService extends Module {
         this.notifyObservers(event);
 
         this.self = null;
-    }
-
-    interface SignInCompletion {
-        void check();
     }
 }

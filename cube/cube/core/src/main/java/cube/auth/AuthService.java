@@ -54,6 +54,8 @@ public class AuthService extends Module {
 
     private Timer timer;
 
+    private AuthStorage storage;
+
     public AuthService() {
         super(AuthService.NAME);
     }
@@ -67,8 +69,27 @@ public class AuthService extends Module {
     }
 
     @Override
+    public boolean start() {
+        if (this.hasStarted()) {
+            return false;
+        }
+
+        super.start();
+
+        this.storage = new AuthStorage();
+        this.storage.open(getContext());
+
+        return true;
+    }
+
+    @Override
     public void stop() {
         super.stop();
+
+        if (null != this.storage) {
+            this.storage.close();
+            this.storage = null;
+        }
 
         synchronized (this) {
             if (null != this.timer) {
@@ -91,23 +112,16 @@ public class AuthService extends Module {
      * @return 返回最近保存的令牌。
      */
     public AuthToken loadLocalToken(String domain, String appKey) {
-        AuthStorage storage = new AuthStorage();
-        if (!storage.open(getContext())) {
-            return null;
-        }
-
-        AuthToken token = storage.loadToken(domain, appKey);
+        AuthToken token = this.storage.loadToken(domain, appKey);
         if (null != token && token.isValid()) {
             // 令牌赋值
             this.token = token;
 
             sDomain = domain.toString();
 
-            storage.close();
             return token;
         }
 
-        storage.close();
         return null;
     }
 
@@ -123,11 +137,6 @@ public class AuthService extends Module {
         }
 
         if (this.token.cid != contactId.longValue()) {
-            AuthStorage storage = new AuthStorage();
-            if (!storage.open(getContext())) {
-                return null;
-            }
-
             // 查找对应的令牌
             AuthToken contactToken = storage.loadToken(contactId, this.token.domain, this.token.appKey);
             if (null == contactToken) {
@@ -135,14 +144,12 @@ public class AuthService extends Module {
                 this.token.cid = contactId;
 
                 // 更新令牌
-                storage.updateToken(this.token);
+                this.storage.updateToken(this.token);
             }
             else {
                 // 覆盖当前令牌
                 this.token = contactToken;
             }
-
-            storage.close();
         }
 
         if (null == sDomain) {
@@ -165,16 +172,9 @@ public class AuthService extends Module {
         this.execute(new Runnable() {
             @Override
             public void run() {
-                final AuthStorage storage = new AuthStorage();
-                if (!storage.open(getContext())) {
-                    handler.handleFailure(new ModuleError(NAME, AuthServiceState.StorageError.code));
-                    return;
-                }
-
                 AuthToken token = storage.loadToken(domain, appKey);
                 if (null != token && token.isValid()) {
-                    storage.close();
-
+                    // 令牌赋值
                     AuthService.this.token = token;
 
                     handler.handleSuccess(token);
@@ -184,7 +184,6 @@ public class AuthService extends Module {
                         @Override
                         public void run() {
                             if (!pipeline.isReady()) {
-                                storage.close();
                                 // 超时
                                 ModuleError error = new ModuleError(NAME, AuthServiceState.Timeout.code, "Pipeline timeout");
                                 handler.handleFailure(error);
@@ -201,15 +200,11 @@ public class AuthService extends Module {
                                     // 保存令牌
                                     storage.saveToken(authToken);
 
-                                    storage.close();
-
                                     handler.handleSuccess(authToken);
                                 }
 
                                 @Override
                                 public void handleFailure(ModuleError error) {
-                                    storage.close();
-
                                     handler.handleFailure(error);
                                 }
                             });

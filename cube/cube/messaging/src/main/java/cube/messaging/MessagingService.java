@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import cube.contact.ContactService;
 import cube.contact.ContactServiceEvent;
@@ -80,6 +81,8 @@ public class MessagingService extends Module {
 
     private MessagingRecentEventListener recentEventListener;
 
+    private AtomicBoolean preparing;
+
     private boolean ready;
 
     private long lastMessageTime;
@@ -94,6 +97,7 @@ public class MessagingService extends Module {
         this.pipelineListener = new MessagingPipelineListener(this);
         this.storage = new MessagingStorage(this);
         this.observer = new MessagingObserver(this);
+        this.preparing = new AtomicBoolean(false);
         this.ready = false;
         this.lastMessageTime = 0;
     }
@@ -188,6 +192,16 @@ public class MessagingService extends Module {
             return null;
         }
 
+        if (!this.ready) {
+            synchronized (this.preparing) {
+                try {
+                    this.preparing.wait(5000L);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
         synchronized (this) {
             if (null == this.conversations || this.conversations.isEmpty()) {
                 List<Conversation> list = this.storage.queryRecentConversations(maxLimit);
@@ -206,13 +220,13 @@ public class MessagingService extends Module {
         return this.conversations;
     }
 
-    /**
+    /*
      * 获取最近的消息清单，返回的每条消息都来自不同的会话联系人或群组。
      *
      * @param maxLimit 指定最大记录数量。
      * @return 返回消息列表。如果返回 {@code null} 值表示消息服务模块未启动。
      */
-    public List<Message> getRecentMessages(int maxLimit) {
+    /*public List<Message> getRecentMessages(int maxLimit) {
         if (!this.hasStarted()) {
             return null;
         }
@@ -231,9 +245,11 @@ public class MessagingService extends Module {
         }
 
         return result;
-    }
+    }*/
 
     private void prepare(CompletionHandler handler) {
+        this.preparing.set(true);
+
         Self self = this.contactService.getSelf();
 
         // 开启存储
@@ -253,6 +269,11 @@ public class MessagingService extends Module {
         // 服务就绪
         this.ready = true;
 
+        // 进行线程通知
+        synchronized (this.preparing) {
+            this.preparing.notifyAll();
+        }
+
         MutableBoolean gotMessages = new MutableBoolean(false);
         MutableBoolean gotConversations = new MutableBoolean(false);
 
@@ -262,6 +283,7 @@ public class MessagingService extends Module {
             public void handleCompletion(Module module) {
                 gotMessages.value = true;
                 if (gotConversations.value) {
+                    preparing.set(false);
                     handler.handleCompletion(MessagingService.this);
                 }
             }
@@ -279,6 +301,7 @@ public class MessagingService extends Module {
             public void handleCompletion(Module module) {
                 gotConversations.value = true;
                 if (gotMessages.value) {
+                    preparing.set(false);
                     handler.handleCompletion(MessagingService.this);
                 }
             }
@@ -401,7 +424,7 @@ public class MessagingService extends Module {
         if (this.pipeline.isReady()) {
             if (event.name.equals(ContactServiceEvent.SignIn)) {
                 synchronized (this) {
-                    if (!this.ready) {
+                    if (!this.ready && !this.preparing.get()) {
                         // 准备数据
                         this.prepare(new CompletionHandler() {
                             @Override
@@ -420,7 +443,7 @@ public class MessagingService extends Module {
         else {
             if (event.name.equals(ContactServiceEvent.SelfReady)) {
                 synchronized (this) {
-                    if (!this.ready) {
+                    if (!this.ready && !this.preparing.get()) {
                         // 准备数据
                         this.prepare(new CompletionHandler() {
                             @Override
@@ -438,7 +461,7 @@ public class MessagingService extends Module {
     protected void triggerNotify(JSONObject data) {
         Message message = null;
         try {
-            message = new Message(data, this);
+            message = new Message(this, data);
         } catch (JSONException e) {
             Log.w("MessagingService", "#triggerNotify", e);
         }

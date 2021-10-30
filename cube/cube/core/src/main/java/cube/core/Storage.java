@@ -26,10 +26,20 @@
 
 package cube.core;
 
+import android.content.Context;
+
 /**
  * 存储器。
  */
 public interface Storage {
+
+    /**
+     * 开启存储器。
+     * @param context
+     * @param name
+     * @param version
+     */
+    void open(Context context, String name, int version);
 
     /**
      * 关闭存储器。

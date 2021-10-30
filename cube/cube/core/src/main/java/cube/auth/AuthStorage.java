@@ -30,7 +30,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -45,26 +44,15 @@ public class AuthStorage extends AbstractStorage {
     private final static int VERSION = 1;
 
     public AuthStorage() {
+        super();
     }
 
     /**
      * 开启存储器。
      * @param context 应用程序上下文。
-     * @return 开启成功返回 {@code true} ，否则返回 {@code false} 。
      */
-    public boolean open(Context context) {
-        if (null == this.sqliteHelper) {
-            this.sqliteHelper = new SQLite(context);
-        }
-        return true;
-    }
-
-    @Override
-    public void close() {
-        if (null != this.sqliteHelper) {
-            this.sqliteHelper.close();
-            this.sqliteHelper = null;
-        }
+    public void open(Context context) {
+        super.open(context, "CubeAuth.db", VERSION);
     }
 
     public AuthToken loadToken(String domain, String appKey) {
@@ -83,7 +71,7 @@ public class AuthStorage extends AbstractStorage {
         }
         cursor.close();
 
-        this.closeReadableDatabase();
+        this.closeReadableDatabase(db);
 
         return authToken;
     }
@@ -104,7 +92,7 @@ public class AuthStorage extends AbstractStorage {
         }
         cursor.close();
 
-        this.closeReadableDatabase();
+        this.closeReadableDatabase(db);
         return authToken;
     }
 
@@ -120,7 +108,7 @@ public class AuthStorage extends AbstractStorage {
 
         db.insert("token", null, values);
 
-        this.closeWritableDatabase();
+        this.closeWritableDatabase(db);
     }
 
     public void updateToken(AuthToken token) {
@@ -131,22 +119,15 @@ public class AuthStorage extends AbstractStorage {
         values.put("data", token.toJSON().toString());
         db.update("token", values, "code=?", new String[] { token.code });
 
-        this.closeWritableDatabase();
+        this.closeWritableDatabase(db);
     }
 
-    private class SQLite extends SQLiteOpenHelper {
+    @Override
+    protected void onDatabaseCreate(SQLiteDatabase database) {
+        database.execSQL("CREATE TABLE IF NOT EXISTS `token` (`sn` INTEGER PRIMARY KEY AUTOINCREMENT, `domain` TEXT, `app_key` TEXT, `cid` BIGINT DEFAULT 0, `code` TEXT, `data` TEXT)");
+    }
 
-        public SQLite(Context context) {
-            super(context, "CubeAuth.db", null, VERSION);
-        }
-
-        @Override
-        public void onCreate(SQLiteDatabase sqLiteDatabase) {
-            sqLiteDatabase.execSQL("CREATE TABLE IF NOT EXISTS `token` (`sn` INTEGER PRIMARY KEY AUTOINCREMENT, `domain` TEXT, `app_key` TEXT, `cid` BIGINT DEFAULT 0, `code` TEXT, `data` TEXT)");
-        }
-
-        @Override
-        public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
-        }
+    @Override
+    protected void onDatabaseUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) {
     }
 }

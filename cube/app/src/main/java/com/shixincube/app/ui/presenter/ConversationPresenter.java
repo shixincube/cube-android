@@ -73,8 +73,13 @@ public class ConversationPresenter extends BasePresenter<ConversationView> {
     }
 
     public void loadConversations() {
-        setAdapter();
-        reloadData();
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                setAdapter();
+                reloadData();
+            }
+        });
     }
 
     private void setAdapter() {

@@ -52,7 +52,7 @@ import cube.pipeline.CellPipeline;
  */
 public class Kernel implements PipelineListener {
 
-    private final static int MAX_THREADS = 4;
+    private final static int MAX_THREADS = 8;
 
     private static Kernel defaultInstance;
 
@@ -266,6 +266,9 @@ public class Kernel implements PipelineListener {
         }
 
         AuthService authService = (AuthService) this.getModule(AuthService.NAME);
+        if (!authService.hasStarted()) {
+            authService.start();
+        }
 
         // 查找本地的令牌
         AuthToken token = authService.loadLocalToken(config.domain, config.appKey);

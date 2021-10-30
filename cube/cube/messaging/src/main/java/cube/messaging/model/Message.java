@@ -144,7 +144,14 @@ public class Message extends Entity {
         this.scope = MessageScope.Unlimited;
     }
 
-    public Message(JSONObject json, MessagingService service) throws JSONException {
+    /**
+     * 构造函数。
+     *
+     * @param service
+     * @param json 消息的 JSON 结构数据。
+     * @throws JSONException
+     */
+    public Message(MessagingService service, JSONObject json) throws JSONException {
         super(json);
         this.domain = json.getString("domain");
         this.from = json.getLong("from");

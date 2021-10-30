@@ -30,7 +30,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -57,6 +56,7 @@ public class MessagingStorage extends AbstractStorage {
     private String domain;
 
     public MessagingStorage(MessagingService service) {
+        super();
         this.service = service;
     }
 
@@ -68,23 +68,9 @@ public class MessagingStorage extends AbstractStorage {
      * @param domain
      * @return
      */
-    public boolean open(Context context, Long contactId, String domain) {
-        if (null == this.sqliteHelper) {
-            this.domain = domain;
-            this.sqliteHelper = new SQLite(context, contactId, domain);
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
-
-    @Override
-    public void close() {
-        if (null != this.sqliteHelper) {
-            this.sqliteHelper.close();
-            this.sqliteHelper = null;
-        }
+    public void open(Context context, Long contactId, String domain) {
+        super.open(context, "CubeMessaging_" + domain + "_" + contactId + ".db", VERSION);
+        this.domain = domain;
     }
 
     /**
@@ -104,7 +90,7 @@ public class MessagingStorage extends AbstractStorage {
                             ConversationState.Important.toString(), Integer.toString(limit)});
             while (cursor.moveToNext()) {
                 String messageString = cursor.getString(cursor.getColumnIndex("recent_message"));
-                Message recentMessage = new Message(new JSONObject(messageString), this.service);
+                Message recentMessage = new Message(this.service, new JSONObject(messageString));
 
                 Conversation conversation = new Conversation(cursor.getLong(cursor.getColumnIndex("id")),
                         cursor.getLong(cursor.getColumnIndex("timestamp")),
@@ -118,11 +104,13 @@ public class MessagingStorage extends AbstractStorage {
 
                 list.add(conversation);
             }
+
+            cursor.close();
         } catch (JSONException e) {
             // Nothing
         }
 
-        this.closeReadableDatabase();
+        this.closeReadableDatabase(db);
 
         return list;
     }
@@ -165,7 +153,7 @@ public class MessagingStorage extends AbstractStorage {
             }
         }
 
-        this.closeWritableDatabase();
+        this.closeWritableDatabase(db);
     }
 
     /**
@@ -182,7 +170,7 @@ public class MessagingStorage extends AbstractStorage {
             time = cursor.getLong(0);
         }
         cursor.close();
-        this.closeReadableDatabase();
+        this.closeReadableDatabase(db);
 
         return time;
     }
@@ -216,7 +204,7 @@ public class MessagingStorage extends AbstractStorage {
                 String dataString = cursor.getString(0);
                 try {
                     JSONObject json = new JSONObject(dataString);
-                    Message message = new Message(json, this.service);
+                    Message message = new Message(this.service, json);
 
                     // 填充数据
                     this.service.fillMessage(message);
@@ -229,7 +217,7 @@ public class MessagingStorage extends AbstractStorage {
             cursor.close();
         }
 
-        this.closeReadableDatabase();
+        this.closeReadableDatabase(db);
 
         return list;
     }
@@ -320,42 +308,35 @@ public class MessagingStorage extends AbstractStorage {
             db.insert("recent_messager", null, values);
         }
 
-        this.closeWritableDatabase();
+        this.closeWritableDatabase(db);
 
         return exists;
     }
 
-    private class SQLite extends SQLiteOpenHelper {
+    @Override
+    protected void onDatabaseCreate(SQLiteDatabase database) {
+        // 消息表
+        database.execSQL("CREATE TABLE IF NOT EXISTS `message` (`id` BIGINT PRIMARY KEY, `from` BIGINT, `to` BIGINT, `source` BIGINT, `lts` BIGINT, `rts` BIGINT, `state` INT, `remote_state` INT DEFAULT 10, `scope` INT DEFAULT 0, `data` TEXT)");
 
-        public SQLite(Context context, Long contactId, String domain) {
-            super(context, "CubeMessaging_" + domain + "_" + contactId + ".db", null, VERSION);
-        }
+        // 会话表
+        database.execSQL("CREATE TABLE IF NOT EXISTS `conversation` (`id` BIGINT PRIMARY KEY, `timestamp` BIGINT, `type` INT, `state` INT, `pivotal_id` BIGINT, `remind` INT, `recent_message` TEXT, `avatar_name` TEXT DEFAULT NULL, `avatar_url` TEXT DEFAULT NULL)");
 
-        @Override
-        public void onCreate(SQLiteDatabase sqLiteDatabase) {
-            // 消息表
-            sqLiteDatabase.execSQL("CREATE TABLE IF NOT EXISTS `message` (`id` BIGINT PRIMARY KEY, `from` BIGINT, `to` BIGINT, `source` BIGINT, `lts` BIGINT, `rts` BIGINT, `state` INT, `remote_state` INT DEFAULT 10, `scope` INT DEFAULT 0, `data` TEXT)");
+        // 最近消息表，当前联系人和其他每一个联系人的最近消息
+        // messager_id - 消息相关发件人或收件人 ID
+        // time        - 消息时间戳
+        // message_id  - 消息 ID
+        // is_group    - 是否来自群组
+        database.execSQL("CREATE TABLE IF NOT EXISTS `recent_messager` (`messager_id` BIGINT PRIMARY KEY, `time` BIGINT, `message_id` BIGINT, `is_group` INT)");
 
-            // 会话表
-            sqLiteDatabase.execSQL("CREATE TABLE IF NOT EXISTS `conversation` (`id` BIGINT PRIMARY KEY, `timestamp` BIGINT, `type` INT, `state` INT, `pivotal_id` BIGINT, `remind` INT, `recent_message` TEXT, `avatar_name` TEXT DEFAULT NULL, `avatar_url` TEXT DEFAULT NULL)");
+        // 消息草稿表
+        // owner - 草稿对应的会话
+        // time  - 草稿时间
+        // data  - JSON 格式的数据
+        database.execSQL("CREATE TABLE IF NOT EXISTS `draft` (`owner` BIGINT PRIMARY KEY, `time` BIGINT, `data` TEXT)");
+    }
 
-            // 最近消息表，当前联系人和其他每一个联系人的最近消息
-            // messager_id - 消息相关发件人或收件人 ID
-            // time        - 消息时间戳
-            // message_id  - 消息 ID
-            // is_group    - 是否来自群组
-            sqLiteDatabase.execSQL("CREATE TABLE IF NOT EXISTS `recent_messager` (`messager_id` BIGINT PRIMARY KEY, `time` BIGINT, `message_id` BIGINT, `is_group` INT)");
+    @Override
+    protected void onDatabaseUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) {
 
-            // 消息草稿表
-            // owner - 草稿对应的会话
-            // time  - 草稿时间
-            // data  - JSON 格式的数据
-            sqLiteDatabase.execSQL("CREATE TABLE IF NOT EXISTS `draft` (`owner` BIGINT PRIMARY KEY, `time` BIGINT, `data` TEXT)");
-        }
-
-        @Override
-        public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
-
-        }
     }
 }

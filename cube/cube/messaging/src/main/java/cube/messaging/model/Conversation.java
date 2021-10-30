@@ -98,7 +98,7 @@ public class Conversation extends Entity {
         this.reminded = ConversationReminded.parse(json.getInt("remind"));
         this.pivotalId = json.getLong("pivotal");
 
-        this.recentMessage = new Message(json.getJSONObject("recentMessage"));
+        this.recentMessage = new Message(null, json.getJSONObject("recentMessage"));
 
         if (json.has("avatarName")) {
             this.avatarName = json.getString("avatarName");

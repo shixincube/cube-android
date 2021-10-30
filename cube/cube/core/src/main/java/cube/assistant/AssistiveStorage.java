@@ -26,18 +26,26 @@
 
 package cube.assistant;
 
-import cube.core.Storage;
+import android.database.sqlite.SQLiteDatabase;
+
+import cube.core.AbstractStorage;
 
 /**
  * 辅助存储器。
  */
-public class AssistiveStorage implements Storage {
+public class AssistiveStorage extends AbstractStorage {
 
     public AssistiveStorage() {
+        super();
     }
 
     @Override
-    public void close() {
+    protected void onDatabaseCreate(SQLiteDatabase database) {
+
+    }
+
+    @Override
+    protected void onDatabaseUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) {
 
     }
 }

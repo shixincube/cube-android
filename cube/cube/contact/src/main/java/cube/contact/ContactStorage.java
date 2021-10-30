@@ -30,7 +30,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -52,6 +51,7 @@ public class ContactStorage extends AbstractStorage {
     private String domain;
 
     public ContactStorage(ContactService service) {
+        super();
         this.service = service;
     }
 
@@ -61,25 +61,10 @@ public class ContactStorage extends AbstractStorage {
      * @param context
      * @param contactId
      * @param domain
-     * @return
      */
-    public boolean open(Context context, Long contactId, String domain) {
-        if (null == this.sqliteHelper) {
-            this.domain = domain;
-            this.sqliteHelper = new SQLite(context, contactId, domain);
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
-
-    @Override
-    public void close() {
-        if (null != this.sqliteHelper) {
-            this.sqliteHelper.close();
-            this.sqliteHelper = null;
-        }
+    public void open(Context context, Long contactId, String domain) {
+        super.open(context, "CubeContact_" + domain + "_" + contactId + ".db", VERSION);
+        this.domain = domain;
     }
 
     /**
@@ -135,7 +120,7 @@ public class ContactStorage extends AbstractStorage {
             cursor.close();
         }
 
-        this.closeReadableDatabase();
+        this.closeReadableDatabase(db);
         return contact;
     }
 
@@ -201,7 +186,7 @@ public class ContactStorage extends AbstractStorage {
             }
         }
 
-        this.closeWritableDatabase();
+        this.closeWritableDatabase(db);
         return result;
     }
 
@@ -224,7 +209,7 @@ public class ContactStorage extends AbstractStorage {
         // 执行更新
         db.update("contact", values, "id=?", new String[] { contactId.toString() });
 
-        this.closeWritableDatabase();
+        this.closeWritableDatabase(db);
 
         return now;
     }
@@ -259,38 +244,31 @@ public class ContactStorage extends AbstractStorage {
             db.insert("appendix", null, values);
         }
 
-        this.closeWritableDatabase();
+        this.closeWritableDatabase(db);
     }
 
-    private class SQLite extends SQLiteOpenHelper {
+    @Override
+    protected void onDatabaseCreate(SQLiteDatabase database) {
+        // 联系人表
+        database.execSQL("CREATE TABLE IF NOT EXISTS `contact` (`sn` INTEGER PRIMARY KEY AUTOINCREMENT, `id` BIGINT, `name` TEXT, `context` TEXT, `timestamp` BIGINT DEFAULT 0, `last` BIGINT DEFAULT 0, `expiry` BIGINT DEFAULT 0)");
 
-        public SQLite(Context context, Long contactId, String domain) {
-            super(context, "CubeContact_" + domain + "_" + contactId + ".db", null, VERSION);
-        }
+        // 群组表
+        database.execSQL("CREATE TABLE IF NOT EXISTS `group` (`sn` INTEGER PRIMARY KEY AUTOINCREMENT, `id` BIGINT, `name` TEXT, `owner` TEXT, `tag` TEXT, `creation` BIGINT, `last_active` BIGINT, `state` INTEGER, `context` TEXT)");
 
-        @Override
-        public void onCreate(SQLiteDatabase sqLiteDatabase) {
-            // 联系人表
-            sqLiteDatabase.execSQL("CREATE TABLE IF NOT EXISTS `contact` (`sn` BIGINT PRIMARY KEY AUTOINCREMENT, `id` BIGINT, `name` TEXT, `context` TEXT, `timestamp` BIGINT DEFAULT 0, `last` BIGINT DEFAULT 0, `expiry` BIGINT DEFAULT 0)");
+        // 群成员表
+        database.execSQL("CREATE TABLE IF NOT EXISTS `group_member` (`sn` INTEGER PRIMARY KEY AUTOINCREMENT, `group` BIGINT, `contact_id` BIGINT, `contact_name` TEXT, `contact_context` TEXT)");
 
-            // 群组表
-            sqLiteDatabase.execSQL("CREATE TABLE IF NOT EXISTS `group` (`sn` BIGINT PRIMARY KEY AUTOINCREMENT, `id` BIGINT, `name` TEXT, `owner` TEXT, `tag` TEXT, `creation` BIGINT, `last_active` BIGINT, `state` INTEGER, `context` TEXT)");
+        // 附录表
+        database.execSQL("CREATE TABLE IF NOT EXISTS `appendix` (`id` BIGINT PRIMARY KEY, `timestamp` BIGINT, `data` TEXT)");
 
-            // 群成员表
-            sqLiteDatabase.execSQL("CREATE TABLE IF NOT EXISTS `group_member` (`sn` BIGINT PRIMARY KEY AUTOINCREMENT, `group` BIGINT, `contact_id` BIGINT, `contact_name` TEXT, `contact_context` TEXT)");
+        // 联系人分区
+        database.execSQL("CREATE TABLE IF NOT EXISTS `contact_zone` (`id` BIGINT PRIMARY KEY, `name` TEXT, `display_name` TEXT, `state` INTEGER, `timestamp` BIGINT)");
 
-            // 附录表
-            sqLiteDatabase.execSQL("CREATE TABLE IF NOT EXISTS `appendix` (`id` BIGINT PRIMARY KEY, `timestamp` BIGINT, `data` TEXT)");
+        // 联系人分区参与者
+        database.execSQL("CREATE TABLE IF NOT EXISTS `contact_zone_participant` (`contact_zone_id` BIGINT, `contact_id` BIGINT, `state` INTEGER, `timestamp` BIGINT, `postscript` TEXT)");
+    }
 
-            // 联系人分区
-            sqLiteDatabase.execSQL("CREATE TABLE IF NOT EXISTS `contact_zone` (`id` BIGINT PRIMARY KEY, `name` TEXT, `display_name` TEXT, `state` INTEGER, `timestamp` BIGINT)");
-
-            // 联系人分区参与者
-            sqLiteDatabase.execSQL("CREATE TABLE IF NOT EXISTS `contact_zone_participant` (`contact_zone_id` BIGINT, `contact_id` BIGINT, `state` INTEGER, `timestamp` BIGINT, `postscript` TEXT)");
-        }
-
-        @Override
-        public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
-        }
+    @Override
+    protected void onDatabaseUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) {
     }
 }

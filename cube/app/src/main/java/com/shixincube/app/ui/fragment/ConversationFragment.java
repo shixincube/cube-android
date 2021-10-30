@@ -33,18 +33,25 @@ import com.shixincube.app.ui.presenter.ConversationPresenter;
 import com.shixincube.app.ui.view.ConversationView;
 import com.shixincube.app.widget.recyclerview.RecyclerView;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import butterknife.BindView;
 import cube.engine.CubeEngine;
+import cube.messaging.MessagingServiceEvent;
+import cube.util.ObservableEvent;
+import cube.util.Observer;
 
 /**
  * 最近消息会话界面。
  */
-public class ConversationFragment extends BaseFragment<ConversationView, ConversationPresenter> implements ConversationView {
+public class ConversationFragment extends BaseFragment<ConversationView, ConversationPresenter> implements ConversationView, Observer {
 
     @BindView(R.id.rvConversations)
     RecyclerView recentConversationView;
 
-    private boolean first = true;
+    private AtomicBoolean first = new AtomicBoolean(true);
+
+    private AtomicBoolean loaded = new AtomicBoolean(false);
 
     public ConversationFragment() {
         super();
@@ -54,33 +61,30 @@ public class ConversationFragment extends BaseFragment<ConversationView, Convers
     public void onResume() {
         super.onResume();
 
-        if (!this.first) {
+        if (!this.first.get()) {
             this.presenter.loadConversations();
         }
     }
 
     @Override
-    public void initData() {
-        (new Thread() {
-            @Override
-            public void run() {
-                int count = 100;
-                while (!CubeEngine.getInstance().getMessagingService().isReady()) {
-                    try {
-                        Thread.sleep(10L);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    --count;
-                    if (count <= 0) {
-                        break;
-                    }
-                }
+    public void onDestroy() {
+        super.onDestroy();
 
-                presenter.loadConversations();
-                first = false;
-            }
-        }).start();
+        CubeEngine.getInstance().getMessagingService().detachWithName(MessagingServiceEvent.Ready, this);
+    }
+
+    @Override
+    public void init() {
+        CubeEngine.getInstance().getMessagingService().attachWithName(MessagingServiceEvent.Ready, this);
+    }
+
+    @Override
+    public void initData() {
+        if (CubeEngine.getInstance().getMessagingService().isReady() && !this.loaded.get()) {
+            this.loaded.set(true);
+            this.presenter.loadConversations();
+            this.first.set(false);
+        }
     }
 
     @Override
@@ -96,5 +100,21 @@ public class ConversationFragment extends BaseFragment<ConversationView, Convers
     @Override
     public RecyclerView getRecentConversationView() {
         return this.recentConversationView;
+    }
+
+    @Override
+    public void update(ObservableEvent event) {
+        if (MessagingServiceEvent.Ready.equals(event.getName())) {
+            if (!this.loaded.get()) {
+                this.loaded.set(true);
+                this.first.set(false);
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        presenter.loadConversations();
+                    }
+                });
+            }
+        }
     }
 }

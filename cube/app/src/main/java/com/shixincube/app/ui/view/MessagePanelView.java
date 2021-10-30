@@ -24,30 +24,10 @@
  * SOFTWARE.
  */
 
-package cube.messaging;
-
-import java.util.List;
-
-import cube.messaging.model.Conversation;
+package com.shixincube.app.ui.view;
 
 /**
- * 消息模块最近事件监听器。
+ * 消息面板。
  */
-public interface MessagingRecentEventListener {
-
-    /**
-     * 当有相关会话更新时该方法被回调。
-     *
-     * @param conversation 被更新的会话。
-     * @param service 消息服务。
-     */
-    void onConversationUpdated(Conversation conversation, MessagingService service);
-
-    /**
-     * 当会话清单更新时该方法被回调。
-     *
-     * @param conversationList 被更新的会话清单。
-     * @param service 消息服务。
-     */
-    void onConversationListUpdated(List<Conversation> conversationList, MessagingService service);
+public interface MessagePanelView {
 }

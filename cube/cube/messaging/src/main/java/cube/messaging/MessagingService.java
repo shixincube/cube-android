@@ -120,7 +120,7 @@ public class MessagingService extends Module {
         this.contactService.attachWithName(ContactServiceEvent.SignOut, this.observer);
 
         synchronized (this) {
-            if (null != this.contactService.getSelf() && !this.ready) {
+            if (null != this.contactService.getSelf() && !this.ready && !this.preparing.get()) {
                 this.prepare(new CompletionHandler() {
                     @Override
                     public void handleCompletion(Module module) {
@@ -218,6 +218,30 @@ public class MessagingService extends Module {
         }
 
         return this.conversations;
+    }
+
+    /**
+     * 获取指定 ID 的会话。
+     *
+     * @param id 指定会话 ID 。
+     * @return 返回会话实例。
+     */
+    public Conversation getConversation(Long id) {
+        synchronized (this) {
+            if (null == this.conversations || this.conversations.isEmpty()) {
+                return this.storage.readConversation(id);
+            }
+            else {
+                for (Conversation conversation : this.conversations) {
+                    if (conversation.id.longValue() == id.longValue()) {
+                        return conversation;
+                    }
+                }
+            }
+        }
+
+        // 从存储里读取
+        return this.storage.readConversation(id);
     }
 
     /*
@@ -412,7 +436,7 @@ public class MessagingService extends Module {
                                 }
                             }
 
-                            recentEventListener.conversationListUpdated(getRecentConversations(), MessagingService.this);
+                            recentEventListener.onConversationListUpdated(getRecentConversations(), MessagingService.this);
                         }
                     }
                 });
@@ -421,40 +445,22 @@ public class MessagingService extends Module {
     }
 
     protected void fireContactEvent(ObservableEvent event) {
-        if (this.pipeline.isReady()) {
-            if (event.name.equals(ContactServiceEvent.SignIn)) {
-                synchronized (this) {
-                    if (!this.ready && !this.preparing.get()) {
-                        // 准备数据
-                        this.prepare(new CompletionHandler() {
-                            @Override
-                            public void handleCompletion(Module module) {
-                                ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Ready, MessagingService.this);
-                                notifyObservers(event);
-                            }
-                        });
-                    }
+        if (ContactServiceEvent.SelfReady.equals(event.name)) {
+            synchronized (this) {
+                if (!this.ready && !this.preparing.get()) {
+                    // 准备数据
+                    this.prepare(new CompletionHandler() {
+                        @Override
+                        public void handleCompletion(Module module) {
+                            ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Ready, MessagingService.this);
+                            notifyObservers(event);
+                        }
+                    });
                 }
-            }
-            else if (event.name.equals(ContactServiceEvent.SignOut)) {
-                // TODO
             }
         }
-        else {
-            if (event.name.equals(ContactServiceEvent.SelfReady)) {
-                synchronized (this) {
-                    if (!this.ready && !this.preparing.get()) {
-                        // 准备数据
-                        this.prepare(new CompletionHandler() {
-                            @Override
-                            public void handleCompletion(Module module) {
-                                ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Ready, MessagingService.this);
-                                notifyObservers(event);
-                            }
-                        });
-                    }
-                }
-            }
+        else if (ContactServiceEvent.SignOut.equals(event.name)) {
+            // TODO
         }
     }
 

@@ -24,30 +24,20 @@
  * SOFTWARE.
  */
 
-package cube.messaging;
+package com.shixincube.app.ui.presenter;
 
-import java.util.List;
+import com.shixincube.app.ui.base.BaseFragmentActivity;
+import com.shixincube.app.ui.base.BaseFragmentPresenter;
+import com.shixincube.app.ui.view.MessagePanelView;
 
 import cube.messaging.model.Conversation;
 
 /**
- * 消息模块最近事件监听器。
+ * 消息面板。
  */
-public interface MessagingRecentEventListener {
+public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelView> {
 
-    /**
-     * 当有相关会话更新时该方法被回调。
-     *
-     * @param conversation 被更新的会话。
-     * @param service 消息服务。
-     */
-    void onConversationUpdated(Conversation conversation, MessagingService service);
-
-    /**
-     * 当会话清单更新时该方法被回调。
-     *
-     * @param conversationList 被更新的会话清单。
-     * @param service 消息服务。
-     */
-    void onConversationListUpdated(List<Conversation> conversationList, MessagingService service);
+    public MessagePanelPresenter(BaseFragmentActivity activity, Conversation conversation) {
+        super(activity);
+    }
 }

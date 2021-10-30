@@ -24,30 +24,37 @@
  * SOFTWARE.
  */
 
-package cube.messaging;
+package com.shixincube.app.ui.base;
 
-import java.util.List;
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
 
-import cube.messaging.model.Conversation;
+public class BaseFragmentPresenter<V> {
 
-/**
- * 消息模块最近事件监听器。
- */
-public interface MessagingRecentEventListener {
+    protected BaseFragmentActivity activity;
 
-    /**
-     * 当有相关会话更新时该方法被回调。
-     *
-     * @param conversation 被更新的会话。
-     * @param service 消息服务。
-     */
-    void onConversationUpdated(Conversation conversation, MessagingService service);
+    protected Reference<V> viewRef;
 
-    /**
-     * 当会话清单更新时该方法被回调。
-     *
-     * @param conversationList 被更新的会话清单。
-     * @param service 消息服务。
-     */
-    void onConversationListUpdated(List<Conversation> conversationList, MessagingService service);
+    public BaseFragmentPresenter(BaseFragmentActivity activity) {
+        this.activity = activity;
+    }
+
+    public void attachView(V view) {
+        this.viewRef = new WeakReference<V>(view);
+    }
+
+    public boolean isViewAttached() {
+        return this.viewRef != null && this.viewRef.get() != null;
+    }
+
+    public void detachView() {
+        if (this.viewRef != null) {
+            this.viewRef.clear();
+            this.viewRef = null;
+        }
+    }
+
+    public V getView() {
+        return this.viewRef != null ? this.viewRef.get() : null;
+    }
 }

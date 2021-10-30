@@ -71,6 +71,10 @@
             android:screenOrientation="portrait">
         </activity>
         <activity
+            android:name=".ui.activity.MessagePanelActivity"
+            android:screenOrientation="portrait">
+        </activity>
+        <activity
             android:name=".ui.activity.ProfileInfoActivity"
             android:screenOrientation="portrait">
         </activity>

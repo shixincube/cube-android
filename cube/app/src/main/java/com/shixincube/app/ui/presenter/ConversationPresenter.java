@@ -26,11 +26,13 @@
 
 package com.shixincube.app.ui.presenter;
 
+import android.content.Intent;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.shixincube.app.R;
 import com.shixincube.app.model.MessageConversation;
+import com.shixincube.app.ui.activity.MessagePanelActivity;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.ConversationView;
@@ -106,7 +108,10 @@ public class ConversationPresenter extends BasePresenter<ConversationView> {
             this.adapter.setOnItemClickListener(new OnItemClickListener() {
                 @Override
                 public void onItemClick(ViewHolder helper, ViewGroup parent, View itemView, int position) {
-
+                    MessageConversation mc = messageConversations.get(position);
+                    Intent intent = new Intent(activity, MessagePanelActivity.class);
+                    intent.putExtra("conversationId", mc.getConversation().getId());
+                    activity.jumpToActivity(intent);
                 }
             });
 

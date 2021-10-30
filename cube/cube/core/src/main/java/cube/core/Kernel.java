@@ -161,7 +161,6 @@ public class Kernel implements PipelineListener {
     public boolean isReady() {
         AuthService service = (AuthService) this.getModule(AuthService.NAME);
         AuthToken authToken = service.getToken();
-        
         return this.working && (null != authToken && authToken.isValid());
     }
 

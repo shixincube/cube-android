@@ -44,11 +44,6 @@ public abstract class AbstractStorage implements Storage {
 
     private AtomicBoolean opened;
 
-//    private AtomicInteger readDBCounter;
-//    private SQLiteDatabase readableDatabase;
-//    private AtomicInteger writeDBCounter;
-//    private SQLiteDatabase writableDatabase;
-
     private Queue<SQLiteDatabase> readableDatabaseQueue;
 
     private Queue<SQLiteDatabase> writableDatabaseQueue;
@@ -58,23 +53,22 @@ public abstract class AbstractStorage implements Storage {
         this.opened = new AtomicBoolean(false);
         this.readableDatabaseQueue = new LinkedList<>();
         this.writableDatabaseQueue = new LinkedList<>();
-//        this.readDBCounter = new AtomicInteger(0);
-//        this.writeDBCounter = new AtomicInteger(0);
     }
 
     @Override
     public void open(Context context, String filename, int version) {
         if (null == this.sqlite) {
             this.sqlite = new SQLite(context, filename, version);
-            (new Thread() {
-                @Override
-                public void run() {
-                    SQLiteDatabase db = sqlite.getReadableDatabase();
-                    synchronized (readableDatabaseQueue) {
-                        readableDatabaseQueue.offer(db);
-                    }
-                }
-            }).start();
+            this.opened.set(true);
+//            (new Thread() {
+//                @Override
+//                public void run() {
+//                    SQLiteDatabase db = sqlite.getReadableDatabase();
+//                    synchronized (readableDatabaseQueue) {
+//                        readableDatabaseQueue.offer(db);
+//                    }
+//                }
+//            }).start();
         }
     }
 
@@ -116,13 +110,6 @@ public abstract class AbstractStorage implements Storage {
             }
             return db;
         }
-
-//        synchronized (this.writeDBCounter) {
-//            if (this.writeDBCounter.incrementAndGet() == 1) {
-//                this.writableDatabase = this.sqlite.getWritableDatabase();
-//            }
-//            return this.writableDatabase;
-//        }
     }
 
     public SQLiteDatabase getReadableDatabase() {
@@ -143,35 +130,18 @@ public abstract class AbstractStorage implements Storage {
             }
             return db;
         }
-
-//        synchronized (this.readDBCounter) {
-//            if (this.readDBCounter.incrementAndGet() == 1) {
-//                this.readableDatabase = this.sqlite.getReadableDatabase();
-//            }
-//            return this.readableDatabase;
-//        }
     }
 
     public void closeWritableDatabase(SQLiteDatabase database) {
         synchronized (this.writableDatabaseQueue) {
             this.writableDatabaseQueue.offer(database);
         }
-//        synchronized (this.writeDBCounter) {
-//            if (this.writeDBCounter.decrementAndGet() == 0) {
-//                this.writableDatabase.close();
-//            }
-//        }
     }
 
     public void closeReadableDatabase(SQLiteDatabase database) {
         synchronized (this.readableDatabaseQueue) {
             this.readableDatabaseQueue.offer(database);
         }
-//        synchronized (this.readDBCounter) {
-//            if (this.readDBCounter.decrementAndGet() == 0) {
-//                this.readableDatabase.close();
-//            }
-//        }
     }
 
     /**

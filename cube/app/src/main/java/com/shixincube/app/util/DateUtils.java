@@ -37,6 +37,10 @@ public class DateUtils {
     private DateUtils() {
     }
 
+    public static String formatConversationTime(long timestamp) {
+        return DateUtils.formatConversationTime(new Date(timestamp));
+    }
+
     public static String formatConversationTime(Date date) {
         Calendar now = Calendar.getInstance();
         Calendar time = Calendar.getInstance();
@@ -49,7 +53,7 @@ public class DateUtils {
         }
         else if (days == 1) {
             // 昨天
-            return "昨天 " + formatHourMinute(time);
+            return "昨天 " + formatToday(time);
         }
         else if (days <= 7) {
             // 星期

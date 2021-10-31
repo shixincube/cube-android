@@ -26,8 +26,12 @@
 
 package com.shixincube.app.ui.view;
 
+import com.shixincube.app.widget.recyclerview.RecyclerView;
+
 /**
  * 消息面板。
  */
 public interface MessagePanelView {
+
+    RecyclerView getMessageListView();
 }

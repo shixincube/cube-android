@@ -33,6 +33,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -68,6 +69,9 @@ public abstract class BaseFragmentActivity<V, T extends BaseFragmentPresenter<V>
 
     @BindView(R.id.tvToolbarSubTitle)
     protected TextView toolbarSubTitle;
+
+    @BindView(R.id.ibToolbarMore)
+    protected ImageButton toolbarMore;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {

@@ -27,12 +27,15 @@
 package com.shixincube.app.ui.activity;
 
 import android.content.Intent;
+import android.view.View;
 
 import com.shixincube.app.R;
 import com.shixincube.app.ui.base.BaseFragmentActivity;
 import com.shixincube.app.ui.presenter.MessagePanelPresenter;
 import com.shixincube.app.ui.view.MessagePanelView;
+import com.shixincube.app.widget.recyclerview.RecyclerView;
 
+import butterknife.BindView;
 import cn.bingoogolapple.refreshlayout.BGARefreshLayout;
 import cube.engine.CubeEngine;
 import cube.messaging.model.Conversation;
@@ -41,6 +44,9 @@ import cube.messaging.model.Conversation;
  * 消息面板。
  */
 public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView, MessagePanelPresenter> implements MessagePanelView, BGARefreshLayout.BGARefreshLayoutDelegate {
+
+    @BindView(R.id.rvMessages)
+    RecyclerView messageListView;
 
     private Conversation conversation;
 
@@ -53,6 +59,13 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
         Intent intent = getIntent();
         Long conversationId = intent.getLongExtra("conversationId", 0L);
         this.conversation = CubeEngine.getInstance().getMessagingService().getConversation(conversationId);
+    }
+
+    @Override
+    public void initView() {
+        setToolbarTitle(this.conversation.getDisplayName());
+        this.toolbarMore.setImageResource(R.mipmap.ic_contact_info_black);
+        this.toolbarMore.setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -73,5 +86,10 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
     @Override
     public boolean onBGARefreshLayoutBeginLoadingMore(BGARefreshLayout refreshLayout) {
         return false;
+    }
+
+    @Override
+    public RecyclerView getMessageListView() {
+        return this.messageListView;
     }
 }

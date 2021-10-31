@@ -18,9 +18,13 @@
         <entry key="app/src/main/res/drawable/shape_badge.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/shape_bottom_theme.xml" value="0.3203125" />
         <entry key="app/src/main/res/drawable/shape_horizontal_line.xml" value="0.20230263157894737" />
+        <entry key="app/src/main/res/drawable/shape_message_box_partner.xml" value="0.240234375" />
+        <entry key="app/src/main/res/drawable/shape_message_box_receiver.xml" value="0.240234375" />
+        <entry key="app/src/main/res/drawable/shape_message_box_sender.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/shape_message_btn_send.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/shape_message_btn_voice_normal.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/shape_message_btn_voice_press.xml" value="0.240234375" />
+        <entry key="app/src/main/res/drawable/shape_notification_bg.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/shape_register_send_code_disable.xml" value="0.3203125" />
         <entry key="app/src/main/res/drawable/shape_register_send_code_enable.xml" value="0.3203125" />
         <entry key="app/src/main/res/drawable/shape_splash_login.xml" value="0.3203125" />
@@ -41,6 +45,8 @@
         <entry key="app/src/main/res/layout/fragment_profile.xml" value="0.1" />
         <entry key="app/src/main/res/layout/include_toolbar.xml" value="0.2545289855072464" />
         <entry key="app/src/main/res/layout/item_conversation.xml" value="0.18237704918032788" />
+        <entry key="app/src/main/res/layout/item_text_receive.xml" value="0.16393442622950818" />
+        <entry key="app/src/main/res/layout/item_text_send.xml" value="0.1" />
       </map>
     </option>
   </component>

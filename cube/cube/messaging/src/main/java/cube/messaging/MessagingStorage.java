@@ -116,6 +116,38 @@ public class MessagingStorage extends AbstractStorage {
     }
 
     /**
+     * 获取最近一次更新的会话。
+     *
+     * @return
+     */
+    public Conversation getLastConversation() {
+        Conversation conversation = null;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM `conversation` WHERE `state`=? OR `state`=? ORDER BY `timestamp` DESC LIMIT 1", new String[] { ConversationState.Normal.toString(), ConversationState.Important.toString() });
+        if (cursor.moveToFirst()) {
+            try {
+                String messageString = cursor.getString(cursor.getColumnIndex("recent_message"));
+                Message recentMessage = new Message(this.service, new JSONObject(messageString));
+
+                conversation = new Conversation(cursor.getLong(cursor.getColumnIndex("id")),
+                        cursor.getLong(cursor.getColumnIndex("timestamp")),
+                        ConversationType.parse(cursor.getInt(cursor.getColumnIndex("type"))),
+                        ConversationState.parse(cursor.getInt(cursor.getColumnIndex("state"))),
+                        cursor.getLong(cursor.getColumnIndex("pivotal_id")),
+                        recentMessage,
+                        ConversationReminded.parse(cursor.getInt(cursor.getColumnIndex("remind"))));
+                // 填充实例
+                this.service.fillConversation(conversation);
+            } catch (JSONException e) {
+                // Nothing;
+            }
+        }
+        cursor.close();
+        this.closeReadableDatabase(db);
+        return conversation;
+    }
+
+    /**
      * 读取指定 ID 的会话。
      *
      * @param conversationId

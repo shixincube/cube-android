@@ -217,6 +217,18 @@ public class Conversation extends Entity {
     }
 
     @Override
+    public boolean equals(Object object) {
+        if (null != object && object instanceof Conversation) {
+            Conversation other = (Conversation) object;
+            if (other.id.longValue() == this.id.longValue() && other.timestamp == this.timestamp) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    @Override
     public JSONObject toJSON() {
         JSONObject json = super.toJSON();
         return json;

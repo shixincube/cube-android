@@ -281,9 +281,12 @@ public class MessagingService extends Module {
 
         long now = System.currentTimeMillis();
 
+        MutableBoolean first = new MutableBoolean(false);
+
         // 查询本地最近消息时间
         long time = this.storage.queryLastMessageTime();
         if (0 == time) {
+            first.value = true;
             this.lastMessageTime = now - this.retrospectDuration;
         }
         else {
@@ -298,6 +301,16 @@ public class MessagingService extends Module {
             this.preparing.notifyAll();
         }
 
+        if (!first.value) {
+            // 不是第一次获取数据，直接回调
+            this.execute(new Runnable() {
+                @Override
+                public void run() {
+                    handler.handleCompletion(MessagingService.this);
+                }
+            });
+        }
+
         MutableBoolean gotMessages = new MutableBoolean(false);
         MutableBoolean gotConversations = new MutableBoolean(false);
 
@@ -308,17 +321,19 @@ public class MessagingService extends Module {
                 gotMessages.value = true;
                 if (gotConversations.value) {
                     preparing.set(false);
-                    handler.handleCompletion(MessagingService.this);
+                    if (first.value) {
+                        handler.handleCompletion(MessagingService.this);
+                    }
                 }
             }
         });
 
         // 获取最新的会话列表
         // 根据最近一次消息时间戳更新数量
-        int limit = 50;
+        int limit = 30;
         if (now - this.lastMessageTime > 1L * 60L * 60L * 1000L) {
             // 大于一小时
-            limit = 200;
+            limit = 50;
         }
         this.queryRemoteConversations(limit, new CompletionHandler() {
             @Override
@@ -326,7 +341,9 @@ public class MessagingService extends Module {
                 gotConversations.value = true;
                 if (gotMessages.value) {
                     preparing.set(false);
-                    handler.handleCompletion(MessagingService.this);
+                    if (first.value) {
+                        handler.handleCompletion(MessagingService.this);
+                    }
                 }
             }
         });
@@ -422,14 +439,29 @@ public class MessagingService extends Module {
                 execute(new Runnable() {
                     @Override
                     public void run() {
-                        // 更新到数据
+                        if (conversationList.isEmpty()) {
+                            // 回调
+                            completionHandler.handleCompletion(MessagingService.this);
+                            return;
+                        }
+
+                        boolean changed = true;
+                        Conversation lastConversation = storage.getLastConversation();
+                        Conversation firstConversation = conversationList.get(0);
+                        if (null != lastConversation && lastConversation.equals(firstConversation)) {
+                            // 本地存储的最近会话与服务器返回的一致，数据没有变化
+                            // 这样判断会有误判，但是仅需要比较一条记录
+                            changed = false;
+                        }
+
+                        // 更新到数据库
                         storage.updateConversations(conversationList);
 
                         // 回调
                         completionHandler.handleCompletion(MessagingService.this);
 
                         // 回调事件监听器
-                        if (null != recentEventListener) {
+                        if (changed && null != recentEventListener) {
                             synchronized (MessagingService.this) {
                                 if (null != conversations) {
                                     conversations.clear();

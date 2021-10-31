@@ -178,7 +178,7 @@ public class MessagingService extends Module {
      * @return 返回消息列表。如果返回 {@code null} 值表示消息服务模块未启动。
      */
     public List<Conversation> getRecentConversations() {
-        return this.getRecentConversations(100);
+        return this.getRecentConversations(50);
     }
 
     /**

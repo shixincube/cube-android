@@ -41,11 +41,6 @@ public class MessageConversation {
     public final Conversation conversation;
 
     /**
-     * 头像图片名称。
-     */
-    private String avatarName;
-
-    /**
      * 头像图片 URL 。
      */
     private String avatarURL;

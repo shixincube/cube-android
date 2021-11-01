@@ -108,13 +108,16 @@
 
         <!-- 头像 -->
         <com.shixincube.app.widget.AdvancedImageView
-            android:id="@+id/aivAvatar"
+            android:id="@+id/ivAvatar"
             android:layout_width="40dp"
             android:layout_height="40dp"
+            android:layout_marginStart="8dp"
             android:focusable="false"
             android:focusableInTouchMode="false"
             android:src="@mipmap/avatar_default"
-            auto:corner_radius="4dp"/>
+            auto:corner_radius="4dp"
+            auto:border_color="@color/line"
+            auto:border_width="1dp"/>
 
     </LinearLayout>
 

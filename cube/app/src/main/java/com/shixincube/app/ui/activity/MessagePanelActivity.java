@@ -64,6 +64,7 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
     @Override
     public void initView() {
         setToolbarTitle(this.conversation.getDisplayName());
+
         this.toolbarMore.setImageResource(R.mipmap.ic_contact_info_black);
         this.toolbarMore.setVisibility(View.VISIBLE);
     }

@@ -23,12 +23,13 @@
                 android:layout_marginStart="10dp"
                 android:src="@mipmap/ic_back_black" />
 
+            <!--android:background="@drawable/shape_vertical_line"-->
             <View
                 android:id="@+id/vToolbarDivision"
-                android:layout_width="20dp"
+                android:layout_width="18dp"
                 android:layout_height="match_parent"
                 android:layout_toEndOf="@id/ivToolbarNavigation"
-                android:background="@drawable/shape_vertical_line"
+                android:background="@color/toolbar_bg"
                 android:visibility="gone" />
 
             <com.zhy.autolayout.AutoLinearLayout

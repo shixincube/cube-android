@@ -28,6 +28,7 @@ package com.shixincube.app.ui.adapter;
 
 import android.content.Context;
 import android.view.View;
+import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
 import com.shixincube.app.R;
@@ -35,7 +36,6 @@ import com.shixincube.app.manager.AccountHelper;
 import com.shixincube.app.model.Account;
 import com.shixincube.app.ui.presenter.MessagePanelPresenter;
 import com.shixincube.app.util.DateUtils;
-import com.shixincube.app.widget.AdvancedImageView;
 import com.shixincube.app.widget.adapter.AdapterForRecyclerView;
 import com.shixincube.app.widget.adapter.ViewHolderForRecyclerView;
 
@@ -97,8 +97,13 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
     }
 
     private void setAvatar(ViewHolderForRecyclerView helper, Message item, int position) {
-        AdvancedImageView view = helper.getView(R.id.aivAvatar);
+        ImageView view = helper.getView(R.id.ivAvatar);
+        if (null == view) {
+            return;
+        }
+
         String avatarName = Account.getAvatar(item.getSender().getContext());
+//        view.setImageResource(AccountHelper.explainAvatarForResource(avatarName));
         Glide.with(getContext()).load(AccountHelper.explainAvatarForResource(avatarName)).centerCrop().into(view);
     }
 

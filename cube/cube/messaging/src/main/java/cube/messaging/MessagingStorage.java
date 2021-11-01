@@ -278,7 +278,7 @@ public class MessagingStorage extends AbstractStorage {
                     Message message = new Message(this.service, json);
 
                     // 填充数据
-                    this.service.fillMessage(message);
+                    message = this.service.fillMessage(message);
 
                     list.add(message);
                 } catch (JSONException e) {
@@ -416,7 +416,7 @@ public class MessagingStorage extends AbstractStorage {
             try {
                 Message message = new Message(this.service, new JSONObject(dataString));
                 // 填充
-                this.service.fillMessage(message);
+                message = this.service.fillMessage(message);
 
                 messageList.add(message);
             } catch (JSONException e) {

@@ -26,8 +26,10 @@
 
 package com.shixincube.app.widget;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -36,12 +38,15 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.RectF;
 import android.graphics.Xfermode;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Build;
 import android.util.AttributeSet;
+import android.widget.ImageView;
 
 import androidx.annotation.ColorInt;
+import androidx.annotation.DrawableRes;
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.AppCompatImageView;
 
 import com.shixincube.app.R;
 import com.shixincube.app.util.UIUtils;
@@ -49,7 +54,8 @@ import com.shixincube.app.util.UIUtils;
 /**
  * 改进的图片控件。
  */
-public class AdvancedImageView extends AppCompatImageView {
+@SuppressLint("AppCompatCustomView")
+public class AdvancedImageView extends ImageView {
 
     private Context context;
 
@@ -84,6 +90,8 @@ public class AdvancedImageView extends AppCompatImageView {
     private Path path; // 用来裁剪图片的ptah
     private Path srcPath; // 图片区域大小的path
 
+    private boolean drawableDirty;
+
     public AdvancedImageView(Context context) {
         this(context, null);
     }
@@ -93,7 +101,11 @@ public class AdvancedImageView extends AppCompatImageView {
     }
 
     public AdvancedImageView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr);
+        this(context, attrs, defStyleAttr, 0);
+    }
+
+    public AdvancedImageView(Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+        super(context, attrs, defStyleAttr, defStyleRes);
 
         this.context = context;
 
@@ -149,6 +161,42 @@ public class AdvancedImageView extends AppCompatImageView {
     }
 
     @Override
+    public void setPadding(int left, int top, int right, int bottom) {
+        super.setPadding(left, top, right, bottom);
+        calculateRadiiAndRectF(false);
+    }
+
+    @Override
+    public void setPaddingRelative(int start, int top, int end, int bottom) {
+        super.setPaddingRelative(start, top, end, bottom);
+        calculateRadiiAndRectF(false);
+    }
+
+    @Override
+    public void setImageBitmap(Bitmap bm) {
+        super.setImageBitmap(bm);
+        invalidate();
+    }
+
+    @Override
+    public void setImageDrawable(Drawable drawable) {
+        super.setImageDrawable(drawable);
+        invalidate();
+    }
+
+    @Override
+    public void setImageResource(@DrawableRes int resId) {
+        super.setImageResource(resId);
+        invalidate();
+    }
+
+    @Override
+    public void setImageURI(Uri uri) {
+        super.setImageURI(uri);
+        invalidate();
+    }
+
+    @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
         width = w;
@@ -168,7 +216,6 @@ public class AdvancedImageView extends AppCompatImageView {
             // 缩小画布，使图片内容不被borders覆盖
             canvas.scale(sx, sy, width / 2.0f, height / 2.0f);
         }
-        super.onDraw(canvas);
         paint.reset();
         path.reset();
         if (isCircle) {
@@ -177,18 +224,21 @@ public class AdvancedImageView extends AppCompatImageView {
             path.addRoundRect(srcRectF, srcRadii, Path.Direction.CCW);
         }
 
-        paint.setAntiAlias(true);
-        paint.setStyle(Paint.Style.FILL);
-        paint.setXfermode(xfermode);
+//        paint.setAntiAlias(true);
+//        paint.setStyle(Paint.Style.FILL);
+//        paint.setXfermode(xfermode);
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O_MR1) {
             canvas.drawPath(path, paint);
         } else {
-            srcPath.addRect(srcRectF, Path.Direction.CCW);
+//            srcPath.addRect(srcRectF, Path.Direction.CCW);
             // 计算tempPath和path的差集
-            srcPath.op(path, Path.Op.DIFFERENCE);
-            canvas.drawPath(srcPath, paint);
+//            srcPath.op(path, Path.Op.DIFFERENCE);
+//            canvas.drawPath(srcPath, paint);
+            canvas.clipPath(path);
         }
-        paint.setXfermode(null);
+//        paint.setXfermode(null);
+
+        super.onDraw(canvas);
 
         // 绘制遮罩
         if (maskColor != 0) {
@@ -266,6 +316,7 @@ public class AdvancedImageView extends AppCompatImageView {
         if (isCircle) {
             return;
         }
+
         if (cornerRadius > 0) {
             for (int i = 0; i < borderRadii.length; i++) {
                 borderRadii[i] = cornerRadius;

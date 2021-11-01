@@ -28,12 +28,12 @@
 
                 <!-- 图标/头像 -->
                 <com.shixincube.app.widget.AdvancedImageView
-                    android:id="@+id/aivAvatar"
+                    android:id="@+id/ivAvatar"
                     android:layout_width="60dp"
                     android:layout_height="60dp"
                     android:layout_centerInParent="true"
                     android:src="@mipmap/avatar_default"
-                    auto:corner_radius="8dp"/>
+                    auto:corner_radius="6dp"/>
 
             </com.zhy.autolayout.AutoRelativeLayout>
 

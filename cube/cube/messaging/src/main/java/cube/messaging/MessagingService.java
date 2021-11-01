@@ -59,7 +59,6 @@ import cube.messaging.model.Conversation;
 import cube.messaging.model.ConversationState;
 import cube.messaging.model.ConversationType;
 import cube.messaging.model.Message;
-import cube.messaging.model.MessageType;
 import cube.util.ObservableEvent;
 
 /**
@@ -262,33 +261,6 @@ public class MessagingService extends Module {
 
         return null;
     }
-
-    /*
-     * 获取最近的消息清单，返回的每条消息都来自不同的会话联系人或群组。
-     *
-     * @param maxLimit 指定最大记录数量。
-     * @return 返回消息列表。如果返回 {@code null} 值表示消息服务模块未启动。
-     */
-    /*public List<Message> getRecentMessages(int maxLimit) {
-        if (!this.hasStarted()) {
-            return null;
-        }
-
-        List<Message> list = this.storage.queryRecentMessages(maxLimit);
-        if (list.isEmpty()) {
-            return list;
-        }
-
-        // 调用插件
-        Hook<Message> hook = (Hook<Message>) this.pluginSystem.getHook(InstantiateHook.NAME);
-        List<Message> result = new ArrayList<>(list.size());
-        for (Message message : list) {
-            Message compMessage = hook.apply(message);
-            result.add(compMessage);
-        }
-
-        return result;
-    }*/
 
     private void prepare(CompletionHandler handler) {
         this.preparing.set(true);
@@ -524,7 +496,7 @@ public class MessagingService extends Module {
         }
 
         // 填充消息相关实体对象
-        this.fillMessage(message);
+        Message compMessage = this.fillMessage(message);
 
         // 数据写入数据库
         boolean exists = this.storage.updateMessage(message);
@@ -535,9 +507,6 @@ public class MessagingService extends Module {
 
         if (!exists) {
             // 调用插件
-            Hook<Message> hook = (Hook<Message>) this.pluginSystem.getHook(InstantiateHook.NAME);
-            Message compMessage = hook.apply(message);
-
             ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Notify, compMessage);
             this.notifyObservers(event);
         }
@@ -581,7 +550,7 @@ public class MessagingService extends Module {
         }
     }
 
-    protected void fillMessage(Message message) {
+    protected Message fillMessage(Message message) {
         Self self = this.contactService.getSelf();
         message.setSelfTyper(message.getFrom() == self.id.longValue());
 
@@ -628,18 +597,17 @@ public class MessagingService extends Module {
                 // Nothing
             }
         }
+
+        // 实例化
+        Hook<Message> hook = (Hook<Message>) this.pluginSystem.getHook(InstantiateHook.NAME);
+        Message compMessage = hook.apply(message);
+        return compMessage;
     }
 
     protected void fillConversation(Conversation conversation) {
         // 填充消息
-        this.fillMessage(conversation.getRecentMessage());
-
-        // 按类型实例化
-        if (MessageType.Unknown == conversation.getRecentMessage().getType()) {
-            Hook<Message> hook = (Hook<Message>) this.pluginSystem.getHook(InstantiateHook.NAME);
-            Message compMessage = hook.apply(conversation.getRecentMessage());
-            conversation.setRecentMessage(compMessage);
-        }
+        Message recentMessage = this.fillMessage(conversation.getRecentMessage());
+        conversation.setRecentMessage(recentMessage);
 
         if (ConversationType.Contact == conversation.getType()) {
             Contact contact = this.contactService.getContact(conversation.getPivotalId());

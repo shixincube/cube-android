@@ -38,7 +38,6 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-import cube.contact.model.Contact;
 import cube.core.AbstractStorage;
 import cube.messaging.model.Conversation;
 import cube.messaging.model.ConversationReminded;
@@ -385,24 +384,36 @@ public class MessagingStorage extends AbstractStorage {
     }
 
     /**
+     * 读取指定 ID 的消息。
+     *
+     * @param messageId
+     * @return
+     */
+    public Message readMessage(Long messageId) {
+        return null;
+    }
+
+    /**
      * 反向查询消息。
      *
-     * @param contact
+     * @param contactId
      * @param timestamp
      * @param limit
      * @return
      */
-    protected MessageListResult queryMessagesByReverse(Contact contact, long timestamp, int limit) {
+    protected MessageListResult queryMessagesByReverseWithContact(Long contactId, long timestamp, int limit) {
         SQLiteDatabase db = this.getReadableDatabase();
 
         final List<Message> messageList = new ArrayList<>();
         final MutableBoolean hasMore = new MutableBoolean(false);
 
         // 查询消息记录，这里比 limit 多查一条记录以判断是否还有更多消息。
-        Cursor cursor = db.rawQuery("SELECT `data` FROM `message` WHERE `scope`=? AND `rts`<? ORDER BY `rts` DESC LIMIT ?"
+        Cursor cursor = db.rawQuery("SELECT `data` FROM `message` WHERE `scope`=? AND `rts`<? AND (`from`=? OR `to`=?) AND `source`=0 ORDER BY `rts` DESC LIMIT ?"
             , new String[] {
                         Integer.toString(MessageScope.Unlimited),
                         Long.toString(timestamp),
+                        contactId.toString(),
+                        contactId.toString(),
                         Integer.toString(limit + 1)
                 });
 

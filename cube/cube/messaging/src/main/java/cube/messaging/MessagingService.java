@@ -37,9 +37,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import cube.contact.ContactService;
@@ -91,6 +93,10 @@ public class MessagingService extends Module {
 
     private List<Conversation> conversations;
 
+    private long messageCacheLifespan = 5L * 60L * 1000L;
+
+    private Map<Long, MessageList> conversationMessageListMap;
+
     public MessagingService() {
         super(MessagingService.NAME);
         this.pipelineListener = new MessagingPipelineListener(this);
@@ -99,6 +105,7 @@ public class MessagingService extends Module {
         this.preparing = new AtomicBoolean(false);
         this.ready = false;
         this.lastMessageTime = 0;
+        this.conversationMessageListMap = new ConcurrentHashMap<>();
     }
 
     @Override
@@ -247,17 +254,59 @@ public class MessagingService extends Module {
      * 获取会话的最近消息。
      *
      * @param conversation
+     * @param limit
      * @return
      */
-    public MessageListResult getRecentMessages(Conversation conversation, int maxLimit) {
+    public MessageListResult getRecentMessages(Conversation conversation, int limit) {
+        MessageList list = this.conversationMessageListMap.get(conversation.id);
+        if (null != list) {
+            if (!list.messages.isEmpty()) {
+                final List<Message> resultList = new ArrayList<>(list.messages);
+                final boolean hasMore = list.hasMore;
+
+                return new MessageListResult() {
+                    @Override
+                    public List<Message> getList() {
+                        return resultList;
+                    }
+
+                    @Override
+                    public boolean hasMore() {
+                        return hasMore;
+                    }
+                };
+            }
+        }
+        else {
+            list = new MessageList();
+            this.conversationMessageListMap.put(conversation.id, list);
+        }
+
         if (conversation.getType() == ConversationType.Contact) {
-            MessageListResult result = this.storage.queryMessagesByReverse(conversation.getContact(),
-                    System.currentTimeMillis(), maxLimit);
+            MessageListResult result = this.storage.queryMessagesByReverseWithContact(conversation.getContact().getId(),
+                    System.currentTimeMillis(), limit);
             // 从数据库里查出来的是时间倒序，从大到小
             // 这里对列表进行翻转，翻转为时间正序
             Collections.reverse(result.getList());
+
+            // 重置列表
+            list.reset(result);
+
             return result;
         }
+
+        return null;
+    }
+
+    /**
+     * 查询指定联系人的消息。
+     *
+     * @param contact
+     * @param timestamp
+     * @param limit
+     * @return
+     */
+    public MessageListResult queryMessages(Contact contact, long timestamp, int limit) {
 
         return null;
     }

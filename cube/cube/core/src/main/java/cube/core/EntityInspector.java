@@ -45,11 +45,17 @@ public final class EntityInspector extends TimerTask {
 
     private List<Map<Long, ? extends Entity>> depositedMapArray;
 
-    private long lifecycle;
+    private List<List<? extends Entity>> depositedListArray;
+
+//    private Map<Long, Long> lifespanMap;
+
+    private long lifespan;
 
     public EntityInspector() {
         this.depositedMapArray = new Vector<>();
-        this.lifecycle = 10L * 1000L;
+        this.depositedListArray = new Vector<>();
+//        this.lifespanMap = new ConcurrentHashMap<>();
+        this.lifespan = 5L * 60L * 1000L;
     }
 
     /**
@@ -92,17 +98,37 @@ public final class EntityInspector extends TimerTask {
         this.depositedMapArray.remove(map);
     }
 
+    public void depositList(List<? extends Entity> list) {
+
+    }
+
+    public void withdrawList(List<? extends Entity> list) {
+
+    }
+
     @Override
     public void run() {
         int count = 0;
 
         long now = System.currentTimeMillis();
+
         for (Map<Long, ? extends Entity> map : this.depositedMapArray) {
             Iterator<? extends Map.Entry<Long, ? extends Entity>> iter = map.entrySet().iterator();
             while (iter.hasNext()) {
                 Map.Entry<Long, ? extends Entity> e = iter.next();
                 Entity entity = e.getValue();
-                if (now - entity.entityCreation > this.lifecycle) {
+                if (now - entity.entityCreation > this.lifespan) {
+                    iter.remove();
+                    ++count;
+                }
+            }
+        }
+
+        for (List<? extends Entity> list : this.depositedListArray) {
+            Iterator<? extends Entity> iter = list.iterator();
+            while (iter.hasNext()) {
+                Entity entity = iter.next();
+                if (now - entity.entityCreation > this.lifespan) {
                     iter.remove();
                     ++count;
                 }
@@ -111,4 +137,5 @@ public final class EntityInspector extends TimerTask {
 
         LogUtils.d("EntityInspector", "Clear count: " + count);
     }
+
 }

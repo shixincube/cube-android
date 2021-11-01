@@ -34,10 +34,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffXfermode;
 import android.graphics.RectF;
-import android.graphics.Xfermode;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
@@ -74,7 +71,7 @@ public class AdvancedImageView extends ImageView {
 
     private int maskColor; // 遮罩颜色
 
-    private Xfermode xfermode;
+//    private Xfermode xfermode;
 
     private int width;
     private int height;
@@ -149,12 +146,12 @@ public class AdvancedImageView extends ImageView {
         paint = new Paint();
         path = new Path();
 
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O_MR1) {
-            xfermode = new PorterDuffXfermode(PorterDuff.Mode.DST_IN);
-        } else {
-            xfermode = new PorterDuffXfermode(PorterDuff.Mode.DST_OUT);
-            srcPath = new Path();
-        }
+//        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O_MR1) {
+//            xfermode = new PorterDuffXfermode(PorterDuff.Mode.DST_IN);
+//        } else {
+//            xfermode = new PorterDuffXfermode(PorterDuff.Mode.DST_OUT);
+//            srcPath = new Path();
+//        }
 
         calculateRadii();
         clearInnerBorderWidth();

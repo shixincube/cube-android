@@ -62,7 +62,7 @@ public class ContactPipelineListener implements PipelineListener {
     @Override
     public void onOpened(Pipeline pipeline) {
         // 如果用户请求签入但是签入失败（在签入时可能没有网络），则在连接建立后尝试自动签入
-        if (null != this.service.self && !this.service.selfReady.get()) {
+        if (null != this.service.self && !this.service.signInReady.get()) {
             (new Thread() {
                 @Override
                 public void run() {

@@ -193,21 +193,30 @@ public class ContactStorage extends AbstractStorage {
     /**
      * 更新联系人的上下文数据。
      *
-     * @param contactId
-     * @param context
+     * @param contact
      * @return 返回当前更新的时间戳。
      */
-    public long updateContactContext(Long contactId, JSONObject context) {
+    public long updateContactContext(Contact contact) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         long now = System.currentTimeMillis();
 
         ContentValues values = new ContentValues();
-        values.put("context", context.toString());
+        values.put("context", contact.getContext().toString());
         values.put("last", now);
         values.put("expiry", now + Entity.LIFECYCLE_IN_MSEC);
         // 执行更新
-        db.update("contact", values, "id=?", new String[] { contactId.toString() });
+        int row = db.update("contact", values, "id=?", new String[] { contact.id.toString() });
+
+        if (row == 0) {
+            // 插入数据
+            this.service.execute(new Runnable() {
+                @Override
+                public void run() {
+                    writeContact(contact);
+                }
+            });
+        }
 
         this.closeWritableDatabase(db);
 

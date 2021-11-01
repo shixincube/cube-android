@@ -74,6 +74,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+            <!-- 昵称 -->
             <TextView
                 android:id="@+id/tvName"
                 android:layout_width="wrap_content"
@@ -107,7 +108,7 @@
 
         <!-- 头像 -->
         <com.shixincube.app.widget.AdvancedImageView
-            android:id="@+id/ivAvatar"
+            android:id="@+id/aivAvatar"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:focusable="false"

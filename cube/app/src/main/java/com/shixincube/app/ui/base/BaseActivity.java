@@ -61,8 +61,8 @@ public abstract class BaseActivity<V, T extends BasePresenter<V>> extends AppCom
     @BindView(R.id.ivToolbarNavigation)
     protected ImageView toolbarNavigation;
 
-    @BindView(R.id.vToolbarDivision)
-    protected View toolbarDivision;
+//    @BindView(R.id.vToolbarDivision)
+//    protected View toolbarDivision;
 
     @BindView(R.id.tvToolbarTitle)
     protected TextView toolbarTitle;
@@ -143,7 +143,7 @@ public abstract class BaseActivity<V, T extends BasePresenter<V>> extends AppCom
         }
 
         toolbarNavigation.setVisibility(isToolbarCanBack() ? View.VISIBLE : View.GONE);
-        toolbarDivision.setVisibility(isToolbarCanBack() ? View.VISIBLE : View.GONE);
+//        toolbarDivision.setVisibility(isToolbarCanBack() ? View.VISIBLE : View.GONE);
 
         toolbarNavigation.setOnClickListener(v -> onBackPressed());
 

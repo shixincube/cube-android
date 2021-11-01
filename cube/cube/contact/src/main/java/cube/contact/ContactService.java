@@ -80,7 +80,7 @@ public class ContactService extends Module {
 
     private ContactPipelineListener pipelineListener;
 
-    protected AtomicBoolean selfReady;
+    protected AtomicBoolean signInReady;
 
     private SignHandler signInHandler;
 
@@ -92,7 +92,7 @@ public class ContactService extends Module {
 
     public ContactService() {
         super(ContactService.NAME);
-        this.selfReady = new AtomicBoolean(false);
+        this.signInReady = new AtomicBoolean(false);
         this.cache = new ConcurrentHashMap<>();
     }
 
@@ -134,7 +134,12 @@ public class ContactService extends Module {
 
     @Override
     public boolean isReady() {
-        return this.selfReady.get() && (null != this.self);
+        return this.signInReady.get() && (null != this.self);
+    }
+
+    @Override
+    protected void execute(Runnable runnable) {
+        super.execute(runnable);
     }
 
     /**
@@ -159,7 +164,7 @@ public class ContactService extends Module {
             return false;
         }
 
-        if (this.selfReady.get()) {
+        if (this.signInReady.get()) {
             return false;
         }
 
@@ -204,7 +209,7 @@ public class ContactService extends Module {
                 // 设置上下文
                 if (null != this.self.getContext()) {
                     // 更新联系人的上下文
-                    long last = this.storage.updateContactContext(this.self.id, this.self.getContext());
+                    long last = this.storage.updateContactContext(this.self);
                     this.self.resetLast(last);
                 }
                 else {
@@ -290,13 +295,13 @@ public class ContactService extends Module {
      * @retrun 如果返回 {@code false} 表示当前状态下不能进行该操作。
      */
     public boolean signOut(SignHandler handler) {
-        if (!this.selfReady.get()) {
+        if (null == this.self) {
             return false;
         }
 
         if (!this.pipeline.isReady()) {
             // 无网络状态下签出
-            this.selfReady.set(false);
+            this.signInReady.set(false);
 
             // 关闭存储
             this.storage.close();
@@ -342,7 +347,7 @@ public class ContactService extends Module {
                     return;
                 }
 
-                selfReady.set(false);
+                signInReady.set(false);
 
                 // 关闭存储器
                 storage.close();
@@ -378,6 +383,10 @@ public class ContactService extends Module {
      * @return 返回联系人实例。如果没有获取到数据返回 {code null} 值。
      */
     public Contact getContact(Long contactId) {
+        if (null == this.self) {
+            return null;
+        }
+
         final MutableContact mutableContact = new MutableContact();
 
         this.getContact(contactId, new ContactHandler() {
@@ -428,7 +437,7 @@ public class ContactService extends Module {
      * @param failureHandler 获取数据时故障回调该句柄。该句柄可以设置为 {@code null} 值。
      */
     public void getContact(Long contactId, ContactHandler successHandler, FailureHandler failureHandler) {
-        if (!this.selfReady.get()) {
+        if (null == this.self) {
             if (null != failureHandler) {
                 this.execute(new Runnable() {
                     @Override
@@ -465,27 +474,30 @@ public class ContactService extends Module {
 
         // 从数据库读取
         Contact contact = this.storage.readContact(contactId);
-        if (null != contact && contact.isValid()) {
-            // 有效的数据
-            // 检查上下文
-            if (null == contact.getContext() && null != this.contactDataProvider) {
-                contact.setContext(this.contactDataProvider.needContactContext(contact));
-                if (null != contact.getContext()) {
-                    long last = this.storage.updateContactContext(contact.id, contact.getContext());
-                    contact.resetLast(last);
+        if (null != contact) {
+            // 在没有连接服务器或者数据有效时返回
+            if (!this.pipeline.isReady() || contact.isValid()) {
+                // 检查上下文
+                if (null == contact.getContext() && null != this.contactDataProvider) {
+                    contact.setContext(this.contactDataProvider.needContactContext(contact));
+                    if (null != contact.getContext()) {
+                        long last = this.storage.updateContactContext(contact);
+                        contact.resetLast(last);
+                    }
                 }
+
+                // 写入缓存
+                this.cache.put(contactId, contact);
+
+                this.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        successHandler.handleContact(contact);
+                    }
+                });
+
+                return;
             }
-
-            // 写入缓存
-            this.cache.put(contactId, contact);
-
-            this.execute(new Runnable() {
-                @Override
-                public void run() {
-                    successHandler.handleContact(contact);
-                }
-            });
-            return;
         }
 
         if (!this.pipeline.isReady()) {
@@ -676,11 +688,11 @@ public class ContactService extends Module {
     private void fireSignInCompleted() {
         Log.d("ContactService", "#fireSignInCompleted");
 
-        if (this.selfReady.get()) {
+        if (this.signInReady.get()) {
             return;
         }
 
-        this.selfReady.set(true);
+        this.signInReady.set(true);
 
         // 写入数据库
         this.storage.writeContact(this.self);

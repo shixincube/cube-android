@@ -135,6 +135,8 @@ public class AccountHelper implements ContactDataProvider {
 
     @Override
     public JSONObject needContactContext(Contact contact) {
+        LogUtils.d(this.getClass().getSimpleName(), "#needContactContext : " + contact.id);
+
         MutableJSONObject data = new MutableJSONObject();
 
         Explorer.getInstance().getAccountInfo(contact.getId(), this.tokenCode)
@@ -167,6 +169,10 @@ public class AccountHelper implements ContactDataProvider {
     }
 
     public static int explainAvatarForResource(String avatarName) {
+        if (null == avatarName) {
+            return R.mipmap.avatar_default;
+        }
+
         if (avatarName.equals("avatar01")) {
             return R.mipmap.avatar_01;
         }

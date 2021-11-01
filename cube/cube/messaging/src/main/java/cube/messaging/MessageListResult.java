@@ -24,44 +24,28 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app.ui.presenter;
-
-import com.shixincube.app.ui.adapter.MessagePanelAdapter;
-import com.shixincube.app.ui.base.BaseFragmentActivity;
-import com.shixincube.app.ui.base.BaseFragmentPresenter;
-import com.shixincube.app.ui.view.MessagePanelView;
+package cube.messaging;
 
 import java.util.List;
 
-import cube.engine.CubeEngine;
-import cube.messaging.MessageListResult;
-import cube.messaging.model.Conversation;
 import cube.messaging.model.Message;
 
 /**
- * 消息面板。
+ * 消息列表查询结果。
  */
-public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelView> {
+public interface MessageListResult {
 
-    private MessagePanelAdapter adapter;
+    /**
+     * 返回消息列表。
+     *
+     * @return
+     */
+    List<Message> getList();
 
-    private Conversation conversation;
-
-    public MessagePanelPresenter(BaseFragmentActivity activity, Conversation conversation) {
-        super(activity);
-        this.conversation = conversation;
-    }
-
-    public void loadMessages() {
-        MessageListResult result = CubeEngine.getInstance().getMessagingService().getRecentMessages(this.conversation, 20);
-        List<Message> messageList = result.getList();
-
-        if (null == this.adapter) {
-            this.adapter = new MessagePanelAdapter(activity, messageList, this);
-            getView().getMessageListView().setAdapter(this.adapter);
-        }
-        else {
-            this.adapter.notifyDataSetChangedWrapper();
-        }
-    }
+    /**
+     * 是否还有更多消息。
+     *
+     * @return 如果还有更多消息返回 {@code true} ，否则返回 {@code false} 。
+     */
+    boolean hasMore();
 }

@@ -255,6 +255,10 @@ public class Message extends Entity {
         return this.selfTyper;
     }
 
+    public boolean isSender() {
+        return this.selfTyper;
+    }
+
     public void setSelfTyper(boolean value) {
         this.selfTyper = value;
     }

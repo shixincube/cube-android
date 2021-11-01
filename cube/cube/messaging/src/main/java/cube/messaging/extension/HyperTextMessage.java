@@ -88,6 +88,14 @@ public class HyperTextMessage extends TypeableMessage {
         this.parse(text);
     }
 
+    public String getPlaintext() {
+        return this.plaintext;
+    }
+
+    public List<FormattedContent> getFormattedContents() {
+        return new ArrayList<>(this.formattedContents);
+    }
+
     private void parse(String text) {
         // AT Format: [@ name # id ]
         // Emoji Format: [E desc # code ]
@@ -227,7 +235,7 @@ public class HyperTextMessage extends TypeableMessage {
     /**
      * 内容格式描述。
      */
-    protected enum FormattedContentFormat {
+    public enum FormattedContentFormat {
         /**
          * 一般文本格式。
          */

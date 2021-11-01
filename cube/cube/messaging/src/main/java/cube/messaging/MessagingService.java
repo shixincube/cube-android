@@ -178,7 +178,7 @@ public class MessagingService extends Module {
      * @return 返回消息列表。如果返回 {@code null} 值表示消息服务模块未启动。
      */
     public List<Conversation> getRecentConversations() {
-        return this.getRecentConversations(50);
+        return this.getRecentConversations(20);
     }
 
     /**
@@ -244,6 +244,25 @@ public class MessagingService extends Module {
         return this.storage.readConversation(id);
     }
 
+    /**
+     * 获取会话的最近消息。
+     *
+     * @param conversation
+     * @return
+     */
+    public MessageListResult getRecentMessages(Conversation conversation, int maxLimit) {
+        if (conversation.getType() == ConversationType.Contact) {
+            MessageListResult result = this.storage.queryMessagesByReverse(conversation.getContact(),
+                    System.currentTimeMillis(), maxLimit);
+            // 从数据库里查出来的是时间倒序，从大到小
+            // 这里对列表进行翻转，翻转为时间正序
+            Collections.reverse(result.getList());
+            return result;
+        }
+
+        return null;
+    }
+
     /*
      * 获取最近的消息清单，返回的每条消息都来自不同的会话联系人或群组。
      *
@@ -302,7 +321,7 @@ public class MessagingService extends Module {
         }
 
         if (!first.value) {
-            // 不是第一次获取数据，直接回调
+            // 不是第一次获取数据或者未能连接到服务器，直接回调
             this.execute(new Runnable() {
                 @Override
                 public void run() {

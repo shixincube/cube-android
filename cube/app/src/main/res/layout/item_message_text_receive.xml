@@ -25,7 +25,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="left"
+        android:layout_gravity="start"
         android:orientation="horizontal"
         android:paddingBottom="20dp"
         android:paddingLeft="5dp"
@@ -35,7 +35,7 @@
         <!-- 头像 -->
 
         <com.shixincube.app.widget.AdvancedImageView
-            android:id="@+id/ivAvatar"
+            android:id="@+id/aivAvatar"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:focusable="false"

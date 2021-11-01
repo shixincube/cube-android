@@ -22,6 +22,26 @@ public abstract class AdapterForRecyclerView<T> extends RecyclerView.Adapter<Vie
     private OnItemLongClickListener mOnItemLongClickListener;
     private OnItemTouchListener mOnItemTouchListener;
 
+    /**
+     * 当使用多种itemType时，最好使用这种构造方法
+     */
+    public AdapterForRecyclerView(Context context, List<T> data) {
+        mContext = context;
+        mData = data;
+    }
+
+    /**
+     * 当使用一种itemType时，最好使用这种构造方法
+     */
+    public AdapterForRecyclerView(Context context, List<T> data, int defaultLayoutId) {
+        this(context, data);
+        mDefaultLayoutId = defaultLayoutId;
+    }
+
+    public Context getContext() {
+        return this.mContext;
+    }
+
     public OnItemClickListener getOnItemClickListener() {
         return mOnItemClickListener;
     }
@@ -44,22 +64,6 @@ public abstract class AdapterForRecyclerView<T> extends RecyclerView.Adapter<Vie
 
     public void setOnItemTouchListener(OnItemTouchListener onItemTouchListener) {
         mOnItemTouchListener = onItemTouchListener;
-    }
-
-    /**
-     * 当使用多种itemType时，最好使用这种构造方法
-     */
-    public AdapterForRecyclerView(Context context, List<T> data) {
-        mContext = context;
-        mData = data;
-    }
-
-    /**
-     * 当使用一种itemType时，最好使用这种构造方法
-     */
-    public AdapterForRecyclerView(Context context, List<T> data, int defaultLayoutId) {
-        this(context, data);
-        mDefaultLayoutId = defaultLayoutId;
     }
 
     /**

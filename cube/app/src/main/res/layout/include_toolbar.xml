@@ -29,7 +29,7 @@
                 android:layout_height="match_parent"
                 android:layout_toEndOf="@id/ivToolbarNavigation"
                 android:background="@drawable/shape_vertical_line"
-                android:visibility="visible" />
+                android:visibility="gone" />
 
             <com.zhy.autolayout.AutoLinearLayout
                 android:id="@+id/llToolbarTitle"

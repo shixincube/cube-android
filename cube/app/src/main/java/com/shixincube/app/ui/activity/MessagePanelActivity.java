@@ -69,6 +69,11 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
     }
 
     @Override
+    public void initData() {
+        this.presenter.loadMessages();
+    }
+
+    @Override
     protected MessagePanelPresenter createPresenter() {
         return new MessagePanelPresenter(this, this.conversation);
     }

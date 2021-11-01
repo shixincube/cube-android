@@ -30,6 +30,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.MutableBoolean;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -37,12 +38,14 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
+import cube.contact.model.Contact;
 import cube.core.AbstractStorage;
 import cube.messaging.model.Conversation;
 import cube.messaging.model.ConversationReminded;
 import cube.messaging.model.ConversationState;
 import cube.messaging.model.ConversationType;
 import cube.messaging.model.Message;
+import cube.messaging.model.MessageScope;
 
 /**
  * 消息服务的存储器。
@@ -380,6 +383,64 @@ public class MessagingStorage extends AbstractStorage {
 
         return exists;
     }
+
+    /**
+     * 反向查询消息。
+     *
+     * @param contact
+     * @param timestamp
+     * @param limit
+     * @return
+     */
+    protected MessageListResult queryMessagesByReverse(Contact contact, long timestamp, int limit) {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        final List<Message> messageList = new ArrayList<>();
+        final MutableBoolean hasMore = new MutableBoolean(false);
+
+        // 查询消息记录，这里比 limit 多查一条记录以判断是否还有更多消息。
+        Cursor cursor = db.rawQuery("SELECT `data` FROM `message` WHERE `scope`=? AND `rts`<? ORDER BY `rts` DESC LIMIT ?"
+            , new String[] {
+                        Integer.toString(MessageScope.Unlimited),
+                        Long.toString(timestamp),
+                        Integer.toString(limit + 1)
+                });
+
+        while (cursor.moveToNext()) {
+            if (messageList.size() == limit) {
+                hasMore.value = true;
+                break;
+            }
+
+            String dataString = cursor.getString(0);
+            try {
+                Message message = new Message(this.service, new JSONObject(dataString));
+                // 填充
+                this.service.fillMessage(message);
+
+                messageList.add(message);
+            } catch (JSONException e) {
+                // Nothing
+            }
+        }
+
+        cursor.close();
+        this.closeReadableDatabase(db);
+
+        return new MessageListResult() {
+
+            @Override
+            public List<Message> getList() {
+                return messageList;
+            }
+
+            @Override
+            public boolean hasMore() {
+                return hasMore.value;
+            }
+        };
+    }
+
 
     @Override
     protected void onDatabaseCreate(SQLiteDatabase database) {

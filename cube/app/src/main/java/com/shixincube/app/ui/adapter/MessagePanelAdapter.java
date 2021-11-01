@@ -29,14 +29,19 @@ package com.shixincube.app.ui.adapter;
 import android.content.Context;
 import android.view.View;
 
+import com.bumptech.glide.Glide;
 import com.shixincube.app.R;
+import com.shixincube.app.manager.AccountHelper;
+import com.shixincube.app.model.Account;
 import com.shixincube.app.ui.presenter.MessagePanelPresenter;
 import com.shixincube.app.util.DateUtils;
+import com.shixincube.app.widget.AdvancedImageView;
 import com.shixincube.app.widget.adapter.AdapterForRecyclerView;
 import com.shixincube.app.widget.adapter.ViewHolderForRecyclerView;
 
 import java.util.List;
 
+import cube.messaging.extension.HyperTextMessage;
 import cube.messaging.model.Message;
 
 /**
@@ -53,7 +58,24 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
 
     @Override
     public void convert(ViewHolderForRecyclerView helper, Message item, int position) {
+        this.setView(helper, item, position);
+    }
 
+    @Override
+    public int getItemViewType(int position) {
+        Message message = this.getData().get(position);
+        if (message instanceof HyperTextMessage) {
+            return message.isSelfTyper() ? R.layout.item_message_text_send : R.layout.item_message_text_receive;
+        }
+
+        return R.layout.item_message_no_support;
+    }
+
+    private void setView(ViewHolderForRecyclerView helper, Message item, int position) {
+        setTime(helper, item, position);
+        setAvatar(helper, item, position);
+        setName(helper, item, position);
+        setContent(helper, item, position);
     }
 
     private void setTime(ViewHolderForRecyclerView helper, Message item, int position) {
@@ -71,6 +93,33 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
         else {
             helper.setViewVisibility(R.id.tvTime, View.VISIBLE)
                     .setText(R.id.tvTime, DateUtils.formatConversationTime(item.getRemoteTimestamp()));
+        }
+    }
+
+    private void setAvatar(ViewHolderForRecyclerView helper, Message item, int position) {
+        AdvancedImageView view = helper.getView(R.id.aivAvatar);
+        String avatarName = Account.getAvatar(item.getSender().getContext());
+        Glide.with(getContext()).load(AccountHelper.explainAvatarForResource(avatarName)).centerCrop().into(view);
+    }
+
+    private void setName(ViewHolderForRecyclerView helper, Message item, int position) {
+        if (item.isFromGroup()) {
+            helper.setText(R.id.tvName, item.getSender().getPriorityName());
+            helper.setViewVisibility(R.id.tvName, View.VISIBLE);
+        }
+        else {
+            helper.setViewVisibility(R.id.tvName, View.GONE);
+        }
+    }
+
+    private void setContent(ViewHolderForRecyclerView helper, Message item, int position) {
+        if (item instanceof HyperTextMessage) {
+            // TODO 提取表情
+            HyperTextMessage message = (HyperTextMessage) item;
+            helper.setText(R.id.tvText, message.getPlaintext());
+        }
+        else {
+            // TODO
         }
     }
 }

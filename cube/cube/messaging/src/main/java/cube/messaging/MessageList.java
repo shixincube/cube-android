@@ -33,6 +33,7 @@ import cube.messaging.model.Message;
 
 /**
  * 消息列表。
+ * 用于加速读取消息列表的速度。
  */
 class MessageList {
 
@@ -47,8 +48,12 @@ class MessageList {
         hasMore = result.hasMore();
 
         messages.clear();
-        for (Message message : result.getList()) {
-            messages.add(message);
+        messages.addAll(result.getList());
+    }
+
+    protected void toExtendLife(long lifespan) {
+        for (Message message : messages) {
+            message.entityLifespan += lifespan;
         }
     }
 }

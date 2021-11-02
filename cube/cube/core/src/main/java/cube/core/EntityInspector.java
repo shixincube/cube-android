@@ -47,15 +47,9 @@ public final class EntityInspector extends TimerTask {
 
     private List<List<? extends Entity>> depositedListArray;
 
-//    private Map<Long, Long> lifespanMap;
-
-    private long lifespan;
-
     public EntityInspector() {
         this.depositedMapArray = new Vector<>();
         this.depositedListArray = new Vector<>();
-//        this.lifespanMap = new ConcurrentHashMap<>();
-        this.lifespan = 5L * 60L * 1000L;
     }
 
     /**
@@ -98,12 +92,24 @@ public final class EntityInspector extends TimerTask {
         this.depositedMapArray.remove(map);
     }
 
+    /**
+     * 存入指定列表进行生命周期管理。
+     *
+     * @param list
+     */
     public void depositList(List<? extends Entity> list) {
-
+        if (!this.depositedListArray.contains(list)) {
+            this.depositedListArray.add(list);
+        }
     }
 
+    /**
+     * 解除指定列表的生命周期管理。
+     *
+     * @param list
+     */
     public void withdrawList(List<? extends Entity> list) {
-
+        this.depositedListArray.remove(list);
     }
 
     @Override
@@ -117,7 +123,7 @@ public final class EntityInspector extends TimerTask {
             while (iter.hasNext()) {
                 Map.Entry<Long, ? extends Entity> e = iter.next();
                 Entity entity = e.getValue();
-                if (now - entity.entityCreation > this.lifespan) {
+                if (now - entity.entityCreation > entity.entityLifespan) {
                     iter.remove();
                     ++count;
                 }
@@ -128,7 +134,7 @@ public final class EntityInspector extends TimerTask {
             Iterator<? extends Entity> iter = list.iterator();
             while (iter.hasNext()) {
                 Entity entity = iter.next();
-                if (now - entity.entityCreation > this.lifespan) {
+                if (now - entity.entityCreation > entity.entityLifespan) {
                     iter.remove();
                     ++count;
                 }

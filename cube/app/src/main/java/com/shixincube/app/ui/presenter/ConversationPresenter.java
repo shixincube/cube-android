@@ -48,8 +48,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cube.engine.CubeEngine;
+import cube.messaging.MessagingRecentEventListener;
 import cube.messaging.MessagingService;
 import cube.messaging.model.Conversation;
+import cube.messaging.model.ConversationReminded;
 import cube.messaging.model.ConversationType;
 import cube.util.LogUtils;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
@@ -63,7 +65,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 /**
  * 最近消息会话。
  */
-public class ConversationPresenter extends BasePresenter<ConversationView> {
+public class ConversationPresenter extends BasePresenter<ConversationView> implements MessagingRecentEventListener {
 
     private List<MessageConversation> messageConversations;
 
@@ -94,6 +96,23 @@ public class ConversationPresenter extends BasePresenter<ConversationView> {
                     }
                     else {
                         // TODO
+                    }
+
+                    if (item.conversation.getReminded() == ConversationReminded.Normal) {
+                        helper.setText(R.id.tvBadge, Integer.toString(item.conversation.getUnreadCount()));
+                        helper.setViewVisibility(R.id.tvBadge, View.VISIBLE);
+                    }
+                    else if (item.conversation.getReminded() == ConversationReminded.Closed) {
+                        if (item.conversation.getUnreadCount() > 0) {
+                            helper.setViewVisibility(R.id.tvHintBadge, View.VISIBLE);
+                        }
+                        else {
+                            helper.setViewVisibility(R.id.tvHintBadge, View.GONE);
+                        }
+                    }
+                    else {
+                        helper.setViewVisibility(R.id.tvBadge, View.GONE);
+                        helper.setViewVisibility(R.id.tvHintBadge, View.GONE);
                     }
                 }
             };
@@ -154,6 +173,27 @@ public class ConversationPresenter extends BasePresenter<ConversationView> {
             @Override
             public void accept(Throwable throwable) throws Throwable {
                 LogUtils.w("ConversationPresenter", throwable);
+            }
+        });
+    }
+
+    @Override
+    public void onConversationUpdated(Conversation conversation, MessagingService service) {
+
+    }
+
+    @Override
+    public void onConversationListUpdated(List<Conversation> conversationList, MessagingService service) {
+        this.messageConversations.clear();
+        for (Conversation conversation : conversationList) {
+            this.messageConversations.add(new MessageConversation(conversation));
+        }
+
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                setAdapter();
+                adapter.notifyDataSetChangedWrapper();
             }
         });
     }

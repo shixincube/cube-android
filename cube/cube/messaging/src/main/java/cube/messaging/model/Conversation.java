@@ -76,6 +76,11 @@ public class Conversation extends Entity {
     private ConversationReminded reminded;
 
     /**
+     * 未读消息数量。
+     */
+    private int unreadCount;
+
+    /**
      * 头像图片名称。
      */
     private String avatarName;
@@ -97,6 +102,7 @@ public class Conversation extends Entity {
         this.state = ConversationState.parse(json.getInt("state"));
         this.reminded = ConversationReminded.parse(json.getInt("remind"));
         this.pivotalId = json.getLong("pivotal");
+        this.unreadCount = json.getInt("unread");
 
         this.recentMessage = new Message(null, json.getJSONObject("recentMessage"));
 
@@ -119,13 +125,14 @@ public class Conversation extends Entity {
      * @param recentMessage
      * @param reminded
      */
-    public Conversation(Long id, long timestamp, ConversationType type, ConversationState state, Long pivotalId, Message recentMessage, ConversationReminded reminded) {
+    public Conversation(Long id, long timestamp, ConversationType type, ConversationState state, Long pivotalId, Message recentMessage, ConversationReminded reminded, int unreadCount) {
         super(id, timestamp);
         this.type = type;
         this.state = state;
         this.pivotalId = pivotalId;
         this.recentMessage = recentMessage;
         this.reminded = reminded;
+        this.unreadCount = unreadCount;
     }
 
     /**
@@ -159,6 +166,10 @@ public class Conversation extends Entity {
 
     public ConversationReminded getReminded() {
         return this.reminded;
+    }
+
+    public int getUnreadCount() {
+        return this.unreadCount;
     }
 
     public String getAvatarName() {

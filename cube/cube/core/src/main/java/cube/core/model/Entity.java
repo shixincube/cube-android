@@ -65,9 +65,16 @@ public class Entity implements TimeSortable, JSONable {
     protected JSONObject context;
 
     /**
+     * @private
      * 实体创建时的时间戳。
      */
     public final long entityCreation;
+
+    /**
+     * @private
+     * 实体内存寿命。
+     */
+    public long entityLifespan = 5L * 60L * 1000L;
 
     /**
      * 构造函数。

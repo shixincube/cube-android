@@ -93,8 +93,6 @@ public class MessagingService extends Module {
 
     private List<Conversation> conversations;
 
-    private long messageCacheLifespan = 5L * 60L * 1000L;
-
     private Map<Long, MessageList> conversationMessageListMap;
 
     public MessagingService() {
@@ -261,6 +259,9 @@ public class MessagingService extends Module {
         MessageList list = this.conversationMessageListMap.get(conversation.id);
         if (null != list) {
             if (!list.messages.isEmpty()) {
+                // 延迟实体寿命
+                list.toExtendLife(3L * 60L * 1000L);
+
                 final List<Message> resultList = new ArrayList<>(list.messages);
                 final boolean hasMore = list.hasMore;
 
@@ -280,6 +281,8 @@ public class MessagingService extends Module {
         else {
             list = new MessageList();
             this.conversationMessageListMap.put(conversation.id, list);
+            // 托管列表内的实体生命周期
+            this.kernel.getInspector().depositList(list.messages);
         }
 
         if (conversation.getType() == ConversationType.Contact) {
@@ -390,6 +393,16 @@ public class MessagingService extends Module {
     }
 
     private void queryRemoteMessage(long beginning, long ending, CompletionHandler completionHandler) {
+        if (!this.pipeline.isReady() && this.isAvailableNetwork()) {
+            synchronized (this) {
+                try {
+                    this.wait(5000L);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
         // 如果没有网络直接回调函数
         if (!this.pipeline.isReady()) {
             completionHandler.handleCompletion(this);
@@ -437,6 +450,16 @@ public class MessagingService extends Module {
     }
 
     private void queryRemoteConversations(int limit, CompletionHandler completionHandler) {
+        if (!this.pipeline.isReady() && this.isAvailableNetwork()) {
+            synchronized (this) {
+                try {
+                    this.wait(5000L);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
         if (!this.pipeline.isReady()) {
             completionHandler.handleCompletion(null);
             return;
@@ -473,7 +496,8 @@ public class MessagingService extends Module {
                         conversationList.add(conversation);
                     }
                 } catch (JSONException e) {
-                    // Nothing
+                    Log.d(MessagingService.class.getSimpleName(),
+                            "#queryRemoteConversations : error conversation list format");
                 }
 
                 execute(new Runnable() {

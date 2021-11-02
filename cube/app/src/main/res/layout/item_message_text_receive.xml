@@ -82,7 +82,7 @@
                     android:paddingRight="16dp"
                     android:paddingTop="12dp"
                     android:text=""
-                    android:textColor="@color/text"
+                    android:textColor="@color/message_text_partner"
                     android:textColorLink="@color/text_link"
                     android:textSize="16sp"/>
 

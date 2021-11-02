@@ -61,7 +61,9 @@ public class MessagingPipelineListener implements PipelineListener {
 
     @Override
     public void onOpened(Pipeline pipeline) {
-        // Nothing
+        synchronized (this.service) {
+            this.service.notifyAll();
+        }
     }
 
     @Override

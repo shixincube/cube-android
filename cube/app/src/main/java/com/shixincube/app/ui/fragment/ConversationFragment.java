@@ -26,6 +26,8 @@
 
 package com.shixincube.app.ui.fragment;
 
+import android.os.Bundle;
+
 import com.shixincube.app.R;
 import com.shixincube.app.ui.activity.MainActivity;
 import com.shixincube.app.ui.base.BaseFragment;
@@ -58,6 +60,13 @@ public class ConversationFragment extends BaseFragment<ConversationView, Convers
     }
 
     @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        CubeEngine.getInstance().getMessagingService().attachWithName(MessagingServiceEvent.Ready, this);
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
 
@@ -70,12 +79,12 @@ public class ConversationFragment extends BaseFragment<ConversationView, Convers
     public void onDestroy() {
         super.onDestroy();
 
+        CubeEngine.getInstance().getMessagingService().setRecentEventListener(null);
         CubeEngine.getInstance().getMessagingService().detachWithName(MessagingServiceEvent.Ready, this);
     }
 
     @Override
     public void init() {
-        CubeEngine.getInstance().getMessagingService().attachWithName(MessagingServiceEvent.Ready, this);
     }
 
     @Override
@@ -85,6 +94,8 @@ public class ConversationFragment extends BaseFragment<ConversationView, Convers
             this.presenter.loadConversations();
             this.first.set(false);
         }
+
+        CubeEngine.getInstance().getMessagingService().setRecentEventListener(this.presenter);
     }
 
     @Override
@@ -108,12 +119,14 @@ public class ConversationFragment extends BaseFragment<ConversationView, Convers
             if (!this.loaded.get()) {
                 this.loaded.set(true);
                 this.first.set(false);
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        presenter.loadConversations();
-                    }
-                });
+                if (null != presenter) {
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            presenter.loadConversations();
+                        }
+                    });
+                }
             }
         }
     }

@@ -24,48 +24,7 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app.model;
+package cube.engine;
 
-import com.shixincube.app.R;
-import com.shixincube.app.manager.AccountHelper;
-
-import cube.contact.model.Contact;
-import cube.messaging.model.Conversation;
-import cube.messaging.model.ConversationType;
-
-/**
- * 会话描述。
- */
-public class MessageConversation {
-
-    public final Conversation conversation;
-
-    /**
-     * 头像图片 URL 。
-     */
-    private String avatarURL;
-
-    /**
-     * 内置头像的资源 ID 。
-     */
-    public final int avatarResourceId;
-
-    public MessageConversation(Conversation conversation) {
-        this.conversation = conversation;
-
-        if (conversation.getType() == ConversationType.Contact) {
-            Contact contact = conversation.getContact();
-            this.avatarResourceId = AccountHelper.explainAvatarForResource(Account.getAvatar(contact.getContext()));
-        }
-        else if (conversation.getType() == ConversationType.Group) {
-            this.avatarResourceId = R.mipmap.avatar_default;
-        }
-        else {
-            this.avatarResourceId = R.mipmap.avatar_default;
-        }
-    }
-
-    public Conversation getConversation() {
-        return this.conversation;
-    }
+public class EngineFuture {
 }

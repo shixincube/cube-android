@@ -39,6 +39,7 @@
     <color name="button_normal">#F5F5F5</color>
     <color name="button_pressed">#EBEBEB</color>
 
+    <color name="message_text_partner">#202020</color>
     <color name="message_box_partner_bg">#FEFEFE</color>
     <color name="message_box_self_bg">#287DF6</color>
 

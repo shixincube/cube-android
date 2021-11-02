@@ -37,13 +37,13 @@
 
             </com.zhy.autolayout.AutoRelativeLayout>
 
-            <!-- 气泡 -->
+            <!-- 文字气泡 -->
             <TextView
                 android:id="@+id/tvBadge"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
                 android:layout_alignTop="@id/rlAvatar"
-                android:layout_marginStart="-15dp"
+                android:layout_marginStart="-12dp"
                 android:layout_marginTop="-5dp"
                 android:layout_toEndOf="@id/rlAvatar"
                 android:background="@drawable/shape_badge"
@@ -51,6 +51,22 @@
                 android:text="@string/number_99"
                 android:textColor="@color/white"
                 android:textSize="11sp"
+                android:visibility="gone"/>
+
+            <!-- 提示气泡 -->
+            <TextView
+                android:id="@+id/tvHintBadge"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:layout_alignTop="@id/rlAvatar"
+                android:layout_marginStart="-6dp"
+                android:layout_marginTop="-4dp"
+                android:layout_toEndOf="@id/rlAvatar"
+                android:background="@drawable/shape_badge"
+                android:gravity="center"
+                android:text=""
+                android:textColor="@color/white"
+                android:textSize="2sp"
                 android:visibility="gone"/>
 
         </com.zhy.autolayout.AutoRelativeLayout>

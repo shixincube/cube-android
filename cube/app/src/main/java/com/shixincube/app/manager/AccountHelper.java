@@ -128,6 +128,9 @@ public class AccountHelper implements ContactDataProvider {
     }
 
     public void saveToken(String tokenCode, long expire) {
+        // 令牌赋值
+        this.tokenCode = tokenCode;
+
         this.editor.putString(AppConsts.TOKEN_CODE, tokenCode);
         this.editor.putLong(AppConsts.TOKEN_EXPIRE, expire);
         this.editor.commit();

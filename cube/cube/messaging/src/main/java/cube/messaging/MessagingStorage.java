@@ -100,7 +100,8 @@ public class MessagingStorage extends AbstractStorage {
                         ConversationState.parse(cursor.getInt(cursor.getColumnIndex("state"))),
                         cursor.getLong(cursor.getColumnIndex("pivotal_id")),
                         recentMessage,
-                        ConversationReminded.parse(cursor.getInt(cursor.getColumnIndex("remind"))));
+                        ConversationReminded.parse(cursor.getInt(cursor.getColumnIndex("remind"))),
+                        cursor.getInt(cursor.getColumnIndex("unread")));
                 // 填充实例
                 this.service.fillConversation(conversation);
 
@@ -137,7 +138,8 @@ public class MessagingStorage extends AbstractStorage {
                         ConversationState.parse(cursor.getInt(cursor.getColumnIndex("state"))),
                         cursor.getLong(cursor.getColumnIndex("pivotal_id")),
                         recentMessage,
-                        ConversationReminded.parse(cursor.getInt(cursor.getColumnIndex("remind"))));
+                        ConversationReminded.parse(cursor.getInt(cursor.getColumnIndex("remind"))),
+                        cursor.getInt(cursor.getColumnIndex("unread")));
                 // 填充实例
                 this.service.fillConversation(conversation);
             } catch (JSONException e) {
@@ -172,7 +174,8 @@ public class MessagingStorage extends AbstractStorage {
                         ConversationState.parse(cursor.getInt(cursor.getColumnIndex("state"))),
                         cursor.getLong(cursor.getColumnIndex("pivotal_id")),
                         recentMessage,
-                        ConversationReminded.parse(cursor.getInt(cursor.getColumnIndex("remind"))));
+                        ConversationReminded.parse(cursor.getInt(cursor.getColumnIndex("remind"))),
+                        cursor.getInt(cursor.getColumnIndex("unread")));
                 // 填充实例
                 this.service.fillConversation(conversation);
             } catch (Exception e) {
@@ -205,6 +208,7 @@ public class MessagingStorage extends AbstractStorage {
                 values.put("state", conversation.getState().code);
                 values.put("remind", conversation.getReminded().code);
                 values.put("recent_message", conversation.getRecentMessage().toJSON().toString());
+                values.put("unread", conversation.getUnreadCount());
                 db.update("conversation", values, "id=?", new String[]{ conversation.id.toString() });
             }
             else {
@@ -219,6 +223,7 @@ public class MessagingStorage extends AbstractStorage {
                 values.put("pivotal_id", conversation.getPivotalId());
                 values.put("remind", conversation.getReminded().code);
                 values.put("recent_message", conversation.getRecentMessage().toJSON().toString());
+                values.put("unread", conversation.getUnreadCount());
                 db.insert("conversation", null, values);
             }
         }
@@ -459,7 +464,7 @@ public class MessagingStorage extends AbstractStorage {
         database.execSQL("CREATE TABLE IF NOT EXISTS `message` (`id` BIGINT PRIMARY KEY, `from` BIGINT, `to` BIGINT, `source` BIGINT, `lts` BIGINT, `rts` BIGINT, `state` INT, `remote_state` INT DEFAULT 10, `scope` INT DEFAULT 0, `data` TEXT)");
 
         // 会话表
-        database.execSQL("CREATE TABLE IF NOT EXISTS `conversation` (`id` BIGINT PRIMARY KEY, `timestamp` BIGINT, `type` INT, `state` INT, `pivotal_id` BIGINT, `remind` INT, `recent_message` TEXT, `avatar_name` TEXT DEFAULT NULL, `avatar_url` TEXT DEFAULT NULL)");
+        database.execSQL("CREATE TABLE IF NOT EXISTS `conversation` (`id` BIGINT PRIMARY KEY, `timestamp` BIGINT, `type` INT, `state` INT, `pivotal_id` BIGINT, `remind` INT, `recent_message` TEXT, `unread` INT DEFAULT 0, `avatar_name` TEXT DEFAULT NULL, `avatar_url` TEXT DEFAULT NULL)");
 
         // 最近消息表，当前联系人和其他每一个联系人的最近消息
         // messager_id - 消息相关发件人或收件人 ID

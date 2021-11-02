@@ -217,6 +217,9 @@ public class Conversation extends Entity {
 
     public void setRecentMessage(Message recentMessage) {
         this.recentMessage = recentMessage;
+        if (recentMessage.getRemoteTimestamp() > this.timestamp) {
+            this.timestamp = recentMessage.getRemoteTimestamp();
+        }
     }
 
     public void setPivotal(Contact contact) {

@@ -82,6 +82,8 @@ public class MessagingService extends Module {
 
     private MessagingRecentEventListener recentEventListener;
 
+    private List<MessageEventListener> eventListeners;
+
     private AtomicBoolean preparing;
 
     private boolean ready;
@@ -93,6 +95,9 @@ public class MessagingService extends Module {
 
     private List<Conversation> conversations;
 
+    /**
+     * 会话对应的消息列表。
+     */
     private Map<Long, MessageList> conversationMessageListMap;
 
     public MessagingService() {
@@ -101,6 +106,7 @@ public class MessagingService extends Module {
         this.storage = new MessagingStorage(this);
         this.observer = new MessagingObserver(this);
         this.preparing = new AtomicBoolean(false);
+        this.eventListeners = new Vector<>();
         this.ready = false;
         this.lastMessageTime = 0;
         this.conversationMessageListMap = new ConcurrentHashMap<>();
@@ -160,8 +166,33 @@ public class MessagingService extends Module {
         return this.ready;
     }
 
+    /**
+     * 设置消息服务最近事件监听器。
+     *
+     * @param listener 监听器。
+     */
     public void setRecentEventListener(MessagingRecentEventListener listener) {
         this.recentEventListener = listener;
+    }
+
+    /**
+     * 添加消息事件监听器。
+     *
+     * @param listener 消息监听器。
+     */
+    public void addEventListener(MessageEventListener listener) {
+        if (!this.eventListeners.contains(listener)) {
+            this.eventListeners.add(listener);
+        }
+    }
+
+    /**
+     * 移除消息事件监听器。
+     *
+     * @param listener 消息监听器。
+     */
+    public void removeEventListener(MessageEventListener listener) {
+        this.eventListeners.remove(listener);
     }
 
     private void assemble() {
@@ -540,6 +571,37 @@ public class MessagingService extends Module {
         });
     }
 
+    @Override
+    public void notifyObservers(ObservableEvent event) {
+        super.notifyObservers(event);
+
+        if (MessagingServiceEvent.Notify.equals(event.getName())) {
+            for (MessageEventListener listener : this.eventListeners) {
+                listener.onMessageReceived((Message) event.getData(), this);
+            }
+        }
+    }
+
+    private void appendMessageToConversation(Long conversationId, Message message) {
+        if (null != this.conversations && !this.conversations.isEmpty()) {
+            for (Conversation conversation : this.conversations) {
+                if (conversation.getPivotalId().longValue() == conversationId) {
+                    conversation.setRecentMessage(message);
+                    this.sortConversationList(this.conversations);
+                    break;
+                }
+            }
+        }
+
+        MessageList list = this.conversationMessageListMap.get(conversationId);
+        if (null != list) {
+            list.messages.add(message);
+        }
+
+        // 更新会话数据库
+        this.storage.updateRecentMessage(conversationId, message);
+    }
+
     protected void fireContactEvent(ObservableEvent event) {
         if (ContactServiceEvent.SelfReady.equals(event.name)) {
             synchronized (this) {
@@ -579,7 +641,10 @@ public class MessagingService extends Module {
         }
 
         if (!exists) {
-            // 调用插件
+            // 更新会话清单
+            long pivotalId = compMessage.isFromGroup() ? compMessage.getSource() : compMessage.getPartnerId();
+            this.appendMessageToConversation(pivotalId, compMessage);
+
             ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Notify, compMessage);
             this.notifyObservers(event);
         }

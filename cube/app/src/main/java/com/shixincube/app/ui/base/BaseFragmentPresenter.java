@@ -26,10 +26,16 @@
 
 package com.shixincube.app.ui.base;
 
+import java.io.Closeable;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 
-public class BaseFragmentPresenter<V> {
+/**
+ * 基本界面片段协作器。
+ *
+ * @param <V>
+ */
+public abstract class BaseFragmentPresenter<V> implements Closeable {
 
     protected BaseFragmentActivity activity;
 

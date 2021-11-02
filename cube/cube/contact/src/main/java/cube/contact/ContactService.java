@@ -686,7 +686,7 @@ public class ContactService extends Module {
     }
 
     private void fireSignInCompleted() {
-        Log.d("ContactService", "#fireSignInCompleted");
+        LogUtils.d(ContactService.class.getSimpleName(), "#fireSignInCompleted");
 
         if (this.signInReady.get()) {
             return;

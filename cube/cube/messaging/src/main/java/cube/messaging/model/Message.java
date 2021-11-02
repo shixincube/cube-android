@@ -239,6 +239,10 @@ public class Message extends Entity {
         return this.selfTyper ? this.receiver : this.sender;
     }
 
+    public Long getPartnerId() {
+        return this.selfTyper ? this.to : this.from;
+    }
+
     public JSONObject getPayload() {
         return this.payload;
     }

@@ -89,6 +89,16 @@ public final class UIUtils {
     }
 
     /**
+     * 在主线程中延迟执行任务。
+     *
+     * @param task
+     * @param delayMillis
+     */
+    public static void postTaskDelay(Runnable task, int delayMillis) {
+        getMainThreadHandler().postDelayed(task, delayMillis);
+    }
+
+    /**
      * 获取资源对象。
      *
      * @return

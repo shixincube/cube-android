@@ -20,6 +20,7 @@
         <entry key="app/src/main/res/drawable/shape_horizontal_line.xml" value="0.20230263157894737" />
         <entry key="app/src/main/res/drawable/shape_message_box_partner.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/shape_message_box_receiver.xml" value="0.240234375" />
+        <entry key="app/src/main/res/drawable/shape_message_box_self.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/shape_message_box_sender.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/shape_message_btn_send.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/shape_message_btn_voice_normal.xml" value="0.240234375" />

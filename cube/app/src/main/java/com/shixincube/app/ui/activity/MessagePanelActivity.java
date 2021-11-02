@@ -35,6 +35,8 @@ import com.shixincube.app.ui.presenter.MessagePanelPresenter;
 import com.shixincube.app.ui.view.MessagePanelView;
 import com.shixincube.app.widget.recyclerview.RecyclerView;
 
+import java.io.IOException;
+
 import butterknife.BindView;
 import cn.bingoogolapple.refreshlayout.BGARefreshLayout;
 import cube.engine.CubeEngine;
@@ -52,6 +54,18 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
 
     public MessagePanelActivity() {
         super();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (null != this.presenter) {
+            try {
+                this.presenter.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override

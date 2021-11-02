@@ -26,8 +26,34 @@
 
 package cube.messaging;
 
+import cube.messaging.model.Message;
+
 /**
  * 消息事件监听器。
  */
 public interface MessageEventListener {
+
+    /**
+     * 消息正在发送。
+     *
+     * @param message 消息实体。
+     * @param service 消息服务。
+     */
+    void onMessageSending(Message message, MessagingService service);
+
+    /**
+     * 消息已经发送。
+     *
+     * @param message 消息实体。
+     * @param service 消息服务。
+     */
+    void onMessageSent(Message message, MessagingService service);
+
+    /**
+     * 接收到新消息。
+     *
+     * @param message 消息实体。
+     * @param service 消息服务。
+     */
+    void onMessageReceived(Message message, MessagingService service);
 }

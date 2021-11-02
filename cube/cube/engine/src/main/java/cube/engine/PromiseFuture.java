@@ -26,5 +26,32 @@
 
 package cube.engine;
 
-public class EngineFuture {
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Executor;
+
+/**
+ * 引擎任务描述。
+ */
+public class PromiseFuture {
+
+    private Executor executor;
+
+    private List<Runnable> taskList;
+
+    protected PromiseFuture() {
+        this.taskList = new ArrayList<>();
+    }
+
+    public PromiseFuture execute(Runnable task) {
+        return null;
+    }
+
+    public PromiseFuture then(Runnable task) {
+        return null;
+    }
+
+    public PromiseFuture thenOnMainThread(Runnable task) {
+        return null;
+    }
 }

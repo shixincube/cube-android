@@ -188,6 +188,10 @@ public class MessagingStorage extends AbstractStorage {
         return conversation;
     }
 
+    public void updateConversation(Conversation conversation) {
+
+    }
+
     /**
      * 更新列表里的所有会话。
      *
@@ -226,6 +230,49 @@ public class MessagingStorage extends AbstractStorage {
                 values.put("unread", conversation.getUnreadCount());
                 db.insert("conversation", null, values);
             }
+        }
+
+        this.closeWritableDatabase(db);
+    }
+
+    /**
+     * 更新指定会的最近消息。
+     *
+     * @param conversationId
+     * @param message
+     */
+    public void updateRecentMessage(Long conversationId, Message message) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        Cursor cursor = db.query("conversation", new String[]{ "id" },
+                "id=?", new String[]{ conversationId.toString() }, null, null, null);
+        if (cursor.moveToFirst()) {
+            cursor.close();
+
+            String sql = "UPDATE `conversation` SET `timestamp`=" + message.getRemoteTimestamp()
+                    + " , `recent_message`=?, `unread`=`unread`+1 WHERE `id`=?";
+
+            db.execSQL(sql, new String[] {
+                    message.toJSON().toString(),
+                    conversationId.toString()
+            });
+        }
+        else {
+            cursor.close();
+
+            ConversationType type = message.isFromGroup() ? ConversationType.Group : ConversationType.Contact;
+
+            // 插入
+            ContentValues values = new ContentValues();
+            values.put("id", conversationId);
+            values.put("timestamp", message.getRemoteTimestamp());
+            values.put("type", type.code);
+            values.put("state", ConversationState.Normal.code);
+            values.put("pivotal_id", conversationId);
+            values.put("remind", ConversationReminded.Normal.code);
+            values.put("recent_message", message.toJSON().toString());
+            values.put("unread", 1);
+            db.insert("conversation", null, values);
         }
 
         this.closeWritableDatabase(db);
@@ -350,7 +397,7 @@ public class MessagingStorage extends AbstractStorage {
             messagerId = message.getSource();
         }
         else {
-            messagerId = message.isSelfTyper() ? message.getTo() : message.getFrom();
+            messagerId = message.getPartnerId();
         }
 
         cursor = db.query("recent_messager", new String[]{ "time" },

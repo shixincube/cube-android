@@ -275,6 +275,10 @@ public class Message extends Entity {
         this.receiver = receiver;
     }
 
+    public void setState(MessageState state) {
+        this.state = state;
+    }
+
     @Override
     public JSONObject toJSON() {
         JSONObject json = super.toJSON();

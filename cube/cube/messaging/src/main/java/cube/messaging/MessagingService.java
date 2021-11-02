@@ -329,6 +329,15 @@ public class MessagingService extends Module {
     }
 
     /**
+     * 标记指定会话里的所有消息为已读。
+     *
+     * @param conversation
+     */
+    public void markRead(Conversation conversation) {
+        
+    }
+
+    /**
      * 获取会话的最近消息。
      *
      * @param conversation

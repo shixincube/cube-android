@@ -45,6 +45,7 @@ import cube.messaging.model.ConversationState;
 import cube.messaging.model.ConversationType;
 import cube.messaging.model.Message;
 import cube.messaging.model.MessageScope;
+import cube.messaging.model.MessageState;
 
 /**
  * 消息服务的存储器。
@@ -276,6 +277,48 @@ public class MessagingStorage extends AbstractStorage {
         }
 
         this.closeWritableDatabase(db);
+    }
+
+    public List<Long> updateMessageState(Conversation conversation, MessageState currentState, MessageState newState) {
+        List<Long> idList = new ArrayList<>();
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        List<Message> messageList = new ArrayList<>();
+        if (conversation.getType() == ConversationType.Contact) {
+            // 查找符合条件的数据
+            Cursor cursor = db.query("message", new String[]{ "data" },
+                    "source=0 AND scope=0 AND state=? AND `from`=?",
+                    new String[]{
+                            currentState.toString(),
+                            conversation.getPivotalId().toString() }, null, null, null);
+            try {
+                while (cursor.moveToNext()) {
+                    String data = cursor.getString(0);
+                    Message message = new Message(this.service, new JSONObject(data));
+                    message.setState(newState);
+                    messageList.add(message);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            cursor.close();
+
+            // 更新数据
+            for (Message message : messageList) {
+                ContentValues values = new ContentValues();
+                values.put("state", newState.code);
+                values.put("data", message.toJSON().toString());
+                db.update("message", values, "id=?", new String[]{ message.id.toString() });
+
+                idList.add(message.id);
+            }
+        }
+        else if (conversation.getType() == ConversationType.Group) {
+
+        }
+
+        this.closeWritableDatabase(db);
+        return idList;
     }
 
     /**

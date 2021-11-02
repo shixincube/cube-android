@@ -54,7 +54,7 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
     public MessagePanelPresenter(BaseFragmentActivity activity, Conversation conversation) {
         super(activity);
         this.conversation = conversation;
-        CubeEngine.getInstance().getMessagingService().addEventListener(this);
+        CubeEngine.getInstance().getMessagingService().addEventListener(conversation, this);
     }
 
     public void loadMessages() {
@@ -79,7 +79,7 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
 
     @Override
     public void close() throws IOException {
-        CubeEngine.getInstance().getMessagingService().removeEventListener(this);
+        CubeEngine.getInstance().getMessagingService().removeEventListener(this.conversation, this);
     }
 
     @Override

@@ -31,6 +31,8 @@ import android.util.Log;
 
 import org.json.JSONObject;
 
+import java.util.concurrent.Executors;
+
 import cube.auth.AuthService;
 import cube.contact.ContactService;
 import cube.contact.handler.SignHandler;
@@ -40,6 +42,7 @@ import cube.core.KernelConfig;
 import cube.core.ModuleError;
 import cube.core.handler.KernelHandler;
 import cube.engine.handler.EngineHandler;
+import cube.engine.util.PromiseFuture;
 import cube.messaging.MessagingService;
 
 /**
@@ -88,6 +91,9 @@ public class CubeEngine {
     public boolean start(Context context, EngineHandler handler) {
         Log.i("CubeEngine", "#start : " + this.config.print());
 
+        // 线程池赋值
+        PromiseFuture.sExecutor = Executors.newCachedThreadPool();
+
         this.started = this.kernel.startup(context, this.config, new KernelHandler() {
             @Override
             public void handleCompletion(Kernel kernel) {
@@ -114,6 +120,8 @@ public class CubeEngine {
 
     public void stop() {
         this.kernel.shutdown();
+
+        PromiseFuture.sExecutor.shutdown();
     }
 
     public void suspend() {

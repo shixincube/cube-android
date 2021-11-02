@@ -48,19 +48,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cube.engine.CubeEngine;
+import cube.engine.util.Future;
+import cube.engine.util.Promise;
+import cube.engine.util.PromiseFuture;
+import cube.engine.util.PromiseHandler;
 import cube.messaging.MessagingRecentEventListener;
 import cube.messaging.MessagingService;
 import cube.messaging.model.Conversation;
 import cube.messaging.model.ConversationReminded;
 import cube.messaging.model.ConversationType;
 import cube.util.LogUtils;
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
-import io.reactivex.rxjava3.annotations.NonNull;
-import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.core.ObservableEmitter;
-import io.reactivex.rxjava3.core.ObservableOnSubscribe;
-import io.reactivex.rxjava3.functions.Consumer;
-import io.reactivex.rxjava3.schedulers.Schedulers;
 
 /**
  * 最近消息会话。
@@ -142,9 +139,9 @@ public class ConversationPresenter extends BasePresenter<ConversationView> imple
     }
 
     private void reloadData() {
-        Observable.create(new ObservableOnSubscribe<List<MessageConversation>>() {
+        PromiseFuture.create(new Promise<List<MessageConversation>>() {
             @Override
-            public void subscribe(@NonNull ObservableEmitter<List<MessageConversation>> emitter) throws Throwable {
+            public void emit(PromiseHandler<List<MessageConversation>> handler) {
                 MessagingService messaging = CubeEngine.getInstance().getMessagingService();
 
                 // 从引擎获取最近会话列表
@@ -160,21 +157,19 @@ public class ConversationPresenter extends BasePresenter<ConversationView> imple
                     // TODO
                 }
 
-                emitter.onNext(messageConversations);
+                handler.resolve(messageConversations);
             }
-        }).subscribeOn(Schedulers.io())
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(new Consumer<List<MessageConversation>>() {
+        }).thenOnMainThread(new Future<List<MessageConversation>>() {
             @Override
-            public void accept(List<MessageConversation> list) throws Throwable {
+            public void come(List<MessageConversation> data) {
                 adapter.notifyDataSetChangedWrapper();
             }
-        }, new Consumer<Throwable>() {
+        }).catchException(new Future<Exception>() {
             @Override
-            public void accept(Throwable throwable) throws Throwable {
+            public void come(Exception throwable) {
                 LogUtils.w("ConversationPresenter", throwable);
             }
-        });
+        }).launch();
     }
 
     @Override

@@ -45,13 +45,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import butterknife.BindView;
 import cube.engine.CubeService;
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
-import io.reactivex.rxjava3.annotations.NonNull;
-import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.core.ObservableEmitter;
-import io.reactivex.rxjava3.core.ObservableOnSubscribe;
-import io.reactivex.rxjava3.functions.Consumer;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import cube.engine.util.Future;
+import cube.engine.util.Promise;
+import cube.engine.util.PromiseFuture;
+import cube.engine.util.PromiseHandler;
 import kr.co.namee.permissiongen.PermissionGen;
 
 /**
@@ -146,9 +143,9 @@ public class SplashActivity extends BaseActivity {
 
     private void launch() {
         // 判断是否有有效令牌
-        Observable.create(new ObservableOnSubscribe<Boolean>() {
+        PromiseFuture.create(new Promise<Boolean>() {
             @Override
-            public void subscribe(@NonNull ObservableEmitter<Boolean> emitter) throws Throwable {
+            public void emit(PromiseHandler<Boolean> handler) {
                 // 先置为 false
                 valid = false;
                 if (AccountHelper.getInstance(getApplicationContext()).checkValidToken()) {
@@ -158,13 +155,11 @@ public class SplashActivity extends BaseActivity {
                     valid = false;
                 }
 
-                emitter.onNext(valid);
+                handler.resolve(valid);
             }
-        }).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<Boolean>() {
+        }).thenOnMainThread(new Future<Boolean>() {
             @Override
-            public void accept(Boolean valid) throws Throwable {
+            public void come(Boolean valid) {
                 if (!valid.booleanValue() && null != loginButton && null != registerButton) {
                     loginButton.setVisibility(View.VISIBLE);
                     registerButton.setVisibility(View.VISIBLE);
@@ -179,7 +174,7 @@ public class SplashActivity extends BaseActivity {
                     }
                 }
             }
-        });
+        }).launch();
 
         // 创建引擎服务
         Intent intent = new Intent(this, CubeService.class);

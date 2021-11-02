@@ -36,6 +36,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
@@ -84,6 +85,8 @@ public class MessagingService extends Module {
 
     private List<MessageEventListener> eventListeners;
 
+    private Map<Long, List<MessageEventListener>> conversationMessageListeners;
+
     private AtomicBoolean preparing;
 
     private boolean ready;
@@ -106,7 +109,6 @@ public class MessagingService extends Module {
         this.storage = new MessagingStorage(this);
         this.observer = new MessagingObserver(this);
         this.preparing = new AtomicBoolean(false);
-        this.eventListeners = new Vector<>();
         this.ready = false;
         this.lastMessageTime = 0;
         this.conversationMessageListMap = new ConcurrentHashMap<>();
@@ -181,6 +183,10 @@ public class MessagingService extends Module {
      * @param listener 消息监听器。
      */
     public void addEventListener(MessageEventListener listener) {
+        if (null == this.eventListeners) {
+            this.eventListeners = new Vector<>();
+        }
+
         if (!this.eventListeners.contains(listener)) {
             this.eventListeners.add(listener);
         }
@@ -192,7 +198,50 @@ public class MessagingService extends Module {
      * @param listener 消息监听器。
      */
     public void removeEventListener(MessageEventListener listener) {
+        if (null == this.eventListeners) {
+            return;
+        }
+
         this.eventListeners.remove(listener);
+    }
+
+    /**
+     * 添加指定会话的消息事件监听器。
+     *
+     * @param conversation 指定会话。
+     * @param listener 消息事件监听器。
+     */
+    public void addEventListener(Conversation conversation, MessageEventListener listener) {
+        if (null == this.conversationMessageListeners) {
+            this.conversationMessageListeners = new HashMap<>();
+        }
+
+        List<MessageEventListener> list = this.conversationMessageListeners.get(conversation.id);
+        if (null == list) {
+            list = new Vector<>();
+            list.add(listener);
+            this.conversationMessageListeners.put(conversation.id, list);
+        }
+        else {
+            list.add(listener);
+        }
+    }
+
+    /**
+     * 移除指定会话的消息事件监听器。
+     *
+     * @param conversation 指定会话。
+     * @param listener 消息事件监听器。
+     */
+    public void removeEventListener(Conversation conversation, MessageEventListener listener) {
+        if (null == this.conversationMessageListeners) {
+            return;
+        }
+
+        List<MessageEventListener> list = this.conversationMessageListeners.get(conversation.id);
+        if (null != list) {
+            list.remove(listener);
+        }
     }
 
     private void assemble() {
@@ -576,8 +625,22 @@ public class MessagingService extends Module {
         super.notifyObservers(event);
 
         if (MessagingServiceEvent.Notify.equals(event.getName())) {
-            for (MessageEventListener listener : this.eventListeners) {
-                listener.onMessageReceived((Message) event.getData(), this);
+            Message message = (Message) event.getData();
+
+            if (null != this.eventListeners) {
+                for (MessageEventListener listener : this.eventListeners) {
+                    listener.onMessageReceived(message, this);
+                }
+            }
+
+            if (null != this.conversationMessageListeners) {
+                Long convId = message.isFromGroup() ? message.getSource() : message.getPartnerId();
+                List<MessageEventListener> list = this.conversationMessageListeners.get(convId);
+                if (null != list) {
+                    for (MessageEventListener listener : list) {
+                        listener.onMessageReceived(message, this);
+                    }
+                }
             }
         }
     }

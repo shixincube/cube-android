@@ -24,34 +24,19 @@
  * SOFTWARE.
  */
 
-package cube.engine;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Executor;
+package cube.engine.util;
 
 /**
- * 引擎任务描述。
+ * 任务的执行预期描述。
+ *
+ * @param <T>
  */
-public class PromiseFuture {
+public interface Future<T> {
 
-    private Executor executor;
-
-    private List<Runnable> taskList;
-
-    protected PromiseFuture() {
-        this.taskList = new ArrayList<>();
-    }
-
-    public PromiseFuture execute(Runnable task) {
-        return null;
-    }
-
-    public PromiseFuture then(Runnable task) {
-        return null;
-    }
-
-    public PromiseFuture thenOnMainThread(Runnable task) {
-        return null;
-    }
+    /**
+     * 当异步任务执行 {@code emit} 之后通过句柄操作触发调用该方法。
+     *
+     * @param data 任务约定的数据。
+     */
+    void come(T data);
 }

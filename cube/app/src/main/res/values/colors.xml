@@ -26,7 +26,7 @@
     <color name="text_link">#3655bf</color>
 
     <color name="toolbar_text">#101010</color>
-    <color name="toolbar_bg">#F1F1F1</color>
+    <color name="toolbar_bg">#FDFDFD</color>
 
     <color name="tabbar_text">#464646</color>
     <color name="tabbar_bg">#FEFEFE</color>
@@ -39,6 +39,7 @@
     <color name="button_normal">#F5F5F5</color>
     <color name="button_pressed">#EBEBEB</color>
 
+    <color name="message_bar_bg">#FDFDFD</color>
     <color name="message_text_partner">#202020</color>
     <color name="message_box_partner_bg">#FEFEFE</color>
     <color name="message_box_self_bg">#287DF6</color>

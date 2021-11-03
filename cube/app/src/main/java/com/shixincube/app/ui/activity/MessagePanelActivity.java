@@ -29,10 +29,12 @@ package com.shixincube.app.ui.activity;
 import android.content.Intent;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 
 import com.shixincube.app.R;
 import com.shixincube.app.ui.base.BaseFragmentActivity;
@@ -53,6 +55,9 @@ import cube.messaging.model.Conversation;
  * 消息面板。
  */
 public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView, MessagePanelPresenter> implements MessagePanelView, BGARefreshLayout.BGARefreshLayoutDelegate {
+
+    @BindView(R.id.llMessagePanel)
+    LinearLayout messagePanelLayout;
 
     @BindView(R.id.refreshLayout)
     BGARefreshLayout refreshLayout;
@@ -124,6 +129,22 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
 
     @Override
     public void initListener() {
+        // 消息面板事件
+        messagePanelLayout.setOnTouchListener((view, event) -> {
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                    closeBottomAndKeyboard();
+                    break;
+                default:
+                    break;
+            }
+            return false;
+        });
+        messageListView.setOnTouchListener((view, event) -> {
+            closeBottomAndKeyboard();
+            return false;
+        });
+
         // 输入框事件
         inputContentView.addTextChangedListener(new TextWatcher() {
             @Override
@@ -160,6 +181,11 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
         sendButton.setOnClickListener((view) -> {
             presenter.sendTextMessage();
         });
+    }
+
+    private void closeBottomAndKeyboard() {
+//        emojiImageView.setVisibility(View.VISIBLE);
+//        moreImageView.setVisibility(View.GONE);
     }
 
     @Override

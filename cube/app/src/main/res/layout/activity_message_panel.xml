@@ -38,6 +38,7 @@
             android:focusable="true"
             android:focusableInTouchMode="true"
             android:gravity="center_vertical"
+            android:background="@color/message_bar_bg"
             android:orientation="horizontal">
 
             <ImageView
@@ -59,6 +60,7 @@
                     android:layout_height="40dp"
                     android:background="@null"
                     android:drawableBottom="@drawable/selector_edit_focus"
+                    android:textCursorDrawable="@drawable/cursor"
                     android:visibility="visible"/>
 
                 <Button
@@ -97,7 +99,7 @@
                 android:background="@drawable/shape_message_btn_send"
                 android:text="@string/send"
                 android:textColor="@color/white"
-                android:textSize="13sp"
+                android:textSize="14sp"
                 android:visibility="gone"/>
 
         </com.zhy.autolayout.AutoLinearLayout>

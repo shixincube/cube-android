@@ -56,6 +56,8 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
 
     private int pageSize = 10;
 
+    private boolean hasMoreMessage = true;
+
     private MessagePanelAdapter adapter;
 
     private Conversation conversation;
@@ -79,6 +81,7 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
     public void loadMessages() {
         MessageListResult result = CubeEngine.getInstance().getMessagingService().getRecentMessages(this.conversation, this.pageSize);
         List<Message> messageList = result.getList();
+        this.hasMoreMessage = result.hasMore();
 
         if (null == this.adapter) {
             this.adapter = new MessagePanelAdapter(activity, messageList, this);
@@ -93,6 +96,17 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
     }
 
     public void loadMoreMessages() {
+        if (!this.hasMoreMessage) {
+            // 已经没有更多消息可加载
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    getView().getRefreshLayout().endRefreshing();
+                }
+            });
+            return;
+        }
+
         List<Message> messages = this.adapter.getData();
         Message message = null;
         if (!messages.isEmpty()) {
@@ -106,6 +120,8 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
                     public void handle(List<Message> messageList, boolean hasMore) {
                         // 结束刷新
                         getView().getRefreshLayout().endRefreshing();
+
+                        hasMoreMessage = hasMore;
 
                         if (messageList.isEmpty()) {
                             return;

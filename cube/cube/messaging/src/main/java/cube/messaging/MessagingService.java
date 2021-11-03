@@ -151,11 +151,16 @@ public class MessagingService extends Module {
 
         synchronized (this) {
             if (null != this.contactService.getSelf() && !this.ready && !this.preparing.get()) {
-                this.prepare(new CompletionHandler() {
+                this.execute(new Runnable() {
                     @Override
-                    public void handleCompletion(Module module) {
-                        ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Ready, MessagingService.this);
-                        notifyObservers(event);
+                    public void run() {
+                        prepare(new CompletionHandler() {
+                            @Override
+                            public void handleCompletion(Module module) {
+                                ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Ready, MessagingService.this);
+                                notifyObservers(event);
+                            }
+                        });
                     }
                 });
             }
@@ -454,7 +459,7 @@ public class MessagingService extends Module {
         MessageList list = this.conversationMessageListMap.get(conversation.id);
         if (null != list) {
             if (!list.messages.isEmpty()) {
-                // 延迟实体寿命
+                // 延长实体寿命
                 list.toExtendLife(3L * 60L * 1000L);
 
                 final List<Message> resultList = new ArrayList<>(list.messages);
@@ -491,6 +496,9 @@ public class MessagingService extends Module {
             list.reset(result);
 
             return result;
+        }
+        else if (conversation.getType() == ConversationType.Group) {
+            // TODO
         }
 
         return null;
@@ -972,6 +980,8 @@ public class MessagingService extends Module {
     }
 
     private void queryRemoteMessage(long beginning, long ending, CompletionHandler completionHandler) {
+        LogUtils.d(MessagingService.class.getSimpleName(), "#queryRemoteMessage : " + Math.floor((ending - beginning) / 1000.0 / 60.0) + " min");
+
         if (!this.pipeline.isReady() && this.isAvailableNetwork()) {
             synchronized (this) {
                 try {
@@ -985,11 +995,26 @@ public class MessagingService extends Module {
         // 如果没有网络直接回调函数
         if (!this.pipeline.isReady()) {
             completionHandler.handleCompletion(this);
+            LogUtils.d(MessagingService.class.getSimpleName(), "#queryRemoteMessage - Pipeline is not ready");
             return;
         }
 
         if (null != this.pullTimer) {
+            LogUtils.d(MessagingService.class.getSimpleName(), "#queryRemoteMessage - Timer is null");
             return;
+        }
+
+        // 检测是否已经签入
+        int count = 1000;
+        while (!this.contactService.isReady()) {
+            if (--count <= 0) {
+                break;
+            }
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
 
         this.pullTimer = new Timer();
@@ -1028,6 +1053,12 @@ public class MessagingService extends Module {
         this.pipeline.send(MessagingService.NAME, packet);
     }
 
+    /**
+     * 查询服务器上的会话列表。
+     *
+     * @param limit
+     * @param completionHandler
+     */
     private void queryRemoteConversations(int limit, CompletionHandler completionHandler) {
         if (!this.pipeline.isReady() && this.isAvailableNetwork()) {
             synchronized (this) {
@@ -1230,13 +1261,18 @@ public class MessagingService extends Module {
             this.pullTimer = null;
         }
 
+        if (code != MessagingServiceState.Ok.code) {
+            LogUtils.w(MessagingService.class.getSimpleName(), "#triggerPull state : " + code);
+            return;
+        }
+
         try {
             int total = data.getInt("total");
             long beginning = data.getLong("beginning");
             long ending = data.getLong("ending");
             JSONArray messages = data.getJSONArray("messages");
 
-            Log.d("MessaginService", "Pull messages total: " + total);
+            LogUtils.d(MessagingService.class.getSimpleName(), "Pull messages total: " + total);
 
             for (int i = 0; i < messages.length(); ++i) {
                 JSONObject json = messages.getJSONObject(i);
@@ -1246,7 +1282,7 @@ public class MessagingService extends Module {
             // 对消息进行状态对比
             // 如果服务器状态与本地状态不一致，将服务器上的状态修改为本地状态
         } catch (JSONException e) {
-            // Nothing
+            LogUtils.w(e);
         }
     }
 

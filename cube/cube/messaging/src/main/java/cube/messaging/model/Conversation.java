@@ -230,6 +230,10 @@ public class Conversation extends Entity {
         this.group = group;
     }
 
+    public void setUnreadCount(int count) {
+        this.unreadCount = count;
+    }
+
     @Override
     public boolean equals(Object object) {
         if (null != object && object instanceof Conversation) {

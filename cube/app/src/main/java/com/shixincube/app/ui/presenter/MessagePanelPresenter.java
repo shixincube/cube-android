@@ -57,6 +57,10 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
         CubeEngine.getInstance().getMessagingService().addEventListener(conversation, this);
     }
 
+    public void markAllRead() {
+//        CubeEngine
+    }
+
     public void loadMessages() {
         MessageListResult result = CubeEngine.getInstance().getMessagingService().getRecentMessages(this.conversation, 20);
         List<Message> messageList = result.getList();

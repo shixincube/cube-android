@@ -172,6 +172,37 @@ public class Message extends Entity {
         }
     }
 
+    /**
+     * 构造函数。
+     *
+     * @param id
+     * @param timestamp
+     * @param domain
+     * @param owner
+     * @param from
+     * @param to
+     * @param source
+     * @param localTS
+     * @param remoteTS
+     * @param payload
+     * @param state
+     * @param scope
+     */
+    public Message(Long id, long timestamp, String domain, long owner, long from, long to, long source,
+                   long localTS, long remoteTS, JSONObject payload, MessageState state, int scope) {
+        super(id, timestamp);
+        this.domain = domain;
+        this.owner = owner;
+        this.from = from;
+        this.to = to;
+        this.source = source;
+        this.localTS = localTS;
+        this.remoteTS = remoteTS;
+        this.payload = payload;
+        this.state = state;
+        this.scope = scope;
+    }
+
     public Message(Message message) {
         super(message.id, message.timestamp);
         this.domain = message.domain;
@@ -189,6 +220,10 @@ public class Message extends Entity {
         this.owner = message.owner;
         this.selfTyper = message.selfTyper;
         this.summary = message.summary;
+    }
+
+    public long getOwner() {
+        return this.owner;
     }
 
     public long getFrom() {

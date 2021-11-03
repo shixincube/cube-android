@@ -49,9 +49,9 @@ import java.util.List;
 
 import cube.engine.CubeEngine;
 import cube.engine.util.Future;
+import cube.engine.util.PromiseHandler;
 import cube.engine.util.Promise;
 import cube.engine.util.PromiseFuture;
-import cube.engine.util.PromiseHandler;
 import cube.messaging.MessagingRecentEventListener;
 import cube.messaging.MessagingService;
 import cube.messaging.model.Conversation;
@@ -139,9 +139,9 @@ public class ConversationPresenter extends BasePresenter<ConversationView> imple
     }
 
     private void reloadData() {
-        PromiseFuture.create(new Promise<List<MessageConversation>>() {
+        Promise.create(new PromiseHandler<List<MessageConversation>>() {
             @Override
-            public void emit(PromiseHandler<List<MessageConversation>> handler) {
+            public void emit(PromiseFuture<List<MessageConversation>> promise) {
                 MessagingService messaging = CubeEngine.getInstance().getMessagingService();
 
                 // 从引擎获取最近会话列表
@@ -157,7 +157,7 @@ public class ConversationPresenter extends BasePresenter<ConversationView> imple
                     // TODO
                 }
 
-                handler.resolve(messageConversations);
+                promise.resolve(messageConversations);
             }
         }).thenOnMainThread(new Future<List<MessageConversation>>() {
             @Override

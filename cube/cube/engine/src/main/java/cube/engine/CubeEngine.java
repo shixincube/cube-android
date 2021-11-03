@@ -42,7 +42,7 @@ import cube.core.KernelConfig;
 import cube.core.ModuleError;
 import cube.core.handler.KernelHandler;
 import cube.engine.handler.EngineHandler;
-import cube.engine.util.PromiseFuture;
+import cube.engine.util.Promise;
 import cube.messaging.MessagingService;
 
 /**
@@ -92,7 +92,7 @@ public class CubeEngine {
         Log.i("CubeEngine", "#start : " + this.config.print());
 
         // 线程池赋值
-        PromiseFuture.sExecutor = Executors.newCachedThreadPool();
+        Promise.sExecutor = Executors.newCachedThreadPool();
 
         this.started = this.kernel.startup(context, this.config, new KernelHandler() {
             @Override
@@ -121,7 +121,7 @@ public class CubeEngine {
     public void stop() {
         this.kernel.shutdown();
 
-        PromiseFuture.sExecutor.shutdown();
+        Promise.sExecutor.shutdown();
     }
 
     public void suspend() {

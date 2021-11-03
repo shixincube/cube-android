@@ -189,8 +189,23 @@ public class MessagingStorage extends AbstractStorage {
         return conversation;
     }
 
+    /**
+     *
+     * @param conversation
+     */
     public void updateConversation(Conversation conversation) {
+        SQLiteDatabase db = this.getWritableDatabase();
 
+        // 更新
+        ContentValues values = new ContentValues();
+        values.put("timestamp", conversation.getTimestamp());
+        values.put("state", conversation.getState().code);
+        values.put("remind", conversation.getReminded().code);
+        values.put("recent_message", conversation.getRecentMessage().toJSON().toString());
+        values.put("unread", conversation.getUnreadCount());
+        db.update("conversation", values, "id=?", new String[]{ conversation.id.toString() });
+
+        this.closeWritableDatabase(db);
     }
 
     /**
@@ -279,42 +294,41 @@ public class MessagingStorage extends AbstractStorage {
         this.closeWritableDatabase(db);
     }
 
+    /**
+     * 更新指定会话关联的所有消息的状态。
+     *
+     * @param conversation
+     * @param currentState
+     * @param newState
+     * @return
+     */
     public List<Long> updateMessageState(Conversation conversation, MessageState currentState, MessageState newState) {
         List<Long> idList = new ArrayList<>();
 
         SQLiteDatabase db = this.getWritableDatabase();
-        List<Message> messageList = new ArrayList<>();
+
         if (conversation.getType() == ConversationType.Contact) {
             // 查找符合条件的数据
-            Cursor cursor = db.query("message", new String[]{ "data" },
+            Cursor cursor = db.query("message", new String[]{ "id" },
                     "source=0 AND scope=0 AND state=? AND `from`=?",
                     new String[]{
                             currentState.toString(),
                             conversation.getPivotalId().toString() }, null, null, null);
-            try {
-                while (cursor.moveToNext()) {
-                    String data = cursor.getString(0);
-                    Message message = new Message(this.service, new JSONObject(data));
-                    message.setState(newState);
-                    messageList.add(message);
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
+            while (cursor.moveToNext()) {
+                Long id = cursor.getLong(0);
+                idList.add(id);
             }
             cursor.close();
 
-            // 更新数据
-            for (Message message : messageList) {
-                ContentValues values = new ContentValues();
-                values.put("state", newState.code);
-                values.put("data", message.toJSON().toString());
-                db.update("message", values, "id=?", new String[]{ message.id.toString() });
-
-                idList.add(message.id);
-            }
+            ContentValues values = new ContentValues();
+            values.put("state", newState.code);
+            db.update("message", values, "source=0 AND scope=0 AND state=? AND `from`=?",
+                    new String[] {
+                            currentState.toString(),
+                            conversation.getPivotalId().toString()});
         }
         else if (conversation.getType() == ConversationType.Group) {
-
+            // TODO
         }
 
         this.closeWritableDatabase(db);
@@ -340,13 +354,13 @@ public class MessagingStorage extends AbstractStorage {
         return time;
     }
 
-    /**
+    /*
      * 查询最近消息列表。
      *
      * @param limit
      * @return
      */
-    public List<Message> queryRecentMessages(int limit) {
+    /*public List<Message> queryRecentMessages(int limit) {
         List<Message> list = new ArrayList<>();
 
         List<Long> messageIdList = new ArrayList<>();
@@ -385,6 +399,18 @@ public class MessagingStorage extends AbstractStorage {
         this.closeReadableDatabase(db);
 
         return list;
+    }*/
+
+    public void updateMessagesRemoteState(List<Long> messageIdList, MessageState state) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        for (Long id : messageIdList) {
+            ContentValues values = new ContentValues();
+            values.put("remote_state", state.code);
+            db.update("message", values, "id=?", new String[] {
+                    id.toString()
+            });
+        }
+        this.closeWritableDatabase(db);
     }
 
     /**
@@ -406,7 +432,7 @@ public class MessagingStorage extends AbstractStorage {
             ContentValues values = new ContentValues();
             values.put("rts", message.getRemoteTimestamp());
             values.put("state", message.getState().code);
-            values.put("data", message.toJSON().toString());
+            values.put("payload", message.getPayload().toString());
 
             db.update("message", values, "id=?", new String[]{ message.id.toString() });
 
@@ -418,6 +444,8 @@ public class MessagingStorage extends AbstractStorage {
             // 插入消息数据
             ContentValues values = new ContentValues();
             values.put("id", message.id.longValue());
+            values.put("timestamp", message.getTimestamp());
+            values.put("owner", message.getOwner());
             values.put("`from`", message.getFrom());
             values.put("`to`", message.getTo());
             values.put("source", message.getSource());
@@ -426,7 +454,7 @@ public class MessagingStorage extends AbstractStorage {
             values.put("state", message.getState().code);
             values.put("remote_state", message.getState().code);
             values.put("scope", message.getScope());
-            values.put("data", message.toJSON().toString());
+            values.put("payload", message.getPayload().toString());
 
             db.insert("message", null, values);
 
@@ -479,16 +507,6 @@ public class MessagingStorage extends AbstractStorage {
     }
 
     /**
-     * 读取指定 ID 的消息。
-     *
-     * @param messageId
-     * @return
-     */
-    public Message readMessage(Long messageId) {
-        return null;
-    }
-
-    /**
      * 反向查询消息。
      *
      * @param contactId
@@ -503,12 +521,15 @@ public class MessagingStorage extends AbstractStorage {
         final MutableBoolean hasMore = new MutableBoolean(false);
 
         // 查询消息记录，这里比 limit 多查一条记录以判断是否还有更多消息。
-        Cursor cursor = db.rawQuery("SELECT `data` FROM `message` WHERE `scope`=? AND `rts`<? AND (`from`=? OR `to`=?) AND `source`=0 ORDER BY `rts` DESC LIMIT ?"
+        Cursor cursor = db.rawQuery("SELECT * FROM `message` WHERE `scope`=? AND `rts`<? AND (`from`=? OR `to`=?) AND `source`=0 AND (`state`=? OR `state`=? OR `state`=?) ORDER BY `rts` DESC LIMIT ?"
             , new String[] {
                         Integer.toString(MessageScope.Unlimited),
                         Long.toString(timestamp),
                         contactId.toString(),
                         contactId.toString(),
+                        MessageState.Sending.toString(),
+                        MessageState.Sent.toString(),
+                        MessageState.Read.toString(),
                         Integer.toString(limit + 1)
                 });
 
@@ -518,16 +539,30 @@ public class MessagingStorage extends AbstractStorage {
                 break;
             }
 
-            String dataString = cursor.getString(0);
+            String payloadString = cursor.getString(cursor.getColumnIndex("payload"));
+            JSONObject payload = null;
             try {
-                Message message = new Message(this.service, new JSONObject(dataString));
-                // 填充
-                message = this.service.fillMessage(message);
-
-                messageList.add(message);
+                payload = new JSONObject(payloadString);
             } catch (JSONException e) {
                 // Nothing
             }
+
+            Message message = new Message(cursor.getLong(cursor.getColumnIndex("id")),
+                    cursor.getLong(cursor.getColumnIndex("timestamp")),
+                    this.domain,
+                    cursor.getLong(cursor.getColumnIndex("owner")),
+                    cursor.getLong(cursor.getColumnIndex("from")),
+                    cursor.getLong(cursor.getColumnIndex("to")),
+                    cursor.getLong(cursor.getColumnIndex("source")),
+                    cursor.getLong(cursor.getColumnIndex("lts")),
+                    cursor.getLong(cursor.getColumnIndex("rts")),
+                    payload,
+                    MessageState.parse(cursor.getInt(cursor.getColumnIndex("state"))),
+                    cursor.getInt(cursor.getColumnIndex("scope")));
+
+            // 填充
+            message = this.service.fillMessage(message);
+            messageList.add(message);
         }
 
         cursor.close();
@@ -551,7 +586,7 @@ public class MessagingStorage extends AbstractStorage {
     @Override
     protected void onDatabaseCreate(SQLiteDatabase database) {
         // 消息表
-        database.execSQL("CREATE TABLE IF NOT EXISTS `message` (`id` BIGINT PRIMARY KEY, `from` BIGINT, `to` BIGINT, `source` BIGINT, `lts` BIGINT, `rts` BIGINT, `state` INT, `remote_state` INT DEFAULT 10, `scope` INT DEFAULT 0, `data` TEXT)");
+        database.execSQL("CREATE TABLE IF NOT EXISTS `message` (`id` BIGINT PRIMARY KEY, `timestamp` BIGINT, `owner` BIGINT, `from` BIGINT, `to` BIGINT, `source` BIGINT, `lts` BIGINT, `rts` BIGINT, `state` INT, `remote_state` INT DEFAULT 10, `scope` INT DEFAULT 0, `payload` TEXT)");
 
         // 会话表
         database.execSQL("CREATE TABLE IF NOT EXISTS `conversation` (`id` BIGINT PRIMARY KEY, `timestamp` BIGINT, `type` INT, `state` INT, `pivotal_id` BIGINT, `remind` INT, `recent_message` TEXT, `unread` INT DEFAULT 0, `avatar_name` TEXT DEFAULT NULL, `avatar_url` TEXT DEFAULT NULL)");

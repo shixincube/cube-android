@@ -26,158 +26,62 @@
 
 package cube.engine.util;
 
-import java.util.concurrent.ExecutorService;
+import android.os.Handler;
+import android.os.Looper;
 
 /**
- * 异步任务触发器。
+ * 异步任务处理句柄。
+ *
+ * @param <T>
  */
 public class PromiseFuture<T> {
 
-    /**
-     * @private
-     */
-    public static ExecutorService sExecutor;
-
-    protected Promise<T> promise;
-
-    protected PromiseHandler<T> promiseHandler;
-
-    protected FutureTask<T> futureTask;
-
-    protected FutureTask<T> catchRejectTask;
-
-    private FutureTask<Exception> catchExceptionTask;
+    private Promise<T> promise;
 
     protected PromiseFuture(Promise<T> promise) {
         this.promise = promise;
-        this.promiseHandler = new PromiseHandler<T>(this);
     }
 
     /**
-     * 创建异步任务执行器。
+     * 当任务处理结束，需要通知 {@code Future} 进行 {@code come} 响应时调用该方法。
      *
-     * @param promise 指定 Promise 实例。
-     * @return
+     * @param data 任务预定的数据格式。
      */
-    public static <T> PromiseFuture<T> create(Promise<T> promise) {
-        PromiseFuture<T> future = new PromiseFuture<T>(promise);
-        return future;
+    public void resolve(T data) {
+        if (null != this.promise.futureTask) {
+            this.execute(this.promise.futureTask, data);
+        }
     }
 
     /**
-     * 异步任务结束后的对应处理句柄。
+     * 当任务处理出现异常，需要通知异常处理时调用该方法。
      *
-     * @param future
-     * @return
+     * @param data 任务预定的数据格式。
      */
-    public PromiseFuture<T> then(Future<T> future) {
-        this.futureTask = new FutureTask(false, future);
-        return this;
+    public void reject(T data) {
+        if (null != this.promise.catchRejectTask) {
+            this.execute(this.promise.catchRejectTask, data);
+        }
     }
 
-    /**
-     * 异步任务结束后的对应处理句柄。该句柄将在主线程里执行。
-     *
-     * @param future
-     * @return
-     */
-    public PromiseFuture<T> thenOnMainThread(Future<T> future) {
-        this.futureTask = new FutureTask(true, future);
-        return this;
-    }
-
-    /**
-     * 异步任务被拒绝时对应的处理句柄。
-     *
-     * @param future
-     * @return
-     */
-    public PromiseFuture<T> catchReject(Future<T> future) {
-        this.catchRejectTask = new FutureTask<T>(false, future);
-        return this;
-    }
-
-    /**
-     * 异步任务抛出异常时对应的处理句柄。
-     *
-     * @param future
-     * @return
-     */
-    public PromiseFuture<T> catchException(Future<Exception> future) {
-        this.catchExceptionTask = new FutureTask<Exception>(false, future);
-        return this;
-    }
-
-    /**
-     * 启动异步任务。
-     */
-    public void launch() {
-        this.launch(0);
-    }
-
-    /**
-     * 启动异步任务。
-     *
-     * @param delayInMills 启动延时。
-     */
-    public void launch(long delayInMills) {
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    if (delayInMills > 0) {
-                        Thread.sleep(delayInMills);
-                    }
-
-                    promise.emit(promiseHandler);
-                } catch (Exception e) {
-                    if (null != catchExceptionTask) {
-                        catchExceptionTask.future.come(e);
-                    }
+    private void execute(Promise.FutureTask task, T data) {
+        if (task.inMainThread) {
+            Looper looper = Looper.getMainLooper();
+            Handler handler = new Handler(looper);
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    task.future.come(data);
                 }
-            }
-        };
-
-        if (null != sExecutor) {
-            sExecutor.execute(runnable);
+            });
         }
         else {
-            (new Thread(runnable)).start();
+            this.promise.execute(new Runnable() {
+                @Override
+                public void run() {
+                    task.future.come(data);
+                }
+            });
         }
-    }
-
-    protected void execute(Runnable runnable) {
-        if (null != sExecutor) {
-            sExecutor.execute(runnable);
-        }
-        else {
-            (new Thread(runnable)).start();
-        }
-    }
-
-    protected class FutureTask<T> {
-
-        protected final boolean inMainThread;
-
-        protected final Future<T> future;
-
-        protected FutureTask(boolean inMainThread, Future<T> future) {
-            this.inMainThread = inMainThread;
-            this.future = future;
-        }
-    }
-
-    private void run() {
-        PromiseFuture.create(new Promise<Object>() {
-            @Override
-            public void emit(PromiseHandler<Object> handler) {
-                handler.resolve(new Object());
-            }
-        }).then(new Future<Object>() {
-            @Override
-            public void come(Object data) {
-
-            }
-        });
     }
 }

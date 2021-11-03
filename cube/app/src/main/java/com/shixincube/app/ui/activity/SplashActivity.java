@@ -46,9 +46,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import butterknife.BindView;
 import cube.engine.CubeService;
 import cube.engine.util.Future;
+import cube.engine.util.PromiseHandler;
 import cube.engine.util.Promise;
 import cube.engine.util.PromiseFuture;
-import cube.engine.util.PromiseHandler;
 import kr.co.namee.permissiongen.PermissionGen;
 
 /**
@@ -143,9 +143,9 @@ public class SplashActivity extends BaseActivity {
 
     private void launch() {
         // 判断是否有有效令牌
-        PromiseFuture.create(new Promise<Boolean>() {
+        Promise.create(new PromiseHandler<Boolean>() {
             @Override
-            public void emit(PromiseHandler<Boolean> handler) {
+            public void emit(PromiseFuture<Boolean> promise) {
                 // 先置为 false
                 valid = false;
                 if (AccountHelper.getInstance(getApplicationContext()).checkValidToken()) {
@@ -155,7 +155,7 @@ public class SplashActivity extends BaseActivity {
                     valid = false;
                 }
 
-                handler.resolve(valid);
+                promise.resolve(valid);
             }
         }).thenOnMainThread(new Future<Boolean>() {
             @Override

@@ -26,62 +26,15 @@
 
 package cube.engine.util;
 
-import android.os.Handler;
-import android.os.Looper;
-
 /**
- * 异步任务处理句柄。
- *
- * @param <T>
+ * 异步任务描述类。
  */
-public class PromiseHandler<T> {
-
-    private PromiseFuture<T> promiseFuture;
-
-    protected PromiseHandler(PromiseFuture<T> promiseFuture) {
-        this.promiseFuture = promiseFuture;
-    }
+public interface PromiseHandler<T> {
 
     /**
-     * 当任务处理结束，需要通知 {@code Future} 进行 {@code come} 响应时调用该方法。
+     * 当任务异步执行时该方法被调用。
      *
-     * @param data 任务预定的数据格式。
+     * @param promiseFuture 指定触发调用链的句柄。
      */
-    public void resolve(T data) {
-        if (null != this.promiseFuture.futureTask) {
-            this.execute(this.promiseFuture.futureTask, data);
-        }
-    }
-
-    /**
-     * 当任务处理出现异常，需要通知异常处理时调用该方法。
-     *
-     * @param data 任务预定的数据格式。
-     */
-    public void reject(T data) {
-        if (null != this.promiseFuture.catchRejectTask) {
-            this.execute(this.promiseFuture.catchRejectTask, data);
-        }
-    }
-
-    private void execute(PromiseFuture.FutureTask task, T data) {
-        if (task.inMainThread) {
-            Looper looper = Looper.getMainLooper();
-            Handler handler = new Handler(looper);
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    task.future.come(data);
-                }
-            });
-        }
-        else {
-            this.promiseFuture.execute(new Runnable() {
-                @Override
-                public void run() {
-                    task.future.come(data);
-                }
-            });
-        }
-    }
+    void emit(PromiseFuture<T> promiseFuture);
 }

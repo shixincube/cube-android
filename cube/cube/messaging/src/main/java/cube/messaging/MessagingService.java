@@ -62,6 +62,8 @@ import cube.messaging.model.Conversation;
 import cube.messaging.model.ConversationState;
 import cube.messaging.model.ConversationType;
 import cube.messaging.model.Message;
+import cube.messaging.model.MessageState;
+import cube.util.LogUtils;
 import cube.util.ObservableEvent;
 
 /**
@@ -333,8 +335,85 @@ public class MessagingService extends Module {
      *
      * @param conversation
      */
-    public void markRead(Conversation conversation) {
-        
+    public void markRead(final Conversation conversation, CompletionHandler completionHandler) {
+        if (null != this.conversations) {
+            Conversation current = null;
+            for (Conversation conv : this.conversations) {
+                if (conv.id.longValue() == conversation.id.longValue()) {
+                    current = conv;
+                    break;
+                }
+            }
+
+            if (null != current) {
+                current.getRecentMessage().setState(MessageState.Read);
+                current.setUnreadCount(0);
+            }
+        }
+
+        conversation.getRecentMessage().setState(MessageState.Read);
+        conversation.setUnreadCount(0);
+
+        this.execute(new Runnable() {
+            @Override
+            public void run() {
+                // 更新会话
+                storage.updateConversation(conversation);
+
+                // 更新会话相关的数据
+                List<Long> idList = storage.updateMessageState(conversation, MessageState.Sent, MessageState.Read);
+
+                if (idList.isEmpty()) {
+                    // 没有记录
+                    completionHandler.handleCompletion(MessagingService.this);
+                    return;
+                }
+
+                JSONArray array = new JSONArray();
+                for (Long id : idList) {
+                    array.put(id.longValue());
+                }
+
+                // 发送请求到服务器
+                JSONObject payload = new JSONObject();
+                try {
+                    payload.put("contactId", contactService.getSelf().id.longValue());
+                    payload.put("messageIdList", array);
+                    if (conversation.getType() == ConversationType.Contact) {
+                        payload.put("messageFrom", conversation.getPivotalId().longValue());
+                    }
+                    else if (conversation.getType() == ConversationType.Group) {
+                        payload.put("messageSource", conversation.getPivotalId().longValue());
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                // 与服务器同步
+                Packet requestPacket = new Packet(MessagingAction.Read, payload);
+                pipeline.send(MessagingService.NAME, requestPacket, new PipelineHandler() {
+                    @Override
+                    public void handleResponse(Packet packet) {
+                        if (packet.state.code != PipelineState.Ok.code) {
+                            LogUtils.w(MessagingService.class.getSimpleName(), "#markRead - code : " + packet.state.code);
+                            completionHandler.handleCompletion(MessagingService.this);
+                            return;
+                        }
+
+                        int stateCode = packet.extractServiceStateCode();
+                        if (stateCode != MessagingServiceState.Ok.code) {
+                            LogUtils.w(MessagingService.class.getSimpleName(), "#markRead - code : " + stateCode);
+                            completionHandler.handleCompletion(MessagingService.this);
+                            return;
+                        }
+
+                        // 更新消息在服务器上的状态
+                        storage.updateMessagesRemoteState(idList, MessageState.Read);
+                        completionHandler.handleCompletion(MessagingService.this);
+                    }
+                });
+            }
+        });
     }
 
     /**

@@ -44,6 +44,7 @@ import cube.messaging.MessageEventListener;
 import cube.messaging.MessageListResult;
 import cube.messaging.MessagingService;
 import cube.messaging.extension.HyperTextMessage;
+import cube.messaging.handler.MessageListResultHandler;
 import cube.messaging.handler.SendHandler;
 import cube.messaging.model.Conversation;
 import cube.messaging.model.Message;
@@ -52,6 +53,8 @@ import cube.messaging.model.Message;
  * 消息面板。
  */
 public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelView> implements MessageEventListener {
+
+    private int pageSize = 10;
 
     private MessagePanelAdapter adapter;
 
@@ -74,7 +77,7 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
     }
 
     public void loadMessages() {
-        MessageListResult result = CubeEngine.getInstance().getMessagingService().getRecentMessages(this.conversation, 20);
+        MessageListResult result = CubeEngine.getInstance().getMessagingService().getRecentMessages(this.conversation, this.pageSize);
         List<Message> messageList = result.getList();
 
         if (null == this.adapter) {
@@ -87,6 +90,35 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
             this.adapter.notifyDataSetChangedWrapper();
             moveToBottom();
         }
+    }
+
+    public void loadMoreMessages() {
+        List<Message> messages = this.adapter.getData();
+        Message message = null;
+        if (!messages.isEmpty()) {
+            message = messages.get(0);
+        }
+
+        int limit = this.pageSize + this.pageSize;
+        CubeEngine.getInstance().getMessagingService().queryMessages(conversation, message, limit,
+                new MessageListResultHandler() {
+                    @Override
+                    public void handle(List<Message> messageList, boolean hasMore) {
+                        // 结束刷新
+                        getView().getRefreshLayout().endRefreshing();
+
+                        if (messageList.isEmpty()) {
+                            return;
+                        }
+
+                        // Result 清单里的消息是从旧到新的，时间正序，因此倒着插入到列表
+                        for (int i = messageList.size() - 1; i >= 0; --i) {
+                            messages.add(0, messageList.get(i));
+                        }
+
+                        getView().getMessageListView().moveToPosition(messageList.size() - 1);
+                    }
+                });
     }
 
     public void sendTextMessage() {

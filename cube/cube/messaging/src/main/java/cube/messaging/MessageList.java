@@ -26,6 +26,8 @@
 
 package cube.messaging;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Vector;
 
@@ -35,7 +37,7 @@ import cube.messaging.model.Message;
  * 消息列表。
  * 用于加速读取消息列表的速度。
  */
-class MessageList {
+class MessageList implements Comparator<Message> {
 
     public final List<Message> messages = new Vector<>();
 
@@ -58,8 +60,33 @@ class MessageList {
     }
 
     protected void appendMessage(Message message) {
+        if (this.messages.contains(message)) {
+            return;
+        }
+
         this.messages.add(message);
 
         this.toExtendLife(5L * 60L * 1000L);
+    }
+
+    protected void insertMessages(List<Message> messageList) {
+        for (Message message : messageList) {
+            if (this.messages.contains(message)) {
+                continue;
+            }
+
+            this.messages.add(message);
+        }
+
+        // 排序
+        Collections.sort(this.messages, this);
+
+        this.toExtendLife(5L * 60L * 1000L);
+    }
+
+    @Override
+    public int compare(Message message1, Message message2) {
+        // 时间戳升序
+        return (int) (message1.getRemoteTimestamp() - message2.getRemoteTimestamp());
     }
 }

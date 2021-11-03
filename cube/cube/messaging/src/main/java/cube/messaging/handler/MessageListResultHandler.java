@@ -24,22 +24,21 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app.ui.view;
+package cube.messaging.handler;
 
-import android.widget.EditText;
+import java.util.List;
 
-import com.shixincube.app.widget.recyclerview.RecyclerView;
-
-import cn.bingoogolapple.refreshlayout.BGARefreshLayout;
+import cube.messaging.model.Message;
 
 /**
- * 消息面板。
+ * 消息查询结果句柄。
  */
-public interface MessagePanelView {
+public interface MessageListResultHandler {
 
-    RecyclerView getMessageListView();
-
-    EditText getInputContentView();
-
-    BGARefreshLayout getRefreshLayout();
+    /**
+     *
+     * @param messageList 消息清单。
+     * @param hasMore 是否还有更多消息。
+     */
+    void handle(List<Message> messageList, boolean hasMore);
 }

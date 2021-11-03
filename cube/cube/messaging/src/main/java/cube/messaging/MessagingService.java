@@ -64,6 +64,7 @@ import cube.core.handler.FailureHandler;
 import cube.core.handler.PipelineHandler;
 import cube.messaging.extension.MessageTypePlugin;
 import cube.messaging.handler.MessageHandler;
+import cube.messaging.handler.MessageListResultHandler;
 import cube.messaging.handler.SendHandler;
 import cube.messaging.hook.InstantiateHook;
 import cube.messaging.model.Conversation;
@@ -505,16 +506,50 @@ public class MessagingService extends Module {
     }
 
     /**
-     * 查询指定联系人的消息。
+     * 查询会话在指定消息之前的历史消息强清单。
      *
-     * @param contact
-     * @param timestamp
+     * @param conversation
+     * @param message
      * @param limit
-     * @return
+     * @param handler
      */
-    public MessageListResult queryMessages(Contact contact, long timestamp, int limit) {
+    public void queryMessages(Conversation conversation, Message message, int limit, MessageListResultHandler handler) {
+        this.execute(new Runnable() {
+            @Override
+            public void run() {
+                if (ConversationType.Contact == conversation.getType()) {
+                    // 如果消息为空指针，则查询最近的消息
+                    if (null == message) {
+                        MessageListResult result = getRecentMessages(conversation, limit);
+                        executeOnMainThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                handler.handle(result.getList(), result.hasMore());
+                            }
+                        });
+                        return;
+                    }
 
-        return null;
+                    // 从数据库查询
+                    MessageListResult result = storage.queryMessagesByReverseWithContact(conversation.getPivotalId(), message.getRemoteTimestamp(), limit);
+
+                    MessageList list = conversationMessageListMap.get(conversation.id);
+                    if (null != list) {
+                        list.insertMessages(result.getList());
+                    }
+
+                    executeOnMainThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            handler.handle(result.getList(), result.hasMore());
+                        }
+                    });
+                }
+                else if (ConversationType.Group == conversation.getType()) {
+                    // TODO
+                }
+            }
+        });
     }
 
     public void sendTypingStatus(Conversation conversation) {
@@ -979,6 +1014,13 @@ public class MessagingService extends Module {
         });
     }
 
+    /**
+     * 从服务器上获取指定时间范围内的消息。
+     *
+     * @param beginning
+     * @param ending
+     * @param completionHandler
+     */
     private void queryRemoteMessage(long beginning, long ending, CompletionHandler completionHandler) {
         LogUtils.d(MessagingService.class.getSimpleName(), "#queryRemoteMessage : " + Math.floor((ending - beginning) / 1000.0 / 60.0) + " min");
 

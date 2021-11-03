@@ -328,6 +328,23 @@ public class Message extends Entity {
     }
 
     @Override
+    public boolean equals(Object object) {
+        if (null != object && object instanceof Message) {
+            Message other = (Message) object;
+            if (other.id.longValue() == this.id.longValue()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return this.id.hashCode();
+    }
+
+    @Override
     public JSONObject toJSON() {
         JSONObject json = super.toJSON();
         try {

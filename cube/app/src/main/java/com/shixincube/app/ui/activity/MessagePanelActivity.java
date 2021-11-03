@@ -44,6 +44,7 @@ import com.shixincube.app.widget.recyclerview.RecyclerView;
 import java.io.IOException;
 
 import butterknife.BindView;
+import cn.bingoogolapple.refreshlayout.BGANormalRefreshViewHolder;
 import cn.bingoogolapple.refreshlayout.BGARefreshLayout;
 import cube.engine.CubeEngine;
 import cube.messaging.model.Conversation;
@@ -52,6 +53,9 @@ import cube.messaging.model.Conversation;
  * 消息面板。
  */
 public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView, MessagePanelPresenter> implements MessagePanelView, BGARefreshLayout.BGARefreshLayoutDelegate {
+
+    @BindView(R.id.refreshLayout)
+    BGARefreshLayout refreshLayout;
 
     @BindView(R.id.rvMessages)
     RecyclerView messageListView;
@@ -99,6 +103,17 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
 
         this.toolbarMore.setImageResource(R.mipmap.ic_contact_info_gray);
         this.toolbarMore.setVisibility(View.VISIBLE);
+
+        this.initRefreshLayout();
+    }
+
+    private void initRefreshLayout() {
+        this.refreshLayout.setDelegate(this);
+        BGANormalRefreshViewHolder refreshViewHolder = new BGANormalRefreshViewHolder(this, false);
+        refreshViewHolder.setRefreshingText(UIUtils.getString(R.string.loading_messages));
+        refreshViewHolder.setPullDownRefreshText("");
+        refreshViewHolder.setReleaseRefreshText("");
+        this.refreshLayout.setRefreshViewHolder(refreshViewHolder);
     }
 
     @Override
@@ -159,7 +174,7 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
 
     @Override
     public void onBGARefreshLayoutBeginRefreshing(BGARefreshLayout refreshLayout) {
-
+        this.presenter.loadMoreMessages();
     }
 
     @Override
@@ -175,5 +190,10 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
     @Override
     public EditText getInputContentView() {
         return this.inputContentView;
+    }
+
+    @Override
+    public BGARefreshLayout getRefreshLayout() {
+        return this.refreshLayout;
     }
 }

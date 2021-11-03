@@ -35,10 +35,16 @@ import com.shixincube.app.util.UIUtils;
 import java.io.IOException;
 import java.util.List;
 
+import cube.core.Module;
+import cube.core.ModuleError;
+import cube.core.handler.CompletionHandler;
+import cube.core.handler.FailureHandler;
 import cube.engine.CubeEngine;
 import cube.messaging.MessageEventListener;
 import cube.messaging.MessageListResult;
 import cube.messaging.MessagingService;
+import cube.messaging.extension.HyperTextMessage;
+import cube.messaging.handler.SendHandler;
 import cube.messaging.model.Conversation;
 import cube.messaging.model.Message;
 
@@ -58,7 +64,13 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
     }
 
     public void markAllRead() {
-//        CubeEngine
+        CubeEngine.getInstance().getMessagingService().markRead(conversation,
+                new CompletionHandler() {
+                    @Override
+                    public void handleCompletion(Module module) {
+                        // Nothing
+                    }
+                });
     }
 
     public void loadMessages() {
@@ -77,6 +89,36 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
         }
     }
 
+    public void sendTextMessage() {
+        String text = getView().getInputContentView().getText().toString().trim();
+        this.sendTextMessage(text);
+        getView().getInputContentView().setText("");
+    }
+
+    public void sendTextMessage(String text) {
+        HyperTextMessage textMessage = new HyperTextMessage(text);
+        CubeEngine.getInstance().getMessagingService().sendMessage(conversation, textMessage,
+                new SendHandler<Conversation>() {
+                    @Override
+                    public void handleSending(Conversation destination, Message message) {
+                        // 将消息添加到界面
+                        adapter.addLastItem(message);
+                        moveToBottom();
+                    }
+
+                    @Override
+                    public void handleSent(Conversation destination, Message message) {
+
+                    }
+                }, new FailureHandler() {
+                    @Override
+                    public void handleFailure(Module module, ModuleError error) {
+                        // 消息错误，更新显示状态
+
+                    }
+                });
+    }
+
     private void moveToBottom() {
         getView().getMessageListView().smoothMoveToPosition(this.adapter.getData().size() - 1);
     }
@@ -88,12 +130,12 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
 
     @Override
     public void onMessageSending(Message message, MessagingService service) {
-
+        // Nothing
     }
 
     @Override
     public void onMessageSent(Message message, MessagingService service) {
-
+        // Nothing
     }
 
     @Override

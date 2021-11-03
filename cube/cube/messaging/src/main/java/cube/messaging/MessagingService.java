@@ -37,32 +37,42 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import cube.contact.ContactService;
 import cube.contact.ContactServiceEvent;
 import cube.contact.handler.ContactHandler;
 import cube.contact.model.Contact;
+import cube.contact.model.Group;
 import cube.contact.model.Self;
 import cube.core.Hook;
 import cube.core.Module;
+import cube.core.ModuleError;
 import cube.core.Packet;
 import cube.core.PipelineState;
 import cube.core.handler.CompletionHandler;
+import cube.core.handler.FailureHandler;
 import cube.core.handler.PipelineHandler;
 import cube.messaging.extension.MessageTypePlugin;
+import cube.messaging.handler.MessageHandler;
+import cube.messaging.handler.SendHandler;
 import cube.messaging.hook.InstantiateHook;
 import cube.messaging.model.Conversation;
 import cube.messaging.model.ConversationState;
 import cube.messaging.model.ConversationType;
 import cube.messaging.model.Message;
+import cube.messaging.model.MessageScope;
 import cube.messaging.model.MessageState;
+import cube.messaging.model.MessageType;
 import cube.util.LogUtils;
 import cube.util.ObservableEvent;
 
@@ -105,6 +115,11 @@ public class MessagingService extends Module {
      */
     private Map<Long, MessageList> conversationMessageListMap;
 
+    /**
+     * 正在发送的消息清单。
+     */
+    private Queue<Message> sendingList;
+
     public MessagingService() {
         super(MessagingService.NAME);
         this.pipelineListener = new MessagingPipelineListener(this);
@@ -114,6 +129,7 @@ public class MessagingService extends Module {
         this.ready = false;
         this.lastMessageTime = 0;
         this.conversationMessageListMap = new ConcurrentHashMap<>();
+        this.sendingList = new ConcurrentLinkedQueue<>();
     }
 
     @Override
@@ -336,6 +352,17 @@ public class MessagingService extends Module {
      * @param conversation
      */
     public void markRead(final Conversation conversation, CompletionHandler completionHandler) {
+        if (conversation.getUnreadCount() == 0) {
+            return;
+        }
+
+        MessageList messageList = this.conversationMessageListMap.get(conversation.id);
+        if (null != messageList) {
+            for (Message message : messageList.messages) {
+                message.setState(MessageState.Read);
+            }
+        }
+
         if (null != this.conversations) {
             Conversation current = null;
             for (Conversation conv : this.conversations) {
@@ -480,6 +507,390 @@ public class MessagingService extends Module {
     public MessageListResult queryMessages(Contact contact, long timestamp, int limit) {
 
         return null;
+    }
+
+    public void sendTypingStatus(Conversation conversation) {
+        // TODO
+    }
+
+    /**
+     * 向指定会话的参与人发送消息。
+     *
+     * @param conversation
+     * @param message
+     */
+    public void sendMessage(final Conversation conversation, final Message message) {
+        final Object mutex = new Object();
+        this.sendMessage(conversation, message, new SendHandler<Conversation>() {
+            @Override
+            public void handleSending(Conversation destination, Message sendingMessage) {
+                // Nothing
+            }
+            @Override
+            public void handleSent(Conversation destination, Message sentMessage) {
+                synchronized (mutex) {
+                    mutex.notify();
+                }
+            }
+        }, new FailureHandler() {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                synchronized (mutex) {
+                    mutex.notify();
+                }
+            }
+        });
+
+        synchronized (mutex) {
+            try {
+                mutex.wait(3000L);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * 向指定联系人发送消息。
+     *
+     * @param contact
+     * @param message
+     */
+    public void sendMessage(final Contact contact, final Message message) {
+        final Object mutex = new Object();
+        this.sendMessage(contact, message, new SendHandler<Contact>() {
+            @Override
+            public void handleSending(Contact destination, Message sendingMessage) {
+                // Nothing
+            }
+            @Override
+            public void handleSent(Contact destination, Message sentMessage) {
+                synchronized (mutex) {
+                    mutex.notify();
+                }
+            }
+        }, new FailureHandler() {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                synchronized (mutex) {
+                    mutex.notify();
+                }
+            }
+        });
+
+        synchronized (mutex) {
+            try {
+                mutex.wait(3000L);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * 向指定群组发送消息。
+     *
+     * @param group
+     * @param message
+     */
+    public void sendMessage(final Group group, final Message message) {
+        final Object mutex = new Object();
+        this.sendMessage(group, message, new SendHandler<Group>() {
+            @Override
+            public void handleSending(Group destination, Message sendingMessage) {
+                // Nothing
+            }
+            @Override
+            public void handleSent(Group destination, Message sentMessage) {
+                synchronized (mutex) {
+                    mutex.notify();
+                }
+            }
+        }, new FailureHandler() {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                synchronized (mutex) {
+                    mutex.notify();
+                }
+            }
+        });
+
+        synchronized (mutex) {
+            try {
+                mutex.wait(3000L);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * 向指定会话发送消息。
+     *
+     * @param conversation
+     * @param message
+     * @param sendHandler
+     * @param failureHandler
+     */
+    public void sendMessage(final Conversation conversation, final Message message,
+                            SendHandler<Conversation> sendHandler, FailureHandler failureHandler) {
+        if (ConversationType.Contact == conversation.getType()) {
+            this.sendMessage(conversation.getContact(), message, new SendHandler<Contact>() {
+                @Override
+                public void handleSending(Contact destination, Message message) {
+                    sendHandler.handleSending(conversation, message);
+                }
+
+                @Override
+                public void handleSent(Contact destination, Message message) {
+                    // 完成后，对会话进行数据处理
+                    appendMessageToConversation(conversation.id, message);
+
+                    sendHandler.handleSent(conversation, message);
+                }
+            }, failureHandler);
+        }
+        else if (ConversationType.Group == conversation.getType()) {
+            this.sendMessage(conversation.getGroup(), message, new SendHandler<Group>() {
+                @Override
+                public void handleSending(Group destination, Message message) {
+                    sendHandler.handleSending(conversation, message);
+                }
+
+                @Override
+                public void handleSent(Group destination, Message message) {
+                    // 完成后，对会话进行数据处理
+                    appendMessageToConversation(conversation.id, message);
+
+                    sendHandler.handleSent(conversation, message);
+                }
+            }, failureHandler);
+        }
+    }
+
+    /**
+     * 向指定联系人发送消息。
+     *
+     * @param contact
+     * @param message
+     * @param sendHandler
+     * @param failureHandler
+     */
+    public void sendMessage(Contact contact, Message message, SendHandler<Contact> sendHandler, FailureHandler failureHandler) {
+        // 消息数据赋值
+        message.assign(this.contactService.getSelf().id, contact.id, 0);
+        // 设置状态为正在发送
+        message.setState(MessageState.Sending);
+        // 填写数据
+        this.fillMessage(message);
+
+        // 进行发送处理
+        this.processSend(message, new MessageHandler() {
+            @Override
+            public void handleMessage(Message message) {
+                executeOnMainThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        sendHandler.handleSent(contact, message);
+                    }
+                });
+            }
+        }, new FailureHandler() {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                executeOnMainThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        failureHandler.handleFailure(module, error);
+                    }
+                });
+            }
+        });
+
+        // 回调正在处理
+        this.executeOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                // 回调
+                sendHandler.handleSending(contact, message);
+            }
+        });
+
+        // 产生事件
+        this.execute(new Runnable() {
+            @Override
+            public void run() {
+                ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Sending, message);
+                notifyObservers(event);
+            }
+        });
+    }
+
+    /**
+     * 向指定群组发送消息。
+     *
+     * @param group
+     * @param message
+     * @param sendHandler
+     * @param failureHandler
+     */
+    public void sendMessage(Group group, Message message, SendHandler<Group> sendHandler, FailureHandler failureHandler) {
+        // TODO
+    }
+
+    private void processSend(Message message, MessageHandler handler, FailureHandler failureHandler) {
+        // 加入正在发送队列
+        this.sendingList.offer(message);
+
+        if (!this.pipeline.isReady()) {
+            // 修改状态
+            message.setState(MessageState.Fault);
+
+            // 更新数据库
+            storage.updateMessage(message);
+
+            // 不从正在发送列表删除该消息
+
+            this.execute(new Runnable() {
+                @Override
+                public void run() {
+                    ModuleError error = new ModuleError(MessagingService.NAME, MessagingServiceState.PipelineFault.code);
+                    failureHandler.handleFailure(MessagingService.this, error);
+
+                    // 产生事件
+                    ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Fault, error);
+                    notifyObservers(event);
+                }
+            });
+            return;
+        }
+
+        // TODO 处理文件附件
+
+        Packet packet = new Packet(MessagingAction.Push, message.toCompactJSON());
+        this.pipeline.send(MessagingService.NAME, packet, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet responsePacket) {
+                if (responsePacket.state.code != PipelineState.Ok.code) {
+                    // 修改状态
+                    message.setState(MessageState.Fault);
+
+                    // 更新数据库
+                    storage.updateMessage(message);
+
+                    ModuleError error = new ModuleError(MessagingService.NAME, MessagingServiceState.ServerFault.code);
+                    failureHandler.handleFailure(MessagingService.this, error);
+
+                    // 产生事件
+                    ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Fault, error);
+                    notifyObservers(event);
+                    return;
+                }
+
+                int stateCode = responsePacket.extractServiceStateCode();
+                JSONObject data = responsePacket.extractServiceData();
+
+                // 移除正在发送数据
+                removeSendingMessage(message);
+
+                try {
+                    // 提取应答的数据
+                    long responseRTS = data.getLong("rts");
+                    MessageState responseState = MessageState.parse(data.getInt("state"));
+
+                    // 更新时间戳
+                    message.setRemoteTS(responseRTS);
+                    // 更新状态
+                    message.setState(responseState);
+
+                    // 更新时间戳
+                    if (message.getRemoteTimestamp() > lastMessageTime) {
+                        lastMessageTime = message.getRemoteTimestamp();
+                    }
+
+                    // 更新数据库
+                    storage.updateMessage(message);
+
+                    if (stateCode == MessagingServiceState.Ok.code) {
+                        // TODO 更新文件附件
+
+                        if (message.getScope() == MessageScope.Unlimited) {
+                            // 回调
+                            handler.handleMessage(message);
+
+                            // 产生事件
+                            ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Sent, message);
+                            notifyObservers(event);
+                        }
+                        else {
+                            // 回调
+                            handler.handleMessage(message);
+
+                            // 产生事件
+                            ObservableEvent event = new ObservableEvent(MessagingServiceEvent.MarkOnlyOwner, message);
+                            notifyObservers(event);
+                        }
+                    }
+                    else if (stateCode == MessagingServiceState.BeBlocked.code) {
+                        ObservableEvent event = null;
+
+                        if (message.getState() == MessageState.SendBlocked) {
+                            // 回调
+                            handler.handleMessage(message);
+
+                            event = new ObservableEvent(MessagingServiceEvent.SendBlocked, message);
+                        }
+                        else if (message.getState() == MessageState.ReceiveBlocked) {
+                            // 回调
+                            handler.handleMessage(message);
+
+                            event = new ObservableEvent(MessagingServiceEvent.ReceiveBlocked, message);
+                        }
+                        else {
+                            ModuleError error = new ModuleError(MessagingService.NAME, stateCode);
+                            // 回调
+                            failureHandler.handleFailure(MessagingService.this, error);
+
+                            event = new ObservableEvent(MessagingServiceEvent.Fault, error);
+                        }
+
+                        // 产生事件
+                        notifyObservers(event);
+                    }
+                    else {
+                        ModuleError error = new ModuleError(MessagingService.NAME, stateCode);
+
+                        // 回调
+                        failureHandler.handleFailure(MessagingService.this, error);
+
+                        // 产生事件
+                        ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Fault, error);
+                        notifyObservers(event);
+                    }
+                } catch (Exception e) {
+                    LogUtils.w(MessagingService.class.getSimpleName(), e);
+
+                    // 回调
+                    ModuleError error = new ModuleError(MessagingService.NAME, MessagingServiceState.DataStructureError.code);
+                    failureHandler.handleFailure(MessagingService.this, error);
+
+                    // 产生事件
+                    ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Fault, error);
+                    notifyObservers(event);
+                }
+            }
+        });
+    }
+
+    private void removeSendingMessage(Message message) {
+        Iterator<Message> iterator = this.sendingList.iterator();
+        while (iterator.hasNext()) {
+            Message current = iterator.next();
+            if (current.id.longValue() == message.id.longValue()) {
+                iterator.remove();
+                break;
+            }
+        }
     }
 
     private void prepare(CompletionHandler handler) {
@@ -746,7 +1157,7 @@ public class MessagingService extends Module {
 
         MessageList list = this.conversationMessageListMap.get(conversationId);
         if (null != list) {
-            list.messages.add(message);
+            list.appendMessage(message);
         }
 
         // 更新会话数据库
@@ -888,9 +1299,14 @@ public class MessagingService extends Module {
         }
 
         // 实例化
-        Hook<Message> hook = (Hook<Message>) this.pluginSystem.getHook(InstantiateHook.NAME);
-        Message compMessage = hook.apply(message);
-        return compMessage;
+        if (message.getType() == MessageType.Unknown) {
+            Hook<Message> hook = (Hook<Message>) this.pluginSystem.getHook(InstantiateHook.NAME);
+            Message compMessage = hook.apply(message);
+            return compMessage;
+        }
+        else {
+            return message;
+        }
     }
 
     protected void fillConversation(Conversation conversation) {

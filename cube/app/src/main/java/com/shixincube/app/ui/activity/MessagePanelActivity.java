@@ -27,12 +27,18 @@
 package com.shixincube.app.ui.activity;
 
 import android.content.Intent;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
 
 import com.shixincube.app.R;
 import com.shixincube.app.ui.base.BaseFragmentActivity;
 import com.shixincube.app.ui.presenter.MessagePanelPresenter;
 import com.shixincube.app.ui.view.MessagePanelView;
+import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.recyclerview.RecyclerView;
 
 import java.io.IOException;
@@ -49,6 +55,18 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
 
     @BindView(R.id.rvMessages)
     RecyclerView messageListView;
+
+    @BindView(R.id.etContent)
+    EditText inputContentView;
+
+    @BindView(R.id.btnSend)
+    Button sendButton;
+
+    @BindView(R.id.ivEmoji)
+    ImageView emojiImageView;
+
+    @BindView(R.id.ivMore)
+    ImageView moreImageView;
 
     private Conversation conversation;
 
@@ -79,13 +97,54 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
     public void initView() {
         setToolbarTitle(this.conversation.getDisplayName());
 
-        this.toolbarMore.setImageResource(R.mipmap.ic_contact_info_black);
+        this.toolbarMore.setImageResource(R.mipmap.ic_contact_info_gray);
         this.toolbarMore.setVisibility(View.VISIBLE);
     }
 
     @Override
     public void initData() {
+        this.presenter.markAllRead();
         this.presenter.loadMessages();
+    }
+
+    @Override
+    public void initListener() {
+        // 输入框事件
+        inputContentView.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {
+                // Nothing
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int start, int count, int after) {
+                if (inputContentView.getText().toString().trim().length() > 0) {
+                    sendButton.setVisibility(View.VISIBLE);
+                    moreImageView.setVisibility(View.GONE);
+                    // 发送正在输入消息提示
+                    CubeEngine.getInstance().getMessagingService().sendTypingStatus(conversation);
+                }
+                else {
+                    sendButton.setVisibility(View.GONE);
+                    moreImageView.setVisibility(View.VISIBLE);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                // Nothing
+            }
+        });
+        inputContentView.setOnFocusChangeListener((view, focus) -> {
+            if (focus) {
+                UIUtils.postTaskDelay(() -> messageListView.smoothMoveToPosition(messageListView.getAdapter().getItemCount() - 1), 200);
+            }
+        });
+
+        // 发送按钮事件
+        sendButton.setOnClickListener((view) -> {
+            presenter.sendTextMessage();
+        });
     }
 
     @Override
@@ -111,5 +170,10 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
     @Override
     public RecyclerView getMessageListView() {
         return this.messageListView;
+    }
+
+    @Override
+    public EditText getInputContentView() {
+        return this.inputContentView;
     }
 }

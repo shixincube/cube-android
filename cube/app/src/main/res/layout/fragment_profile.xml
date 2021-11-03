@@ -10,7 +10,7 @@
     <com.zhy.autolayout.AutoLinearLayout
         android:id="@+id/llProfileInfo"
         android:layout_width="match_parent"
-        android:layout_height="110dp"
+        android:layout_height="100dp"
         android:layout_marginTop="@dimen/option_item_margin_top"
         android:background="@drawable/selector_common_item"
         android:gravity="center_vertical"
@@ -19,8 +19,8 @@
         <!-- Avatar -->
         <com.shixincube.app.widget.AdvancedImageView
             android:id="@+id/ivAvatar"
-            android:layout_width="72dp"
-            android:layout_height="72dp"
+            android:layout_width="68dp"
+            android:layout_height="68dp"
             android:layout_marginStart="20dp"
             android:layout_marginEnd="@dimen/option_item_margin_right"
             android:scaleType="centerCrop"
@@ -30,7 +30,7 @@
         <!-- Name & Cube ID -->
         <com.zhy.autolayout.AutoLinearLayout
             android:layout_width="0dp"
-            android:layout_height="78dp"
+            android:layout_height="72dp"
             android:layout_weight="1"
             android:gravity="center_vertical"
             android:orientation="vertical">
@@ -43,7 +43,7 @@
                 android:singleLine="true"
                 android:text="@string/my_nickname"
                 android:textColor="@color/text"
-                android:textSize="22sp"/>
+                android:textSize="20sp"/>
 
             <TextView
                 android:id="@+id/tvCubeId"

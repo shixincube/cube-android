@@ -82,6 +82,9 @@ public enum MessagingServiceState {
     /** 存储里没有读取到数据。 */
     StorageNoData(106),
 
+    /** 数据管道故障。 */
+    PipelineFault(107),
+
     /** 未知的状态。 */
     Unknown(99);
 

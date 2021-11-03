@@ -314,6 +314,19 @@ public class Message extends Entity {
         this.state = state;
     }
 
+    public void setRemoteTS(long timestamp) {
+        this.remoteTS = timestamp;
+    }
+
+    public void assign(long owner, long to, long source) {
+        this.owner = owner;
+        this.from = owner;
+        this.to = to;
+        this.source = source;
+        this.localTS = this.timestamp;
+        this.remoteTS = this.localTS;
+    }
+
     @Override
     public JSONObject toJSON() {
         JSONObject json = super.toJSON();
@@ -340,6 +353,8 @@ public class Message extends Entity {
 
     @Override
     public JSONObject toCompactJSON() {
-        return this.toJSON();
+        JSONObject json = this.toJSON();
+        json.remove("summary");
+        return json;
     }
 }

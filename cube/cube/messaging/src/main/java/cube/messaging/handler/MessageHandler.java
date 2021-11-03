@@ -24,42 +24,14 @@
  * SOFTWARE.
  */
 
-package cube.messaging;
-
-import java.util.List;
-import java.util.Vector;
+package cube.messaging.handler;
 
 import cube.messaging.model.Message;
 
 /**
- * 消息列表。
- * 用于加速读取消息列表的速度。
+ * 消息句柄。
  */
-class MessageList {
+public interface MessageHandler {
 
-    public final List<Message> messages = new Vector<>();
-
-    public boolean hasMore = false;
-
-    MessageList() {
-    }
-
-    protected void reset(MessageListResult result) {
-        hasMore = result.hasMore();
-
-        messages.clear();
-        messages.addAll(result.getList());
-    }
-
-    protected void toExtendLife(long lifespan) {
-        for (Message message : messages) {
-            message.entityLifespan += lifespan;
-        }
-    }
-
-    protected void appendMessage(Message message) {
-        this.messages.add(message);
-
-        this.toExtendLife(5L * 60L * 1000L);
-    }
+    void handleMessage(Message message);
 }

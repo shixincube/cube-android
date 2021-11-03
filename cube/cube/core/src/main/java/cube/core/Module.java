@@ -27,6 +27,7 @@
 package cube.core;
 
 import android.content.Context;
+import android.os.Handler;
 
 import cell.util.NetworkUtils;
 import cube.auth.AuthToken;
@@ -121,6 +122,11 @@ public abstract class Module extends Subject {
 
     protected void execute(Runnable task) {
         this.kernel.getExecutor().execute(task);
+    }
+
+    protected void executeOnMainThread(Runnable task) {
+        Handler handler = new Handler(this.kernel.looper);
+        handler.post(task);
     }
 
     protected boolean isAvailableNetwork() {

@@ -74,7 +74,7 @@
             </com.zhy.autolayout.AutoRelativeLayout>
 
             <ImageView
-                android:id="@+id/ivEmo"
+                android:id="@+id/ivEmoji"
                 android:layout_width="35dp"
                 android:layout_height="35dp"
                 android:layout_margin="5dp"
@@ -91,9 +91,9 @@
             <Button
                 android:id="@+id/btnSend"
                 style="?android:attr/borderlessButtonStyle"
-                android:layout_width="43dp"
+                android:layout_width="60dp"
                 android:layout_height="35dp"
-                android:layout_marginEnd="4dp"
+                android:layout_marginEnd="5dp"
                 android:background="@drawable/shape_message_btn_send"
                 android:text="@string/send"
                 android:textColor="@color/white"

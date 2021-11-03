@@ -26,6 +26,8 @@
 
 package com.shixincube.app.ui.view;
 
+import android.widget.EditText;
+
 import com.shixincube.app.widget.recyclerview.RecyclerView;
 
 /**
@@ -34,4 +36,6 @@ import com.shixincube.app.widget.recyclerview.RecyclerView;
 public interface MessagePanelView {
 
     RecyclerView getMessageListView();
+
+    EditText getInputContentView();
 }

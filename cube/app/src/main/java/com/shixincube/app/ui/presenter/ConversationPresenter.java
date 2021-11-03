@@ -96,8 +96,13 @@ public class ConversationPresenter extends BasePresenter<ConversationView> imple
                     }
 
                     if (item.conversation.getReminded() == ConversationReminded.Normal) {
-                        helper.setText(R.id.tvBadge, Integer.toString(item.conversation.getUnreadCount()));
-                        helper.setViewVisibility(R.id.tvBadge, View.VISIBLE);
+                        if (item.conversation.getUnreadCount() > 0) {
+                            helper.setText(R.id.tvBadge, Integer.toString(item.conversation.getUnreadCount()));
+                            helper.setViewVisibility(R.id.tvBadge, View.VISIBLE);
+                        }
+                        else {
+                            helper.setViewVisibility(R.id.tvBadge, View.GONE);
+                        }
                     }
                     else if (item.conversation.getReminded() == ConversationReminded.Closed) {
                         if (item.conversation.getUnreadCount() > 0) {

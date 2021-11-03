@@ -260,13 +260,17 @@ public class MessagingStorage extends AbstractStorage {
     public void updateRecentMessage(Long conversationId, Message message) {
         SQLiteDatabase db = this.getWritableDatabase();
 
+        boolean unread = message.getFrom() == conversationId.longValue();
+
         Cursor cursor = db.query("conversation", new String[]{ "id" },
                 "id=?", new String[]{ conversationId.toString() }, null, null, null);
         if (cursor.moveToFirst()) {
             cursor.close();
 
             String sql = "UPDATE `conversation` SET `timestamp`=" + message.getRemoteTimestamp()
-                    + " , `recent_message`=?, `unread`=`unread`+1 WHERE `id`=?";
+                    + " , `recent_message`=? "
+                    + (unread ? ", `unread`=`unread`+1 " : " ")
+                    + "WHERE `id`=?";
 
             db.execSQL(sql, new String[] {
                     message.toJSON().toString(),
@@ -287,7 +291,7 @@ public class MessagingStorage extends AbstractStorage {
             values.put("pivotal_id", conversationId);
             values.put("remind", ConversationReminded.Normal.code);
             values.put("recent_message", message.toJSON().toString());
-            values.put("unread", 1);
+            values.put("unread", unread ? 1 : 0);
             db.insert("conversation", null, values);
         }
 

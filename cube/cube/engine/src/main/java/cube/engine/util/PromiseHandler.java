@@ -34,7 +34,7 @@ public interface PromiseHandler<T> {
     /**
      * 当任务异步执行时该方法被调用。
      *
-     * @param promiseFuture 指定触发调用链的句柄。
+     * @param promise 指定触发调用链的句柄。
      */
-    void emit(PromiseFuture<T> promiseFuture);
+    void emit(PromiseFuture<T> promise);
 }

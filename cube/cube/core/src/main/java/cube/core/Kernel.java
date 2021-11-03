@@ -30,6 +30,7 @@ import android.content.Context;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
+import android.os.Looper;
 import android.provider.Settings;
 import android.util.Log;
 
@@ -72,6 +73,8 @@ public class Kernel implements PipelineListener {
 
     private ExecutorService executor;
 
+    protected Looper looper;
+
     public Kernel() {
         this.working = false;
         this.moduleMap = new HashMap<>();
@@ -90,6 +93,8 @@ public class Kernel implements PipelineListener {
         }
 
         this.working = true;
+
+        this.looper = Looper.getMainLooper();
 
         this.inspector.start();
 

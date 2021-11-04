@@ -9,8 +9,24 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         auto:rv_divider_color="@color/line"
-        auto:rv_divider_size="1dp">
+        auto:rv_divider_size="1dp"/>
 
-    </com.shixincube.app.widget.recyclerview.RecyclerView>
+    <com.shixincube.app.widget.QuickIndexBar
+        android:id="@+id/qib"
+        android:layout_width="20dp"
+        android:layout_height="match_parent"
+        android:layout_alignParentEnd="true"/>
+
+    <TextView
+        android:id="@+id/tvLetter"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:layout_centerInParent="true"
+        android:background="@drawable/shape_contact_letter_bg"
+        android:gravity="center"
+        android:text="A"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        android:visibility="gone"/>
 
 </com.zhy.autolayout.AutoRelativeLayout>

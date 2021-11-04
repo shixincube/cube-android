@@ -47,6 +47,9 @@
     <string name="no_support_message">不支持的消息类型</string>
     <string name="loading_messages">正在加载</string>
 
+    <!-- 联系人界面 -->
+    <string name="new_contact">新的联系人</string>
+
     <!-- 个人信息 -->
     <string name="my_nickname">我的昵称</string>
     <string name="my_cube_id">魔方号：%1$s</string>

@@ -26,16 +26,53 @@
 
 package com.shixincube.app.ui.presenter;
 
+import com.shixincube.app.R;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.ContactsView;
+import com.shixincube.app.widget.adapter.AdapterForRecyclerView;
+import com.shixincube.app.widget.adapter.HeaderAndFooterAdapter;
+import com.shixincube.app.widget.adapter.ViewHolderForRecyclerView;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import cube.contact.model.Contact;
 
 /**
  * 联系人清单。
  */
 public class ContactsPresenter extends BasePresenter<ContactsView> {
 
+    private List<Contact> contacts;
+
+    private HeaderAndFooterAdapter adapter;
+
     public ContactsPresenter(BaseActivity activity) {
         super(activity);
+        this.contacts = new ArrayList<>();
+    }
+
+    public void loadContacts() {
+        this.setAdapter();
+    }
+
+    private void setAdapter() {
+        if (null == this.adapter) {
+            AdapterForRecyclerView adapter = new AdapterForRecyclerView<Contact>(activity, this.contacts, R.layout.item_contact) {
+                @Override
+                public void convert(ViewHolderForRecyclerView helper, Contact item, int position) {
+
+                }
+            };
+
+            adapter.addHeaderView(getView().getHeaderView());
+            adapter.addFooterView(getView().getFooterView());
+            this.adapter = adapter.getHeaderAndFooterAdapter();
+            getView().getContactsView().setAdapter(this.adapter);
+
+            // 设置事件监听
+
+        }
     }
 }

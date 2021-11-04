@@ -7,6 +7,7 @@
         <entry key="app/src/main/res/drawable-v24/ic_launcher_foreground.xml" value="0.3203125" />
         <entry key="app/src/main/res/drawable-v24/shape_splash_register.xml" value="0.3203125" />
         <entry key="app/src/main/res/drawable-v24/shape_strip_button_pressed.xml" value="0.3203125" />
+        <entry key="app/src/main/res/drawable/checkbox_style.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/cursor.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/dialog_waiting.xml" value="0.20230263157894737" />
         <entry key="app/src/main/res/drawable/ic_launcher_background.xml" value="0.3203125" />
@@ -45,7 +46,9 @@
         <entry key="app/src/main/res/layout/fragment_conversation.xml" value="0.16700819672131148" />
         <entry key="app/src/main/res/layout/fragment_files.xml" value="0.16325136612021857" />
         <entry key="app/src/main/res/layout/fragment_profile.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/header_contacts.xml" value="0.15710382513661203" />
         <entry key="app/src/main/res/layout/include_toolbar.xml" value="0.2545289855072464" />
+        <entry key="app/src/main/res/layout/item_contact.xml" value="0.15710382513661203" />
         <entry key="app/src/main/res/layout/item_conversation.xml" value="0.18237704918032788" />
         <entry key="app/src/main/res/layout/item_message_text_receive.xml" value="0.1598360655737705" />
         <entry key="app/src/main/res/layout/item_message_text_send.xml" value="0.1598360655737705" />

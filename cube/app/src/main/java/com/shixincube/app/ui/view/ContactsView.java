@@ -26,8 +26,19 @@
 
 package com.shixincube.app.ui.view;
 
+import android.view.View;
+import android.widget.TextView;
+
+import com.shixincube.app.widget.recyclerview.RecyclerView;
+
 /**
  * 联系人清单界面。
  */
 public interface ContactsView {
+
+    RecyclerView getContactsView();
+
+    View getHeaderView();
+
+    TextView getFooterView();
 }

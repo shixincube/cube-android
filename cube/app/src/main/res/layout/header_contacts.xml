@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.zhy.autolayout.AutoLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.zhy.autolayout.AutoLinearLayout
+        android:id="@+id/llNewContact"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/selector_common_item"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingBottom="@dimen/item_margin_top_and_bottom"
+        android:paddingLeft="@dimen/item_margin_left_and_right"
+        android:paddingRight="@dimen/item_margin_left_and_right"
+        android:paddingTop="@dimen/item_margin_top_and_bottom">
+
+        <com.zhy.autolayout.AutoRelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:id="@+id/ivNewContact"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginEnd="5dp"
+                android:layout_marginTop="5dp"
+                android:src="@mipmap/ic_new_contact"/>
+
+            <TextView
+                android:id="@+id/tvNewFriendUnread"
+                android:layout_width="7dp"
+                android:layout_height="7dp"
+                android:layout_alignEnd="@id/ivNewContact"
+                android:layout_alignTop="@id/ivNewContact"
+                android:layout_marginEnd="-4dp"
+                android:layout_marginTop="-2dp"
+                android:background="@mipmap/bg_unread"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                android:visibility="gone"/>
+
+        </com.zhy.autolayout.AutoRelativeLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/item_margin_left_and_right"
+            android:text="@string/new_contact"
+            android:textColor="@color/black0"
+            android:textSize="17sp"/>
+
+    </com.zhy.autolayout.AutoLinearLayout>
+
+    <View style="@style/Line"
+        android:layout_marginLeft="@dimen/item_margin_left_and_right"
+        android:layout_marginRight="@dimen/item_margin_left_and_right"/>
+
+</com.zhy.autolayout.AutoLinearLayout>

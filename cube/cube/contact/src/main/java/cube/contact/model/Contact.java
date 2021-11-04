@@ -43,7 +43,21 @@ public class Contact extends AbstractContact {
      */
     public final List<Device> devices;
 
+    /**
+     * 附录。
+     */
     private ContactAppendix appendix;
+
+    public Contact(Long id, String name) {
+        super(id, name);
+        this.devices = new ArrayList<>();
+    }
+
+    public Contact(Long id, String name, JSONObject context) {
+        super(id, name);
+        this.context = context;
+        this.devices = new ArrayList<>();
+    }
 
     public Contact(Long id, String name, String domain) {
         super(id, name, domain);
@@ -70,7 +84,7 @@ public class Contact extends AbstractContact {
             for (int i = 0; i < array.length(); ++i) {
                 JSONObject data = array.getJSONObject(i);
                 Device device = new Device(data);
-                this.devices.add(device);
+                this.addDevice(device);
             }
         }
     }

@@ -36,6 +36,10 @@ import org.json.JSONObject;
 
 import cube.contact.model.Contact;
 import cube.contact.model.ContactAppendix;
+import cube.contact.model.ContactZone;
+import cube.contact.model.ContactZoneParticipant;
+import cube.contact.model.ContactZoneParticipantState;
+import cube.contact.model.ContactZoneState;
 import cube.core.AbstractStorage;
 import cube.core.model.Entity;
 
@@ -204,7 +208,7 @@ public class ContactStorage extends AbstractStorage {
         ContentValues values = new ContentValues();
         values.put("context", contact.getContext().toString());
         values.put("last", now);
-        values.put("expiry", now + Entity.LIFECYCLE_IN_MSEC);
+        values.put("expiry", now + Entity.LIFESPAN_IN_MSEC);
         // 执行更新
         int row = db.update("contact", values, "id=?", new String[] { contact.id.toString() });
 
@@ -256,6 +260,79 @@ public class ContactStorage extends AbstractStorage {
         this.closeWritableDatabase(db);
     }
 
+    /**
+     * 读取指定名称的联系人分区。
+     *
+     * @param zoneName 分区名。
+     * @return
+     */
+    public ContactZone readContactZone(String zoneName) {
+        ContactZone zone = null;
+
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query("contact_zone", new String[] {
+                    "id", "display_name", "state", "timestamp", "last", "expiry", "context" },
+                "name=?", new String[]{ zoneName },
+                null, null, null);
+
+        if (cursor.moveToFirst()) {
+            zone = new ContactZone(cursor.getLong(cursor.getColumnIndex("id")), zoneName,
+                    cursor.getString(cursor.getColumnIndex("display_name")),
+                    cursor.getLong(cursor.getColumnIndex("timestamp")),
+                    ContactZoneState.parse(cursor.getInt(cursor.getColumnIndex("state"))));
+            // 重置内存管理使用的时间戳
+            zone.resetExpiry(cursor.getLong(cursor.getColumnIndex("expiry")),
+                    cursor.getLong(cursor.getColumnIndex("last")));
+
+            // 上下文数据
+            String contextString = cursor.getString(cursor.getColumnIndex("context"));
+            if (null != contextString && contextString.length() > 3) {
+                try {
+                    zone.setContext(new JSONObject(contextString));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        cursor.close();
+
+        if (null == zone) {
+            this.closeReadableDatabase(db);
+            return null;
+        }
+
+        // 读取参与人
+        cursor = db.query("contact_zone_participant", new String[]{
+                    "contact_id", "state", "timestamp", "postscript", "context" },
+                "contact_zone_id=?", new String[]{ zone.id.toString() },
+                null, null, null);
+        while (cursor.moveToNext()) {
+            ContactZoneParticipant participant = new ContactZoneParticipant(
+                    cursor.getLong(cursor.getColumnIndex("contact_id")),
+                    cursor.getLong(cursor.getColumnIndex("timestamp")),
+                    ContactZoneParticipantState.parse(cursor.getInt(cursor.getColumnIndex("state"))),
+                    cursor.getString(cursor.getColumnIndex("postscript")));
+
+            // 上下文数据
+            String contextString = cursor.getString(cursor.getColumnIndex("context"));
+            if (null != contextString && contextString.length() > 3) {
+                try {
+                    participant.setContext(new JSONObject(contextString));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            zone.addParticipant(participant);
+        }
+
+        cursor.close();
+        this.closeReadableDatabase(db);
+
+        return zone;
+    }
+
     @Override
     protected void onDatabaseCreate(SQLiteDatabase database) {
         // 联系人表
@@ -271,10 +348,10 @@ public class ContactStorage extends AbstractStorage {
         database.execSQL("CREATE TABLE IF NOT EXISTS `appendix` (`id` BIGINT PRIMARY KEY, `timestamp` BIGINT, `data` TEXT)");
 
         // 联系人分区
-        database.execSQL("CREATE TABLE IF NOT EXISTS `contact_zone` (`id` BIGINT PRIMARY KEY, `name` TEXT, `display_name` TEXT, `state` INTEGER, `timestamp` BIGINT)");
+        database.execSQL("CREATE TABLE IF NOT EXISTS `contact_zone` (`id` BIGINT PRIMARY KEY, `name` TEXT, `display_name` TEXT, `state` INTEGER, `timestamp` BIGINT, `last` BIGINT DEFAULT 0, `expiry` BIGINT DEFAULT 0, `context` TEXT DEFAULT NULL)");
 
         // 联系人分区参与者
-        database.execSQL("CREATE TABLE IF NOT EXISTS `contact_zone_participant` (`contact_zone_id` BIGINT, `contact_id` BIGINT, `state` INTEGER, `timestamp` BIGINT, `postscript` TEXT)");
+        database.execSQL("CREATE TABLE IF NOT EXISTS `contact_zone_participant` (`sn` INTEGER PRIMARY KEY AUTOINCREMENT, `contact_zone_id` BIGINT, `contact_id` BIGINT, `state` INTEGER, `timestamp` BIGINT, `postscript` TEXT, `context` TEXT DEFAULT NULL)");
     }
 
     @Override

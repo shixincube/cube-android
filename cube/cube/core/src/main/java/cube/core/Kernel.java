@@ -87,6 +87,14 @@ public class Kernel implements PipelineListener {
         return Kernel.defaultInstance;
     }
 
+    /**
+     * 启动内核。
+     *
+     * @param context
+     * @param config
+     * @param handler
+     * @return
+     */
     public boolean startup(Context context, KernelConfig config, KernelHandler handler) {
         if (null == config || null == handler || this.working) {
             return false;
@@ -137,7 +145,14 @@ public class Kernel implements PipelineListener {
         return ret;
     }
 
+    /**
+     * 关停内核。
+     */
     public void shutdown() {
+        if (!this.working) {
+            return;
+        }
+
         this.inspector.stop();
 
         for (Module module : this.moduleMap.values()) {
@@ -156,30 +171,31 @@ public class Kernel implements PipelineListener {
     }
 
     public void suspend() {
-
+        if (this.working) {
+            for (Module module : this.moduleMap.values()) {
+                module.suspend();
+            }
+        }
     }
 
     public void resume() {
+        if (this.working) {
+            for (Module module : this.moduleMap.values()) {
+                module.resume();
+            }
+        }
 
+        if (this.working) {
+            if (null != this.pipeline && !this.pipeline.isReady()) {
+                this.pipeline.open();
+            }
+        }
     }
 
     public boolean isReady() {
         AuthService service = (AuthService) this.getModule(AuthService.NAME);
         AuthToken authToken = service.getToken();
         return this.working && (null != authToken && authToken.isValid());
-    }
-
-    public AuthToken activeToken(Long contactId) {
-        AuthService service = (AuthService) this.getModule(AuthService.NAME);
-        AuthToken token = service.allocToken(contactId);
-        if (null == token) {
-            return null;
-        }
-
-        // 更新管道令牌码
-        this.pipeline.setTokenCode(token.code);
-
-        return token;
     }
 
     public void installModule(Module module) {
@@ -210,6 +226,19 @@ public class Kernel implements PipelineListener {
 
     public EntityInspector getInspector() {
         return this.inspector;
+    }
+
+    public AuthToken activeToken(Long contactId) {
+        AuthService service = (AuthService) this.getModule(AuthService.NAME);
+        AuthToken token = service.allocToken(contactId);
+        if (null == token) {
+            return null;
+        }
+
+        // 更新管道令牌码
+        this.pipeline.setTokenCode(token.code);
+
+        return token;
     }
 
     protected AuthToken getAuthToken() {

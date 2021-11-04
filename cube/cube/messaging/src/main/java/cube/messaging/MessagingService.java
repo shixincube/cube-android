@@ -461,7 +461,7 @@ public class MessagingService extends Module {
         if (null != list) {
             if (!list.messages.isEmpty()) {
                 // 延长实体寿命
-                list.toExtendLife(3L * 60L * 1000L);
+                list.extendLife(3L * 60L * 1000L);
 
                 final List<Message> resultList = new ArrayList<>(list.messages);
                 final boolean hasMore = list.hasMore;

@@ -123,7 +123,7 @@ public final class EntityInspector extends TimerTask {
             while (iter.hasNext()) {
                 Map.Entry<Long, ? extends Entity> e = iter.next();
                 Entity entity = e.getValue();
-                if (now - entity.entityCreation > entity.entityLifespan) {
+                if (now > entity.entityLifeExpiry) {
                     iter.remove();
                     ++count;
                 }
@@ -134,7 +134,7 @@ public final class EntityInspector extends TimerTask {
             Iterator<? extends Entity> iter = list.iterator();
             while (iter.hasNext()) {
                 Entity entity = iter.next();
-                if (now - entity.entityCreation > entity.entityLifespan) {
+                if (now > entity.entityLifeExpiry) {
                     iter.remove();
                     ++count;
                 }

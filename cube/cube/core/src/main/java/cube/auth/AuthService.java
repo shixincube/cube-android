@@ -167,6 +167,7 @@ public class AuthService extends Module {
      * @param handler
      */
     public void check(final String domain, final String appKey, final AuthTokenHandler handler) {
+        // 赋值
         sDomain = domain;
 
         this.execute(new Runnable() {

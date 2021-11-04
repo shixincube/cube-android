@@ -30,8 +30,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import cube.auth.AuthService;
-
 /**
  * 用户描述自己的账号。
  */
@@ -39,14 +37,29 @@ public class Self extends Contact {
 
     public final Device device;
 
+    /**
+     * 构造函数。
+     *
+     * @param id 指定 ID 。
+     * @param name 指定名称。
+     */
     public Self(Long id, String name) {
-        super(id, name, AuthService.getDomain());
+        super(id, name);
         this.device = new Device();
+        this.addDevice(this.device);
     }
 
+    /**
+     * 构造函数。
+     *
+     * @param id 指定 ID 。
+     * @param name 指定名称。
+     * @param context 指定上下文。
+     */
     public Self(Long id, String name, JSONObject context) {
-        super(id, name, AuthService.getDomain(), context);
+        super(id, name, context);
         this.device = new Device();
+        this.addDevice(this.device);
     }
 
     public Self(JSONObject json) throws JSONException {

@@ -43,6 +43,8 @@ class MessageList implements Comparator<Message> {
 
     public boolean hasMore = false;
 
+    private long lifespan = 5L * 60L * 1000L;
+
     MessageList() {
     }
 
@@ -53,9 +55,9 @@ class MessageList implements Comparator<Message> {
         messages.addAll(result.getList());
     }
 
-    protected void toExtendLife(long lifespan) {
+    protected void extendLife(long lifespan) {
         for (Message message : messages) {
-            message.entityLifespan += lifespan;
+            message.entityLifeExpiry += lifespan;
         }
     }
 
@@ -66,7 +68,7 @@ class MessageList implements Comparator<Message> {
 
         this.messages.add(message);
 
-        this.toExtendLife(5L * 60L * 1000L);
+        this.extendLife(this.lifespan);
     }
 
     protected void insertMessages(List<Message> messageList) {
@@ -81,7 +83,7 @@ class MessageList implements Comparator<Message> {
         // 排序
         Collections.sort(this.messages, this);
 
-        this.toExtendLife(5L * 60L * 1000L);
+        this.extendLife(this.lifespan);
     }
 
     @Override

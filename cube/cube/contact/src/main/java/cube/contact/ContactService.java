@@ -41,12 +41,15 @@ import cube.auth.AuthToken;
 import cube.contact.handler.ContactAppendixHandler;
 import cube.contact.handler.ContactHandler;
 import cube.contact.handler.ContactListHandler;
+import cube.contact.handler.ContactZoneHandler;
 import cube.contact.handler.GroupListHandler;
 import cube.contact.handler.SignHandler;
 import cube.contact.handler.TopListHandler;
 import cube.contact.model.AbstractContact;
 import cube.contact.model.Contact;
 import cube.contact.model.ContactAppendix;
+import cube.contact.model.ContactZone;
+import cube.contact.model.ContactZoneParticipant;
 import cube.contact.model.Group;
 import cube.contact.model.MutableContact;
 import cube.contact.model.Self;
@@ -73,6 +76,9 @@ public class ContactService extends Module {
 
     /** 阻塞调用方法的超时时间。 */
     private final long blockingTimeout = 3000L;
+
+    /** 默认提供的联系人分区，签入时会自动加载该分区。 */
+    private final String defaultContactZone = "contacts";
 
     private long retrospectDuration = 30L * 24L * 60L * 60000L;
 
@@ -130,6 +136,8 @@ public class ContactService extends Module {
             this.storage.close();
             this.storage = null;
         }
+
+        this.signInReady.set(false);
     }
 
     @Override
@@ -176,7 +184,7 @@ public class ContactService extends Module {
         }
 
         // 等待内核就绪
-        int count = 100;
+        int count = 500;
         while (!this.kernel.isReady() && count > 0) {
             --count;
             try {
@@ -462,7 +470,7 @@ public class ContactService extends Module {
 
         // 从缓存里读取
         AbstractContact abstractContact = this.cache.get(contactId);
-        if (null != abstractContact && (abstractContact instanceof Contact)) {
+        if (null != abstractContact) {
             this.execute(new Runnable() {
                 @Override
                 public void run() {
@@ -569,6 +577,9 @@ public class ContactService extends Module {
                     getAppendix(contact, new ContactAppendixHandler() {
                         @Override
                         public void handleAppendix(Contact contact, ContactAppendix appendix) {
+                            // 写入缓存
+                            cache.put(contactId, contact);
+
                             successHandler.handleContact(contact);
                         }
                     }, new FailureHandler() {
@@ -579,14 +590,30 @@ public class ContactService extends Module {
                             }
                         }
                     });
-
-                    // 写入缓存
-                    cache.put(contactId, contact);
                 } catch (JSONException e) {
                     // Nothing
                 }
             }
         });
+    }
+
+    public void getContactZone(String zoneName, ContactZoneHandler successHandler, FailureHandler failureHandler) {
+        // 从数据库里读取
+        ContactZone zone = this.storage.readContactZone(zoneName);
+        if (null != zone) {
+            if (zone.isValid()) {
+                for (ContactZoneParticipant participant : zone.getParticipants()) {
+                    Contact contact = this.getContact(participant.getContactId());
+                    participant.setContact(contact);
+                }
+
+                // 回调
+                successHandler.handleContactZone(zone);
+                return;
+            }
+        }
+
+        // TODO
     }
 
     protected void getAppendix(Contact contact, ContactAppendixHandler successHandler, FailureHandler failureHandler) {

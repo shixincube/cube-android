@@ -37,7 +37,7 @@ import cube.util.JSONable;
  */
 public class Entity implements TimeSortable, JSONable {
 
-    public final static long LIFECYCLE_IN_MSEC = 7L * 24L * 60L * 60L * 1000L;
+    public final static long LIFESPAN_IN_MSEC = 7L * 24L * 60L * 60L * 1000L;
 
     /**
      * 实体 ID 。
@@ -74,7 +74,7 @@ public class Entity implements TimeSortable, JSONable {
      * @private
      * 实体内存寿命。
      */
-    public long entityLifespan = 5L * 60L * 1000L;
+    public long entityLifeExpiry;
 
     /**
      * 构造函数。
@@ -82,9 +82,10 @@ public class Entity implements TimeSortable, JSONable {
     public Entity() {
         this.id = Utils.generateUnsignedSerialNumber();
         this.entityCreation = System.currentTimeMillis();
+        this.entityLifeExpiry = this.entityCreation + 5L * 60L * 1000L;
         this.timestamp = this.entityCreation;
         this.last = this.timestamp;
-        this.expiry = this.last + LIFECYCLE_IN_MSEC;
+        this.expiry = this.last + LIFESPAN_IN_MSEC;
     }
 
     /**
@@ -95,9 +96,10 @@ public class Entity implements TimeSortable, JSONable {
     public Entity(Long id) {
         this.id = id;
         this.entityCreation = System.currentTimeMillis();
+        this.entityLifeExpiry = this.entityCreation + 5L * 60L * 1000L;
         this.timestamp = this.entityCreation;
         this.last = this.timestamp;
-        this.expiry = this.last + LIFECYCLE_IN_MSEC;
+        this.expiry = this.last + LIFESPAN_IN_MSEC;
     }
 
     /**
@@ -109,9 +111,10 @@ public class Entity implements TimeSortable, JSONable {
     public Entity(Long id, long timestamp) {
         this.id = id;
         this.entityCreation = System.currentTimeMillis();
+        this.entityLifeExpiry = this.entityCreation + 5L * 60L * 1000L;
         this.timestamp = timestamp;
         this.last = timestamp;
-        this.expiry = this.last + LIFECYCLE_IN_MSEC;
+        this.expiry = this.last + LIFESPAN_IN_MSEC;
     }
 
     /**
@@ -122,6 +125,7 @@ public class Entity implements TimeSortable, JSONable {
      */
     public Entity(JSONObject json) throws JSONException {
         this.entityCreation = System.currentTimeMillis();
+        this.entityLifeExpiry = this.entityCreation + 5L * 60L * 1000L;
 
         this.id = json.getLong("id");
 
@@ -138,7 +142,7 @@ public class Entity implements TimeSortable, JSONable {
         if (json.has("expiry"))
             this.expiry = json.getLong("expiry");
         else
-            this.expiry = this.last + LIFECYCLE_IN_MSEC;
+            this.expiry = this.last + LIFESPAN_IN_MSEC;
 
         if (json.has("context")) {
             this.context = json.getJSONObject("context");
@@ -191,7 +195,7 @@ public class Entity implements TimeSortable, JSONable {
 
     public void resetLast(long time) {
         this.last = time;
-        this.expiry = time + LIFECYCLE_IN_MSEC;
+        this.expiry = time + LIFESPAN_IN_MSEC;
     }
 
     public void resetExpiry(long expiry, long last) {

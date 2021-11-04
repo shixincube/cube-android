@@ -231,14 +231,19 @@ public class ContactService extends Module {
                         notifyObservers(event);
 
                         if (null != handler) {
-                            handler.handleSuccess(ContactService.this, ContactService.this.self);
+                            executeOnMainThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    handler.handleSuccess(ContactService.this, ContactService.this.self);
+                                }
+                            });
                         }
                     }
                 });
             }
             else {
                 if (null != handler) {
-                    this.execute(new Runnable() {
+                    this.executeOnMainThread(new Runnable() {
                         @Override
                         public void run() {
                             handler.handleFailure(ContactService.this,
@@ -283,7 +288,7 @@ public class ContactService extends Module {
         }
         else {
             if (null != handler) {
-                this.execute(new Runnable() {
+                this.executeOnMainThread(new Runnable() {
                     @Override
                     public void run() {
                         handler.handleFailure(ContactService.this,
@@ -679,6 +684,15 @@ public class ContactService extends Module {
         });
     }
 
+    /**
+     * 从服务器上刷新联系人分区数据。
+     *
+     * @param zoneName
+     */
+    private void refreshContactZone(String zoneName) {
+
+    }
+
     private void listGroups(long beginning, long ending, GroupListHandler handler) {
         // TODO
         ArrayList<Group> list = new ArrayList<>(1);
@@ -729,8 +743,13 @@ public class ContactService extends Module {
         notifyObservers(event);
 
         if (null != this.signInHandler) {
-            this.signInHandler.handleSuccess(ContactService.this, this.self);
-            this.signInHandler = null;
+            this.executeOnMainThread(new Runnable() {
+                @Override
+                public void run() {
+                    signInHandler.handleSuccess(ContactService.this, self);
+                    signInHandler = null;
+                }
+            });
         }
     }
 

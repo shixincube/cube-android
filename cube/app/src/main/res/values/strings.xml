@@ -49,6 +49,9 @@
 
     <!-- 联系人界面 -->
     <string name="new_contact">新的联系人</string>
+    <string name="group">群组</string>
+    <string name="tag">标签</string>
+    <string name="conference">会议</string>
 
     <!-- 个人信息 -->
     <string name="my_nickname">我的昵称</string>

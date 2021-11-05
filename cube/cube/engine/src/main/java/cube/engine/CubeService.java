@@ -56,7 +56,7 @@ public class CubeService extends Service {
     protected boolean startFinish = false;
     protected Failure startFailure = null;
 
-    private Object mutex = new Object();
+    private final Object mutex = new Object();
 
     public CubeService() {
         super();

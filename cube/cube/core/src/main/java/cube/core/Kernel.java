@@ -192,6 +192,15 @@ public class Kernel implements PipelineListener {
         }
     }
 
+    /**
+     * 获取内核配置数据。
+     *
+     * @return
+     */
+    public KernelConfig getConfig() {
+        return this.config;
+    }
+
     public boolean isReady() {
         AuthService service = (AuthService) this.getModule(AuthService.NAME);
         AuthToken authToken = service.getToken();

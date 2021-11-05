@@ -261,6 +261,27 @@ public class ContactStorage extends AbstractStorage {
     }
 
     /**
+     * 查询最近一次更新的联系人分区时间戳。
+     *
+     * @return 如果没有数据返回 {@code 0} 值。
+     */
+    public long queryLastContactZoneTimestamp() {
+        long timestamp = 0;
+
+        String sql = "SELECT `timestamp` FROM `contact_zone` WHERE `state`=" + ContactZoneState.Normal.code +
+            " ORDER BY `timestamp` DESC LIMIT 1";
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(sql, new String[]{});
+        if (cursor.moveToFirst()) {
+            timestamp = cursor.getLong(0);
+        }
+        cursor.close();
+        this.closeReadableDatabase(db);
+
+        return timestamp;
+    }
+
+    /**
      * 读取指定名称的联系人分区。
      *
      * @param zoneName 分区名。
@@ -331,6 +352,72 @@ public class ContactStorage extends AbstractStorage {
         this.closeReadableDatabase(db);
 
         return zone;
+    }
+
+    /**
+     * 写入联系人分区数据。
+     *
+     * @param zone
+     */
+    public void writeContactZone(ContactZone zone) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        String contextString = (null != zone.getContext()) ? zone.getContext().toString() : "";
+
+        Cursor cursor = db.query("contact_zone", new String[]{ "id" },
+                "name=?", new String[]{ zone.name }, null, null, null);
+
+        if (cursor.moveToFirst()) {
+            cursor.close();
+
+            // 已存在，重置参与人数据，删除已存在数据
+            if (zone.getParticipants().size() > 0) {
+                db.delete("contact_zone_participant", "contact_zone_id=?",
+                        new String[]{ zone.id.toString() });
+            }
+
+            // 更新数据
+            ContentValues values = new ContentValues();
+            values.put("display_name", zone.getDisplayName());
+            values.put("state", zone.getState().code);
+            values.put("timestamp", zone.getTimestamp());
+            values.put("last", zone.getLast());
+            values.put("expiry", zone.getExpiry());
+            values.put("context", contextString);
+            // update
+            db.update("contact_zone", values, "id=?", new String[]{ zone.id.toString() });
+        }
+        else {
+            cursor.close();
+
+            // 不存在，插入数据
+            ContentValues values = new ContentValues();
+            values.put("id", zone.id);
+            values.put("name", zone.name);
+            values.put("display_name", zone.getDisplayName());
+            values.put("state", zone.getState().code);
+            values.put("timestamp", zone.getTimestamp());
+            values.put("last", zone.getLast());
+            values.put("expiry", zone.getExpiry());
+            values.put("context", contextString);
+            // insert
+            db.insert("contact_zone", null, values);
+        }
+
+        // 写入参与人数据
+        for (ContactZoneParticipant participant : zone.getParticipants()) {
+            ContentValues values = new ContentValues();
+            values.put("contact_zone_id", zone.id);
+            values.put("contact_id", participant.getContactId());
+            values.put("state", participant.getState().code);
+            values.put("timestamp", participant.getTimestamp());
+            values.put("postscript", participant.getPostscript());
+            values.put("context", (null != participant.getContext()) ? participant.getContext().toString() : "");
+            // insert
+            db.insert("contact_zone_participant", null, values);
+        }
+
+        this.closeWritableDatabase(db);
     }
 
     @Override

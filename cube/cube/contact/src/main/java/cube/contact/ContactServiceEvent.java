@@ -52,6 +52,11 @@ public final class ContactServiceEvent {
     public final static String SelfReady = "SelfReady";
 
     /**
+     * 联系人分区数据已更新。
+     */
+    public final static String ContactZoneUpdated = "ContactZoneUpdated";
+
+    /**
      * 群组已更新。
      */
     public final static String GroupUpdated = "GroupUpdated";

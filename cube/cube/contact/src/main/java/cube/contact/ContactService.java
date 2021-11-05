@@ -29,6 +29,7 @@ package cube.contact;
 import android.util.Log;
 import android.util.MutableBoolean;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -42,9 +43,9 @@ import cube.contact.handler.ContactAppendixHandler;
 import cube.contact.handler.ContactHandler;
 import cube.contact.handler.ContactListHandler;
 import cube.contact.handler.ContactZoneHandler;
+import cube.contact.handler.ContactZoneListHandler;
 import cube.contact.handler.GroupListHandler;
 import cube.contact.handler.SignHandler;
-import cube.contact.handler.TopListHandler;
 import cube.contact.model.AbstractContact;
 import cube.contact.model.Contact;
 import cube.contact.model.ContactAppendix;
@@ -60,7 +61,6 @@ import cube.core.PipelineState;
 import cube.core.handler.CompletionHandler;
 import cube.core.handler.FailureHandler;
 import cube.core.handler.PipelineHandler;
-import cube.core.model.TimeSortable;
 import cube.util.LogUtils;
 import cube.util.ObservableEvent;
 
@@ -602,15 +602,20 @@ public class ContactService extends Module {
         });
     }
 
+    /**
+     * 获取指定的联系人分区。
+     *
+     * @param zoneName
+     * @param successHandler
+     * @param failureHandler
+     */
     public void getContactZone(String zoneName, ContactZoneHandler successHandler, FailureHandler failureHandler) {
         // 从数据库里读取
         ContactZone zone = this.storage.readContactZone(zoneName);
         if (null != zone) {
             if (zone.isValid()) {
-                for (ContactZoneParticipant participant : zone.getParticipants()) {
-                    Contact contact = this.getContact(participant.getContactId());
-                    participant.setContact(contact);
-                }
+                // 填充数据
+                this.fillContactZone(zone);
 
                 // 回调
                 successHandler.handleContactZone(zone);
@@ -618,7 +623,8 @@ public class ContactService extends Module {
             }
         }
 
-        // TODO
+        // 数据库没有数据或已经过期，从服务器获取
+
     }
 
     protected void getAppendix(Contact contact, ContactAppendixHandler successHandler, FailureHandler failureHandler) {
@@ -684,13 +690,133 @@ public class ContactService extends Module {
         });
     }
 
+    private void fillContactZone(final ContactZone zone) {
+        ContactHandler successHandler = new ContactHandler() {
+            @Override
+            public void handleContact(Contact contact) {
+                zone.matchContact(contact);
+            }
+        };
+
+        for (ContactZoneParticipant participant : zone.getParticipants()) {
+            this.getContact(participant.getContactId(), successHandler);
+        }
+    }
+
     /**
      * 从服务器上刷新联系人分区数据。
      *
-     * @param zoneName
+     * @param zone
      */
-    private void refreshContactZone(String zoneName) {
+    private void refreshContactZone(ContactZone zone) {
+        this.refreshContactZone(zone, true);
+    }
 
+    /**
+     * 从服务器上刷新联系人分区数据。
+     *
+     * @param zone
+     * @param compact
+     */
+    private void refreshContactZone(ContactZone zone, boolean compact) {
+        JSONObject data = new JSONObject();
+        try {
+            data.put("name", zone.name);
+            data.put("compact", compact);
+        } catch (JSONException e) {
+            // Nothing
+        }
+        Packet requestPacket = new Packet(ContactServiceAction.GetContactZone, data);
+        this.pipeline.send(ContactService.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    LogUtils.w(ContactService.class.getSimpleName(),
+                            "#refreshContactZone - error : " + packet.state.code);
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != ContactServiceState.Ok.code) {
+                    LogUtils.w(ContactService.class.getSimpleName(),
+                            "#refreshContactZone - error : " + stateCode);
+                    return;
+                }
+
+                try {
+                    ContactZone newZone = new ContactZone(packet.extractServiceData());
+                    if (compact) {
+                        // 判断是否需要更新
+                        if (newZone.getTimestamp() != zone.getTimestamp()) {
+                            // 时间戳不一致，更新数据
+                            execute(new Runnable() {
+                                @Override
+                                public void run() {
+                                    refreshContactZone(zone, false);
+                                }
+                            });
+                        }
+                    }
+                    else {
+                        // 更新数据
+                        storage.writeContactZone(newZone);
+
+                        ObservableEvent event = new ObservableEvent(ContactServiceEvent.ContactZoneUpdated, newZone);
+                        notifyObservers(event);
+                    }
+                } catch (JSONException e) {
+                    LogUtils.w(ContactService.class.getSimpleName(), e);
+                }
+            }
+        });
+    }
+
+    private void listContactZones(long timestamp, ContactZoneListHandler handler) {
+        JSONObject requestParam = new JSONObject();
+        try {
+            requestParam.put("timestamp", timestamp);
+        } catch (JSONException e) {
+            LogUtils.w(ContactService.class.getSimpleName(), e);
+        }
+
+        Packet request = new Packet(ContactServiceAction.ListContactZones, requestParam);
+        this.pipeline.send(ContactService.NAME, request, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    LogUtils.w(ContactService.class.getSimpleName(), "#listContactZones error : " + packet.state.code);
+                    handler.handleList(new ArrayList<>());
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != ContactServiceState.Ok.code) {
+                    LogUtils.w(ContactService.class.getSimpleName(), "#listContactZones error : " + stateCode);
+                    handler.handleList(new ArrayList<>());
+                    return;
+                }
+
+                List<ContactZone> resultList = new ArrayList<>();
+                JSONObject responseData = packet.extractServiceData();
+                try {
+                    JSONArray array = responseData.getJSONArray("list");
+                    for (int i = 0; i < array.length(); ++i) {
+                        JSONObject data = array.getJSONObject(i);
+                        // 实例化
+                        ContactZone zone = new ContactZone(data);
+
+                        // 写入数据库
+                        storage.writeContactZone(zone);
+
+                        resultList.add(zone);
+                    }
+                } catch (JSONException e) {
+                    LogUtils.w(ContactService.class.getSimpleName(), e);
+                }
+
+                handler.handleList(resultList);
+            }
+        });
     }
 
     private void listGroups(long beginning, long ending, GroupListHandler handler) {
@@ -715,15 +841,11 @@ public class ContactService extends Module {
         });
     }
 
-    private void listTopList(TopListHandler handler) {
-        // TODO
-        ArrayList<TimeSortable> list = new ArrayList<>(1);
-        this.execute(new Runnable() {
-            @Override
-            public void run() {
-                handler.handleList(list);
-            }
-        });
+    @Override
+    public void notifyObservers(ObservableEvent event) {
+        super.notifyObservers(event);
+
+
     }
 
     private void fireSignInCompleted() {
@@ -772,12 +894,12 @@ public class ContactService extends Module {
         }
 
         MutableBoolean gotAppendix = new MutableBoolean(false);
+        MutableBoolean gotZoneList = new MutableBoolean(false);
         MutableBoolean gotGroups = new MutableBoolean(false);
         MutableBoolean gotBlockList = new MutableBoolean(false);
-        MutableBoolean gotTopList = new MutableBoolean(false);
 
         CompletionHandler completion = (module) -> {
-            if (gotAppendix.value && gotGroups.value && gotBlockList.value && gotTopList.value) {
+            if (gotAppendix.value && gotZoneList.value && gotGroups.value && gotBlockList.value) {
                 fireSignInCompleted();
             }
         };
@@ -801,6 +923,20 @@ public class ContactService extends Module {
             }
         });
 
+        // 更新联系人分区数据
+        long timestamp = this.storage.queryLastContactZoneTimestamp();
+        if (timestamp == 0) {
+            timestamp = now - this.retrospectDuration;
+        }
+        this.listContactZones(timestamp, new ContactZoneListHandler() {
+            @Override
+            public void handleList(List<ContactZone> list) {
+                LogUtils.d(ContactService.class.getSimpleName(), "#listContactZones");
+                gotZoneList.value = true;
+                completion.handleCompletion(null);
+            }
+        });
+
         // 更新群组列表
         this.listGroups(now - this.retrospectDuration, now, new GroupListHandler() {
             @Override
@@ -817,16 +953,6 @@ public class ContactService extends Module {
             public void handleList(List<Contact> contactList) {
                 LogUtils.d(ContactService.class.getSimpleName(), "#listBlockList");
                 gotBlockList.value = true;
-                completion.handleCompletion(null);
-            }
-        });
-
-        // 更新联系人置顶清单
-        this.listTopList(new TopListHandler() {
-            @Override
-            public void handleList(List<TimeSortable> list) {
-                LogUtils.d(ContactService.class.getSimpleName(), "#listTopList");
-                gotTopList.value = true;
                 completion.handleCompletion(null);
             }
         });

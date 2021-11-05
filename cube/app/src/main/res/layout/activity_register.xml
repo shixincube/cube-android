@@ -50,7 +50,8 @@
                         android:inputType="text"
                         android:autofillHints=""
                         android:textColorHint="@color/hint"
-                        android:textSize="16sp"/>
+                        android:textSize="16sp"
+                        android:textCursorDrawable="@drawable/cursor"/>
 
                 </com.zhy.autolayout.AutoLinearLayout>
 
@@ -119,7 +120,8 @@
                 android:inputType="phone"
                 android:autofillHints=""
                 android:textColorHint="@color/hint"
-                android:textSize="16sp"/>
+                android:textSize="16sp"
+                android:textCursorDrawable="@drawable/cursor"/>
 
         </com.zhy.autolayout.AutoLinearLayout>
 
@@ -157,7 +159,8 @@
                     android:inputType="textPassword"
                     android:textColorHint="@color/hint"
                     android:textSize="16sp"
-                    android:autofillHints=""/>
+                    android:autofillHints=""
+                    android:textCursorDrawable="@drawable/cursor"/>
 
             </com.zhy.autolayout.AutoLinearLayout>
 
@@ -203,7 +206,8 @@
                 android:autofillHints=""
                 android:inputType="number"
                 android:textColorHint="@color/hint"
-                android:textSize="16sp" />
+                android:textSize="16sp"
+                android:textCursorDrawable="@drawable/cursor"/>
 
             <Button
                 android:id="@+id/btnSendCode"

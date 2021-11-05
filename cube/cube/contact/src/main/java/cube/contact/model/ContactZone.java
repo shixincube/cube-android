@@ -79,6 +79,18 @@ public class ContactZone extends Entity {
         }
     }
 
+    public String getName() {
+        return this.name;
+    }
+
+    public String getDisplayName() {
+        return this.displayName;
+    }
+
+    public ContactZoneState getState() {
+        return this.state;
+    }
+
     public List<ContactZoneParticipant> getOrderedParticipants() {
         if (!this.ordered) {
             this.ordered = true;
@@ -99,6 +111,16 @@ public class ContactZone extends Entity {
 
     public void removeParticipant(ContactZoneParticipant participant) {
         this.participants.remove(participant);
+    }
+
+    public synchronized void matchContact(Contact contact) {
+        long id = contact.id;
+        for (ContactZoneParticipant participant : this.participants) {
+            if (participant.getContactId().longValue() == id) {
+                participant.setContact(contact);
+                break;
+            }
+        }
     }
 
     private class PinYinComparator implements Comparator<ContactZoneParticipant> {

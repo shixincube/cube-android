@@ -74,7 +74,7 @@ public class ContactZoneParticipant extends Entity {
         return this.contact;
     }
 
-    public void setContact(Contact contact) {
+    protected void setContact(Contact contact) {
         this.contact = contact;
     }
 

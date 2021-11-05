@@ -72,6 +72,11 @@ public final class ContactServiceAction {
     public final static String ModifyContact = "modifyContact";
 
     /**
+     * 按照指定参数列出联系人分区清单。
+     */
+    public final static String ListContactZones = "listContactZones";
+
+    /**
      * 获取联系人分区。
      */
     public final static String GetContactZone = "getContactZone";

@@ -28,12 +28,12 @@ package cube.contact.handler;
 
 import java.util.List;
 
-import cube.core.model.TimeSortable;
+import cube.contact.model.ContactZone;
 
 /**
  * 置顶清单句柄。
  */
-public interface TopListHandler {
+public interface ContactZoneListHandler {
 
-    void handleList(List<TimeSortable> list);
+    void handleList(List<ContactZone> list);
 }

@@ -83,6 +83,11 @@ public class ContactService extends Module {
      */
     public final static String NAME = "Contact";
 
+    /**
+     * 内存寿命。
+     */
+    private final static long LIFESPAN = 5L * 60L * 1000L;
+
     /** 阻塞调用方法的超时时间。 */
     private final long blockingTimeout = 3000L;
 
@@ -523,6 +528,9 @@ public class ContactService extends Module {
         // 从缓存里读取
         AbstractContact abstractContact = this.cache.get(contactId);
         if (null != abstractContact) {
+            // 更新缓存寿命
+            abstractContact.entityLifeExpiry += LIFESPAN;
+
             if (successHandler.isInMainThread()) {
                 this.executeOnMainThread(new Runnable() {
                     @Override

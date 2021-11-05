@@ -26,6 +26,7 @@
 
 package com.shixincube.app.ui.presenter;
 
+import android.content.Intent;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,6 +36,7 @@ import com.bumptech.glide.Glide;
 import com.shixincube.app.R;
 import com.shixincube.app.manager.AccountHelper;
 import com.shixincube.app.model.Account;
+import com.shixincube.app.ui.activity.ContactDetailsActivity;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.ContactsView;
@@ -190,6 +192,10 @@ public class ContactsPresenter extends BasePresenter<ContactsView> {
     }
 
     private void jumpToContactDetails(ViewHolder helper, ViewGroup parent, View itemView, int position) {
-//        Intent intent = new Intent(activity,)
+        Intent intent = new Intent(activity, ContactDetailsActivity.class);
+        // position 需要 -1 ，0 位置是 Header View
+        Contact contact = contacts.get(position - 1);
+        intent.putExtra("contactId", contact.getId());
+        activity.jumpToActivity(intent);
     }
 }

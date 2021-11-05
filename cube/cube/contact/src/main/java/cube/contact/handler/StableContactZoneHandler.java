@@ -26,13 +26,16 @@
 
 package cube.contact.handler;
 
-import cube.contact.model.ContactZone;
-import cube.core.handler.CallbackHandler;
-
 /**
  * 联系人分区句柄。
  */
-public interface ContactZoneHandler extends CallbackHandler {
+public abstract class StableContactZoneHandler implements ContactZoneHandler {
 
-    void handleContactZone(ContactZone contactZone);
+    public StableContactZoneHandler() {
+    }
+
+    @Override
+    public final boolean isInMainThread() {
+        return false;
+    }
 }

@@ -24,15 +24,17 @@
  * SOFTWARE.
  */
 
-package cube.contact.handler;
-
-import cube.contact.model.ContactZone;
-import cube.core.handler.CallbackHandler;
+package cube.core.handler;
 
 /**
- * 联系人分区句柄。
+ * 回调句柄。
  */
-public interface ContactZoneHandler extends CallbackHandler {
+public interface CallbackHandler {
 
-    void handleContactZone(ContactZone contactZone);
+    /**
+     * 是否需要在主线程里回调。
+     *
+     * @return 如果返回 {@code true} 将在主线程里进行回调。
+     */
+    boolean isInMainThread();
 }

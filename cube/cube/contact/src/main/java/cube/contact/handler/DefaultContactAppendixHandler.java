@@ -26,13 +26,22 @@
 
 package cube.contact.handler;
 
-import cube.contact.model.ContactZone;
-import cube.core.handler.CallbackHandler;
-
 /**
- * 联系人分区句柄。
+ * 默认的联系人附录句柄。
  */
-public interface ContactZoneHandler extends CallbackHandler {
+public abstract class DefaultContactAppendixHandler implements ContactAppendixHandler {
 
-    void handleContactZone(ContactZone contactZone);
+    private boolean inMainThread = false;
+
+    public DefaultContactAppendixHandler() {
+    }
+
+    public DefaultContactAppendixHandler(boolean inMainThread) {
+        this.inMainThread = inMainThread;
+    }
+
+    @Override
+    public boolean isInMainThread() {
+        return this.inMainThread;
+    }
 }

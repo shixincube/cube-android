@@ -24,15 +24,15 @@
  * SOFTWARE.
  */
 
-package cube.contact.handler;
-
-import cube.contact.model.ContactZone;
-import cube.core.handler.CallbackHandler;
+package cube.contact.model;
 
 /**
- * 联系人分区句柄。
+ * 用于同步方法的实体封装。
  */
-public interface ContactZoneHandler extends CallbackHandler {
+public class MutableContactZone {
 
-    void handleContactZone(ContactZone contactZone);
+    public ContactZone contactZone;
+
+    public MutableContactZone() {
+    }
 }

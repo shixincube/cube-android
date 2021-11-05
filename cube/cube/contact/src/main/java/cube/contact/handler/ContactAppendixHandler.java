@@ -28,11 +28,12 @@ package cube.contact.handler;
 
 import cube.contact.model.Contact;
 import cube.contact.model.ContactAppendix;
+import cube.core.handler.CallbackHandler;
 
 /**
  * 联系人附录句柄。
  */
-public interface ContactAppendixHandler {
+public interface ContactAppendixHandler extends CallbackHandler {
 
     void handleAppendix(Contact contact, ContactAppendix appendix);
 }

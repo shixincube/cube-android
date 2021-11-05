@@ -38,7 +38,7 @@ import java.util.List;
 import cube.core.Module;
 import cube.core.ModuleError;
 import cube.core.handler.CompletionHandler;
-import cube.core.handler.FailureHandler;
+import cube.core.handler.DefaultFailureHandler;
 import cube.engine.CubeEngine;
 import cube.messaging.MessageEventListener;
 import cube.messaging.MessageListResult;
@@ -158,7 +158,7 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
                     public void handleSent(Conversation destination, Message message) {
 
                     }
-                }, new FailureHandler() {
+                }, new DefaultFailureHandler(true) {
                     @Override
                     public void handleFailure(Module module, ModuleError error) {
                         // 消息错误，更新显示状态

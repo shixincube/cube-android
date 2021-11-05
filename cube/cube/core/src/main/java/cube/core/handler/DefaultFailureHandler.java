@@ -24,15 +24,24 @@
  * SOFTWARE.
  */
 
-package cube.contact.handler;
-
-import cube.contact.model.ContactZone;
-import cube.core.handler.CallbackHandler;
+package cube.core.handler;
 
 /**
- * 联系人分区句柄。
+ * 故障处理句柄。
  */
-public interface ContactZoneHandler extends CallbackHandler {
+public abstract class DefaultFailureHandler implements FailureHandler {
 
-    void handleContactZone(ContactZone contactZone);
+    private boolean inMainThread = false;
+
+    public DefaultFailureHandler() {
+    }
+
+    public DefaultFailureHandler(boolean inMainThread) {
+        this.inMainThread = inMainThread;
+    }
+
+    @Override
+    public boolean isInMainThread() {
+        return this.inMainThread;
+    }
 }

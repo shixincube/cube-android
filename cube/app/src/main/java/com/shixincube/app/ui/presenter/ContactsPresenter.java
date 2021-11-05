@@ -75,4 +75,6 @@ public class ContactsPresenter extends BasePresenter<ContactsView> {
 
         }
     }
+
+    private 
 }

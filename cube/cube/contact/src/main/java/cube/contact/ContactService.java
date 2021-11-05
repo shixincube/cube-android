@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import cube.auth.AuthToken;
 import cube.contact.handler.ContactAppendixHandler;
@@ -44,23 +45,31 @@ import cube.contact.handler.ContactHandler;
 import cube.contact.handler.ContactListHandler;
 import cube.contact.handler.ContactZoneHandler;
 import cube.contact.handler.ContactZoneListHandler;
+import cube.contact.handler.DefaultContactAppendixHandler;
+import cube.contact.handler.DefaultContactHandler;
+import cube.contact.handler.DefaultContactZoneHandler;
 import cube.contact.handler.GroupListHandler;
 import cube.contact.handler.SignHandler;
+import cube.contact.handler.StableContactZoneHandler;
 import cube.contact.model.AbstractContact;
 import cube.contact.model.Contact;
 import cube.contact.model.ContactAppendix;
 import cube.contact.model.ContactZone;
 import cube.contact.model.ContactZoneParticipant;
+import cube.contact.model.ContactZoneState;
 import cube.contact.model.Group;
 import cube.contact.model.MutableContact;
+import cube.contact.model.MutableContactZone;
 import cube.contact.model.Self;
 import cube.core.Module;
 import cube.core.ModuleError;
 import cube.core.Packet;
 import cube.core.PipelineState;
 import cube.core.handler.CompletionHandler;
+import cube.core.handler.DefaultFailureHandler;
 import cube.core.handler.FailureHandler;
 import cube.core.handler.PipelineHandler;
+import cube.core.handler.StableFailureHandler;
 import cube.util.LogUtils;
 import cube.util.ObservableEvent;
 
@@ -402,7 +411,7 @@ public class ContactService extends Module {
 
         final MutableContact mutableContact = new MutableContact();
 
-        this.getContact(contactId, new ContactHandler() {
+        this.getContact(contactId, new DefaultContactHandler() {
             @Override
             public void handleContact(Contact contact) {
                 // 赋值
@@ -412,7 +421,7 @@ public class ContactService extends Module {
                     mutableContact.notify();
                 }
             }
-        }, new FailureHandler() {
+        }, new DefaultFailureHandler() {
             @Override
             public void handleFailure(Module module, ModuleError error) {
                 synchronized (mutableContact) {
@@ -452,36 +461,65 @@ public class ContactService extends Module {
     public void getContact(Long contactId, ContactHandler successHandler, FailureHandler failureHandler) {
         if (null == this.self) {
             if (null != failureHandler) {
-                this.execute(new Runnable() {
+                Runnable callback = new Runnable() {
                     @Override
                     public void run() {
                         ModuleError error = new ModuleError(ContactService.NAME, ContactServiceState.IllegalOperation.code);
                         failureHandler.handleFailure(ContactService.this, error);
                     }
-                });
+                };
+
+                if (failureHandler.isInMainThread()) {
+                    this.executeOnMainThread(callback);
+                }
+                else {
+                    this.execute(callback);
+                }
             }
             return;
         }
 
         if (contactId.longValue() == this.self.id.longValue()) {
-            this.execute(new Runnable() {
-                @Override
-                public void run() {
-                    successHandler.handleContact(self);
-                }
-            });
+            if (successHandler.isInMainThread()) {
+                this.executeOnMainThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        successHandler.handleContact(self);
+                    }
+                });
+            }
+            else {
+                this.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        successHandler.handleContact(self);
+                    }
+                });
+            }
+
             return;
         }
 
         // 从缓存里读取
         AbstractContact abstractContact = this.cache.get(contactId);
         if (null != abstractContact) {
-            this.execute(new Runnable() {
-                @Override
-                public void run() {
-                    successHandler.handleContact((Contact) abstractContact);
-                }
-            });
+            if (successHandler.isInMainThread()) {
+                this.executeOnMainThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        successHandler.handleContact((Contact) abstractContact);
+                    }
+                });
+            }
+            else {
+                this.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        successHandler.handleContact((Contact) abstractContact);
+                    }
+                });
+            }
+
             return;
         }
 
@@ -502,12 +540,22 @@ public class ContactService extends Module {
                 // 写入缓存
                 this.cache.put(contactId, contact);
 
-                this.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        successHandler.handleContact(contact);
-                    }
-                });
+                if (successHandler.isInMainThread()) {
+                    this.executeOnMainThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            successHandler.handleContact(contact);
+                        }
+                    });
+                }
+                else {
+                    this.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            successHandler.handleContact(contact);
+                        }
+                    });
+                }
 
                 return;
             }
@@ -516,14 +564,26 @@ public class ContactService extends Module {
         if (!this.pipeline.isReady()) {
             // 数据通道未就绪
             if (null != failureHandler) {
-                this.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        ModuleError error = new ModuleError(NAME, ContactServiceState.NoNetwork.code);
-                        failureHandler.handleFailure(ContactService.this, error);
-                    }
-                });
+                if (failureHandler.isInMainThread()) {
+                    this.executeOnMainThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ModuleError error = new ModuleError(NAME, ContactServiceState.NoNetwork.code);
+                            failureHandler.handleFailure(ContactService.this, error);
+                        }
+                    });
+                }
+                else {
+                    this.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            ModuleError error = new ModuleError(NAME, ContactServiceState.NoNetwork.code);
+                            failureHandler.handleFailure(ContactService.this, error);
+                        }
+                    });
+                }
             }
+
             return;
         }
 
@@ -541,27 +601,50 @@ public class ContactService extends Module {
             public void handleResponse(Packet packet) {
                 if (packet.state.code != PipelineState.Ok.code) {
                     if (null != failureHandler) {
-                        execute(new Runnable() {
-                            @Override
-                            public void run() {
-                                ModuleError error = new ModuleError(ContactService.NAME, ContactServiceState.ServerError.code);
-                                failureHandler.handleFailure(ContactService.this, error);
-                            }
-                        });
+                        if (failureHandler.isInMainThread()) {
+                            executeOnMainThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    ModuleError error = new ModuleError(ContactService.NAME, ContactServiceState.ServerError.code);
+                                    failureHandler.handleFailure(ContactService.this, error);
+                                }
+                            });
+                        }
+                        else {
+                            execute(new Runnable() {
+                                @Override
+                                public void run() {
+                                    ModuleError error = new ModuleError(ContactService.NAME, ContactServiceState.ServerError.code);
+                                    failureHandler.handleFailure(ContactService.this, error);
+                                }
+                            });
+                        }
                     }
+
                     return;
                 }
 
                 int stateCode = packet.extractServiceStateCode();
                 if (stateCode != ContactServiceState.Ok.code) {
                     if (null != failureHandler) {
-                        execute(new Runnable() {
-                            @Override
-                            public void run() {
-                                ModuleError error = new ModuleError(ContactService.NAME, stateCode);
-                                failureHandler.handleFailure(ContactService.this, error);
-                            }
-                        });
+                        if (failureHandler.isInMainThread()) {
+                            executeOnMainThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    ModuleError error = new ModuleError(ContactService.NAME, stateCode);
+                                    failureHandler.handleFailure(ContactService.this, error);
+                                }
+                            });
+                        }
+                        else {
+                            execute(new Runnable() {
+                                @Override
+                                public void run() {
+                                    ModuleError error = new ModuleError(ContactService.NAME, stateCode);
+                                    failureHandler.handleFailure(ContactService.this, error);
+                                }
+                            });
+                        }
                     }
                     return;
                 }
@@ -579,15 +662,25 @@ public class ContactService extends Module {
                     storage.writeContact(contact);
 
                     // 获取附录
-                    getAppendix(contact, new ContactAppendixHandler() {
+                    getAppendix(contact, new DefaultContactAppendixHandler() {
                         @Override
                         public void handleAppendix(Contact contact, ContactAppendix appendix) {
                             // 写入缓存
                             cache.put(contactId, contact);
 
-                            successHandler.handleContact(contact);
+                            if (successHandler.isInMainThread()) {
+                                executeOnMainThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        successHandler.handleContact(contact);
+                                    }
+                                });
+                            }
+                            else {
+                                successHandler.handleContact(contact);
+                            }
                         }
-                    }, new FailureHandler() {
+                    }, new DefaultFailureHandler((null != failureHandler) && failureHandler.isInMainThread()) {
                         @Override
                         public void handleFailure(Module module, ModuleError error) {
                             if (null != failureHandler) {
@@ -596,10 +689,47 @@ public class ContactService extends Module {
                         }
                     });
                 } catch (JSONException e) {
-                    // Nothing
+                    LogUtils.w(ContactService.class.getSimpleName(), e);
                 }
             }
         });
+    }
+
+    /**
+     * 获取默认的联系人分区。
+     *
+     * @return
+     */
+    public ContactZone getDefaultContactZone() {
+        MutableContactZone zone = new MutableContactZone();
+
+        this.getContactZone(this.defaultContactZone, new DefaultContactZoneHandler() {
+            @Override
+            public void handleContactZone(ContactZone contactZone) {
+                zone.contactZone = contactZone;
+
+                synchronized (zone) {
+                    zone.notify();
+                }
+            }
+        }, new DefaultFailureHandler() {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                synchronized (zone) {
+                    zone.notify();
+                }
+            }
+        });
+
+        synchronized (zone) {
+            try {
+                zone.wait(this.blockingTimeout);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return zone.contactZone;
     }
 
     /**
@@ -611,20 +741,80 @@ public class ContactService extends Module {
      */
     public void getContactZone(String zoneName, ContactZoneHandler successHandler, FailureHandler failureHandler) {
         // 从数据库里读取
-        ContactZone zone = this.storage.readContactZone(zoneName);
+        final ContactZone zone = this.storage.readContactZone(zoneName);
         if (null != zone) {
             if (zone.isValid()) {
                 // 填充数据
                 this.fillContactZone(zone);
 
                 // 回调
-                successHandler.handleContactZone(zone);
+                if (successHandler.isInMainThread()) {
+                    this.executeOnMainThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            successHandler.handleContactZone(zone);
+                        }
+                    });
+                }
+                else {
+                    this.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            successHandler.handleContactZone(zone);
+                        }
+                    });
+                }
                 return;
             }
         }
 
         // 数据库没有数据或已经过期，从服务器获取
+        ContactZone dummyZone = new ContactZone(0L, zoneName, zoneName, 0, ContactZoneState.Normal);
+        // 从服务器获取
+        this.refreshContactZone(dummyZone, false, new StableContactZoneHandler() {
+            @Override
+            public void handleContactZone(ContactZone contactZone) {
+                // 填充数据
+                fillContactZone(contactZone);
 
+                if (successHandler.isInMainThread()) {
+                    executeOnMainThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            successHandler.handleContactZone(contactZone);
+                        }
+                    });
+                }
+                else {
+                    execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            successHandler.handleContactZone(contactZone);
+                        }
+                    });
+                }
+            }
+        }, new StableFailureHandler() {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                if (failureHandler.isInMainThread()) {
+                    executeOnMainThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            failureHandler.handleFailure(module, error);
+                        }
+                    });
+                }
+                else {
+                    execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            failureHandler.handleFailure(module, error);
+                        }
+                    });
+                }
+            }
+        });
     }
 
     protected void getAppendix(Contact contact, ContactAppendixHandler successHandler, FailureHandler failureHandler) {
@@ -691,15 +881,44 @@ public class ContactService extends Module {
     }
 
     private void fillContactZone(final ContactZone zone) {
-        ContactHandler successHandler = new ContactHandler() {
+        AtomicInteger count = new AtomicInteger(zone.getParticipants().size());
+
+        ContactHandler successHandler = new DefaultContactHandler() {
             @Override
             public void handleContact(Contact contact) {
                 zone.matchContact(contact);
+
+                if (0 == count.decrementAndGet()) {
+                    synchronized (count) {
+                        count.notify();
+                    }
+                }
+            }
+        };
+
+        FailureHandler failureHandler = new StableFailureHandler() {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                count.decrementAndGet();
+
+                if (0 == count.decrementAndGet()) {
+                    synchronized (count) {
+                        count.notify();
+                    }
+                }
             }
         };
 
         for (ContactZoneParticipant participant : zone.getParticipants()) {
-            this.getContact(participant.getContactId(), successHandler);
+            this.getContact(participant.getContactId(), successHandler, failureHandler);
+        }
+
+        synchronized (count) {
+            try {
+                count.wait(this.blockingTimeout * 3L);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -708,8 +927,9 @@ public class ContactService extends Module {
      *
      * @param zone
      */
-    private void refreshContactZone(ContactZone zone) {
-        this.refreshContactZone(zone, true);
+    private void refreshContactZone(ContactZone zone, StableContactZoneHandler successHandler,
+                                    StableFailureHandler failureHandler) {
+        this.refreshContactZone(zone, true, successHandler, failureHandler);
     }
 
     /**
@@ -718,7 +938,9 @@ public class ContactService extends Module {
      * @param zone
      * @param compact
      */
-    private void refreshContactZone(ContactZone zone, boolean compact) {
+    private void refreshContactZone(ContactZone zone, boolean compact,
+                                    StableContactZoneHandler successHandler,
+                                    StableFailureHandler failureHandler) {
         JSONObject data = new JSONObject();
         try {
             data.put("name", zone.name);
@@ -733,6 +955,10 @@ public class ContactService extends Module {
                 if (packet.state.code != PipelineState.Ok.code) {
                     LogUtils.w(ContactService.class.getSimpleName(),
                             "#refreshContactZone - error : " + packet.state.code);
+                    if (null != failureHandler) {
+                        failureHandler.handleFailure(ContactService.this,
+                                new ModuleError(ContactService.NAME, packet.state.code));
+                    }
                     return;
                 }
 
@@ -740,6 +966,10 @@ public class ContactService extends Module {
                 if (stateCode != ContactServiceState.Ok.code) {
                     LogUtils.w(ContactService.class.getSimpleName(),
                             "#refreshContactZone - error : " + stateCode);
+                    if (null != failureHandler) {
+                        failureHandler.handleFailure(ContactService.this,
+                                new ModuleError(ContactService.NAME, stateCode));
+                    }
                     return;
                 }
 
@@ -752,14 +982,23 @@ public class ContactService extends Module {
                             execute(new Runnable() {
                                 @Override
                                 public void run() {
-                                    refreshContactZone(zone, false);
+                                    refreshContactZone(zone, false, successHandler, failureHandler);
                                 }
                             });
+                        }
+                        else {
+                            if (null != successHandler) {
+                                successHandler.handleContactZone(zone);
+                            }
                         }
                     }
                     else {
                         // 更新数据
                         storage.writeContactZone(newZone);
+
+                        if (null != successHandler) {
+                            successHandler.handleContactZone(newZone);
+                        }
 
                         ObservableEvent event = new ObservableEvent(ContactServiceEvent.ContactZoneUpdated, newZone);
                         notifyObservers(event);
@@ -907,14 +1146,14 @@ public class ContactService extends Module {
         long now = System.currentTimeMillis();
 
         // 获取附录
-        this.getAppendix(this.self, new ContactAppendixHandler() {
+        this.getAppendix(this.self, new DefaultContactAppendixHandler() {
             @Override
             public void handleAppendix(Contact contact, ContactAppendix appendix) {
                 LogUtils.d(ContactService.class.getSimpleName(), "#getAppendix");
                 gotAppendix.value = true;
                 completion.handleCompletion(null);
             }
-        }, new FailureHandler() {
+        }, new DefaultFailureHandler() {
             @Override
             public void handleFailure(Module module, ModuleError error) {
                 LogUtils.d(ContactService.class.getSimpleName(), "#getAppendix error : " + error.code);

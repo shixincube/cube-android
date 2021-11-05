@@ -27,11 +27,12 @@
 package cube.contact.handler;
 
 import cube.contact.model.Contact;
+import cube.core.handler.CallbackHandler;
 
 /**
  * 联系人句柄。
  */
-public interface ContactHandler {
+public interface ContactHandler extends CallbackHandler {
 
     void handleContact(Contact contact);
 }

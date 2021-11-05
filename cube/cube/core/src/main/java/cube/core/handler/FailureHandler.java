@@ -32,7 +32,7 @@ import cube.core.ModuleError;
 /**
  * 故障处理句柄。
  */
-public interface FailureHandler {
+public interface FailureHandler extends CallbackHandler {
 
     void handleFailure(Module module, ModuleError error);
 }

@@ -385,8 +385,11 @@ public class ContactStorage extends AbstractStorage {
      * 写入联系人分区数据。
      *
      * @param zone
+     * @return 返回写入的分区是否已存在。
      */
-    public void writeContactZone(ContactZone zone) {
+    public boolean writeContactZone(ContactZone zone) {
+        boolean exists = false;
+
         SQLiteDatabase db = this.getWritableDatabase();
 
         String contextString = (null != zone.getContext()) ? zone.getContext().toString() : "";
@@ -395,6 +398,7 @@ public class ContactStorage extends AbstractStorage {
                 "name=?", new String[]{ zone.name }, null, null, null);
 
         if (cursor.moveToFirst()) {
+            exists = true;
             cursor.close();
 
             // 已存在，重置参与人数据，删除已存在数据
@@ -415,6 +419,7 @@ public class ContactStorage extends AbstractStorage {
             db.update("contact_zone", values, "id=?", new String[]{ zone.id.toString() });
         }
         else {
+            exists = false;
             cursor.close();
 
             // 不存在，插入数据
@@ -445,6 +450,8 @@ public class ContactStorage extends AbstractStorage {
         }
 
         this.closeWritableDatabase(db);
+
+        return exists;
     }
 
     @Override

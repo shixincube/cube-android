@@ -71,11 +71,15 @@ public class ContactZoneParticipant extends Entity {
     }
 
     public Contact getContact() {
-        return this.contact;
+        synchronized (this) {
+            return this.contact;
+        }
     }
 
     protected void setContact(Contact contact) {
-        this.contact = contact;
+        synchronized (this) {
+            this.contact = contact;
+        }
     }
 
     @Override

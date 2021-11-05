@@ -86,8 +86,8 @@ public class ContactService extends Module {
     /** 阻塞调用方法的超时时间。 */
     private final long blockingTimeout = 3000L;
 
-    /** 默认提供的联系人分区，签入时会自动加载该分区。 */
-    private final String defaultContactZone = "contacts";
+    /** 默认提供的联系人分区名称，签入时会自动加载该分区。 */
+    private final String defaultContactZoneName = "contacts";
 
     private long retrospectDuration = 30L * 24L * 60L * 60000L;
 
@@ -101,9 +101,13 @@ public class ContactService extends Module {
 
     protected Self self;
 
+    private ContactZone defaultContactZone;
+
     private ContactDataProvider contactDataProvider;
 
     private ConcurrentHashMap<Long, AbstractContact> cache;
+
+    private List<ContactZoneListener> contactZoneListenerList;
 
     public ContactService() {
         super(ContactService.NAME);
@@ -166,6 +170,22 @@ public class ContactService extends Module {
      */
     public void setContactDataProvider(ContactDataProvider provider) {
         this.contactDataProvider = provider;
+    }
+
+    public void addContactZoneListener(ContactZoneListener listener) {
+        if (null == this.contactZoneListenerList) {
+            this.contactZoneListenerList = new ArrayList<>();
+        }
+
+        if (!this.contactZoneListenerList.contains(listener)) {
+            this.contactZoneListenerList.add(listener);
+        }
+    }
+
+    public void removeContactZoneListener(ContactZoneListener listener) {
+        if (null != this.contactZoneListenerList) {
+            this.contactZoneListenerList.remove(listener);
+        }
     }
 
     /**
@@ -702,9 +722,13 @@ public class ContactService extends Module {
      * @return
      */
     public ContactZone getDefaultContactZone() {
+        if (null != this.defaultContactZone) {
+            return this.defaultContactZone;
+        }
+
         MutableContactZone zone = new MutableContactZone();
 
-        this.getContactZone(this.defaultContactZone, new DefaultContactZoneHandler() {
+        this.getContactZone(this.defaultContactZoneName, new DefaultContactZoneHandler() {
             @Override
             public void handleContactZone(ContactZone contactZone) {
                 zone.contactZone = contactZone;
@@ -730,6 +754,7 @@ public class ContactService extends Module {
             }
         }
 
+        this.defaultContactZone = zone.contactZone;
         return zone.contactZone;
     }
 
@@ -900,8 +925,6 @@ public class ContactService extends Module {
         FailureHandler failureHandler = new StableFailureHandler() {
             @Override
             public void handleFailure(Module module, ModuleError error) {
-                count.decrementAndGet();
-
                 if (0 == count.decrementAndGet()) {
                     synchronized (count) {
                         count.notify();
@@ -911,14 +934,21 @@ public class ContactService extends Module {
         };
 
         for (ContactZoneParticipant participant : zone.getParticipants()) {
-            this.getContact(participant.getContactId(), successHandler, failureHandler);
+            if (null == participant.getContact()) {
+                this.getContact(participant.getContactId(), successHandler, failureHandler);
+            }
+            else {
+                count.decrementAndGet();
+            }
         }
 
-        synchronized (count) {
-            try {
-                count.wait(this.blockingTimeout * 2L);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+        if (count.get() > 0) {
+            synchronized (count) {
+                try {
+                    count.wait(this.blockingTimeout * 2L);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -1046,7 +1076,12 @@ public class ContactService extends Module {
                         ContactZone zone = new ContactZone(data);
 
                         // 写入数据库
-                        storage.writeContactZone(zone);
+                        boolean exists = storage.writeContactZone(zone);
+                        if (!exists) {
+                            // 对于不存在数据直接调用更新
+                            ObservableEvent event = new ObservableEvent(ContactServiceEvent.ContactZoneUpdated, zone);
+                            notifyObservers(event);
+                        }
 
                         resultList.add(zone);
                     }
@@ -1085,7 +1120,27 @@ public class ContactService extends Module {
     public void notifyObservers(ObservableEvent event) {
         super.notifyObservers(event);
 
+        if (null != this.contactZoneListenerList && !this.contactZoneListenerList.isEmpty()) {
+            if (ContactServiceEvent.ContactZoneUpdated.equals(event.getName())) {
+                // 联系人分区已更新
+                this.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        ContactZone contactZone = (ContactZone) event.getData();
+                        fillContactZone(contactZone);
 
+                        executeOnMainThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                for (ContactZoneListener listener : contactZoneListenerList) {
+                                    listener.onContactZoneUpdated(contactZone, ContactService.this);
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        }
     }
 
     private void fireSignInCompleted() {

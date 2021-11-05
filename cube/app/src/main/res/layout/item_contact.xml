@@ -21,20 +21,25 @@
 
     <com.zhy.autolayout.AutoLinearLayout
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="66dp"
         android:background="@drawable/selector_common_item"
         android:gravity="center_vertical"
+        android:orientation="horizontal"
         android:paddingBottom="@dimen/item_margin_top_and_bottom"
         android:paddingLeft="@dimen/item_margin_left_and_right"
         android:paddingRight="@dimen/item_margin_left_and_right"
         android:paddingTop="@dimen/item_margin_top_and_bottom">
 
-        <ImageView
+        <com.shixincube.app.widget.AdvancedImageView
             android:id="@+id/ivAvatar"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="5dp"
+            android:layout_marginTop="5dp"
             android:scaleType="centerCrop"
-            android:src="@mipmap/avatar_default"/>
+            android:gravity="center_vertical"
+            android:src="@mipmap/avatar_default"
+            auto:corner_radius="4dp"/>
 
         <TextView
             android:id="@+id/tvName"
@@ -44,8 +49,8 @@
             android:layout_weight="1"
             android:singleLine="true"
             android:text=""
-            android:textColor="@color/item_text"
-            android:textSize="16dp"/>
+            android:textColor="@color/black"
+            android:textSize="16sp"/>
 
         <CheckBox
             android:id="@+id/cbSelector"
@@ -58,7 +63,8 @@
 
     </com.zhy.autolayout.AutoLinearLayout>
 
-    <View android:id="@+id/vLine"
+    <View
+        android:id="@+id/vLine"
         style="@style/Line"
         android:layout_marginLeft="@dimen/item_margin_left_and_right"
         android:layout_marginRight="@dimen/item_margin_left_and_right"

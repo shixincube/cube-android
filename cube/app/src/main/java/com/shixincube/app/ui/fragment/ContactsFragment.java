@@ -32,15 +32,21 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.shixincube.app.R;
+import com.shixincube.app.model.Account;
 import com.shixincube.app.ui.activity.MainActivity;
 import com.shixincube.app.ui.base.BaseFragment;
 import com.shixincube.app.ui.presenter.ContactsPresenter;
 import com.shixincube.app.ui.view.ContactsView;
 import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.QuickIndexBar;
+import com.shixincube.app.widget.adapter.AdapterForRecyclerView;
+import com.shixincube.app.widget.adapter.HeaderAndFooterAdapter;
 import com.shixincube.app.widget.recyclerview.RecyclerView;
 
+import java.util.List;
+
 import butterknife.BindView;
+import cube.contact.model.Contact;
 
 /**
  * 联系人清单。
@@ -77,6 +83,49 @@ public class ContactsFragment extends BaseFragment<ContactsView, ContactsPresent
     @Override
     public void initData() {
         this.presenter.loadContacts();
+    }
+
+    @Override
+    public void initListener() {
+//        this.headerView.findViewById()
+
+        this.indexBar.setListener(new QuickIndexBar.LetterUpdateListener() {
+            @Override
+            public void onLetterUpdate(String letter) {
+                showLetter(letter);
+                if (letter.equalsIgnoreCase("↑")) {
+                    contactsView.moveToPosition(0);
+                }
+                else if (letter.equalsIgnoreCase("☆")) {
+                    contactsView.moveToPosition(0);
+                }
+                else {
+                    List<Contact> data = ((AdapterForRecyclerView) ((HeaderAndFooterAdapter) contactsView.getAdapter()).getInnerAdapter()).getData();
+                    for (int i = 0; i < data.size(); ++i) {
+                        Contact contact = data.get(i);
+                        String firstLetter = String.valueOf(Account.getNameSpelling(contact).charAt(0));
+                        if (firstLetter.equalsIgnoreCase(letter)) {
+                            contactsView.moveToPosition(i);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onLetterCancel() {
+                hideLetter();
+            }
+        });
+    }
+
+    private void showLetter(String letter) {
+        this.letterView.setVisibility(View.VISIBLE);
+        this.letterView.setText(letter);
+    }
+
+    private void hideLetter() {
+        this.letterView.setVisibility(View.GONE);
     }
 
     @Override

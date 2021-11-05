@@ -195,6 +195,25 @@ public class ContactStorage extends AbstractStorage {
     }
 
     /**
+     * 更新联系人名称。
+     *
+     * @param contact
+     */
+    public void updateContactName(Contact contact) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put("name", contact.getName());
+        values.put("last", contact.getLast());
+        values.put("expiry", contact.getExpiry());
+        // update
+        db.update("contact", values,
+                "id=?", new String[] { contact.id.toString() });
+
+        this.closeWritableDatabase(db);
+    }
+
+    /**
      * 更新联系人的上下文数据。
      *
      * @param contact
@@ -225,6 +244,14 @@ public class ContactStorage extends AbstractStorage {
         this.closeWritableDatabase(db);
 
         return now;
+    }
+
+    public void clearAllContactContexts() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("context", "");
+        db.update("contact", values, null, null);
+        this.closeWritableDatabase(db);
     }
 
     /**

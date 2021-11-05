@@ -64,6 +64,15 @@ public class PromiseFuture<T> {
         }
     }
 
+    /**
+     * 当任务处理出现异常，需要通知异常处理时调用该方法。
+     */
+    public void reject() {
+        if (null != this.promise.catchRejectTask) {
+            this.execute(this.promise.catchRejectTask, null);
+        }
+    }
+
     private void execute(Promise.FutureTask task, T data) {
         if (task.inMainThread) {
             Looper looper = Looper.getMainLooper();

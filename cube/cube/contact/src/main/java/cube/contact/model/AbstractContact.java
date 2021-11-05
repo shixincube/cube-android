@@ -88,8 +88,22 @@ public class AbstractContact extends Entity {
         }
     }
 
+    /**
+     * 获取名称。
+     *
+     * @return
+     */
     public String getName() {
         return this.name;
+    }
+
+    /**
+     * 设置名称。
+     *
+     * @param name
+     */
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Override

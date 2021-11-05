@@ -225,4 +225,13 @@
 
     </com.zhy.autolayout.AutoLinearLayout>
 
+    <View style="@style/Line"
+        android:layout_marginLeft="@dimen/item_margin_left_and_right"
+        android:layout_marginRight="@dimen/item_margin_left_and_right"/>
+    <!--
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/option_item_margin_top"/>
+    -->
+
 </com.zhy.autolayout.AutoLinearLayout>

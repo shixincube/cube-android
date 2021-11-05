@@ -123,7 +123,7 @@ public class ContactZone extends Entity {
         }
     }
 
-    private class PinYinComparator implements Comparator<ContactZoneParticipant> {
+    protected class PinYinComparator implements Comparator<ContactZoneParticipant> {
 
         private Collator collator;
 

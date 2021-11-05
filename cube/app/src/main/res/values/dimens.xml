@@ -8,8 +8,8 @@
     <dimen name="main_bottom_iv_vertical_size">30dp</dimen>
 
     <!--列表 Item 间距-->
-    <dimen name="item_margin_left_and_right">14dp</dimen>
-    <dimen name="item_margin_top_and_bottom">8dp</dimen>
+    <dimen name="item_margin_left_and_right">16dp</dimen>
+    <dimen name="item_margin_top_and_bottom">10dp</dimen>
 
     <!-- 选项间距 -->
     <dimen name="option_item_margin_top">22dp</dimen>

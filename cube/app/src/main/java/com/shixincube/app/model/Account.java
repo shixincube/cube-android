@@ -27,10 +27,12 @@
 package com.shixincube.app.model;
 
 import com.google.gson.annotations.SerializedName;
+import com.shixincube.app.util.PinyinUtils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import cube.contact.model.Contact;
 import cube.util.JSONable;
 
 /**
@@ -84,6 +86,44 @@ public class Account implements JSONable {
         } catch (JSONException e) {
             return "default";
         }
+    }
+
+    /**
+     * 设置用户名拼写。
+     *
+     * @param contact
+     */
+    public static String setNameSpelling(Contact contact) {
+        String pinyin = PinyinUtils.getPinyin(contact.getPriorityName());
+        try {
+            if (null != contact.getContext()) {
+                contact.getContext().put("nameSpelling", pinyin);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return pinyin;
+    }
+
+    /**
+     * 获取用户的拼写形式。
+     *
+     * @param contact
+     * @return
+     */
+    public static String getNameSpelling(Contact contact) {
+        String pinyin = contact.getPriorityName();
+        try {
+            if (null != contact.getContext()) {
+                pinyin = contact.getContext().getString("nameSpelling");
+            }
+            else {
+                pinyin = PinyinUtils.getPinyin(contact.getPriorityName());
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return pinyin;
     }
 
     @Override

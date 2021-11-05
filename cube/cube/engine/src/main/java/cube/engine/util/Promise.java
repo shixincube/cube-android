@@ -98,6 +98,17 @@ public class Promise<T> {
     }
 
     /**
+     * 异步任务被拒绝时对应的处理句柄。
+     *
+     * @param future
+     * @return
+     */
+    public Promise<T> catchRejectOnMainThread(Future<T> future) {
+        this.catchRejectTask = new FutureTask<T>(true, future);
+        return this;
+    }
+
+    /**
      * 异步任务抛出异常时对应的处理句柄。
      *
      * @param future

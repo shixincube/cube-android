@@ -535,6 +535,7 @@ public class ContactService extends Module {
                         long last = this.storage.updateContactContext(contact);
                         contact.resetLast(last);
                     }
+                    this.storage.updateContactName(contact);
                 }
 
                 // 写入缓存
@@ -723,7 +724,7 @@ public class ContactService extends Module {
 
         synchronized (zone) {
             try {
-                zone.wait(this.blockingTimeout);
+                zone.wait(this.blockingTimeout * 3L);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -915,7 +916,7 @@ public class ContactService extends Module {
 
         synchronized (count) {
             try {
-                count.wait(this.blockingTimeout * 3L);
+                count.wait(this.blockingTimeout * 2L);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

@@ -28,6 +28,7 @@ package com.shixincube.app.ui.activity;
 
 import android.content.Intent;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -37,6 +38,8 @@ import com.shixincube.app.manager.AccountHelper;
 import com.shixincube.app.model.Account;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
+import com.shixincube.app.util.UIUtils;
+import com.shixincube.app.widget.optionitemview.OptionItemView;
 
 import butterknife.BindView;
 import cube.contact.model.Contact;
@@ -58,6 +61,21 @@ public class ContactDetailsActivity extends BaseActivity {
 
     @BindView(R.id.tvNickName)
     TextView nickNameView;
+
+    @BindView(R.id.oivRemarkAndTag)
+    OptionItemView remarkAndTagItem;
+
+    @BindView(R.id.tvCountriesAndRegions)
+    TextView countriesAndRegionsText;
+
+    @BindView(R.id.tvSignature)
+    TextView signatureText;
+
+    @BindView(R.id.btnChat)
+    Button toChatButton;
+
+    @BindView(R.id.btnAddToContacts)
+    Button addToContactsButton;
 
     private Contact contact;
 
@@ -86,8 +104,41 @@ public class ContactDetailsActivity extends BaseActivity {
     public void initData() {
         String avatarName = Account.getAvatar(this.contact.getContext());
         Glide.with(this).load(AccountHelper.explainAvatarForResource(avatarName)).centerCrop().into(avatarView);
-
         this.nameView.setText(this.contact.getPriorityName());
+
+        this.cubeIdView.setText(UIUtils.getString(R.string.my_cube_id, this.contact.getId().toString()));
+        this.nickNameView.setText(UIUtils.getString(R.string.nickname_colon, this.contact.getName()));
+
+        // FIXME 暂时隐藏个性签名
+        this.signatureText.setVisibility(View.GONE);
+
+        if (this.contact.equals(CubeEngine.getInstance().getContactService().getSelf())) {
+            // 我
+            this.nameView.setText(this.contact.getName());
+            this.nickNameView.setVisibility(View.INVISIBLE);
+            this.remarkAndTagItem.setVisibility(View.GONE);
+            this.countriesAndRegionsText.setVisibility(View.GONE);
+            this.toChatButton.setVisibility(View.GONE);
+        }
+        else {
+            if (CubeEngine.getInstance().getContactService().getDefaultContactZone().contains(this.contact)) {
+                // 我的联系人
+                this.nickNameView.setVisibility(View.VISIBLE);
+            }
+            else {
+                // 陌生人
+                this.nickNameView.setVisibility(View.INVISIBLE);
+                this.toChatButton.setVisibility(View.GONE);
+                this.addToContactsButton.setVisibility(View.VISIBLE);
+            }
+        }
+    }
+
+    @Override
+    public void initListener() {
+        this.toChatButton.setOnClickListener((view) -> {
+            
+        });
     }
 
     @Override

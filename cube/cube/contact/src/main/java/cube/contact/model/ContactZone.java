@@ -113,6 +113,26 @@ public class ContactZone extends Entity {
         this.participants.remove(participant);
     }
 
+    /**
+     * 指定的联系人是否包含在该联系人分区里。
+     *
+     * @param contact 指定联系人。
+     * @return 如果该分区有该联系人返回 {@code true} ，否则返回 {@code false} 。
+     */
+    public boolean contains(Contact contact) {
+        for (ContactZoneParticipant participant : this.participants) {
+            if (participant.getContactId().equals(contact.id)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @private
+     * @param contact
+     */
     public synchronized void matchContact(Contact contact) {
         long id = contact.id;
         for (ContactZoneParticipant participant : this.participants) {

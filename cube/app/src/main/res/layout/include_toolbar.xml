@@ -148,14 +148,14 @@
             <!--更多按钮-->
             <ImageButton
                 android:id="@+id/ibToolbarMore"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
+                android:layout_width="26dp"
+                android:layout_height="26dp"
                 android:scaleType="centerCrop"
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
                 android:layout_margin="12dp"
                 android:background="@null"
-                android:src="@mipmap/ic_contact_more"
+                android:src="@mipmap/ic_more_black"
                 android:visibility="gone" />
 
         </com.zhy.autolayout.AutoRelativeLayout>

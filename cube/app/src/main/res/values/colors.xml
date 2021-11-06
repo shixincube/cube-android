@@ -35,6 +35,7 @@
 
     <color name="item_text">#464646</color>
     <color name="item_bg">#FFFFFF</color>
+    <color name="item_index_bg">#E5E5E5</color>
     <color name="badge_bg">#FF3E3E</color>
 
     <color name="button_normal">#F5F5F5</color>

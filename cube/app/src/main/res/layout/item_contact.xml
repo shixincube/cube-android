@@ -11,7 +11,7 @@
         android:id="@+id/tvIndex"
         android:layout_width="match_parent"
         android:layout_height="23dp"
-        android:background="#E5E5E5"
+        android:background="@color/item_index_bg"
         android:gravity="center_vertical"
         android:paddingStart="@dimen/item_margin_left_and_right"
         android:text="A"

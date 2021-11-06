@@ -94,6 +94,10 @@ public class MessagingStorage extends AbstractStorage {
             while (cursor.moveToNext()) {
                 String messageString = cursor.getString(cursor.getColumnIndex("recent_message"));
                 Message recentMessage = new Message(this.service, new JSONObject(messageString));
+                if (recentMessage.isEmpty()) {
+                    // 消息是空白
+                    continue;
+                }
 
                 Conversation conversation = new Conversation(cursor.getLong(cursor.getColumnIndex("id")),
                         cursor.getLong(cursor.getColumnIndex("timestamp")),

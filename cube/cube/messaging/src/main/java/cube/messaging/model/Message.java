@@ -318,6 +318,15 @@ public class Message extends Entity {
         this.remoteTS = timestamp;
     }
 
+    /**
+     * 是否是空消息。
+     *
+     * @return
+     */
+    public boolean isEmpty() {
+        return false;
+    }
+
     public void assign(long owner, long to, long source) {
         this.owner = owner;
         this.from = owner;

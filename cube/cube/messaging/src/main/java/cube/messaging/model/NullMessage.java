@@ -36,4 +36,9 @@ public class NullMessage extends Message {
         this.scope = MessageScope.Private;
         this.summary = "";
     }
+
+    @Override
+    public boolean isEmpty() {
+        return true;
+    }
 }

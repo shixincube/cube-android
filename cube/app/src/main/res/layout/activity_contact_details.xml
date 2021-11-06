@@ -86,7 +86,7 @@
             style="@style/OptionItem"
             android:layout_marginTop="20dp"
             android:background="@drawable/selector_common_item"
-            auto:end_src="@mipmap/arrow_end"
+            auto:end_src="@mipmap/indicator"
             auto:start_text="@string/set_remark_and_tag"/>
 
         <com.zhy.autolayout.AutoLinearLayout

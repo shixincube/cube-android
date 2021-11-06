@@ -137,7 +137,10 @@ public class ContactDetailsActivity extends BaseActivity {
     @Override
     public void initListener() {
         this.toChatButton.setOnClickListener((view) -> {
-            
+            Intent intent = new Intent(ContactDetailsActivity.this, MessagePanelActivity.class);
+            intent.putExtra("conversationId", contact.getId());
+            jumpToActivity(intent);
+            finish();
         });
     }
 

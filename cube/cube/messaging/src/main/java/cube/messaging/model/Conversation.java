@@ -136,6 +136,23 @@ public class Conversation extends Entity {
     }
 
     /**
+     * 构造函数。
+     *
+     * @param contact
+     * @param reminded
+     */
+    public Conversation(Contact contact, ConversationReminded reminded) {
+        super(contact.id);
+        this.pivotalId = contact.id;
+        this.contact = contact;
+        this.type = ConversationType.Contact;
+        this.reminded = reminded;
+        this.state = ConversationState.Normal;
+        this.recentMessage = new NullMessage();
+        this.unreadCount = 0;
+    }
+
+    /**
      * 获取会话类型。
      *
      * @return
@@ -238,12 +255,17 @@ public class Conversation extends Entity {
     public boolean equals(Object object) {
         if (null != object && object instanceof Conversation) {
             Conversation other = (Conversation) object;
-            if (other.id.longValue() == this.id.longValue() && other.timestamp == this.timestamp) {
+            if (other.id.longValue() == this.id.longValue()) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return this.id.hashCode();
     }
 
     @Override

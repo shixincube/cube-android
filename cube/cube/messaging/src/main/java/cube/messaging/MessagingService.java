@@ -69,6 +69,7 @@ import cube.messaging.handler.MessageListResultHandler;
 import cube.messaging.handler.SendHandler;
 import cube.messaging.hook.InstantiateHook;
 import cube.messaging.model.Conversation;
+import cube.messaging.model.ConversationReminded;
 import cube.messaging.model.ConversationState;
 import cube.messaging.model.ConversationType;
 import cube.messaging.model.Message;
@@ -293,10 +294,10 @@ public class MessagingService extends Module {
     /**
      * 获取最近的会话清单。
      *
-     * @param maxLimit 指定最大记录数量。
+     * @param max 指定最大记录数量。
      * @return 返回消息列表。如果返回 {@code null} 值表示消息服务模块未启动。
      */
-    public List<Conversation> getRecentConversations(int maxLimit) {
+    public List<Conversation> getRecentConversations(int max) {
         if (!this.hasStarted()) {
             return null;
         }
@@ -313,7 +314,7 @@ public class MessagingService extends Module {
 
         synchronized (this) {
             if (null == this.conversations || this.conversations.isEmpty()) {
-                List<Conversation> list = this.storage.queryRecentConversations(maxLimit);
+                List<Conversation> list = this.storage.queryRecentConversations(max);
 
                 if (null == this.conversations) {
                     this.conversations = new Vector<>(list);
@@ -336,27 +337,46 @@ public class MessagingService extends Module {
      * @return 返回会话实例。
      */
     public Conversation getConversation(Long id) {
+        Conversation conversation = null;
+
         synchronized (this) {
             if (null == this.conversations || this.conversations.isEmpty()) {
-                return this.storage.readConversation(id);
+                conversation = this.storage.readConversation(id);
             }
             else {
-                for (Conversation conversation : this.conversations) {
-                    if (conversation.id.longValue() == id.longValue()) {
-                        return conversation;
+                for (Conversation conv : this.conversations) {
+                    if (conv.id.longValue() == id.longValue()) {
+                        conversation = conv;
+                        break;
                     }
                 }
             }
         }
 
-        // 从存储里读取
-        return this.storage.readConversation(id);
+        if (null == conversation) {
+            // 从存储里读取
+            conversation = this.storage.readConversation(id);
+
+            if (null == conversation) {
+                // 创建新的会话
+                Contact contact = this.contactService.getContact(id);
+                if (null != contact) {
+                    conversation = new Conversation(contact, ConversationReminded.Normal);
+                }
+                else {
+                    // TODO Group
+                }
+            }
+        }
+
+        return conversation;
     }
 
     /**
      * 标记指定会话里的所有消息为已读。
      *
-     * @param conversation
+     * @param conversation 指定会话。
+     * @param completionHandler 指定操作完成的回调句柄。
      */
     public void markRead(final Conversation conversation, CompletionHandler completionHandler) {
         if (conversation.getUnreadCount() == 0) {
@@ -696,6 +716,8 @@ public class MessagingService extends Module {
                     sendHandler.handleSent(conversation, message);
                 }
             }, failureHandler);
+
+            this.tryAddConversation(conversation);
         }
         else if (ConversationType.Group == conversation.getType()) {
             this.sendMessage(conversation.getGroup(), message, new SendHandler<Group>() {
@@ -712,6 +734,8 @@ public class MessagingService extends Module {
                     sendHandler.handleSent(conversation, message);
                 }
             }, failureHandler);
+
+            this.tryAddConversation(conversation);
         }
     }
 
@@ -773,6 +797,15 @@ public class MessagingService extends Module {
      */
     public void sendMessage(Group group, Message message, SendHandler<Group> sendHandler, FailureHandler failureHandler) {
         // TODO
+    }
+
+    private void tryAddConversation(Conversation conversation) {
+        if (!this.conversations.contains(conversation)) {
+            this.conversations.add(conversation);
+            this.sortConversationList(this.conversations);
+
+            this.storage.writeConversation(conversation);
+        }
     }
 
     private void processSend(Message message, MessageHandler handler, FailureHandler failureHandler) {

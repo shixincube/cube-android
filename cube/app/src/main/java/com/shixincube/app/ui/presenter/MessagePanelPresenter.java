@@ -113,8 +113,8 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
             message = messages.get(0);
         }
 
-        int limit = this.pageSize + this.pageSize;
-        CubeEngine.getInstance().getMessagingService().queryMessages(conversation, message, limit,
+        int max = this.pageSize + this.pageSize;
+        CubeEngine.getInstance().getMessagingService().queryMessages(conversation, message, max,
                 new MessageListResultHandler() {
                     @Override
                     public void handle(List<Message> messageList, boolean hasMore) {

@@ -24,23 +24,16 @@
  * SOFTWARE.
  */
 
-package cube.messaging.extension;
+package cube.messaging.model;
 
 /**
- * 消息类型。
+ * 空消息，仅用于数据管理的消息。
  */
-public final class MessageTypeName {
+public class NullMessage extends Message {
 
-    /**
-     * 一般文本类型。
-     */
-    public final static String Text = "text";
-
-    /**
-     * 超文本消息类型。
-     */
-    public final static String Hypertext = "hypertext";
-
-    private MessageTypeName() {
+    public NullMessage() {
+        super();
+        this.scope = MessageScope.Private;
+        this.summary = "";
     }
 }

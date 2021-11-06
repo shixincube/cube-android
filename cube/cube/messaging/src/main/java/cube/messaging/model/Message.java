@@ -114,7 +114,7 @@ public class Message extends Entity {
      * 消息的作用域。
      * @see MessageScope
      */
-    private int scope;
+    protected int scope;
 
     /**
      * 消息类型。

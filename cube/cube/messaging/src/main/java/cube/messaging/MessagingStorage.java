@@ -190,6 +190,55 @@ public class MessagingStorage extends AbstractStorage {
     }
 
     /**
+     * 写入新的会话数据。
+     *
+     * @param conversation
+     * @return 返回 {@code true} 表示插入新数据。
+     */
+    public boolean writeConversation(Conversation conversation) {
+        boolean insert = false;
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        Cursor cursor = db.query("conversation", new String[]{ "id" },
+                "id=?", new String[]{ conversation.id.toString() }, null, null, null);
+        if (cursor.moveToFirst()) {
+            cursor.close();
+
+            // 更新
+            ContentValues values = new ContentValues();
+            values.put("timestamp", conversation.getTimestamp());
+            values.put("state", conversation.getState().code);
+            values.put("remind", conversation.getReminded().code);
+            values.put("recent_message", conversation.getRecentMessage().toJSON().toString());
+            values.put("unread", conversation.getUnreadCount());
+            // update
+            db.update("conversation", values, "id=?", new String[]{ conversation.id.toString() });
+        }
+        else {
+            cursor.close();
+            insert = true;
+
+            // 插入
+            ContentValues values = new ContentValues();
+            values.put("id", conversation.id);
+            values.put("timestamp", conversation.getTimestamp());
+            values.put("type", conversation.getType().code);
+            values.put("state", conversation.getState().code);
+            values.put("pivotal_id", conversation.getPivotalId());
+            values.put("remind", conversation.getReminded().code);
+            values.put("recent_message", conversation.getRecentMessage().toJSON().toString());
+            values.put("unread", conversation.getUnreadCount());
+            // insert
+            db.insert("conversation", null, values);
+        }
+
+        this.closeWritableDatabase(db);
+
+        return insert;
+    }
+
+    /**
+     * 更新会话。
      *
      * @param conversation
      */

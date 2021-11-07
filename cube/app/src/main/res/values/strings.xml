@@ -54,6 +54,13 @@
     <string name="conference">会议</string>
     <string name="count_of_contacts">%1$d位联系人</string>
 
+    <!-- 文件界面 -->
+    <string name="all_files">全部</string>
+    <string name="file_image">图片</string>
+    <string name="file_doc">文档</string>
+    <string name="file_video">视频</string>
+    <string name="file_audio">音频</string>
+
     <!-- 个人信息 -->
     <string name="my_nickname">我的昵称</string>
     <string name="my_cube_id">魔方号：%1$s</string>

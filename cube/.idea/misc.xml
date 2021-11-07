@@ -48,7 +48,7 @@
         <entry key="app/src/main/res/layout/dialog_waiting.xml" value="0.17827868852459017" />
         <entry key="app/src/main/res/layout/fragment_contacts.xml" value="0.16325136612021857" />
         <entry key="app/src/main/res/layout/fragment_conversation.xml" value="0.16700819672131148" />
-        <entry key="app/src/main/res/layout/fragment_files.xml" value="0.16325136612021857" />
+        <entry key="app/src/main/res/layout/fragment_files.xml" value="0.5" />
         <entry key="app/src/main/res/layout/fragment_profile.xml" value="0.1" />
         <entry key="app/src/main/res/layout/header_contacts.xml" value="0.15710382513661203" />
         <entry key="app/src/main/res/layout/include_toolbar.xml" value="0.2545289855072464" />

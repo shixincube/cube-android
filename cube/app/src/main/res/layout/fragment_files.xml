@@ -24,18 +24,30 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
             android:orientation="vertical"
             android:background="@drawable/shape_file_tab_pressed">
 
             <com.shixincube.app.widget.AdvancedImageView
                 android:layout_width="30dp"
                 android:layout_height="30dp"
-                android:layout_margin="10dp"
+                android:layout_marginBottom="2dp"
                 android:scaleType="centerCrop"
                 android:src="@mipmap/ic_folder"
                 android:gravity="center"
                 auto:corner_radius="4dp"/>
 
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="@string/all_files"
+                android:textColor="@color/text"
+                android:textSize="11sp"/>
+
         </com.zhy.autolayout.AutoLinearLayout>
 
         <View
@@ -47,18 +59,30 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
             android:orientation="vertical"
             android:background="@drawable/shape_file_tab_normal">
 
             <com.shixincube.app.widget.AdvancedImageView
                 android:layout_width="30dp"
                 android:layout_height="30dp"
-                android:layout_margin="10dp"
+                android:layout_marginBottom="2dp"
                 android:scaleType="centerCrop"
                 android:src="@mipmap/ic_file_image"
                 android:gravity="center"
                 auto:corner_radius="4dp"/>
 
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="@string/file_image"
+                android:textColor="@color/text_accent"
+                android:textSize="11sp"/>
+
         </com.zhy.autolayout.AutoLinearLayout>
 
         <View
@@ -70,40 +94,29 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
             android:orientation="vertical"
             android:background="@drawable/shape_file_tab_normal">
 
             <com.shixincube.app.widget.AdvancedImageView
                 android:layout_width="30dp"
                 android:layout_height="30dp"
-                android:layout_margin="10dp"
+                android:layout_marginBottom="2dp"
                 android:scaleType="centerCrop"
                 android:src="@mipmap/ic_file_docx"
                 android:gravity="center"
                 auto:corner_radius="4dp"/>
 
-        </com.zhy.autolayout.AutoLinearLayout>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:layout_weight="0.5"/>
-
-        <com.zhy.autolayout.AutoLinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:orientation="vertical"
-            android:background="@drawable/shape_file_tab_normal">
-
-            <com.shixincube.app.widget.AdvancedImageView
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:layout_margin="10dp"
-                android:scaleType="centerCrop"
-                android:src="@mipmap/ic_file_xlsx"
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:gravity="center"
-                auto:corner_radius="4dp"/>
+                android:text="@string/file_doc"
+                android:textColor="@color/text_accent"
+                android:textSize="11sp"/>
 
         </com.zhy.autolayout.AutoLinearLayout>
 
@@ -116,17 +129,64 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
             android:orientation="vertical"
             android:background="@drawable/shape_file_tab_normal">
 
             <com.shixincube.app.widget.AdvancedImageView
                 android:layout_width="30dp"
                 android:layout_height="30dp"
-                android:layout_margin="10dp"
+                android:layout_marginBottom="2dp"
                 android:scaleType="centerCrop"
-                android:src="@mipmap/ic_file_pptx"
+                android:src="@mipmap/ic_file_video"
                 android:gravity="center"
                 auto:corner_radius="4dp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="@string/file_video"
+                android:textColor="@color/text_accent"
+                android:textSize="11sp"/>
+
+        </com.zhy.autolayout.AutoLinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_weight="0.5"/>
+
+        <com.zhy.autolayout.AutoLinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
+            android:orientation="vertical"
+            android:background="@drawable/shape_file_tab_normal">
+
+            <com.shixincube.app.widget.AdvancedImageView
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_marginBottom="2dp"
+                android:scaleType="centerCrop"
+                android:src="@mipmap/ic_file_music"
+                android:gravity="center"
+                auto:corner_radius="4dp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="@string/file_audio"
+                android:textColor="@color/text_accent"
+                android:textSize="11sp"/>
 
         </com.zhy.autolayout.AutoLinearLayout>
 

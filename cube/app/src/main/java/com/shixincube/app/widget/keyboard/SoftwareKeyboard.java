@@ -96,6 +96,13 @@ public class SoftwareKeyboard implements View.OnTouchListener, ViewTreeObserver.
         this.activity.getWindow().getDecorView().getViewTreeObserver().removeOnGlobalLayoutListener(this);
     }
 
+    public void close() {
+        this.contentView.setVisibility(View.GONE);
+        for (Stuff stuff : this.stuffList) {
+            stuff.layout.setVisibility(View.GONE);
+        }
+    }
+
     /**
      * 绑定内容view，此view用于固定bar的高度，防止跳闪
      */
@@ -250,6 +257,7 @@ public class SoftwareKeyboard implements View.OnTouchListener, ViewTreeObserver.
                 }
             }, 200L);
         }
+
         return false;
     }
 
@@ -293,6 +301,11 @@ public class SoftwareKeyboard implements View.OnTouchListener, ViewTreeObserver.
         View layout = this.getShownLayout();
         if (null != layout) {
             hideLayout(layout, false);
+
+            if (this.contentView.isShown()) {
+                this.contentView.setVisibility(View.GONE);
+            }
+
             return true;
         }
         return false;

@@ -26,6 +26,7 @@
 
 package com.shixincube.app.ui.activity;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -144,10 +145,11 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
         this.presenter.loadMessages();
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     public void initListener() {
         // 消息面板事件
-        messagePanelLayout.setOnTouchListener((view, event) -> {
+        this.messagePanelLayout.setOnTouchListener((view, event) -> {
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:
                     closeBottomAndKeyboard();
@@ -157,13 +159,13 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
             }
             return false;
         });
-        messageListView.setOnTouchListener((view, event) -> {
+        this.messageListView.setOnTouchListener((view, event) -> {
             closeBottomAndKeyboard();
             return false;
         });
 
         // 输入框事件
-        inputContentView.addTextChangedListener(new TextWatcher() {
+        this.inputContentView.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {
                 // Nothing
@@ -190,7 +192,15 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
         });
         inputContentView.setOnFocusChangeListener((view, focus) -> {
             if (focus) {
-                UIUtils.postTaskDelay(() -> messageListView.smoothMoveToPosition(messageListView.getAdapter().getItemCount() - 1), 200);
+                UIUtils.postTaskDelay(() -> {
+                    messageListView.smoothMoveToPosition(messageListView.getAdapter().getItemCount() - 1);
+                }, 1000);
+
+                UIUtils.postTaskDelay(() -> {
+                    if (!emotionLayout.isShown()) {
+                        emojiButtonView.setImageResource(R.mipmap.message_tool_emotion);
+                    }
+                }, 100);
             }
         });
 
@@ -211,12 +221,21 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
             public boolean onButtonClickListener(View view) {
                 switch (view.getId()) {
                     case R.id.ivEmoji:
-                        UIUtils.postTaskDelay(() -> messageListView.smoothMoveToPosition(messageListView.getAdapter().getItemCount() - 1), 50);
+                        UIUtils.postTaskDelay(() -> messageListView.smoothMoveToPosition(messageListView.getAdapter().getItemCount() - 1), 100);
                         inputContentView.clearFocus();
+                        if (emotionLayout.isShown()) {
+                            emojiButtonView.setImageResource(R.mipmap.message_tool_emotion);
+                        }
+                        else {
+                            emojiButtonView.setImageResource(R.mipmap.message_tool_keyboard);
+                        }
                         break;
                     case R.id.ivMore:
-                        UIUtils.postTaskDelay(() -> messageListView.smoothMoveToPosition(messageListView.getAdapter().getItemCount() - 1), 50);
+                        UIUtils.postTaskDelay(() -> messageListView.smoothMoveToPosition(messageListView.getAdapter().getItemCount() - 1), 100);
                         inputContentView.clearFocus();
+                        if (!moreLayout.isShown()) {
+                            emojiButtonView.setImageResource(R.mipmap.message_tool_emotion);
+                        }
                         break;
                     default:
                         break;
@@ -227,9 +246,29 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
     }
 
     private void closeBottomAndKeyboard() {
-//        emojiImageView.setVisibility(View.VISIBLE);
-//        moreImageView.setVisibility(View.GONE);
-//        inputContentView.clearFocus();
+        this.emojiButtonView.setImageResource(R.mipmap.message_tool_emotion);
+        this.moreButtonView.setVisibility(View.VISIBLE);
+        this.sendButton.setVisibility(View.GONE);
+
+        if (null != this.softwareKeyboard) {
+            this.softwareKeyboard.interceptBackPress();
+        }
+
+//        if (inputContentView.isActivated()) {
+//        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+//        imm.hideSoftInputFromWindow(inputContentView.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+//        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (emotionLayout.isShown() || moreLayout.isShown()) {
+            this.softwareKeyboard.interceptBackPress();
+            this.emojiButtonView.setImageResource(R.mipmap.message_tool_emotion);
+        }
+        else {
+            super.onBackPressed();
+        }
     }
 
     @Override

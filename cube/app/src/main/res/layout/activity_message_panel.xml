@@ -124,10 +124,10 @@
             / -->
 
         <!--其他功能 -->
-        <!--include
+        <include
             android:id="@+id/llMore"
-            layout="@layout/include_func_layout"
-            android:visibility="gone"/ -->
+            layout="@layout/include_conversation_function"
+            android:visibility="gone"/>
 
     </com.zhy.autolayout.AutoFrameLayout>
 

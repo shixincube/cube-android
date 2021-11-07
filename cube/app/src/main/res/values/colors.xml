@@ -45,6 +45,8 @@
     <color name="message_text_partner">#202020</color>
     <color name="message_box_partner_bg">#FEFEFE</color>
     <color name="message_box_self_bg">#287DF6</color>
+    <color name="conversation_func_pressed">#464646</color>
+    <color name="conversation_func_normal">#FDFDFD</color>
 
     <color name="file_classify_button_normal">#FDFDFD</color>
     <color name="file_classify_button_pressed">#E1E1E1</color>

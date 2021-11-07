@@ -46,6 +46,10 @@
     <string name="retry">重试</string>
     <string name="no_support_message">不支持的消息类型</string>
     <string name="loading_messages">正在加载</string>
+    <string name="album">相册</string>
+    <string name="shot">拍摄</string>
+    <string name="voice_comm">语音通话</string>
+    <string name="video_comm">视频通话</string>
 
     <!-- 联系人界面 -->
     <string name="new_contact">新的联系人</string>

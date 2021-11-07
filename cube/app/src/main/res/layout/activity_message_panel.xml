@@ -53,6 +53,10 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:gravity="center">
+                <!--
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                -->
 
                 <EditText
                     android:id="@+id/etContent"
@@ -116,12 +120,11 @@
         android:visibility="gone">
 
         <!-- 表情 -->
-        <!-- emoji.EmotionLayout
+        <com.shixincube.app.widget.emotion.EmotionLayout
             android:id="@+id/elEmotion"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:visibility="gone"
-            / -->
+            android:visibility="gone"/>
 
         <!--其他功能 -->
         <include

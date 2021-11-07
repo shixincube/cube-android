@@ -26,6 +26,14 @@
 
 package com.shixincube.app;
 
+import android.content.Context;
+import android.widget.ImageView;
+
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.shixincube.app.widget.emotion.EmotionKit;
+import com.shixincube.app.widget.emotion.ImageLoader;
+
 /**
  * 魔方应用程序入口。
  */
@@ -38,5 +46,12 @@ public class CubeApp extends CubeBaseApp {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        EmotionKit.init(this, new ImageLoader() {
+            @Override
+            public void displayImage(Context context, String path, ImageView imageView) {
+                Glide.with(context).load(path).centerCrop().diskCacheStrategy(DiskCacheStrategy.RESOURCE).into(imageView);
+            }
+        });
     }
 }

@@ -33,6 +33,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
@@ -41,6 +42,8 @@ import com.shixincube.app.ui.base.BaseFragmentActivity;
 import com.shixincube.app.ui.presenter.MessagePanelPresenter;
 import com.shixincube.app.ui.view.MessagePanelView;
 import com.shixincube.app.util.UIUtils;
+import com.shixincube.app.widget.emotion.EmotionLayout;
+import com.shixincube.app.widget.keyboard.SoftwareKeyboard;
 import com.shixincube.app.widget.recyclerview.RecyclerView;
 
 import java.io.IOException;
@@ -72,10 +75,19 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
     Button sendButton;
 
     @BindView(R.id.ivEmoji)
-    ImageView emojiImageView;
+    ImageView emojiButtonView;
 
     @BindView(R.id.ivMore)
-    ImageView moreImageView;
+    ImageView moreButtonView;
+
+    @BindView(R.id.flFunctionView)
+    FrameLayout functionView;
+    @BindView(R.id.elEmotion)
+    EmotionLayout emotionLayout;
+    @BindView(R.id.llMore)
+    LinearLayout moreLayout;
+
+    private SoftwareKeyboard softwareKeyboard;
 
     private Conversation conversation;
 
@@ -93,6 +105,8 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
                 e.printStackTrace();
             }
         }
+
+        this.softwareKeyboard.destroy();
     }
 
     @Override
@@ -110,6 +124,9 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
         this.toolbarMore.setVisibility(View.VISIBLE);
 
         this.initRefreshLayout();
+        this.initKeyboard();
+
+        this.inputContentView.clearFocus();
     }
 
     private void initRefreshLayout() {
@@ -156,13 +173,13 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
             public void onTextChanged(CharSequence charSequence, int start, int count, int after) {
                 if (inputContentView.getText().toString().trim().length() > 0) {
                     sendButton.setVisibility(View.VISIBLE);
-                    moreImageView.setVisibility(View.GONE);
+                    moreButtonView.setVisibility(View.GONE);
                     // 发送正在输入消息提示
                     CubeEngine.getInstance().getMessagingService().sendTypingStatus(conversation);
                 }
                 else {
                     sendButton.setVisibility(View.GONE);
-                    moreImageView.setVisibility(View.VISIBLE);
+                    moreButtonView.setVisibility(View.VISIBLE);
                 }
             }
 
@@ -183,9 +200,36 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
         });
     }
 
+    private void initKeyboard() {
+        this.softwareKeyboard = SoftwareKeyboard.with(this);
+        this.softwareKeyboard.bindToEditText(this.inputContentView);
+        this.softwareKeyboard.bindToContent(this.functionView);
+        this.softwareKeyboard.bindToLayoutAndButton(this.emotionLayout, this.emojiButtonView);
+        this.softwareKeyboard.bindToLayoutAndButton(this.moreLayout, this.moreButtonView);
+        this.softwareKeyboard.setButtonOnClickListener(new SoftwareKeyboard.ButtonOnClickListener() {
+            @Override
+            public boolean onButtonClickListener(View view) {
+                switch (view.getId()) {
+                    case R.id.ivEmoji:
+                        UIUtils.postTaskDelay(() -> messageListView.smoothMoveToPosition(messageListView.getAdapter().getItemCount() - 1), 50);
+                        inputContentView.clearFocus();
+                        break;
+                    case R.id.ivMore:
+                        UIUtils.postTaskDelay(() -> messageListView.smoothMoveToPosition(messageListView.getAdapter().getItemCount() - 1), 50);
+                        inputContentView.clearFocus();
+                        break;
+                    default:
+                        break;
+                }
+                return false;
+            }
+        });
+    }
+
     private void closeBottomAndKeyboard() {
 //        emojiImageView.setVisibility(View.VISIBLE);
 //        moreImageView.setVisibility(View.GONE);
+//        inputContentView.clearFocus();
     }
 
     @Override

@@ -97,20 +97,6 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (null != this.presenter) {
-            try {
-                this.presenter.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        this.softwareKeyboard.destroy();
-    }
-
-    @Override
     public void init() {
         Intent intent = getIntent();
         Long conversationId = intent.getLongExtra("conversationId", 0L);
@@ -255,8 +241,8 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
         }
 
 //        if (inputContentView.isActivated()) {
-//        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-//        imm.hideSoftInputFromWindow(inputContentView.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+//          InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+//          imm.hideSoftInputFromWindow(inputContentView.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
 //        }
     }
 
@@ -269,6 +255,27 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
         else {
             super.onBackPressed();
         }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (null != this.presenter) {
+            try {
+                this.presenter.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        this.softwareKeyboard.destroy();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     @Override

@@ -3,6 +3,7 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="gray">#FFD9D9D9</color>
+    <color name="transparent">#00000000</color>
 
     <color name="line">#D2D2D2</color>
     <color name="hint">#C8969696</color>
@@ -41,6 +42,7 @@
 
     <color name="button_normal">#F5F5F5</color>
     <color name="button_pressed">#EBEBEB</color>
+    <color name="button_disabled">#999999</color>
 
     <color name="message_bar_bg">#FDFDFD</color>
     <color name="message_text_partner">#202020</color>

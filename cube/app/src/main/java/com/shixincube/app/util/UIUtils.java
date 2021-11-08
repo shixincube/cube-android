@@ -103,7 +103,7 @@ public final class UIUtils {
      *
      * @return
      */
-    public static Resources getResource() {
+    public static Resources getResources() {
         return getContext().getResources();
     }
 
@@ -114,7 +114,7 @@ public final class UIUtils {
      * @return
      */
     public static int getColor(int colorId) {
-        return getResource().getColor(colorId, getContext().getTheme());
+        return getResources().getColor(colorId, getContext().getTheme());
     }
 
     /**
@@ -124,7 +124,7 @@ public final class UIUtils {
      * @return
      */
     public static String getString(int stringId) {
-        return getResource().getString(stringId);
+        return getResources().getString(stringId);
     }
 
     /**
@@ -135,7 +135,7 @@ public final class UIUtils {
      * @return
      */
     public static String getString(int stringId, Object... formatArgs) {
-        return getResource().getString(stringId, formatArgs);
+        return getResources().getString(stringId, formatArgs);
     }
 
     public static int dp2px(Context context, float dipValue) {

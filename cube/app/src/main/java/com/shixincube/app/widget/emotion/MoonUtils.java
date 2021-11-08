@@ -25,6 +25,8 @@ public class MoonUtils {
     private static final float DEF_SCALE = 0.6f;
     private static final float SMALL_SCALE = 0.6F;
 
+    private static Pattern mATagPattern = Pattern.compile("<a.*?>.*?</a>");
+
     /**
      * 具体类型的view设置内容
      *
@@ -61,8 +63,6 @@ public class MoonUtils {
         return mSpannableString;
     }
 
-    private static Pattern mATagPattern = Pattern.compile("<a.*?>.*?</a>");
-
     public static SpannableString makeSpannableStringTags(Context context, String value, float scale, int align) {
         return makeSpannableStringTags(context, value, DEF_SCALE, align, true);
     }
@@ -72,7 +72,7 @@ public class MoonUtils {
         if (TextUtils.isEmpty(value)) {
             value = "";
         }
-        //a标签需要替换原始文本,放在moonutil类中
+        // a标签需要替换原始文本,放在 MoonUtil 类中
         Matcher aTagMatcher = mATagPattern.matcher(value);
 
         int start = 0;

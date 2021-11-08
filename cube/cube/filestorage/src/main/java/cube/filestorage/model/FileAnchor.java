@@ -26,6 +26,9 @@
 
 package cube.filestorage.model;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 import cube.core.model.Entity;
 
 /**
@@ -33,5 +36,66 @@ import cube.core.model.Entity;
  */
 public class FileAnchor extends Entity {
 
+    /**
+     * 文件名。
+     */
+    public final String filename;
 
+    /**
+     * 文件大小，单位：字节。
+     */
+    public final long fileSize;
+
+    /**
+     * 文件最近一次修改时间。
+     */
+    public final long lastModified;
+
+    /**
+     * 当前锚点处理的游标位置，即已处理的数据大小。
+     */
+    public long position;
+
+    /**
+     * 剩余大小。
+     */
+    private long remaining;
+
+    public InputStream inputStream;
+
+    public FileAnchor(String filename, long fileSize, long lastModified) {
+        super();
+        this.filename = filename;
+        this.fileSize = fileSize;
+        this.lastModified = lastModified;
+        this.position = 0;
+        this.remaining = 0;
+    }
+
+    public void bindInputStream(InputStream inputStream) {
+        this.inputStream = inputStream;
+    }
+
+    public void updatePosition(int size) {
+        this.position += size;
+        this.remaining = this.fileSize - this.position;
+    }
+
+    public long getRemaining() {
+        return this.remaining;
+    }
+
+    public boolean isFinish() {
+        return this.position == this.fileSize;
+    }
+
+    public void close() {
+        if (null != this.inputStream) {
+            try {
+                this.inputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }

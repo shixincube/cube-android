@@ -30,4 +30,94 @@ package cube.filestorage;
  * 文件存储服务状态描述。
  */
 public enum FileStorageState {
+
+    /**
+     * 成功。
+     */
+    Ok(0),
+
+    /**
+     * 遇到故障。
+     */
+    Failure(9),
+
+    /**
+     * 无效的域信息。
+     */
+    InvalidDomain(11),
+
+    /**
+     * 无效的参数，禁止访问。
+     */
+    Forbidden(12),
+
+    /**
+     * 未找到指定数据。
+     */
+    NotFound(13),
+
+    /**
+     * 未授权访问。
+     */
+    Unauthorized(14),
+
+    /**
+     * 拒绝操作。
+     */
+    Reject(15),
+
+    /**
+     * 重名。
+     */
+    DuplicationOfName(20),
+
+    /**
+     * 搜索条件错误。
+     */
+    SearchConditionError(25),
+
+    /**
+     * 模块的工作状态未就绪。
+     */
+    NotReady(101),
+
+    /**
+     * 上传失败。
+     */
+    UploadFailed(102),
+
+    /**
+     * 读取文件错误。
+     */
+    ReadFileFailed(103),
+
+    /**
+     * 获取文件标签失败。
+     */
+    GetFileLabelFailed(105),
+
+    /**
+     * 未知的状态。
+     */
+    Unknown(99);
+
+
+    /**
+     * 状态代码。
+     */
+    public final int code;
+
+    FileStorageState(int code) {
+        this.code = code;
+    }
+
+    public static FileStorageState parse(int code) {
+        for (FileStorageState state : FileStorageState.values()) {
+            if (state.code == code) {
+                return state;
+            }
+        }
+
+        return FileStorageState.Unknown;
+    }
 }

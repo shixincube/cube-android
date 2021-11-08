@@ -46,6 +46,8 @@ public class FormData {
     private final static byte[] sDispositionPrefixBytes = sDispositionPrefix.getBytes(StandardCharsets.UTF_8);
     private final static byte sQuotation = '"';
 
+    protected String boundary = "----------------CubeFormBoundary" + cell.util.Utils.randomString(16);
+
     private Map<String, String> fieldMap;
 
     private String filename;
@@ -74,6 +76,10 @@ public class FormData {
         this.binaryData = data;
     }
 
+    public String getBoundary() {
+        return this.boundary;
+    }
+
     public InputStream getInputStream() {
         if (null == this.dataStream) {
             this.dataStream = new FormDataInputStream();
@@ -88,12 +94,10 @@ public class FormData {
 
     protected class FormDataInputStream extends InputStream {
 
-        protected String boundary = "----------------CubeFormBoundary" + cell.util.Utils.randomString(16);
-
         protected FlexibleByteBuffer buffer;
 
         public FormDataInputStream() {
-            byte[] boundaryBytes = this.boundary.getBytes(StandardCharsets.UTF_8);
+            byte[] boundaryBytes = boundary.getBytes(StandardCharsets.UTF_8);
             this.buffer = new FlexibleByteBuffer();
 
             // 写入字段
@@ -140,7 +144,6 @@ public class FormData {
                 buffer.put(sLineBreakBytes);
                 buffer.put(boundaryBytes);
                 buffer.put("--".getBytes(StandardCharsets.UTF_8));
-                buffer.put(sLineBreakBytes);
             }
 
             buffer.flip();
@@ -153,17 +156,6 @@ public class FormData {
             }
 
             return this.buffer.get();
-        }
-
-        @Override
-        public int read(byte[] buffer) throws IOException {
-            if (this.buffer.remaining() <= 0) {
-                return 0;
-            }
-
-            int length = Math.min(buffer.length, this.buffer.remaining());
-            System.arraycopy(this.buffer.array(), this.buffer.position(), buffer, 0, length);
-            return length;
         }
     }
 }

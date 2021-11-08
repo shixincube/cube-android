@@ -43,7 +43,7 @@ public class FileFormData extends FormData {
     private String filename;
 
     public FileFormData(Long contactId, String filename, long fileSize, long lastModified,
-                        int cursor, int size) {
+                        long cursor, int size) {
         super();
         this.filename = filename;
         this.setContentDisposition(FIELD_CID, contactId);

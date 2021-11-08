@@ -27,26 +27,35 @@
 package cube.filestorage;
 
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
 import cube.util.LogUtils;
 
+/**
+ * HTTP 客户端封装。
+ */
 public class HttpClient {
 
     private String url;
 
-    public HttpClient(String url) {
+    private String token;
+
+    private String sn;
+
+    public HttpClient(String url, String token, Long sn) {
         this.url = url;
+        this.url += "?token=" + token;
+        this.url += "&sn=" + sn;
     }
 
-    public void requestPost(InputStream requestStream, RequestListener listener) {
-        OutputStreamWriter writer = null;
+    public void requestPost(InputStream requestStream, String boundary, RequestListener listener) {
+        DataOutputStream writer = null;
         BufferedReader reader = null;
 
         try {
@@ -54,11 +63,19 @@ public class HttpClient {
 
             // 建立连接
             HttpURLConnection conn = (HttpURLConnection) realURL.openConnection();
-            conn.setConnectTimeout(10 * 1000);
+            conn.setConnectTimeout(5 * 1000);
+            conn.setReadTimeout(10 * 1000);
+            conn.setRequestMethod("POST");
+
+            LogUtils.d(HttpClient.class.getSimpleName(), "Request [POST] : " + this.url);
 
             // 设置通用的请求属性
             conn.setRequestProperty("Accept", "*/*");
             conn.setRequestProperty("Connection", "Keep-Alive");
+            conn.setRequestProperty("Cache-Control", "no-cache");
+//            conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+            conn.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
+            conn.setRequestProperty("Charset", "UTF-8");
 
             // 启用输入、输出流
             conn.setDoInput(true);
@@ -68,24 +85,35 @@ public class HttpClient {
             listener.onConnected(this);
 
             // 写入数据
-            writer = new OutputStreamWriter(conn.getOutputStream());
+            writer = new DataOutputStream(conn.getOutputStream());
             int length = 0;
             byte[] buf = new byte[1024];
-            char[] inputBuf = new char[1024];
             while ((length = requestStream.read(buf)) > 0) {
-                System.arraycopy(buf, 0, inputBuf, 0, length);
-                writer.write(inputBuf, 0, length);
+                writer.write(buf, 0, length);
             }
             writer.flush();
 
             StringBuilder builder = new StringBuilder();
-            reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            String line = null;
-            while ((line = reader.readLine()) != null) {
-                builder.append(line);
-            }
 
             int stateCode = conn.getResponseCode();
+            if (HttpURLConnection.HTTP_OK == stateCode ||
+                HttpURLConnection.HTTP_CREATED == stateCode ||
+                HttpURLConnection.HTTP_ACCEPTED == stateCode) {
+
+                reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                String line = null;
+                while ((line = reader.readLine()) != null) {
+                    builder.append(line);
+                }
+            }
+            else {
+                reader = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+                String line = null;
+                while ((line = reader.readLine()) != null) {
+                    builder.append(line);
+                }
+            }
+
             conn.disconnect();
 
             // 回调
@@ -95,7 +123,7 @@ public class HttpClient {
             LogUtils.w(this.getClass().getSimpleName(), e);
         } catch (IOException e) {
             LogUtils.w(this.getClass().getSimpleName(), e);
-
+            // 回调
             listener.onFailed(this, e);
         } finally {
             if (null != writer) {

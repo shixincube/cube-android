@@ -27,6 +27,7 @@
 package cube.filestorage;
 
 import android.os.Build;
+import android.util.MutableInt;
 
 import androidx.annotation.Nullable;
 
@@ -43,6 +44,7 @@ import cube.contact.model.Self;
 import cube.core.Module;
 import cube.core.ModuleError;
 import cube.filestorage.handler.UploadFileHandler;
+import cube.filestorage.model.FileAnchor;
 import cube.util.LogUtils;
 import cube.util.ObservableEvent;
 import cube.util.Observer;
@@ -50,7 +52,7 @@ import cube.util.Observer;
 /**
  * 文件存储服务。
  */
-public class FileStorage extends Module {
+public class FileStorage extends Module implements Observer, UploadQueue.UploadQueueListener {
 
     public final static String NAME = "FileStorage";
 
@@ -60,7 +62,9 @@ public class FileStorage extends Module {
 
     private String fileSecureURL = "https://cube.shixincube.com/filestorage/file/";
 
-    private int fileBlockSize = 10 * 1024;
+    private MutableInt fileBlockSize = new MutableInt(10 * 1024);
+
+    private UploadQueue uploadQueue;
 
     public FileStorage() {
         super(NAME);
@@ -73,13 +77,11 @@ public class FileStorage extends Module {
         }
 
         ContactService contactService = (ContactService) this.kernel.getModule(ContactService.NAME);
-        contactService.attachWithName(ContactServiceEvent.SelfReady, new Observer() {
-            @Override
-            public void update(ObservableEvent event) {
-                self = contactService.getSelf();
-            }
-        });
+        contactService.attachWithName(ContactServiceEvent.SelfReady, this);
         this.self = contactService.getSelf();
+
+        this.uploadQueue = new UploadQueue(this, this.fileBlockSize);
+        this.uploadQueue.setListener(this);
 
         return true;
     }
@@ -87,6 +89,9 @@ public class FileStorage extends Module {
     @Override
     public void stop() {
         super.stop();
+
+        ContactService contactService = (ContactService) this.kernel.getModule(ContactService.NAME);
+        contactService.detachWithName(ContactServiceEvent.SelfReady, this);
     }
 
     @Override
@@ -121,7 +126,7 @@ public class FileStorage extends Module {
                 this.executeOnMainThread(new Runnable() {
                     @Override
                     public void run() {
-                        ModuleError error = new ModuleError(NAME, 1);
+                        ModuleError error = new ModuleError(NAME, FileStorageState.NotReady.code);
                         handler.handleFailure(error);
                     }
                 });
@@ -130,7 +135,7 @@ public class FileStorage extends Module {
                 this.execute(new Runnable() {
                     @Override
                     public void run() {
-                        ModuleError error = new ModuleError(NAME, 1);
+                        ModuleError error = new ModuleError(NAME, FileStorageState.NotReady.code);
                         handler.handleFailure(error);
                     }
                 });
@@ -138,26 +143,59 @@ public class FileStorage extends Module {
             return;
         }
 
+
+
         long lastModified = System.currentTimeMillis();
         try {
+            // 文件大小
             long fileSize = inputStream.available();
-            byte[] data = new byte[this.fileBlockSize];
-            int cursor = 0;
-            int length = 0;
-            while ((length = inputStream.read(data)) > 0) {
-                FileFormData formData = new FileFormData(this.self.id, filename, fileSize, lastModified, cursor, length);
-                formData.setData(data, 0, length);
 
+            FileAnchor fileAnchor = new FileAnchor(filename, fileSize, lastModified);
+            fileAnchor.bindInputStream(inputStream);
 
-            }
+            // 将文件锚点添加到上传队列
+            this.uploadQueue.enqueue(fileAnchor);
         } catch (IOException e) {
             LogUtils.w(this.getClass().getSimpleName(), e);
-        } finally {
-            try {
-                inputStream.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        }
+    }
+
+    protected Self getSelf() {
+        return this.self;
+    }
+
+    protected String getServiceURL() {
+        return this.fileURL;
+    }
+
+    protected String getTokenCode() {
+        return this.getAuthToken().code;
+    }
+
+    @Override
+    protected void execute(Runnable task) {
+        super.execute(task);
+    }
+
+    @Override
+    public void onUploading(FileAnchor fileAnchor) {
+
+    }
+
+    @Override
+    public void onUploadCompleted(FileAnchor fileAnchor) {
+
+    }
+
+    @Override
+    public void onUploadFailed(FileAnchor fileAnchor) {
+
+    }
+
+    @Override
+    public void update(ObservableEvent event) {
+        if (event.getName().equals(ContactServiceEvent.SelfReady)) {
+            this.self = ((ContactService) event.getSubject()).getSelf();
         }
     }
 }

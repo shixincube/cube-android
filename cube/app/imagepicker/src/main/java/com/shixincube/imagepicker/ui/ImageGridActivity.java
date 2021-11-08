@@ -115,7 +115,8 @@ public class ImageGridActivity extends ImageBaseActivity implements ImageDataSou
             Intent intent = new Intent();
             intent.putExtra(ImagePicker.EXTRA_RESULT_ITEMS, imagePicker.getSelectedImages());
             intent.putExtra(ImagePreviewActivity.ISORIGIN,isOrigin);
-            setResult(ImagePicker.RESULT_CODE_ITEMS, intent);  //多选不允许裁剪裁剪，返回数据
+            // 多选不允许裁剪裁剪，返回数据
+            setResult(ImagePicker.RESULT_CODE_ITEMS, intent);
             finish();
         } else if (id == R.id.btn_dir) {
             if (mImageFolders == null) {
@@ -129,7 +130,7 @@ public class ImageGridActivity extends ImageBaseActivity implements ImageDataSou
                 mFolderPopupWindow.dismiss();
             } else {
                 mFolderPopupWindow.showAtLocation(mFooterBar, Gravity.NO_GRAVITY, 0, 0);
-                //默认选择当前选择的上一个，当目录很多时，直接定位到已选中的条目
+                // 默认选择当前选择的上一个，当目录很多时，直接定位到已选中的条目
                 int index = mImageFolderAdapter.getSelectIndex();
                 index = index == 0 ? index : index - 1;
                 mFolderPopupWindow.setSelection(index);
@@ -141,7 +142,7 @@ public class ImageGridActivity extends ImageBaseActivity implements ImageDataSou
             intent.putExtra(ImagePreviewActivity.ISORIGIN, isOrigin);
             startActivityForResult(intent, ImagePicker.REQUEST_CODE_PREVIEW);
         } else if (id == R.id.btn_back) {
-            //点击返回按钮
+            // 点击返回按钮
             finish();
         }
     }
@@ -162,7 +163,8 @@ public class ImageGridActivity extends ImageBaseActivity implements ImageDataSou
                     mImageGridAdapter.refreshData(imageFolder.images);
                     mBtnDir.setText(imageFolder.name);
                 }
-                mGridView.smoothScrollToPosition(0);//滑动到顶部
+                // 滑动到顶部
+                mGridView.smoothScrollToPosition(0);
             }
         });
         mFolderPopupWindow.setMargin(mFooterBar.getHeight());
@@ -181,25 +183,28 @@ public class ImageGridActivity extends ImageBaseActivity implements ImageDataSou
 
     @Override
     public void onImageItemClick(View view, ImageItem imageItem, int position) {
-        //根据是否有相机按钮确定位置
+        // 根据是否有相机按钮确定位置
         position = imagePicker.isShowCamera() ? position - 1 : position;
         if (imagePicker.isMultiMode()) {
             Intent intent = new Intent(ImageGridActivity.this, ImagePreviewActivity.class);
             intent.putExtra(ImagePicker.EXTRA_SELECTED_IMAGE_POSITION, position);
 //            intent.putExtra(ImagePicker.EXTRA_IMAGE_ITEMS, imagePicker.getCurrentImageFolderItems());//imagePicker.getCurrentImageFolderItems()的数据量太大，android5以后会OOM但不会报错
             intent.putExtra(ImagePreviewActivity.ISORIGIN, isOrigin);
-            startActivityForResult(intent, ImagePicker.REQUEST_CODE_PREVIEW);  //如果是多选，点击图片进入预览界面
+            // 如果是多选，点击图片进入预览界面
+            startActivityForResult(intent, ImagePicker.REQUEST_CODE_PREVIEW);
         } else {
             imagePicker.clearSelectedImages();
             imagePicker.addSelectedImageItem(position, imagePicker.getCurrentImageFolderItems().get(position), true);
             if (imagePicker.isCrop()) {
                 Intent intent = new Intent(ImageGridActivity.this, ImageCropActivity.class);
-                startActivityForResult(intent, ImagePicker.REQUEST_CODE_CROP);  //单选需要裁剪，进入裁剪界面
+                // 单选需要裁剪，进入裁剪界面
+                startActivityForResult(intent, ImagePicker.REQUEST_CODE_CROP);
             } else {
                 Intent intent = new Intent();
                 intent.putExtra(ImagePicker.EXTRA_RESULT_ITEMS, imagePicker.getSelectedImages());
-                intent.putExtra(ImagePreviewActivity.ISORIGIN,isOrigin);
-                setResult(ImagePicker.RESULT_CODE_ITEMS, intent);   //单选不需要裁剪，返回数据
+                intent.putExtra(ImagePreviewActivity.ISORIGIN, isOrigin);
+                // 单选不需要裁剪，返回数据
+                setResult(ImagePicker.RESULT_CODE_ITEMS, intent);
                 finish();
             }
         }
@@ -208,7 +213,7 @@ public class ImageGridActivity extends ImageBaseActivity implements ImageDataSou
     @Override
     public void onImageSelected(int position, ImageItem item, boolean isAdd) {
         if (imagePicker.getSelectImageCount() > 0) {
-            mBtnOk.setText(getString(R.string.select_complete, imagePicker.getSelectImageCount(), imagePicker.getSelectLimit()));
+            mBtnOk.setText(getString(R.string.select_complete, Integer.toString(imagePicker.getSelectImageCount()), Integer.toString(imagePicker.getSelectLimit())));
             mBtnOk.setEnabled(true);
             mBtnPre.setEnabled(true);
         } else {
@@ -216,7 +221,7 @@ public class ImageGridActivity extends ImageBaseActivity implements ImageDataSou
             mBtnOk.setEnabled(false);
             mBtnPre.setEnabled(false);
         }
-        mBtnPre.setText(getResources().getString(R.string.preview_count, imagePicker.getSelectImageCount()));
+        mBtnPre.setText(getResources().getString(R.string.preview_count, Integer.toString(imagePicker.getSelectImageCount())));
         mImageGridAdapter.notifyDataSetChanged();
     }
 
@@ -227,19 +232,19 @@ public class ImageGridActivity extends ImageBaseActivity implements ImageDataSou
             if (resultCode == ImagePicker.RESULT_CODE_BACK) {
                 isOrigin = data.getBooleanExtra(ImagePreviewActivity.ISORIGIN, false);
             } else {
-                //从拍照界面返回
-                //点击 X , 没有选择照片
+                // 从拍照界面返回
+                // 点击 X , 没有选择照片
                 if (data.getSerializableExtra(ImagePicker.EXTRA_RESULT_ITEMS) == null) {
-                    //什么都不做
+                    // Nothing
                 } else {
-                    //说明是从裁剪页面过来的数据，直接返回就可以
+                    // 说明是从裁剪页面过来的数据，直接返回就可以
                     data.putExtra(ImagePreviewActivity.ISORIGIN,true);
                     setResult(ImagePicker.RESULT_CODE_ITEMS, data);
                     finish();
                 }
             }
         } else {
-            //如果是裁剪，因为裁剪指定了存储的Uri，所以返回的data一定为null
+            // 如果是裁剪，因为裁剪指定了存储的 URI ，所以返回的 data 一定为 null
             if (resultCode == RESULT_OK && requestCode == ImagePicker.REQUEST_CODE_TAKE) {
                 //发送广播通知图片增加了
                 ImagePicker.galleryAddPic(this, imagePicker.getTakeImageFile());
@@ -249,12 +254,14 @@ public class ImageGridActivity extends ImageBaseActivity implements ImageDataSou
                 imagePicker.addSelectedImageItem(0, imageItem, true);
                 if (imagePicker.isCrop()) {
                     Intent intent = new Intent(ImageGridActivity.this, ImageCropActivity.class);
-                    startActivityForResult(intent, ImagePicker.REQUEST_CODE_CROP);  //单选需要裁剪，进入裁剪界面
+                    // 单选需要裁剪，进入裁剪界面
+                    startActivityForResult(intent, ImagePicker.REQUEST_CODE_CROP);
                 } else {
                     Intent intent = new Intent();
                     intent.putExtra(ImagePicker.EXTRA_RESULT_ITEMS, imagePicker.getSelectedImages());
                     intent.putExtra(ImagePreviewActivity.ISORIGIN,isOrigin);
-                    setResult(ImagePicker.RESULT_CODE_ITEMS, intent);   //单选不需要裁剪，返回数据
+                    // 单选不需要裁剪，返回数据
+                    setResult(ImagePicker.RESULT_CODE_ITEMS, intent);
                     finish();
                 }
             }

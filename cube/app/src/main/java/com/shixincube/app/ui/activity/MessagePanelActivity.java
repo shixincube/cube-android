@@ -37,6 +37,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 
 import com.shixincube.app.R;
 import com.shixincube.app.ui.base.BaseFragmentActivity;
@@ -46,8 +47,13 @@ import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.emotion.EmotionLayout;
 import com.shixincube.app.widget.keyboard.SoftwareKeyboard;
 import com.shixincube.app.widget.recyclerview.RecyclerView;
+import com.shixincube.imagepicker.ImagePicker;
+import com.shixincube.imagepicker.bean.ImageItem;
+import com.shixincube.imagepicker.ui.ImageGridActivity;
+import com.shixincube.imagepicker.ui.ImagePreviewActivity;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import butterknife.BindView;
 import cn.bingoogolapple.refreshlayout.BGANormalRefreshViewHolder;
@@ -59,6 +65,8 @@ import cube.messaging.model.Conversation;
  * 消息面板。
  */
 public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView, MessagePanelPresenter> implements MessagePanelView, BGARefreshLayout.BGARefreshLayoutDelegate {
+
+    public final static int REQUEST_IMAGE_PICKER = 1000;
 
     @BindView(R.id.llMessagePanel)
     LinearLayout messagePanelLayout;
@@ -87,6 +95,15 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
     EmotionLayout emotionLayout;
     @BindView(R.id.llMore)
     LinearLayout moreLayout;
+
+    @BindView(R.id.rlAlbum)
+    RelativeLayout albumButton;
+    @BindView(R.id.rlShot)
+    RelativeLayout shotButton;
+    @BindView(R.id.rlVoice)
+    RelativeLayout voiceCallButton;
+    @BindView(R.id.rlVideo)
+    RelativeLayout videoCallButton;
 
     private SoftwareKeyboard softwareKeyboard;
 
@@ -194,6 +211,12 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
         sendButton.setOnClickListener((view) -> {
             presenter.sendTextMessage();
         });
+
+        // 相册按钮事件
+        albumButton.setOnClickListener((view) -> {
+            Intent intent = new Intent(this, ImageGridActivity.class);
+            startActivityForResult(intent, REQUEST_IMAGE_PICKER);
+        });
     }
 
     private void initKeyboard() {
@@ -273,7 +296,21 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case REQUEST_IMAGE_PICKER:
+                if (resultCode == ImagePicker.RESULT_CODE_ITEMS) {
+                    // 返回多张照片
+                    if (null != data) {
+                        // 是否发送原图
+                        boolean origen = data.getBooleanExtra(ImagePreviewActivity.ISORIGIN, false);
+                        ArrayList<ImageItem> images = (ArrayList<ImageItem>) data.getSerializableExtra(ImagePicker.EXTRA_RESULT_ITEMS);
 
+                    }
+                }
+                break;
+            default:
+                break;
+        }
 
         super.onActivityResult(requestCode, resultCode, data);
     }

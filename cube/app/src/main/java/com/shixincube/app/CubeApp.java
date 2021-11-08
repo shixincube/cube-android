@@ -26,13 +26,18 @@
 
 package com.shixincube.app;
 
+import android.app.Activity;
 import android.content.Context;
+import android.net.Uri;
+import android.os.Handler;
 import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.shixincube.app.widget.emotion.EmotionKit;
 import com.shixincube.app.widget.emotion.ImageLoader;
+import com.shixincube.imagepicker.ImagePicker;
+import com.shixincube.imagepicker.view.CropImageView;
 
 /**
  * 魔方应用程序入口。
@@ -53,5 +58,46 @@ public class CubeApp extends CubeBaseApp {
                 Glide.with(context).load(path).centerCrop().diskCacheStrategy(DiskCacheStrategy.RESOURCE).into(imageView);
             }
         });
+
+        Handler handler = new Handler(this.getMainLooper());
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                initImagePicker();
+            }
+        }, 100);
+    }
+
+    private void initImagePicker() {
+        ImagePicker picker = ImagePicker.getInstance();
+        picker.setImageLoader(new com.shixincube.imagepicker.loader.ImageLoader() {
+            @Override
+            public void displayImage(Activity activity, String path, ImageView imageView, int width, int height) {
+                Glide.with(getContext()).load(Uri.parse("file://" + path).toString()).centerCrop().into(imageView);
+            }
+
+            @Override
+            public void clearMemoryCache() {
+            }
+        });
+
+        // 显示拍照按钮
+        picker.setShowCamera(true);
+        // 允许裁剪（单选才有效）
+        picker.setCrop(true);
+        // 是否按矩形区域保存
+        picker.setSaveRectangle(true);
+        // 选中数量限制
+        picker.setSelectLimit(12);
+        // 裁剪框的形状
+        picker.setStyle(CropImageView.Style.RECTANGLE);
+        // 裁剪框的宽度。单位像素（圆形自动取宽高最小值）
+        picker.setFocusWidth(800);
+        // 裁剪框的高度。单位像素（圆形自动取宽高最小值）
+        picker.setFocusHeight(800);
+        // 保存文件的宽度。单位像素
+        picker.setOutPutX(1000);
+        // 保存文件的高度。单位像素
+        picker.setOutPutY(1000);
     }
 }

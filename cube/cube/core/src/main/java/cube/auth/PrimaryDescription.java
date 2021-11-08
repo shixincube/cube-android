@@ -51,6 +51,23 @@ public final class PrimaryDescription implements JSONable {
         this.port = data.has("port") ? data.getInt("port") : 7000;
     }
 
+    /**
+     * 获取对应的配置。
+     *
+     * @param key
+     * @return
+     */
+    public JSONObject getPrimaryContent(String key) {
+        if (this.primaryContent.has(key)) {
+            try {
+                return this.primaryContent.getJSONObject(key);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return null;
+    }
 
     @Override
     public JSONObject toJSON() {

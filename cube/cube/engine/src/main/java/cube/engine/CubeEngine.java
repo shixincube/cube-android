@@ -43,6 +43,7 @@ import cube.core.ModuleError;
 import cube.core.handler.KernelHandler;
 import cube.engine.handler.EngineHandler;
 import cube.engine.util.Promise;
+import cube.filestorage.FileStorage;
 import cube.messaging.MessagingService;
 
 /**
@@ -63,6 +64,7 @@ public class CubeEngine {
         this.kernel = new Kernel();
         this.kernel.installModule(new AuthService());
         this.kernel.installModule(new ContactService());
+        this.kernel.installModule(new FileStorage());
         this.kernel.installModule(new MessagingService());
     }
 
@@ -157,6 +159,15 @@ public class CubeEngine {
      */
     public ContactService getContactService() {
         return (ContactService) this.kernel.getModule(ContactService.NAME);
+    }
+
+    /**
+     * 获取文件存储服务模块。
+     *
+     * @return 返回文件存储服务模块。
+     */
+    public FileStorage getFileStorage() {
+        return (FileStorage) this.kernel.getModule(FileStorage.NAME);
     }
 
     /**

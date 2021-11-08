@@ -26,6 +26,8 @@
 
 package cube.auth;
 
+import androidx.annotation.Nullable;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -46,9 +48,9 @@ public class AuthService extends Module {
 
     public final static String NAME = "Auth";
 
-    private static String sDomain;
-
     protected final static String ACTION_APPLY_TOKEN = "applyToken";
+
+    private static String sDomain;
 
     private AuthToken token;
 
@@ -102,6 +104,11 @@ public class AuthService extends Module {
     @Override
     public boolean isReady() {
         return true;
+    }
+
+    @Override
+    protected void config(@Nullable JSONObject configData) {
+        // Nothing
     }
 
     /**

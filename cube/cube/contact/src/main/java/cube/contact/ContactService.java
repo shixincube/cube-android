@@ -29,6 +29,8 @@ package cube.contact;
 import android.util.Log;
 import android.util.MutableBoolean;
 
+import androidx.annotation.Nullable;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -161,6 +163,11 @@ public class ContactService extends Module {
     @Override
     public boolean isReady() {
         return this.signInReady.get() && (null != this.self);
+    }
+
+    @Override
+    protected void config(@Nullable JSONObject configData) {
+        // Nothing
     }
 
     @Override

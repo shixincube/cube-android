@@ -18,6 +18,7 @@
             <option value="$PROJECT_DIR$/cube/contact" />
             <option value="$PROJECT_DIR$/cube/core" />
             <option value="$PROJECT_DIR$/cube/engine" />
+            <option value="$PROJECT_DIR$/cube/filestorage" />
             <option value="$PROJECT_DIR$/cube/messaging" />
           </set>
         </option>

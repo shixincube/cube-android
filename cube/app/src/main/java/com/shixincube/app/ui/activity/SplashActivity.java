@@ -86,6 +86,7 @@ public class SplashActivity extends BaseActivity {
                         Manifest.permission.ACCESS_NETWORK_STATE,
                         // 存储权限
                         Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                        Manifest.permission.READ_EXTERNAL_STORAGE,
                         Manifest.permission.WRITE_SETTINGS
                 )
                 .request();

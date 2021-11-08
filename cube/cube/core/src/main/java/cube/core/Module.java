@@ -29,6 +29,10 @@ package cube.core;
 import android.content.Context;
 import android.os.Handler;
 
+import androidx.annotation.Nullable;
+
+import org.json.JSONObject;
+
 import cell.util.NetworkUtils;
 import cube.auth.AuthToken;
 import cube.util.Subject;
@@ -107,6 +111,13 @@ public abstract class Module extends Subject {
     public void resume() {
         // subclass hook override.
     }
+
+    /**
+     * 引擎启动后对模块进行配置。
+     *
+     * @param configData
+     */
+    protected abstract void config(@Nullable JSONObject configData);
 
     protected Pipeline getPipeline() {
         return this.pipeline;

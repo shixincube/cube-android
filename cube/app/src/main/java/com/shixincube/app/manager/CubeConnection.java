@@ -28,11 +28,22 @@ package com.shixincube.app.manager;
 
 import android.content.ComponentName;
 import android.content.ServiceConnection;
+import android.content.res.AssetManager;
 import android.os.IBinder;
 
+import com.shixincube.app.CubeBaseApp;
+
+import java.io.IOException;
+import java.io.InputStream;
+
+import cube.core.ModuleError;
 import cube.engine.CubeBinder;
 import cube.engine.CubeEngine;
 import cube.engine.handler.EngineHandler;
+import cube.filestorage.FileStorage;
+import cube.filestorage.handler.UploadFileHandler;
+import cube.filestorage.model.FileAnchor;
+import cube.filestorage.model.FileLabel;
 import cube.util.LogUtils;
 
 /**
@@ -71,6 +82,8 @@ public class CubeConnection implements ServiceConnection {
                 if (null != successHandler) {
                     successHandler.run();
                 }
+
+                test();
             }
 
             @Override
@@ -87,5 +100,46 @@ public class CubeConnection implements ServiceConnection {
     @Override
     public void onServiceDisconnected(ComponentName componentName) {
         // Nothing
+    }
+
+    private void test() {
+        System.out.println("XJW#test");
+        FileStorage fileStorage = CubeEngine.getInstance().getFileStorage();
+
+        AssetManager assetManager = CubeBaseApp.getContext().getAssets();
+
+        try {
+            InputStream is = assetManager.open("emoji/emoji.xml");
+            fileStorage.uploadFile("emoji.xml", is, new UploadFileHandler() {
+                @Override
+                public void handleProcessing(FileAnchor anchor) {
+
+                }
+
+                @Override
+                public void handleSuccess(FileLabel fileLabel) {
+
+                }
+
+                @Override
+                public void handleFailure(ModuleError error) {
+                    try {
+                        Thread.sleep(1000L);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                    test();
+                }
+
+                @Override
+                public boolean isInMainThread() {
+                    return false;
+                }
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+        }
     }
 }

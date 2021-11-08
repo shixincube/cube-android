@@ -29,6 +29,8 @@ package cube.messaging;
 import android.util.Log;
 import android.util.MutableBoolean;
 
+import androidx.annotation.Nullable;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -63,6 +65,7 @@ import cube.core.handler.CompletionHandler;
 import cube.core.handler.DefaultFailureHandler;
 import cube.core.handler.FailureHandler;
 import cube.core.handler.PipelineHandler;
+import cube.filestorage.FileStorage;
 import cube.messaging.extension.MessageTypePlugin;
 import cube.messaging.handler.MessageHandler;
 import cube.messaging.handler.MessageListResultHandler;
@@ -95,6 +98,8 @@ public class MessagingService extends Module {
     private MessagingObserver observer;
 
     private ContactService contactService;
+
+    private FileStorage fileStorage;
 
     private MessagingRecentEventListener recentEventListener;
 
@@ -139,6 +144,12 @@ public class MessagingService extends Module {
     public boolean start() {
         if (!super.start()) {
             return false;
+        }
+
+        // 尝试启用文件存储器
+        if (this.kernel.hasModule(FileStorage.NAME)) {
+            this.fileStorage = (FileStorage) this.kernel.getModule(FileStorage.NAME);
+            this.fileStorage.start();
         }
 
         // 组装插件
@@ -192,6 +203,11 @@ public class MessagingService extends Module {
     @Override
     public boolean isReady() {
         return this.ready;
+    }
+
+    @Override
+    protected void config(@Nullable JSONObject configData) {
+        // Nothing
     }
 
     /**

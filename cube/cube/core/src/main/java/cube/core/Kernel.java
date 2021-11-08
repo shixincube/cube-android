@@ -131,6 +131,9 @@ public class Kernel implements PipelineListener {
                 // 设置数据通道令牌
                 pipeline.setTokenCode(authToken.code);
 
+                // 配置模块
+                configModules(authToken);
+
                 handler.handleCompletion(Kernel.this);
             }
 
@@ -290,6 +293,12 @@ public class Kernel implements PipelineListener {
 
         for (Module module : this.moduleMap.values()) {
             module.pipeline = this.pipeline;
+        }
+    }
+
+    private void configModules(AuthToken authToken) {
+        for (Module module : this.moduleMap.values()) {
+            module.config(authToken.description.getPrimaryContent(module.getName()));
         }
     }
 

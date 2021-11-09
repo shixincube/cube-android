@@ -53,22 +53,6 @@ public class HyperTextMessage extends TypeableMessage {
 
     private String plaintext;
 
-    public HyperTextMessage(Message message) {
-        super(message, MessageType.Text);
-
-        try {
-            if (!this.payload.has("type")) {
-                this.payload.put("type", MessageTypeName.Hypertext);
-            }
-
-            this.plaintext = this.payload.getString("content");
-        } catch (JSONException e) {
-            // Nothing
-        }
-
-        this.parse(this.plaintext);
-    }
-
     /**
      * 构造函数。
      *
@@ -85,7 +69,25 @@ public class HyperTextMessage extends TypeableMessage {
 
         this.plaintext = text;
 
+        // 解析数据
         this.parse(text);
+    }
+
+    public HyperTextMessage(Message message) {
+        super(message, MessageType.Text);
+
+        try {
+            if (!this.payload.has("type")) {
+                this.payload.put("type", MessageTypeName.Hypertext);
+            }
+
+            this.plaintext = this.payload.getString("content");
+        } catch (JSONException e) {
+            // Nothing
+        }
+
+        // 解析数据
+        this.parse(this.plaintext);
     }
 
     public String getPlaintext() {

@@ -24,28 +24,21 @@
  * SOFTWARE.
  */
 
-package cube.messaging.extension;
+package cube.messaging.model;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.File;
 
 /**
- * 消息类型。
+ * 文件缩略图。
  */
-public final class MessageTypeName {
+public class FileThumbnail {
 
-    /**
-     * 一般文本类型。
-     */
-    public final static String Text = "text";
+    private File file;
 
-    /**
-     * 超文本消息类型。
-     */
-    public final static String Hypertext = "hypertext";
+    public FileThumbnail(JSONObject json) throws JSONException {
 
-    /**
-     * 文件消息。
-     */
-    public final static String File = "file";
-
-    private MessageTypeName() {
     }
 }

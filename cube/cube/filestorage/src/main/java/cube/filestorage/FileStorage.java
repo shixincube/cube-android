@@ -35,6 +35,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -69,6 +70,8 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
 
     private MutableInt fileBlockSize = new MutableInt(10 * 1024);
 
+    private StructStorage storage;
+
     private UploadQueue uploadQueue;
 
     public FileStorage() {
@@ -85,6 +88,11 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
         contactService.attachWithName(ContactServiceEvent.SelfReady, this);
         this.self = contactService.getSelf();
 
+        if (null != this.self) {
+            this.storage = new StructStorage();
+            this.storage.open(getContext(), this.self.id, this.self.domain);
+        }
+
         this.uploadQueue = new UploadQueue(this, this.fileBlockSize);
         this.uploadQueue.setListener(this);
 
@@ -97,6 +105,11 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
 
         ContactService contactService = (ContactService) this.kernel.getModule(ContactService.NAME);
         contactService.detachWithName(ContactServiceEvent.SelfReady, this);
+
+        if (null != this.storage) {
+            this.storage.close();
+            this.storage = null;
+        }
     }
 
     @Override
@@ -121,8 +134,45 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
         }
     }
 
+    /**
+     * 上传到默认目录。
+     *
+     * @param file
+     * @param handler
+     */
     public void uploadFile(File file, UploadFileHandler handler) {
+        if (!this.hasStarted() || null == this.self) {
+            if (handler.isInMainThread()) {
+                this.executeOnMainThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        ModuleError error = new ModuleError(NAME, FileStorageState.NotReady.code);
+                        handler.handleFailure(error, null);
+                    }
+                });
+            }
+            else {
+                this.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        ModuleError error = new ModuleError(NAME, FileStorageState.NotReady.code);
+                        handler.handleFailure(error, null);
+                    }
+                });
+            }
+            return;
+        }
 
+        try {
+            FileAnchor fileAnchor = new FileAnchor(file);
+            fileAnchor.setUploadFileHandler(handler);
+            fileAnchor.bindInputStream(new FileInputStream(file));
+
+            // 将文件锚点添加到上传队列
+            this.uploadQueue.enqueue(fileAnchor);
+        } catch (IOException e) {
+            LogUtils.w(this.getClass().getSimpleName(), e);
+        }
     }
 
     /**
@@ -194,10 +244,7 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
      * @param fileCode
      * @param handler
      */
-    protected void getFileLabel(String fileCode, StableFileLabelHandler handler) {
-        // 从数据库读取
-        // TODO
-
+    protected void getRemoteFileLabel(String fileCode, StableFileLabelHandler handler) {
         JSONObject payload = new JSONObject();
         try {
             payload.put("fileCode", fileCode);
@@ -227,7 +274,7 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
                         executeDelayed(new Runnable() {
                             @Override
                             public void run() {
-                                getFileLabel(fileCode, handler);
+                                getRemoteFileLabel(fileCode, handler);
                             }
                         }, 500);
                     }
@@ -246,10 +293,6 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
 
                 try {
                     FileLabel fileLabel = new FileLabel(packet.extractServiceData());
-
-                    // 将标签写入数据库
-                    // TODO
-
                     execute(new Runnable() {
                         @Override
                         public void run() {
@@ -261,6 +304,23 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
                 }
             }
         });
+    }
+
+    @Override
+    public void onUploadStarted(FileAnchor fileAnchor) {
+        UploadFileHandler uploadHandler = fileAnchor.getUploadFileHandler();
+        if (null != uploadHandler) {
+            if (uploadHandler.isInMainThread()) {
+                this.executeOnMainThread(() -> {
+                    uploadHandler.handleStarted(fileAnchor);
+                });
+            }
+            else {
+                this.execute(() -> {
+                    uploadHandler.handleStarted(fileAnchor);
+                });
+            }
+        }
     }
 
     @Override
@@ -289,13 +349,24 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
             return;
         }
 
-        Runnable task = new Runnable() {
+        PostTask postTask = (anchor, label) -> {
+            // 设置文件路径
+            label.setFilePath(anchor.filePath);
+
+            // 数据入库
+            this.storage.writeFileLabel(label);
+        };
+
+        this.execute(new Runnable() {
             @Override
             public void run() {
                 // 获取文件标签
-                getFileLabel(fileAnchor.getFileCode(), new StableFileLabelHandler() {
+                getRemoteFileLabel(fileAnchor.getFileCode(), new StableFileLabelHandler() {
                     @Override
                     public void handleSuccess(FileLabel fileLabel) {
+                        // 后处理
+                        postTask.process(fileAnchor, fileLabel);
+
                         if (uploadHandler.isInMainThread()) {
                             executeOnMainThread(() -> {
                                 uploadHandler.handleSuccess(fileLabel);
@@ -315,9 +386,12 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
                             @Override
                             public void run() {
                                 // 获取文件标签
-                                getFileLabel(fileAnchor.getFileCode(), new StableFileLabelHandler() {
+                                getRemoteFileLabel(fileAnchor.getFileCode(), new StableFileLabelHandler() {
                                     @Override
                                     public void handleSuccess(FileLabel fileLabel) {
+                                        // 后处理
+                                        postTask.process(fileAnchor, fileLabel);
+
                                         if (uploadHandler.isInMainThread()) {
                                             executeOnMainThread(() -> {
                                                 uploadHandler.handleSuccess(fileLabel);
@@ -349,9 +423,7 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
                     }
                 });
             }
-        };
-
-        this.execute(task);
+        });
     }
 
     @Override
@@ -377,6 +449,14 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
     public void update(ObservableEvent event) {
         if (event.getName().equals(ContactServiceEvent.SelfReady)) {
             this.self = ((ContactService) event.getSubject()).getSelf();
+            if (null == this.storage) {
+                this.storage = new StructStorage();
+                this.storage.open(getContext(), this.self.id, this.self.domain);
+            }
         }
+    }
+
+    interface PostTask {
+        void process(FileAnchor fileAnchor, FileLabel fileLabel);
     }
 }

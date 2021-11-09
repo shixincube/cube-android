@@ -26,26 +26,44 @@
 
 package cube.messaging.extension;
 
+import org.json.JSONException;
+
+import java.io.File;
+
+import cube.messaging.model.FileAttachment;
+import cube.messaging.model.Message;
+import cube.messaging.model.MessageType;
+
 /**
- * 消息类型。
+ * 仅包含单个文件的消息。
  */
-public final class MessageTypeName {
+public class FileMessage extends TypeableMessage {
 
-    /**
-     * 一般文本类型。
-     */
-    public final static String Text = "text";
+    public FileMessage(File file) {
+        super(MessageType.File);
 
-    /**
-     * 超文本消息类型。
-     */
-    public final static String Hypertext = "hypertext";
+        // 创建消息附件
+        FileAttachment attachment = new FileAttachment(file);
+        this.setAttachment(attachment);
 
-    /**
-     * 文件消息。
-     */
-    public final static String File = "file";
+        try {
+            this.payload.put("type", MessageTypeName.File);
+        } catch (JSONException e) {
+            // Nothing
+        }
+    }
 
-    private MessageTypeName() {
+    public FileMessage(Message message) {
+        super(message, MessageType.File);
+
+        try {
+            if (!this.payload.has("type")) {
+                this.payload.put("type", MessageTypeName.File);
+            }
+        } catch (JSONException e) {
+            // Nothing
+        }
+
+        this.summary = "[文件] " + message.getAttachment().getFileName();
     }
 }

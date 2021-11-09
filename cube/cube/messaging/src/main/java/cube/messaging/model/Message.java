@@ -96,6 +96,11 @@ public class Message extends Entity {
     protected JSONObject payload;
 
     /**
+     * 消息的文件附件。
+     */
+    protected FileAttachment attachment;
+
+    /**
      * 消息的摘要内容。
      */
     protected String summary;
@@ -167,6 +172,10 @@ public class Message extends Entity {
             this.payload = json.getJSONObject("payload");
         }
 
+        if (json.has("attachment")) {
+            this.attachment = new FileAttachment(json.getJSONObject("attachment"));
+        }
+
         if (json.has("summary")) {
             this.summary = json.getString("summary");
         }
@@ -215,6 +224,7 @@ public class Message extends Entity {
         this.localTS = message.localTS;
         this.remoteTS = message.remoteTS;
         this.payload = message.payload;
+        this.attachment = message.attachment;
         this.state = message.state;
         this.scope = message.scope;
         this.owner = message.owner;
@@ -282,6 +292,10 @@ public class Message extends Entity {
         return this.payload;
     }
 
+    public FileAttachment getAttachment() {
+        return this.attachment;
+    }
+
     public MessageType getType() {
         return this.type;
     }
@@ -296,6 +310,10 @@ public class Message extends Entity {
 
     public boolean isSender() {
         return this.selfTyper;
+    }
+
+    public void setAttachment(FileAttachment attachment) {
+        this.attachment = attachment;
     }
 
     public void setSelfTyper(boolean value) {
@@ -367,6 +385,10 @@ public class Message extends Entity {
             json.put("state", this.state.code);
             json.put("scope", this.scope);
             json.put("payload", this.payload);
+
+            if (null != this.attachment) {
+                json.put("attachment", this.attachment.toJSON());
+            }
 
             if (null != this.summary) {
                 json.put("summary", this.summary);

@@ -39,6 +39,13 @@ import cube.filestorage.model.FileLabel;
 public interface UploadFileHandler extends CallbackHandler {
 
     /**
+     * 上传流程已启动。
+     *
+     * @param anchor
+     */
+    void handleStarted(FileAnchor anchor);
+
+    /**
      * 正在进行文件处理的回调函数。
      *
      * @param anchor

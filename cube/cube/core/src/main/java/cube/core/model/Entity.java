@@ -127,7 +127,10 @@ public class Entity implements TimeSortable, JSONable {
         this.entityCreation = System.currentTimeMillis();
         this.entityLifeExpiry = this.entityCreation + 5L * 60L * 1000L;
 
-        this.id = json.getLong("id");
+        if (json.has("id"))
+            this.id = json.getLong("id");
+        else
+            this.id = Utils.generateUnsignedSerialNumber();
 
         if (json.has("timestamp"))
             this.timestamp = json.getLong("timestamp");

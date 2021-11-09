@@ -26,6 +26,12 @@
 
 package cube.filestorage.model;
 
+import androidx.annotation.Nullable;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -38,9 +44,15 @@ import cube.filestorage.handler.UploadFileHandler;
 public class FileAnchor extends Entity {
 
     /**
+     * 文件的本地路径。
+     */
+    @Nullable
+    public final String filePath;
+
+    /**
      * 文件名。
      */
-    public final String filename;
+    public final String fileName;
 
     /**
      * 文件大小，单位：字节。
@@ -74,13 +86,62 @@ public class FileAnchor extends Entity {
 
     public InputStream inputStream;
 
-    public FileAnchor(String filename, long fileSize, long lastModified) {
+    public FileAnchor(File file) {
+        this(file.getPath(), file.getName(), file.length(), file.lastModified());
+    }
+
+    public FileAnchor(String fileName, long fileSize, long lastModified) {
+        this(null, fileName, fileSize, lastModified);
+    }
+
+    public FileAnchor(String filePath, String fileName, long fileSize, long lastModified) {
         super();
-        this.filename = filename;
+        this.filePath = filePath;
+        this.fileName = fileName;
         this.fileSize = fileSize;
         this.lastModified = lastModified;
         this.position = 0;
         this.remaining = 0;
+    }
+
+    public FileAnchor(JSONObject json) throws JSONException {
+        super(json);
+
+        if (json.has("filePath")) {
+            this.filePath = json.getString("filePath");
+        }
+        else {
+            this.filePath = null;
+        }
+
+        this.fileName = json.getString("fileName");
+        this.fileSize = json.getLong("fileSize");
+        this.fileCode = json.getString("fileCode");
+        this.lastModified = this.timestamp;
+        this.position = json.getLong("position");
+        this.remaining = 0;
+    }
+
+    /**
+     * 获取文件扩展名。
+     *
+     * @return 返回文件扩展名。
+     */
+    public String getExtension() {
+        int index = this.fileName.lastIndexOf(".");
+        if (index <= 0) {
+            return "";
+        }
+
+        return this.fileName.substring(index + 1);
+    }
+
+    public String getFileName() {
+        return this.fileName;
+    }
+
+    public long getFileSize() {
+        return this.fileSize;
     }
 
     public void setFileCode(String fileCode) {

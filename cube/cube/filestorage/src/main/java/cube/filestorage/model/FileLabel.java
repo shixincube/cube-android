@@ -75,6 +75,11 @@ public class FileLabel extends Entity {
     private String fileCode;
 
     /**
+     * 文件的本地路径。
+     */
+    private String filePath;
+
+    /**
      * 文件类型。
      */
     private String fileType = "unknown";
@@ -99,15 +104,31 @@ public class FileLabel extends Entity {
      */
     private String fileSecureURL;
 
-    public FileLabel() {
+    public FileLabel(Long id, long timestamp, Long ownerId, String fileCode, String filePath,
+                     String fileName, long fileSize, long lastModified, long completedTime, long expiryTime,
+                     String fileType, String md5Code, String sha1Code, String url, String secureURL) {
+        super(id, timestamp);
         this.domain = AuthService.getDomain();
+        this.ownerId = ownerId;
+        this.fileCode = fileCode;
+        this.filePath = filePath;
+        this.fileName = fileName;
+        this.fileSize = fileSize;
+        this.lastModified = lastModified;
+        this.completedTime = completedTime;
+        this.expiryTime = expiryTime;
+        this.fileType = fileType;
+        this.md5Code = md5Code;
+        this.sha1Code = sha1Code;
+        this.fileURL = url;
+        this.fileSecureURL = secureURL;
     }
 
     public FileLabel(JSONObject json) throws JSONException {
         super(json);
         this.domain = json.getString("domain");
-        this.fileCode = json.getString("fileCode");
         this.ownerId = json.getLong("ownerId");
+        this.fileCode = json.getString("fileCode");
         this.fileName = json.getString("fileName");
         this.fileSize = json.getLong("fileSize");
         this.lastModified = json.getLong("lastModified");
@@ -128,8 +149,16 @@ public class FileLabel extends Entity {
         }
     }
 
+    public Long getOwnerId() {
+        return this.ownerId;
+    }
+
     public String getFileCode() {
         return this.fileCode;
+    }
+
+    public String getFilePath() {
+        return this.filePath;
     }
 
     public String getFileName() {
@@ -138,5 +167,41 @@ public class FileLabel extends Entity {
 
     public String getFileType() {
         return this.fileType;
+    }
+
+    public long getFileSize() {
+        return this.fileSize;
+    }
+
+    public long getLastModified() {
+        return this.lastModified;
+    }
+
+    public long getCompletedTime() {
+        return this.completedTime;
+    }
+
+    public long getExpiryTime() {
+        return this.expiryTime;
+    }
+
+    public String getMd5Code() {
+        return this.md5Code;
+    }
+
+    public String getSha1Code() {
+        return this.sha1Code;
+    }
+
+    public String getURL() {
+        return this.fileURL;
+    }
+
+    public String getSecureURL() {
+        return this.fileSecureURL;
+    }
+
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
     }
 }

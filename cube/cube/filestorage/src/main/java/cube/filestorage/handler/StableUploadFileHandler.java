@@ -24,28 +24,18 @@
  * SOFTWARE.
  */
 
-package cube.messaging.extension;
+package cube.filestorage.handler;
 
 /**
- * 消息类型。
+ * 上传文件句柄。
  */
-public final class MessageTypeName {
+public abstract class StableUploadFileHandler implements UploadFileHandler {
 
-    /**
-     * 一般文本类型。
-     */
-    public final static String Text = "text";
+    public StableUploadFileHandler() {
+    }
 
-    /**
-     * 超文本消息类型。
-     */
-    public final static String Hypertext = "hypertext";
-
-    /**
-     * 文件消息。
-     */
-    public final static String File = "file";
-
-    private MessageTypeName() {
+    @Override
+    public final boolean isInMainThread() {
+        return false;
     }
 }

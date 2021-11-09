@@ -89,13 +89,16 @@ public class UploadQueue {
                         break;
                     }
 
+                    // 已启动
+                    listener.onUploadStarted(anchor);
+
                     try {
                         byte[] data = new byte[fileBlockSize.value];
 
                         MutableInt length = new MutableInt(0);
                         while ((length.value = anchor.inputStream.read(data)) > 0) {
                             FileFormData formData = new FileFormData(service.getSelf().id,
-                                    anchor.filename, anchor.fileSize, anchor.lastModified,
+                                    anchor.fileName, anchor.fileSize, anchor.lastModified,
                                     anchor.position, length.value);
                             // 设置数据
                             formData.setData(data, 0, length.value);
@@ -127,7 +130,7 @@ public class UploadQueue {
                                                 JSONObject data = packet.extractServiceData();
                                                 anchor.setFileCode(data.getString("fileCode"));
 
-                                                LogUtils.d(UploadQueue.class.getSimpleName(), "File anchor : " + anchor.filename + " - " + anchor.getFileCode());
+                                                LogUtils.d(UploadQueue.class.getSimpleName(), "File anchor : " + anchor.fileName + " - " + anchor.getFileCode());
                                             }
                                             catch (JSONException e) {
                                                 e.printStackTrace();
@@ -166,6 +169,8 @@ public class UploadQueue {
      * 上传事件监听器。
      */
     public interface UploadQueueListener {
+
+        void onUploadStarted(FileAnchor fileAnchor);
 
         void onUploading(FileAnchor fileAnchor);
 

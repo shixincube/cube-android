@@ -64,6 +64,9 @@ public class MessageTypePlugin implements Plugin<Message> {
                 if (MessageTypeName.Hypertext.equals(type)) {
                     return new HyperTextMessage(message);
                 }
+                else if (MessageTypeName.File.equals(type)) {
+                    return new FileMessage(message);
+                }
                 else if (MessageTypeName.Text.equals(type)) {
                     return new TextMessage(message);
                 }

@@ -120,6 +120,11 @@ public class CubeConnection implements ServiceConnection {
                     InputStream is = assetManager.open("emoji/emoji.xml");
                     fileStorage.uploadFile("emoji.xml", is, new UploadFileHandler() {
                         @Override
+                        public void handleStarted(FileAnchor anchor) {
+                            System.out.println("XJW : handleStarted");
+                        }
+
+                        @Override
                         public void handleProcessing(FileAnchor anchor) {
                             System.out.println("XJW : handleProcessing");
                         }

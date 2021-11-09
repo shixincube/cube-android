@@ -44,8 +44,8 @@ import cube.messaging.MessageEventListener;
 import cube.messaging.MessageListResult;
 import cube.messaging.MessagingService;
 import cube.messaging.extension.HyperTextMessage;
+import cube.messaging.handler.DefaultSendHandler;
 import cube.messaging.handler.MessageListResultHandler;
-import cube.messaging.handler.SendHandler;
 import cube.messaging.model.Conversation;
 import cube.messaging.model.Message;
 
@@ -146,7 +146,7 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
     public void sendTextMessage(String text) {
         HyperTextMessage textMessage = new HyperTextMessage(text);
         CubeEngine.getInstance().getMessagingService().sendMessage(conversation, textMessage,
-                new SendHandler<Conversation>() {
+                new DefaultSendHandler<Conversation>(true) {
                     @Override
                     public void handleSending(Conversation destination, Message message) {
                         // 将消息添加到界面

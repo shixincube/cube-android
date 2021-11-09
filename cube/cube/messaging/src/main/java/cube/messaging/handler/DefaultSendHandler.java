@@ -24,28 +24,24 @@
  * SOFTWARE.
  */
 
-package cube.messaging.extension;
+package cube.messaging.handler;
 
 /**
- * 消息类型。
+ * 消息发送句柄。
  */
-public final class MessageTypeName {
+public abstract class DefaultSendHandler<D> implements SendHandler<D> {
 
-    /**
-     * 一般文本类型。
-     */
-    public final static String Text = "text";
+    private boolean inMainThread = false;
 
-    /**
-     * 超文本消息类型。
-     */
-    public final static String Hypertext = "hypertext";
+    public DefaultSendHandler() {
+    }
 
-    /**
-     * 文件消息。
-     */
-    public final static String File = "file";
+    public DefaultSendHandler(boolean inMainThread) {
+        this.inMainThread = inMainThread;
+    }
 
-    private MessageTypeName() {
+    @Override
+    public final boolean isInMainThread() {
+        return this.inMainThread;
     }
 }

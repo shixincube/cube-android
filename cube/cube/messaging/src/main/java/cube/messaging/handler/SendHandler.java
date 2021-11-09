@@ -26,12 +26,13 @@
 
 package cube.messaging.handler;
 
+import cube.core.handler.CallbackHandler;
 import cube.messaging.model.Message;
 
 /**
  * 消息发送句柄。
  */
-public interface SendHandler <D> {
+public interface SendHandler <D> extends CallbackHandler {
 
     void handleSending(D destination, Message message);
 

@@ -35,6 +35,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -65,8 +66,13 @@ import cube.core.handler.CompletionHandler;
 import cube.core.handler.DefaultFailureHandler;
 import cube.core.handler.FailureHandler;
 import cube.core.handler.PipelineHandler;
+import cube.core.handler.StableFailureHandler;
 import cube.filestorage.FileStorage;
+import cube.filestorage.handler.StableUploadFileHandler;
+import cube.filestorage.model.FileAnchor;
+import cube.filestorage.model.FileLabel;
 import cube.messaging.extension.MessageTypePlugin;
+import cube.messaging.handler.DefaultSendHandler;
 import cube.messaging.handler.MessageHandler;
 import cube.messaging.handler.MessageListResultHandler;
 import cube.messaging.handler.SendHandler;
@@ -75,6 +81,7 @@ import cube.messaging.model.Conversation;
 import cube.messaging.model.ConversationReminded;
 import cube.messaging.model.ConversationState;
 import cube.messaging.model.ConversationType;
+import cube.messaging.model.FileAttachment;
 import cube.messaging.model.Message;
 import cube.messaging.model.MessageScope;
 import cube.messaging.model.MessageState;
@@ -602,7 +609,7 @@ public class MessagingService extends Module {
     public void sendMessage(final Conversation conversation, final Message message) {
         final Object mutex = new Object();
 
-        this.sendMessage(conversation, message, new SendHandler<Conversation>() {
+        this.sendMessage(conversation, message, new DefaultSendHandler<Conversation>(false) {
             @Override
             public void handleSending(Conversation destination, Message sendingMessage) {
                 // Nothing
@@ -613,7 +620,7 @@ public class MessagingService extends Module {
                     mutex.notify();
                 }
             }
-        }, new DefaultFailureHandler() {
+        }, new DefaultFailureHandler(false) {
             @Override
             public void handleFailure(Module module, ModuleError error) {
                 synchronized (mutex) {
@@ -624,7 +631,7 @@ public class MessagingService extends Module {
 
         synchronized (mutex) {
             try {
-                mutex.wait(3000L);
+                mutex.wait(30L * 1000L);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -640,7 +647,7 @@ public class MessagingService extends Module {
     public void sendMessage(final Contact contact, final Message message) {
         final Object mutex = new Object();
 
-        this.sendMessage(contact, message, new SendHandler<Contact>() {
+        this.sendMessage(contact, message, new DefaultSendHandler<Contact>(false) {
             @Override
             public void handleSending(Contact destination, Message sendingMessage) {
                 // Nothing
@@ -651,7 +658,7 @@ public class MessagingService extends Module {
                     mutex.notify();
                 }
             }
-        }, new DefaultFailureHandler() {
+        }, new DefaultFailureHandler(false) {
             @Override
             public void handleFailure(Module module, ModuleError error) {
                 synchronized (mutex) {
@@ -662,7 +669,7 @@ public class MessagingService extends Module {
 
         synchronized (mutex) {
             try {
-                mutex.wait(3000L);
+                mutex.wait(30L *1000L);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -678,7 +685,7 @@ public class MessagingService extends Module {
     public void sendMessage(final Group group, final Message message) {
         final Object mutex = new Object();
 
-        this.sendMessage(group, message, new SendHandler<Group>() {
+        this.sendMessage(group, message, new DefaultSendHandler<Group>(false) {
             @Override
             public void handleSending(Group destination, Message sendingMessage) {
                 // Nothing
@@ -689,7 +696,7 @@ public class MessagingService extends Module {
                     mutex.notify();
                 }
             }
-        }, new DefaultFailureHandler() {
+        }, new DefaultFailureHandler(false) {
             @Override
             public void handleFailure(Module module, ModuleError error) {
                 synchronized (mutex) {
@@ -700,7 +707,7 @@ public class MessagingService extends Module {
 
         synchronized (mutex) {
             try {
-                mutex.wait(3000L);
+                mutex.wait(30L * 1000L);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -731,6 +738,11 @@ public class MessagingService extends Module {
 
                     sendHandler.handleSent(conversation, message);
                 }
+
+                @Override
+                public boolean isInMainThread() {
+                    return sendHandler.isInMainThread();
+                }
             }, failureHandler);
 
             this.tryAddConversation(conversation);
@@ -748,6 +760,11 @@ public class MessagingService extends Module {
                     appendMessageToConversation(conversation.id, message);
 
                     sendHandler.handleSent(conversation, message);
+                }
+
+                @Override
+                public boolean isInMainThread() {
+                    return sendHandler.isInMainThread();
                 }
             }, failureHandler);
 
@@ -771,27 +788,81 @@ public class MessagingService extends Module {
         // 填写数据
         this.fillMessage(message);
 
-        // 进行发送处理
-        this.processSend(message, new MessageHandler() {
+        // 异步执行发送流程
+        this.execute(new Runnable() {
             @Override
-            public void handleMessage(Message message) {
-                executeOnMainThread(new Runnable() {
+            public void run() {
+                // 进行发送处理
+                processSend(message, new MessageHandler() {
                     @Override
-                    public void run() {
-                        sendHandler.handleSent(contact, message);
+                    public void handleMessage(Message message) {
+                        // 正在处理消息
+                        if (sendHandler.isInMainThread()) {
+                            executeOnMainThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    sendHandler.handleSending(contact, message);
+                                }
+                            });
+                        }
+                        else {
+                            sendHandler.handleSending(contact, message);
+                        }
+                    }
+                }, new MessageHandler() {
+                    @Override
+                    public void handleMessage(Message message) {
+                        // 消息已发送
+                        if (sendHandler.isInMainThread()) {
+                            executeOnMainThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    sendHandler.handleSent(contact, message);
+                                }
+                            });
+                        }
+                        else {
+                            sendHandler.handleSent(contact, message);
+                        }
+                    }
+                }, new StableFailureHandler() {
+                    @Override
+                    public void handleFailure(Module module, ModuleError error) {
+                        if (failureHandler.isInMainThread()) {
+                            executeOnMainThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    failureHandler.handleFailure(module, error);
+                                }
+                            });
+                        }
+                        else {
+                            failureHandler.handleFailure(module, error);
+                        }
                     }
                 });
             }
-        }, failureHandler);
+        });
 
         // 回调正在处理
-        this.executeOnMainThread(new Runnable() {
-            @Override
-            public void run() {
-                // 回调
-                sendHandler.handleSending(contact, message);
-            }
-        });
+        if (sendHandler.isInMainThread()) {
+            this.executeOnMainThread(new Runnable() {
+                @Override
+                public void run() {
+                    // 回调
+                    sendHandler.handleSending(contact, message);
+                }
+            });
+        }
+        else {
+            this.execute(new Runnable() {
+                @Override
+                public void run() {
+                    // 回调
+                    sendHandler.handleSending(contact, message);
+                }
+            });
+        }
 
         // 产生事件
         this.execute(new Runnable() {
@@ -824,7 +895,15 @@ public class MessagingService extends Module {
         }
     }
 
-    private void processSend(Message message, MessageHandler handler, FailureHandler failureHandler) {
+    /**
+     *
+     * @param message
+     * @param processingHandler 消息正在处理。如果消息带附件，该方法在处理附件时会被多次调用。
+     * @param completionHandler 消息发送完成。
+     * @param failureHandler
+     */
+    private void processSend(Message message, MessageHandler processingHandler,
+                             MessageHandler completionHandler, FailureHandler failureHandler) {
         // 加入正在发送队列
         this.sendingList.offer(message);
 
@@ -841,18 +920,7 @@ public class MessagingService extends Module {
                 @Override
                 public void run() {
                     ModuleError error = new ModuleError(MessagingService.NAME, MessagingServiceState.PipelineFault.code);
-
-                    if (failureHandler.isInMainThread()) {
-                        executeOnMainThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                failureHandler.handleFailure(MessagingService.this, error);
-                            }
-                        });
-                    }
-                    else {
-                        failureHandler.handleFailure(MessagingService.this, error);
-                    }
+                    failureHandler.handleFailure(MessagingService.this, error);
 
                     // 产生事件
                     ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Fault, error);
@@ -863,7 +931,50 @@ public class MessagingService extends Module {
             return;
         }
 
-        // TODO 处理文件附件
+        // 处理文件附件
+        FileAttachment fileAttachment = message.getAttachment();
+        if (null != fileAttachment) {
+            if (fileAttachment.isImageType()) {
+                // 生成缩略图
+                // TODO
+            }
+
+
+
+            this.uploadAttachment(message, new StableUploadFileHandler() {
+                @Override
+                public void handleStarted(FileAnchor anchor) {
+                    // Nothing
+                }
+
+                @Override
+                public void handleProcessing(FileAnchor anchor) {
+                    processingHandler.handleMessage(message);
+                }
+
+                @Override
+                public void handleSuccess(FileLabel fileLabel) {
+                    synchronized (fileAttachment) {
+                        fileAttachment.notify();
+                    }
+                }
+
+                @Override
+                public void handleFailure(ModuleError error, @Nullable FileAnchor anchor) {
+                    synchronized (fileAttachment) {
+                        fileAttachment.notify();
+                    }
+                }
+            });
+
+            synchronized (fileAttachment) {
+                try {
+                    fileAttachment.wait(10L * 60L * 1000L);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
 
         Packet packet = new Packet(MessagingAction.Push, message.toCompactJSON());
         this.pipeline.send(MessagingService.NAME, packet, new PipelineHandler() {
@@ -877,17 +988,7 @@ public class MessagingService extends Module {
                     storage.updateMessage(message);
 
                     ModuleError error = new ModuleError(MessagingService.NAME, MessagingServiceState.ServerFault.code);
-                    if (failureHandler.isInMainThread()) {
-                        executeOnMainThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                failureHandler.handleFailure(MessagingService.this, error);
-                            }
-                        });
-                    }
-                    else {
-                        failureHandler.handleFailure(MessagingService.this, error);
-                    }
+                    failureHandler.handleFailure(MessagingService.this, error);
 
                     // 产生事件
                     ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Fault, error);
@@ -924,7 +1025,7 @@ public class MessagingService extends Module {
 
                         if (message.getScope() == MessageScope.Unlimited) {
                             // 回调
-                            handler.handleMessage(message);
+                            completionHandler.handleMessage(message);
 
                             // 产生事件
                             ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Sent, message);
@@ -932,7 +1033,7 @@ public class MessagingService extends Module {
                         }
                         else {
                             // 回调
-                            handler.handleMessage(message);
+                            completionHandler.handleMessage(message);
 
                             // 产生事件
                             ObservableEvent event = new ObservableEvent(MessagingServiceEvent.MarkOnlyOwner, message);
@@ -944,30 +1045,20 @@ public class MessagingService extends Module {
 
                         if (message.getState() == MessageState.SendBlocked) {
                             // 回调
-                            handler.handleMessage(message);
+                            completionHandler.handleMessage(message);
 
                             event = new ObservableEvent(MessagingServiceEvent.SendBlocked, message);
                         }
                         else if (message.getState() == MessageState.ReceiveBlocked) {
                             // 回调
-                            handler.handleMessage(message);
+                            completionHandler.handleMessage(message);
 
                             event = new ObservableEvent(MessagingServiceEvent.ReceiveBlocked, message);
                         }
                         else {
                             ModuleError error = new ModuleError(MessagingService.NAME, stateCode);
                             // 回调
-                            if (failureHandler.isInMainThread()) {
-                                executeOnMainThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        failureHandler.handleFailure(MessagingService.this, error);
-                                    }
-                                });
-                            }
-                            else {
-                                failureHandler.handleFailure(MessagingService.this, error);
-                            }
+                            failureHandler.handleFailure(MessagingService.this, error);
 
                             event = new ObservableEvent(MessagingServiceEvent.Fault, error);
                         }
@@ -979,17 +1070,7 @@ public class MessagingService extends Module {
                         ModuleError error = new ModuleError(MessagingService.NAME, stateCode);
 
                         // 回调
-                        if (failureHandler.isInMainThread()) {
-                            executeOnMainThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    failureHandler.handleFailure(MessagingService.this, error);
-                                }
-                            });
-                        }
-                        else {
-                            failureHandler.handleFailure(MessagingService.this, error);
-                        }
+                        failureHandler.handleFailure(MessagingService.this, error);
 
                         // 产生事件
                         ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Fault, error);
@@ -1000,17 +1081,7 @@ public class MessagingService extends Module {
 
                     ModuleError error = new ModuleError(MessagingService.NAME, MessagingServiceState.DataStructureError.code);
                     // 回调
-                    if (failureHandler.isInMainThread()) {
-                        executeOnMainThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                failureHandler.handleFailure(MessagingService.this, error);
-                            }
-                        });
-                    }
-                    else {
-                        failureHandler.handleFailure(MessagingService.this, error);
-                    }
+                    failureHandler.handleFailure(MessagingService.this, error);
 
                     // 产生事件
                     ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Fault, error);
@@ -1029,6 +1100,40 @@ public class MessagingService extends Module {
                 break;
             }
         }
+    }
+
+    private void uploadAttachment(Message message, StableUploadFileHandler handler) {
+        FileAttachment attachment = message.getAttachment();
+        File file = attachment.getFile();
+
+        FileStorage fileStorage = (FileStorage) this.kernel.getModule(FileStorage.NAME);
+        fileStorage.uploadFile(file, new StableUploadFileHandler() {
+            @Override
+            public void handleStarted(FileAnchor anchor) {
+                attachment.setAnchor(anchor);
+                handler.handleStarted(anchor);
+            }
+
+            @Override
+            public void handleProcessing(FileAnchor anchor) {
+                handler.handleProcessing(anchor);
+            }
+
+            @Override
+            public void handleSuccess(FileLabel fileLabel) {
+                attachment.setLabel(fileLabel);
+                handler.handleSuccess(fileLabel);
+            }
+
+            @Override
+            public void handleFailure(ModuleError error, @Nullable FileAnchor anchor) {
+                if (null != anchor) {
+                    attachment.setAnchor(anchor);
+                }
+
+                handler.handleFailure(error, anchor);
+            }
+        });
     }
 
     private void prepare(CompletionHandler handler) {

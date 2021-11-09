@@ -27,113 +27,80 @@
 package cube.filestorage;
 
 /**
- * 文件存储服务状态描述。
+ * 文件存储服务动作定义。
  */
-public enum FileStorageState {
+public final class FileStorageAction {
 
     /**
-     * 成功。
+     * 文件放置到存储中。
      */
-    Ok(0),
+    public final static String PutFile = "putFile";
 
     /**
-     * 遇到故障。
+     * 获取文件的标签。
      */
-    Failure(9),
+    public final static String GetFile = "getFile";
 
     /**
-     * 无效的域信息。
+     * 获取根文件夹。
      */
-    InvalidDomain(11),
+    public final static String GetRoot = "getRoot";
 
     /**
-     * 无效的参数，禁止访问。
+     * 插入文件到目录。
      */
-    Forbidden(12),
+    public final static String InsertFile = "insertFile";
 
     /**
-     * 未找到指定数据。
+     * 罗列目录清单。
      */
-    NotFound(13),
+    public final static String ListDirs = "listDirs";
 
     /**
-     * 未授权访问。
+     * 罗列文件清单。
      */
-    Unauthorized(14),
+    public final static String ListFiles = "listFiles";
 
     /**
-     * 拒绝操作。
+     * 创建新目录。
      */
-    Reject(15),
+    public final static String NewDir = "newDir";
 
     /**
-     * 文件标签错误。
+     * 删除目录。
      */
-    FileLabelError(16),
+    public final static String DeleteDir = "deleteDir";
 
     /**
-     * 正在写入文件。
+     * 删除文件。
      */
-    Writing(17),
+    public final static String DeleteFile = "deleteFile";
 
     /**
-     * 重名。
+     * 罗列回收站里的废弃数据。
      */
-    DuplicationOfName(20),
+    public final static String ListTrash = "listTrash";
 
     /**
-     * 搜索条件错误。
+     * 抹除回收站里的废弃数据。
      */
-    SearchConditionError(25),
+    public final static String EraseTrash = "eraseTrash";
 
     /**
-     * 模块的工作状态未就绪。
+     * 清空回收站里的废弃数据。
      */
-    NotReady(101),
+    public final static String EmptyTrash = "emptyTrash";
 
     /**
-     * 文件 I/O 异常。
+     * 从回收站恢复废弃数据。
      */
-    IOException(102),
+    public final static String RestoreTrash = "restoreTrash";
 
     /**
-     * 读取文件错误。
+     * 检索文件。
      */
-    ReadFileFailed(103),
+    public final static String SearchFile = "searchFile";
 
-    /**
-     * 数据传输故障。
-     * @type {number}
-     */
-    TransmitFailed(104),
-
-    /**
-     * 获取文件标签失败。
-     */
-    GetFileLabelFailed(105),
-
-    /**
-     * 未知的状态。
-     */
-    Unknown(99);
-
-
-    /**
-     * 状态代码。
-     */
-    public final int code;
-
-    FileStorageState(int code) {
-        this.code = code;
-    }
-
-    public static FileStorageState parse(int code) {
-        for (FileStorageState state : FileStorageState.values()) {
-            if (state.code == code) {
-                return state;
-            }
-        }
-
-        return FileStorageState.Unknown;
+    private FileStorageAction() {
     }
 }

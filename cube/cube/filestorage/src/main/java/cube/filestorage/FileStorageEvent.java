@@ -24,39 +24,48 @@
  * SOFTWARE.
  */
 
-package cube.filestorage.handler;
-
-import androidx.annotation.Nullable;
-
-import cube.core.ModuleError;
-import cube.core.handler.CallbackHandler;
-import cube.filestorage.model.FileAnchor;
-import cube.filestorage.model.FileLabel;
+package cube.filestorage;
 
 /**
- * 上传文件句柄。
+ * 文件存储事件。
  */
-public interface UploadFileHandler extends CallbackHandler {
+public final class FileStorageEvent {
 
     /**
-     * 正在进行文件处理的回调函数。
-     *
-     * @param anchor
+     * 正在进行文件上传。
      */
-    void handleProcessing(FileAnchor anchor);
+    public final static String Uploading = "Uploading";
 
     /**
-     * 上传文件成功的回调函数。
-     *
-     * @param fileLabel
+     * 文件上传完成。
      */
-    void handleSuccess(FileLabel fileLabel);
+    public final static String UploadCompleted = "UploadCompleted";
 
     /**
-     * 上传文件失败的回调函数。
-     *
-     * @param error
-     * @param anchor
+     * 文件上传失败。
      */
-    void handleFailure(ModuleError error, @Nullable FileAnchor anchor);
+    public final static String UploadFailed = "UploadFailed";
+
+    /**
+     * 正在进行文件下载。
+     */
+    public final static String Downloading = "Downloading";
+
+    /**
+     * 文件下载完成。
+     */
+    public final static String DownloadCompleted = "DownloadCompleted";
+
+    /**
+     * 文件下载失败。
+     */
+    public final static String DownloadFailed = "DownloadFailed";
+
+    /**
+     * 文件已更新。
+     */
+    public final static String FileUpdated = "FileUpdated";
+
+    private FileStorageEvent() {
+    }
 }

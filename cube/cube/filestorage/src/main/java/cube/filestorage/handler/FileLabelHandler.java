@@ -30,33 +30,25 @@ import androidx.annotation.Nullable;
 
 import cube.core.ModuleError;
 import cube.core.handler.CallbackHandler;
-import cube.filestorage.model.FileAnchor;
 import cube.filestorage.model.FileLabel;
 
 /**
- * 上传文件句柄。
+ * 文件标签句柄。
  */
-public interface UploadFileHandler extends CallbackHandler {
+public interface FileLabelHandler extends CallbackHandler {
 
     /**
-     * 正在进行文件处理的回调函数。
-     *
-     * @param anchor
-     */
-    void handleProcessing(FileAnchor anchor);
-
-    /**
-     * 上传文件成功的回调函数。
+     * 操作文件标签成功。
      *
      * @param fileLabel
      */
     void handleSuccess(FileLabel fileLabel);
 
     /**
-     * 上传文件失败的回调函数。
+     * 操作文件标签失败。
      *
      * @param error
-     * @param anchor
+     * @param fileLabel
      */
-    void handleFailure(ModuleError error, @Nullable FileAnchor anchor);
+    void handleFailure(ModuleError error, @Nullable FileLabel fileLabel);
 }

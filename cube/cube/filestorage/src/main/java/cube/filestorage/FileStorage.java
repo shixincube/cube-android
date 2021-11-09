@@ -43,8 +43,13 @@ import cube.contact.ContactServiceEvent;
 import cube.contact.model.Self;
 import cube.core.Module;
 import cube.core.ModuleError;
+import cube.core.Packet;
+import cube.core.PipelineState;
+import cube.core.handler.PipelineHandler;
+import cube.filestorage.handler.StableFileLabelHandler;
 import cube.filestorage.handler.UploadFileHandler;
 import cube.filestorage.model.FileAnchor;
+import cube.filestorage.model.FileLabel;
 import cube.util.LogUtils;
 import cube.util.ObservableEvent;
 import cube.util.Observer;
@@ -120,6 +125,13 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
 
     }
 
+    /**
+     * 上传文件数据到默认目录。
+     *
+     * @param filename
+     * @param inputStream
+     * @param handler
+     */
     public void uploadFile(String filename, InputStream inputStream, UploadFileHandler handler) {
         if (!this.hasStarted() || null == this.self) {
             if (handler.isInMainThread()) {
@@ -127,7 +139,7 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
                     @Override
                     public void run() {
                         ModuleError error = new ModuleError(NAME, FileStorageState.NotReady.code);
-                        handler.handleFailure(error);
+                        handler.handleFailure(error, null);
                     }
                 });
             }
@@ -136,14 +148,12 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
                     @Override
                     public void run() {
                         ModuleError error = new ModuleError(NAME, FileStorageState.NotReady.code);
-                        handler.handleFailure(error);
+                        handler.handleFailure(error, null);
                     }
                 });
             }
             return;
         }
-
-
 
         long lastModified = System.currentTimeMillis();
         try {
@@ -151,6 +161,7 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
             long fileSize = inputStream.available();
 
             FileAnchor fileAnchor = new FileAnchor(filename, fileSize, lastModified);
+            fileAnchor.setUploadFileHandler(handler);
             fileAnchor.bindInputStream(inputStream);
 
             // 将文件锚点添加到上传队列
@@ -177,19 +188,189 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
         super.execute(task);
     }
 
+    /**
+     * 获取文件标签。
+     *
+     * @param fileCode
+     * @param handler
+     */
+    protected void getFileLabel(String fileCode, StableFileLabelHandler handler) {
+        // 从数据库读取
+        // TODO
+
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("fileCode", fileCode);
+        } catch (JSONException e) {
+            // Nothing
+        }
+        Packet requestPacket = new Packet(FileStorageAction.GetFile, payload);
+        this.pipeline.send(FileStorage.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            ModuleError error = new ModuleError(FileStorage.NAME, packet.state.code, fileCode);
+                            handler.handleFailure(error, null);
+                        }
+                    });
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != FileStorageState.Ok.code) {
+                    // 判断状态码
+                    if (stateCode == FileStorageState.Writing.code) {
+                        // 正在写入文件，可以延迟后再试
+                        executeDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                getFileLabel(fileCode, handler);
+                            }
+                        }, 500);
+                    }
+                    else {
+                        execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                ModuleError error = new ModuleError(FileStorage.NAME, stateCode, fileCode);
+                                handler.handleFailure(error, null);
+                            }
+                        });
+                    }
+
+                    return;
+                }
+
+                try {
+                    FileLabel fileLabel = new FileLabel(packet.extractServiceData());
+
+                    // 将标签写入数据库
+                    // TODO
+
+                    execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            handler.handleSuccess(fileLabel);
+                        }
+                    });
+                } catch (JSONException e) {
+                    LogUtils.w(FileStorage.class.getSimpleName(), e);
+                }
+            }
+        });
+    }
+
     @Override
     public void onUploading(FileAnchor fileAnchor) {
-
+        UploadFileHandler uploadHandler = fileAnchor.getUploadFileHandler();
+        if (null != uploadHandler) {
+            if (uploadHandler.isInMainThread()) {
+                this.executeOnMainThread(() -> {
+                    uploadHandler.handleProcessing(fileAnchor);
+                });
+            }
+            else {
+                this.execute(() -> {
+                    uploadHandler.handleProcessing(fileAnchor);
+                });
+            }
+        }
     }
 
     @Override
     public void onUploadCompleted(FileAnchor fileAnchor) {
+        // 上传完成之后获取文件标签
 
+        final UploadFileHandler uploadHandler = fileAnchor.getUploadFileHandler();
+        if (null == uploadHandler) {
+            return;
+        }
+
+        Runnable task = new Runnable() {
+            @Override
+            public void run() {
+                // 获取文件标签
+                getFileLabel(fileAnchor.getFileCode(), new StableFileLabelHandler() {
+                    @Override
+                    public void handleSuccess(FileLabel fileLabel) {
+                        if (uploadHandler.isInMainThread()) {
+                            executeOnMainThread(() -> {
+                                uploadHandler.handleSuccess(fileLabel);
+                            });
+                        }
+                        else {
+                            execute(() -> {
+                                uploadHandler.handleSuccess(fileLabel);
+                            });
+                        }
+                    }
+
+                    @Override
+                    public void handleFailure(ModuleError error, @Nullable FileLabel fileLabel) {
+                        // 延迟之后再试
+                        executeDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                // 获取文件标签
+                                getFileLabel(fileAnchor.getFileCode(), new StableFileLabelHandler() {
+                                    @Override
+                                    public void handleSuccess(FileLabel fileLabel) {
+                                        if (uploadHandler.isInMainThread()) {
+                                            executeOnMainThread(() -> {
+                                                uploadHandler.handleSuccess(fileLabel);
+                                            });
+                                        }
+                                        else {
+                                            execute(() -> {
+                                                uploadHandler.handleSuccess(fileLabel);
+                                            });
+                                        }
+                                    }
+
+                                    @Override
+                                    public void handleFailure(ModuleError error, @Nullable FileLabel fileLabel) {
+                                        if (uploadHandler.isInMainThread()) {
+                                            executeOnMainThread(() -> {
+                                                uploadHandler.handleFailure(error, fileAnchor);
+                                            });
+                                        }
+                                        else {
+                                            execute(() -> {
+                                                uploadHandler.handleFailure(error, fileAnchor);
+                                            });
+                                        }
+                                    }
+                                });
+                            }
+                        }, 500);
+                    }
+                });
+            }
+        };
+
+        this.execute(task);
     }
 
     @Override
-    public void onUploadFailed(FileAnchor fileAnchor) {
-
+    public void onUploadFailed(FileAnchor fileAnchor, int errorCode) {
+        UploadFileHandler uploadHandler = fileAnchor.getUploadFileHandler();
+        if (null != uploadHandler) {
+            if (uploadHandler.isInMainThread()) {
+                this.executeOnMainThread(() -> {
+                    ModuleError error = new ModuleError(NAME, errorCode);
+                    uploadHandler.handleFailure(error, fileAnchor);
+                });
+            }
+            else {
+                this.execute(() -> {
+                    ModuleError error = new ModuleError(NAME, errorCode);
+                    uploadHandler.handleFailure(error, fileAnchor);
+                });
+            }
+        }
     }
 
     @Override

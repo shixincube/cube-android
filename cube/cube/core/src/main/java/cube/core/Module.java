@@ -33,8 +33,12 @@ import androidx.annotation.Nullable;
 
 import org.json.JSONObject;
 
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 import cell.util.NetworkUtils;
 import cube.auth.AuthToken;
+import cube.util.LogUtils;
 import cube.util.Subject;
 
 /**
@@ -60,6 +64,11 @@ public abstract class Module extends Subject {
     protected final PluginSystem pluginSystem;
 
     /**
+     * 任务队列。
+     */
+    private Queue<Runnable> taskQueue;
+
+    /**
      * 是否已启动。
      */
     private boolean started;
@@ -68,6 +77,7 @@ public abstract class Module extends Subject {
         this.name = name;
         this.started = false;
         this.pluginSystem = new PluginSystem();
+        this.taskQueue = new ConcurrentLinkedQueue<>();
     }
 
     public final String getName() {
@@ -102,6 +112,8 @@ public abstract class Module extends Subject {
      */
     public void stop() {
         this.started = false;
+
+        this.taskQueue.clear();
     }
 
     public void suspend() {
@@ -132,7 +144,39 @@ public abstract class Module extends Subject {
     }
 
     protected void execute(Runnable task) {
-        this.kernel.getExecutor().execute(task);
+        this.taskQueue.offer(task);
+
+        this.kernel.getExecutor().execute(new Runnable() {
+            @Override
+            public void run() {
+                Runnable current = taskQueue.poll();
+                while (null != current) {
+
+                    current.run();
+
+                    current = taskQueue.poll();
+                }
+            }
+        });
+    }
+
+    protected void executeDelayed(Runnable task, long delayMillis) {
+        if (delayMillis > 1000L) {
+            LogUtils.w(Module.class.getSimpleName(), "Not recommended delay millis more than 1000 millis");
+        }
+
+        this.kernel.getExecutor().execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(delayMillis);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                execute(task);
+            }
+        });
     }
 
     protected void executeOnMainThread(Runnable task) {

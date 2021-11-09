@@ -26,6 +26,9 @@
 
 package cube.filestorage.model;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import cube.auth.AuthService;
 import cube.core.model.Entity;
 
@@ -100,5 +103,40 @@ public class FileLabel extends Entity {
         this.domain = AuthService.getDomain();
     }
 
+    public FileLabel(JSONObject json) throws JSONException {
+        super(json);
+        this.domain = json.getString("domain");
+        this.fileCode = json.getString("fileCode");
+        this.ownerId = json.getLong("ownerId");
+        this.fileName = json.getString("fileName");
+        this.fileSize = json.getLong("fileSize");
+        this.lastModified = json.getLong("lastModified");
+        this.completedTime = json.getLong("completedTime");
+        this.expiryTime = json.getLong("expiryTime");
+        this.fileType = json.getString("fileType");
+        this.md5Code = json.has("md5") ? json.getString("md5") : null;
+        this.sha1Code = json.has("sha1") ? json.getString("sha1") : null;
+        this.fileURL = json.has("fileURL") ? json.getString("fileURL") : null;
+        this.fileSecureURL = json.has("fileSecureURL") ? json.getString("fileSecureURL") : null;
 
+        if (this.fileType.equalsIgnoreCase("unknown")) {
+            int index = this.fileName.lastIndexOf(".");
+            if (index > 0) {
+                String extension = this.fileName.substring(index + 1);
+                this.fileType = extension;
+            }
+        }
+    }
+
+    public String getFileCode() {
+        return this.fileCode;
+    }
+
+    public String getFileName() {
+        return this.fileName;
+    }
+
+    public String getFileType() {
+        return this.fileType;
+    }
 }

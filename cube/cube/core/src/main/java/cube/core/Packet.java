@@ -70,6 +70,12 @@ public class Packet {
         this.data = data;
     }
 
+    public Packet(JSONObject packetJSON) throws JSONException {
+        this.sn = packetJSON.getLong("sn");
+        this.name = packetJSON.getString("name");
+        this.data = packetJSON.getJSONObject("data");
+    }
+
     public void setData(JSONObject data) {
         this.data = data;
     }

@@ -82,8 +82,6 @@ public class CubeConnection implements ServiceConnection {
                 if (null != successHandler) {
                     successHandler.run();
                 }
-
-                test();
             }
 
             @Override
@@ -103,43 +101,49 @@ public class CubeConnection implements ServiceConnection {
     }
 
     private void test() {
-        System.out.println("XJW#test");
-        FileStorage fileStorage = CubeEngine.getInstance().getFileStorage();
+        System.out.println("#test");
 
-        AssetManager assetManager = CubeBaseApp.getContext().getAssets();
-
-        try {
-            InputStream is = assetManager.open("emoji/emoji.xml");
-            fileStorage.uploadFile("emoji.xml", is, new UploadFileHandler() {
-                @Override
-                public void handleProcessing(FileAnchor anchor) {
-
+        (new Thread() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(1000L);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
 
-                @Override
-                public void handleSuccess(FileLabel fileLabel) {
+                FileStorage fileStorage = CubeEngine.getInstance().getFileStorage();
 
+                AssetManager assetManager = CubeBaseApp.getContext().getAssets();
+
+                try {
+                    InputStream is = assetManager.open("emoji/emoji.xml");
+                    fileStorage.uploadFile("emoji.xml", is, new UploadFileHandler() {
+                        @Override
+                        public void handleProcessing(FileAnchor anchor) {
+                            System.out.println("XJW : handleProcessing");
+                        }
+
+                        @Override
+                        public void handleSuccess(FileLabel fileLabel) {
+                            System.out.println("XJW : handleSuccess : " + fileLabel.getFileCode() + " - " + fileLabel.getFileName());
+                        }
+
+                        @Override
+                        public void handleFailure(ModuleError error, FileAnchor anchor) {
+                            System.out.println("XJW : handleFailure : " + error.code);
+                        }
+
+                        @Override
+                        public boolean isInMainThread() {
+                            return false;
+                        }
+                    });
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
                 }
-
-                @Override
-                public void handleFailure(ModuleError error) {
-                    try {
-                        Thread.sleep(1000L);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-
-                    test();
-                }
-
-                @Override
-                public boolean isInMainThread() {
-                    return false;
-                }
-            });
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-        }
+            }
+        }).start();
     }
 }

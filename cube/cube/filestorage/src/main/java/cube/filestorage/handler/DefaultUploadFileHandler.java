@@ -26,37 +26,22 @@
 
 package cube.filestorage.handler;
 
-import androidx.annotation.Nullable;
-
-import cube.core.ModuleError;
-import cube.core.handler.CallbackHandler;
-import cube.filestorage.model.FileAnchor;
-import cube.filestorage.model.FileLabel;
-
 /**
- * 上传文件句柄。
+ * 默认上传文件句柄。
  */
-public interface UploadFileHandler extends CallbackHandler {
+public abstract class DefaultUploadFileHandler implements UploadFileHandler {
 
-    /**
-     * 正在进行文件处理的回调函数。
-     *
-     * @param anchor
-     */
-    void handleProcessing(FileAnchor anchor);
+    private boolean inMainThread = false;
 
-    /**
-     * 上传文件成功的回调函数。
-     *
-     * @param fileLabel
-     */
-    void handleSuccess(FileLabel fileLabel);
+    public DefaultUploadFileHandler() {
+    }
 
-    /**
-     * 上传文件失败的回调函数。
-     *
-     * @param error
-     * @param anchor
-     */
-    void handleFailure(ModuleError error, @Nullable FileAnchor anchor);
+    public DefaultUploadFileHandler(boolean inMainThread) {
+        this.inMainThread = inMainThread;
+    }
+
+    @Override
+    public final boolean isInMainThread() {
+        return this.inMainThread;
+    }
 }

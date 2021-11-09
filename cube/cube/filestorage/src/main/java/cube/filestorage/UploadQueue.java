@@ -36,6 +36,7 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import cube.core.Packet;
 import cube.filestorage.model.FileAnchor;
 import cube.util.LogUtils;
 
@@ -109,32 +110,35 @@ public class UploadQueue {
 
                                 @Override
                                 public void onFailed(HttpClient client, Exception exception) {
-                                    listener.onUploadFailed(anchor);
+                                    listener.onUploadFailed(anchor, FileStorageState.TransmitFailed.code);
                                 }
 
                                 @Override
-                                public void onCompleted(HttpClient client, int stateCode, String result) {
+                                public void onCompleted(HttpClient client, int stateCode, Packet packet) {
                                     if (stateCode == 200) {
                                         anchor.updatePosition(length.value);
 
-                                        try {
-                                            JSONObject data = new JSONObject(result);
-                                            System.out.println("XJW : " + data.toString());
-                                        }
-                                        catch (JSONException e) {
-                                            // Nothing
-                                        }
+                                        // 正在上传数据
+                                        listener.onUploading(anchor);
 
                                         if (anchor.isFinish()) {
+                                            // 数据上传完成
+                                            try {
+                                                JSONObject data = packet.extractServiceData();
+                                                anchor.setFileCode(data.getString("fileCode"));
+
+                                                LogUtils.d(UploadQueue.class.getSimpleName(), "File anchor : " + anchor.filename + " - " + anchor.getFileCode());
+                                            }
+                                            catch (JSONException e) {
+                                                e.printStackTrace();
+                                            }
+
                                             listener.onUploadCompleted(anchor);
-                                        }
-                                        else {
-                                            listener.onUploading(anchor);
                                         }
                                     }
                                     else {
-                                        LogUtils.w(UploadQueue.class.getSimpleName(), "Error : " + stateCode + "\r\n" + result);
-                                        listener.onUploadFailed(anchor);
+                                        LogUtils.w(UploadQueue.class.getSimpleName(), "Error : " + stateCode);
+                                        listener.onUploadFailed(anchor, FileStorageState.TransmitFailed.code);
                                     }
                                 }
                             });
@@ -144,11 +148,11 @@ public class UploadQueue {
                         anchor.close();
                     } catch (IOException e) {
                         LogUtils.w(UploadQueue.class.getSimpleName(), e);
-                        listener.onUploadFailed(anchor);
+                        listener.onUploadFailed(anchor, FileStorageState.ReadFileFailed.code);
                         anchor.close();
                     } catch (Exception e) {
                         LogUtils.w(UploadQueue.class.getSimpleName(), e);
-                        listener.onUploadFailed(anchor);
+                        listener.onUploadFailed(anchor, FileStorageState.TransmitFailed.code);
                         anchor.close();
                     }
                 }
@@ -167,6 +171,6 @@ public class UploadQueue {
 
         void onUploadCompleted(FileAnchor fileAnchor);
 
-        void onUploadFailed(FileAnchor fileAnchor);
+        void onUploadFailed(FileAnchor fileAnchor, int errorCode);
     }
 }

@@ -26,6 +26,11 @@
 
 package cube.filestorage;
 
+import androidx.annotation.Nullable;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -35,6 +40,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import cube.core.Packet;
 import cube.util.LogUtils;
 
 /**
@@ -105,6 +111,13 @@ public class HttpClient {
                 while ((line = reader.readLine()) != null) {
                     builder.append(line);
                 }
+
+                // 回调
+                try {
+                    listener.onCompleted(this, stateCode, new Packet(new JSONObject(builder.toString())));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
             else {
                 reader = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
@@ -112,13 +125,13 @@ public class HttpClient {
                 while ((line = reader.readLine()) != null) {
                     builder.append(line);
                 }
+
+                // 回调
+                listener.onCompleted(this, stateCode, null);
             }
 
+            // 关闭连接
             conn.disconnect();
-
-            // 回调
-            listener.onCompleted(this, stateCode, builder.toString());
-
         } catch (MalformedURLException e) {
             LogUtils.w(this.getClass().getSimpleName(), e);
         } catch (IOException e) {
@@ -153,6 +166,6 @@ public class HttpClient {
 
         void onFailed(HttpClient client, Exception exception);
 
-        void onCompleted(HttpClient client, int stateCode, String result);
+        void onCompleted(HttpClient client, int stateCode, @Nullable Packet packet);
     }
 }

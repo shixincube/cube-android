@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import cube.core.model.Entity;
+import cube.filestorage.handler.UploadFileHandler;
 
 /**
  * 文件锚点。
@@ -61,6 +62,16 @@ public class FileAnchor extends Entity {
      */
     private long remaining;
 
+    /**
+     * 文件码。
+     */
+    private String fileCode;
+
+    /**
+     * 上传文件句柄。
+     */
+    private UploadFileHandler handler;
+
     public InputStream inputStream;
 
     public FileAnchor(String filename, long fileSize, long lastModified) {
@@ -70,6 +81,22 @@ public class FileAnchor extends Entity {
         this.lastModified = lastModified;
         this.position = 0;
         this.remaining = 0;
+    }
+
+    public void setFileCode(String fileCode) {
+        this.fileCode = fileCode;
+    }
+
+    public String getFileCode() {
+        return this.fileCode;
+    }
+
+    public void setUploadFileHandler(UploadFileHandler handler) {
+        this.handler = handler;
+    }
+
+    public UploadFileHandler getUploadFileHandler() {
+        return this.handler;
     }
 
     public void bindInputStream(InputStream inputStream) {

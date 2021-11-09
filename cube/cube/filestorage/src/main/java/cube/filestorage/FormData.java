@@ -155,7 +155,7 @@ public class FormData {
                 return -1;
             }
 
-            return this.buffer.get();
+            return this.buffer.get() & 0xFF;
         }
     }
 }

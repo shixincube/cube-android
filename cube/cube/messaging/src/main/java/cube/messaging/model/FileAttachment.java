@@ -35,7 +35,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import cube.core.model.Entity;
 import cube.filestorage.model.FileAnchor;
 import cube.filestorage.model.FileLabel;
 import cube.util.JSONable;
@@ -43,7 +42,7 @@ import cube.util.JSONable;
 /**
  * 文件附件。
  */
-public class FileAttachment extends Entity {
+public class FileAttachment implements JSONable {
 
     /**
      * 文件句柄。
@@ -86,7 +85,6 @@ public class FileAttachment extends Entity {
      * @throws JSONException
      */
     public FileAttachment(JSONObject json) throws JSONException {
-        super(json);
         if (json.has("anchor")) {
             this.anchor = new FileAnchor(json.getJSONObject("anchor"));
         }
@@ -187,6 +185,7 @@ public class FileAttachment extends Entity {
     }
 
     /**
+     * 在处理状态下获取已处理的文件大小。
      *
      * @return 返回 {@code -1} 表示未被处理。
      */
@@ -207,6 +206,42 @@ public class FileAttachment extends Entity {
         this.label = label;
     }
 
+    @Override
+    public JSONObject toJSON() {
+        JSONObject json = new JSONObject();
+
+        try {
+            if (null != this.label) {
+                json.put("label", this.label.toJSON());
+            }
+
+            if (null != this.anchor) {
+                json.put("anchor", this.anchor.toJSON());
+            }
+
+            if (null != this.thumbs) {
+                JSONArray array = new JSONArray();
+                for (FileThumbnail thumbnail : this.thumbs) {
+                    array.put(thumbnail.toJSON());
+                }
+                json.put("thumbs", array);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();;
+        }
+
+        return json;
+    }
+
+    @Override
+    public JSONObject toCompactJSON() {
+        return this.toJSON();
+    }
+
+
+    /**
+     * 在服务器端进行缩略图操作的配置信息。
+     */
     public class ThumbConfig implements JSONable {
 
         private float quality = 1.0f;

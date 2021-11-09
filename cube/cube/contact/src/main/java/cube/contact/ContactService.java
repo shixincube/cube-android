@@ -91,7 +91,7 @@ public class ContactService extends Module {
     private final static long LIFESPAN = 5L * 60L * 1000L;
 
     /** 阻塞调用方法的超时时间。 */
-    private final long blockingTimeout = 3000L;
+    private final long blockingTimeout = 10L * 1000L;
 
     /** 默认提供的联系人分区名称，签入时会自动加载该分区。 */
     private final String defaultContactZoneName = "contacts";

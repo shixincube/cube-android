@@ -107,8 +107,8 @@ public class ImageDataSource implements LoaderManager.LoaderCallbacks<Cursor> {
                     imageFolders.get(imageFolders.indexOf(imageFolder)).images.add(imageItem);
                 }
             }
-            //防止没有图片报异常
-            if (data.getCount() > 0) {
+            // 防止没有图片报异常
+            if (data.getCount() > 0 && !allImages.isEmpty()) {
                 //构造所有图片的集合
                 ImageFolder allImagesFolder = new ImageFolder();
                 allImagesFolder.name = activity.getResources().getString(R.string.all_images);

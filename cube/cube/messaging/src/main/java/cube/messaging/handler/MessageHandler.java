@@ -31,7 +31,7 @@ import cube.messaging.model.Message;
 /**
  * 消息句柄。
  */
-public interface MessageHandler {
+public interface MessageHandler <MessageInstanceType extends Message> {
 
-    void handleMessage(Message message);
+    void handleMessage(MessageInstanceType message);
 }

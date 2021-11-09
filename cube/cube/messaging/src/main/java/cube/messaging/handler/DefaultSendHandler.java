@@ -26,10 +26,12 @@
 
 package cube.messaging.handler;
 
+import cube.messaging.model.Message;
+
 /**
  * 消息发送句柄。
  */
-public abstract class DefaultSendHandler<D> implements SendHandler<D> {
+public abstract class DefaultSendHandler<DestinationType, MessageInstanceType extends Message> implements SendHandler<DestinationType, MessageInstanceType> {
 
     private boolean inMainThread = false;
 

@@ -31,14 +31,26 @@ import org.json.JSONObject;
 
 import java.io.File;
 
+import cube.util.JSONable;
+
 /**
  * 文件缩略图。
  */
-public class FileThumbnail {
+public class FileThumbnail implements JSONable {
 
     private File file;
 
     public FileThumbnail(JSONObject json) throws JSONException {
 
+    }
+
+    @Override
+    public JSONObject toJSON() {
+        return null;
+    }
+
+    @Override
+    public JSONObject toCompactJSON() {
+        return null;
     }
 }

@@ -117,7 +117,7 @@ public class FileAnchor extends Entity {
         this.fileName = json.getString("fileName");
         this.fileSize = json.getLong("fileSize");
         this.fileCode = json.getString("fileCode");
-        this.lastModified = this.timestamp;
+        this.lastModified = json.has("lastModified") ? json.getLong("lastModified") : this.timestamp;
         this.position = json.getLong("position");
         this.remaining = 0;
     }
@@ -185,5 +185,20 @@ public class FileAnchor extends Entity {
                 e.printStackTrace();
             }
         }
+    }
+
+    @Override
+    public JSONObject toJSON() {
+        JSONObject json = new JSONObject();
+        try {
+            json.put("fileName", this.fileName);
+            json.put("fileSize", this.fileSize);
+            json.put("fileCode", this.fileCode);
+            json.put("lastModified", this.lastModified);
+            json.put("position", this.position);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return json;
     }
 }

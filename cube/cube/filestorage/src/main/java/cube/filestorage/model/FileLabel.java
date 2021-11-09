@@ -147,6 +147,10 @@ public class FileLabel extends Entity {
                 this.fileType = extension;
             }
         }
+
+        if (json.has("filePath")) {
+
+        }
     }
 
     public Long getOwnerId() {
@@ -203,5 +207,49 @@ public class FileLabel extends Entity {
 
     public void setFilePath(String filePath) {
         this.filePath = filePath;
+    }
+
+    @Override
+    public JSONObject toJSON() {
+        JSONObject json = super.toCompactJSON();
+        try {
+            json.put("domain", this.domain);
+            json.put("ownerId", this.ownerId);
+            json.put("fileCode", this.fileCode);
+            json.put("fileName", this.fileName);
+            json.put("fileSize", this.fileSize);
+            json.put("lastModified", this.lastModified);
+            json.put("completedTime", this.completedTime);
+            json.put("expiryTime", this.expiryTime);
+            json.put("fileType", this.fileType);
+
+            if (null != this.md5Code) {
+                json.put("md5", this.md5Code);
+            }
+
+            if (null != this.sha1Code) {
+                json.put("sha1", this.sha1Code);
+            }
+
+            if (null != this.fileURL) {
+                json.put("fileURL", this.fileURL);
+            }
+
+            if (null != this.fileSecureURL) {
+                json.put("fileSecureURL", this.fileSecureURL);
+            }
+
+            if (null != this.filePath) {
+                json.put("filePath", this.filePath);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return json;
+    }
+
+    @Override
+    public JSONObject toCompactJSON() {
+        return this.toJSON();
     }
 }

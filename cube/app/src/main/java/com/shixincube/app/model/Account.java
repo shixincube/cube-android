@@ -94,6 +94,10 @@ public class Account implements JSONable {
      * @param contact
      */
     public static String setNameSpelling(Contact contact) {
+        if (null == contact) {
+            return "";
+        }
+
         String pinyin = PinyinUtils.getPinyin(contact.getPriorityName());
         try {
             if (null != contact.getContext()) {

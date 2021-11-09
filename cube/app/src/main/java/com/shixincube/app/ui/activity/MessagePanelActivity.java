@@ -52,6 +52,7 @@ import com.shixincube.imagepicker.bean.ImageItem;
 import com.shixincube.imagepicker.ui.ImageGridActivity;
 import com.shixincube.imagepicker.ui.ImagePreviewActivity;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -305,6 +306,9 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
                         boolean origen = data.getBooleanExtra(ImagePreviewActivity.ISORIGIN, false);
                         ArrayList<ImageItem> images = (ArrayList<ImageItem>) data.getSerializableExtra(ImagePicker.EXTRA_RESULT_ITEMS);
 
+                        // FIXME XJW
+                        ImageItem item = images.get(0);
+                        presenter.sendFileMessage(new File(item.path));
                     }
                 }
                 break;

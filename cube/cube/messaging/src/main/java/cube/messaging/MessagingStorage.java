@@ -43,6 +43,7 @@ import cube.messaging.model.Conversation;
 import cube.messaging.model.ConversationReminded;
 import cube.messaging.model.ConversationState;
 import cube.messaging.model.ConversationType;
+import cube.messaging.model.FileAttachment;
 import cube.messaging.model.Message;
 import cube.messaging.model.MessageScope;
 import cube.messaging.model.MessageState;
@@ -491,6 +492,10 @@ public class MessagingStorage extends AbstractStorage {
             values.put("state", message.getState().code);
             values.put("payload", message.getPayload().toString());
 
+            if (null != message.getAttachment()) {
+                values.put("attachment", message.getAttachment().toJSON().toString());
+            }
+
             db.update("message", values, "id=?", new String[]{ message.id.toString() });
 
             exists = true;
@@ -512,6 +517,10 @@ public class MessagingStorage extends AbstractStorage {
             values.put("remote_state", message.getState().code);
             values.put("scope", message.getScope());
             values.put("payload", message.getPayload().toString());
+
+            if (null != message.getAttachment()) {
+                values.put("attachment", message.getAttachment().toJSON().toString());
+            }
 
             db.insert("message", null, values);
 
@@ -604,6 +613,16 @@ public class MessagingStorage extends AbstractStorage {
                 // Nothing
             }
 
+            FileAttachment attachment = null;
+            String attachmentString = cursor.getString(cursor.getColumnIndex("attachment"));
+            if (null != attachmentString && attachmentString.length() > 3) {
+                try {
+                    attachment = new FileAttachment(new JSONObject(attachmentString));
+                } catch (JSONException e) {
+                    // Nothing
+                }
+            }
+
             Message message = new Message(cursor.getLong(cursor.getColumnIndex("id")),
                     cursor.getLong(cursor.getColumnIndex("timestamp")),
                     this.domain,
@@ -615,7 +634,8 @@ public class MessagingStorage extends AbstractStorage {
                     cursor.getLong(cursor.getColumnIndex("rts")),
                     payload,
                     MessageState.parse(cursor.getInt(cursor.getColumnIndex("state"))),
-                    cursor.getInt(cursor.getColumnIndex("scope")));
+                    cursor.getInt(cursor.getColumnIndex("scope")),
+                    attachment);
 
             // 填充
             message = this.service.fillMessage(message);
@@ -643,7 +663,7 @@ public class MessagingStorage extends AbstractStorage {
     @Override
     protected void onDatabaseCreate(SQLiteDatabase database) {
         // 消息表
-        database.execSQL("CREATE TABLE IF NOT EXISTS `message` (`id` BIGINT PRIMARY KEY, `timestamp` BIGINT, `owner` BIGINT, `from` BIGINT, `to` BIGINT, `source` BIGINT, `lts` BIGINT, `rts` BIGINT, `state` INT, `remote_state` INT DEFAULT 10, `scope` INT DEFAULT 0, `payload` TEXT)");
+        database.execSQL("CREATE TABLE IF NOT EXISTS `message` (`id` BIGINT PRIMARY KEY, `timestamp` BIGINT, `owner` BIGINT, `from` BIGINT, `to` BIGINT, `source` BIGINT, `lts` BIGINT, `rts` BIGINT, `state` INT, `remote_state` INT DEFAULT 10, `scope` INT DEFAULT 0, `payload` TEXT, `attachment` TEXT DEFAULT NULL)");
 
         // 会话表
         database.execSQL("CREATE TABLE IF NOT EXISTS `conversation` (`id` BIGINT PRIMARY KEY, `timestamp` BIGINT, `type` INT, `state` INT, `pivotal_id` BIGINT, `remind` INT, `recent_message` TEXT, `unread` INT DEFAULT 0, `avatar_name` TEXT DEFAULT NULL, `avatar_url` TEXT DEFAULT NULL)");

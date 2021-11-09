@@ -32,6 +32,7 @@ import com.shixincube.app.ui.base.BaseFragmentPresenter;
 import com.shixincube.app.ui.view.MessagePanelView;
 import com.shixincube.app.util.UIUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -43,11 +44,13 @@ import cube.engine.CubeEngine;
 import cube.messaging.MessageEventListener;
 import cube.messaging.MessageListResult;
 import cube.messaging.MessagingService;
+import cube.messaging.extension.FileMessage;
 import cube.messaging.extension.HyperTextMessage;
 import cube.messaging.handler.DefaultSendHandler;
 import cube.messaging.handler.MessageListResultHandler;
 import cube.messaging.model.Conversation;
 import cube.messaging.model.Message;
+import cube.util.LogUtils;
 
 /**
  * 消息面板。
@@ -146,17 +149,17 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
     public void sendTextMessage(String text) {
         HyperTextMessage textMessage = new HyperTextMessage(text);
         CubeEngine.getInstance().getMessagingService().sendMessage(conversation, textMessage,
-                new DefaultSendHandler<Conversation>(true) {
+                new DefaultSendHandler<Conversation, HyperTextMessage>(true) {
                     @Override
-                    public void handleSending(Conversation destination, Message message) {
+                    public void handleSending(Conversation destination, HyperTextMessage message) {
                         // 将消息添加到界面
                         adapter.addLastItem(message);
                         moveToBottom();
                     }
 
                     @Override
-                    public void handleSent(Conversation destination, Message message) {
-
+                    public void handleSent(Conversation destination, HyperTextMessage message) {
+                        // 更新状态
                     }
                 }, new DefaultFailureHandler(true) {
                     @Override
@@ -165,6 +168,30 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
 
                     }
                 });
+    }
+
+    public void sendFileMessage(File rawFile) {
+        FileMessage fileMessage = new FileMessage(rawFile);
+        CubeEngine.getInstance().getMessagingService().sendMessage(conversation, fileMessage, new DefaultSendHandler<Conversation, FileMessage>(true) {
+            @Override
+            public void handleSending(Conversation destination, FileMessage message) {
+                long processedSize = message.getProcessedSize();
+                if (processedSize >= 0) {
+                    LogUtils.d(this.getClass().getSimpleName(), "#sendFileMessage - handleSending : " +
+                            processedSize + "/" + message.getFileSize());
+                }
+            }
+
+            @Override
+            public void handleSent(Conversation destination, FileMessage message) {
+                LogUtils.d(this.getClass().getSimpleName(), "#sendFileMessage - handleSent");
+            }
+        }, new DefaultFailureHandler(true) {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                LogUtils.i(this.getClass().getSimpleName(), "#sendFileMessage - handleFailure : " + error.code);
+            }
+        });
     }
 
     private void moveToBottom() {

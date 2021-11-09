@@ -51,6 +51,8 @@ public class FileMessage extends TypeableMessage {
         } catch (JSONException e) {
             // Nothing
         }
+
+        this.summary = "[文件] " + file.getName();
     }
 
     public FileMessage(Message message) {
@@ -65,5 +67,17 @@ public class FileMessage extends TypeableMessage {
         }
 
         this.summary = "[文件] " + message.getAttachment().getFileName();
+    }
+
+    public String getFileName() {
+        return this.getAttachment().getFileName();
+    }
+
+    public long getFileSize() {
+        return this.getAttachment().getFileSize();
+    }
+
+    public long getProcessedSize() {
+        return this.getAttachment().getProcessedSize();
     }
 }

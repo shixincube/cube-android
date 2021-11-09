@@ -32,9 +32,21 @@ import cube.messaging.model.Message;
 /**
  * 消息发送句柄。
  */
-public interface SendHandler <D> extends CallbackHandler {
+public interface SendHandler <DestinationType, MessageInstanceType extends Message> extends CallbackHandler {
 
-    void handleSending(D destination, Message message);
+    /**
+     * 当消息正在发送时回调。
+     *
+     * @param destination
+     * @param message
+     */
+    void handleSending(DestinationType destination, MessageInstanceType message);
 
-    void handleSent(D destination, Message message);
+    /**
+     * 当消息已经发送。
+     *
+     * @param destination
+     * @param message
+     */
+    void handleSent(DestinationType destination, MessageInstanceType message);
 }

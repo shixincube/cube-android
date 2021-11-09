@@ -198,7 +198,7 @@ public class Message extends Entity {
      * @param scope
      */
     public Message(Long id, long timestamp, String domain, long owner, long from, long to, long source,
-                   long localTS, long remoteTS, JSONObject payload, MessageState state, int scope) {
+                   long localTS, long remoteTS, JSONObject payload, MessageState state, int scope, FileAttachment attachment) {
         super(id, timestamp);
         this.domain = domain;
         this.owner = owner;
@@ -210,6 +210,7 @@ public class Message extends Entity {
         this.payload = payload;
         this.state = state;
         this.scope = scope;
+        this.attachment = attachment;
     }
 
     public Message(Message message) {
@@ -403,6 +404,21 @@ public class Message extends Entity {
     public JSONObject toCompactJSON() {
         JSONObject json = this.toJSON();
         json.remove("summary");
+
+        if (json.has("attachment")) {
+            try {
+                JSONObject attachment = json.getJSONObject("attachment");
+                if (attachment.has("label")) {
+                    attachment.getJSONObject("label").remove("filePath");
+                }
+                if (attachment.has("anchor")) {
+                    attachment.getJSONObject("anchor").remove("filePath");
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
         return json;
     }
 }

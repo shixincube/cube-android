@@ -605,17 +605,18 @@ public class MessagingService extends Module {
      *
      * @param conversation
      * @param message
+     * @param <T> 消息实例类型。
      */
-    public void sendMessage(final Conversation conversation, final Message message) {
+    public <T extends Message> void sendMessage(final Conversation conversation, final T message) {
         final Object mutex = new Object();
 
-        this.sendMessage(conversation, message, new DefaultSendHandler<Conversation>(false) {
+        this.sendMessage(conversation, message, new DefaultSendHandler<Conversation, T>(false) {
             @Override
-            public void handleSending(Conversation destination, Message sendingMessage) {
+            public void handleSending(Conversation destination, T sendingMessage) {
                 // Nothing
             }
             @Override
-            public void handleSent(Conversation destination, Message sentMessage) {
+            public void handleSent(Conversation destination, T sentMessage) {
                 synchronized (mutex) {
                     mutex.notify();
                 }
@@ -643,17 +644,18 @@ public class MessagingService extends Module {
      *
      * @param contact
      * @param message
+     * @param <T> 消息实例类型。
      */
-    public void sendMessage(final Contact contact, final Message message) {
+    public <T extends Message> void sendMessage(final Contact contact, final T message) {
         final Object mutex = new Object();
 
-        this.sendMessage(contact, message, new DefaultSendHandler<Contact>(false) {
+        this.sendMessage(contact, message, new DefaultSendHandler<Contact, T>(false) {
             @Override
-            public void handleSending(Contact destination, Message sendingMessage) {
+            public void handleSending(Contact destination, T sendingMessage) {
                 // Nothing
             }
             @Override
-            public void handleSent(Contact destination, Message sentMessage) {
+            public void handleSent(Contact destination, T sentMessage) {
                 synchronized (mutex) {
                     mutex.notify();
                 }
@@ -681,17 +683,18 @@ public class MessagingService extends Module {
      *
      * @param group
      * @param message
+     * @param <T> 消息实例类型。
      */
-    public void sendMessage(final Group group, final Message message) {
+    public <T extends Message> void sendMessage(final Group group, final T message) {
         final Object mutex = new Object();
 
-        this.sendMessage(group, message, new DefaultSendHandler<Group>(false) {
+        this.sendMessage(group, message, new DefaultSendHandler<Group, T>(false) {
             @Override
-            public void handleSending(Group destination, Message sendingMessage) {
+            public void handleSending(Group destination, T sendingMessage) {
                 // Nothing
             }
             @Override
-            public void handleSent(Group destination, Message sentMessage) {
+            public void handleSent(Group destination, T sentMessage) {
                 synchronized (mutex) {
                     mutex.notify();
                 }
@@ -721,18 +724,19 @@ public class MessagingService extends Module {
      * @param message
      * @param sendHandler
      * @param failureHandler
+     * @param <T> 消息实例类型。
      */
-    public void sendMessage(final Conversation conversation, final Message message,
-                            SendHandler<Conversation> sendHandler, FailureHandler failureHandler) {
+    public <T extends Message> void sendMessage(final Conversation conversation, final T message,
+                            SendHandler<Conversation, T> sendHandler, FailureHandler failureHandler) {
         if (ConversationType.Contact == conversation.getType()) {
-            this.sendMessage(conversation.getContact(), message, new SendHandler<Contact>() {
+            this.sendMessage(conversation.getContact(), message, new SendHandler<Contact, T>() {
                 @Override
-                public void handleSending(Contact destination, Message message) {
+                public void handleSending(Contact destination, T message) {
                     sendHandler.handleSending(conversation, message);
                 }
 
                 @Override
-                public void handleSent(Contact destination, Message message) {
+                public void handleSent(Contact destination, T message) {
                     // 完成后，对会话进行数据处理
                     appendMessageToConversation(conversation.id, message);
 
@@ -748,14 +752,14 @@ public class MessagingService extends Module {
             this.tryAddConversation(conversation);
         }
         else if (ConversationType.Group == conversation.getType()) {
-            this.sendMessage(conversation.getGroup(), message, new SendHandler<Group>() {
+            this.sendMessage(conversation.getGroup(), message, new SendHandler<Group, T>() {
                 @Override
-                public void handleSending(Group destination, Message message) {
+                public void handleSending(Group destination, T message) {
                     sendHandler.handleSending(conversation, message);
                 }
 
                 @Override
-                public void handleSent(Group destination, Message message) {
+                public void handleSent(Group destination, T message) {
                     // 完成后，对会话进行数据处理
                     appendMessageToConversation(conversation.id, message);
 
@@ -779,8 +783,9 @@ public class MessagingService extends Module {
      * @param message
      * @param sendHandler
      * @param failureHandler
+     * @param <T> 消息实例类型。
      */
-    public void sendMessage(Contact contact, Message message, SendHandler<Contact> sendHandler, FailureHandler failureHandler) {
+    public <T extends Message> void sendMessage(Contact contact, T message, SendHandler<Contact, T> sendHandler, FailureHandler failureHandler) {
         // 消息数据赋值
         message.assign(this.contactService.getSelf().id, contact.id, 0);
         // 设置状态为正在发送
@@ -793,9 +798,9 @@ public class MessagingService extends Module {
             @Override
             public void run() {
                 // 进行发送处理
-                processSend(message, new MessageHandler() {
+                processSend(message, new MessageHandler<T>() {
                     @Override
-                    public void handleMessage(Message message) {
+                    public void handleMessage(T message) {
                         // 正在处理消息
                         if (sendHandler.isInMainThread()) {
                             executeOnMainThread(new Runnable() {
@@ -809,9 +814,9 @@ public class MessagingService extends Module {
                             sendHandler.handleSending(contact, message);
                         }
                     }
-                }, new MessageHandler() {
+                }, new MessageHandler<T>() {
                     @Override
-                    public void handleMessage(Message message) {
+                    public void handleMessage(T message) {
                         // 消息已发送
                         if (sendHandler.isInMainThread()) {
                             executeOnMainThread(new Runnable() {
@@ -882,7 +887,7 @@ public class MessagingService extends Module {
      * @param sendHandler
      * @param failureHandler
      */
-    public void sendMessage(Group group, Message message, SendHandler<Group> sendHandler, FailureHandler failureHandler) {
+    public <T extends Message> void sendMessage(Group group, Message message, SendHandler<Group, T> sendHandler, FailureHandler failureHandler) {
         // TODO
     }
 
@@ -939,9 +944,7 @@ public class MessagingService extends Module {
                 // TODO
             }
 
-
-
-            this.uploadAttachment(message, new StableUploadFileHandler() {
+            this.uploadAttachment(fileAttachment, new StableUploadFileHandler() {
                 @Override
                 public void handleStarted(FileAnchor anchor) {
                     // Nothing
@@ -1021,8 +1024,6 @@ public class MessagingService extends Module {
                     storage.updateMessage(message);
 
                     if (stateCode == MessagingServiceState.Ok.code) {
-                        // TODO 更新文件附件
-
                         if (message.getScope() == MessageScope.Unlimited) {
                             // 回调
                             completionHandler.handleMessage(message);
@@ -1102,8 +1103,7 @@ public class MessagingService extends Module {
         }
     }
 
-    private void uploadAttachment(Message message, StableUploadFileHandler handler) {
-        FileAttachment attachment = message.getAttachment();
+    private void uploadAttachment(FileAttachment attachment, StableUploadFileHandler handler) {
         File file = attachment.getFile();
 
         FileStorage fileStorage = (FileStorage) this.kernel.getModule(FileStorage.NAME);

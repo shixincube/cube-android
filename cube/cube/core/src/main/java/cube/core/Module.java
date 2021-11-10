@@ -146,16 +146,13 @@ public abstract class Module extends Subject {
     protected void execute(Runnable task) {
         this.taskQueue.offer(task);
 
-        this.kernel.getExecutor().execute(new Runnable() {
-            @Override
-            public void run() {
-                Runnable current = taskQueue.poll();
-                while (null != current) {
+        this.kernel.getExecutor().execute(() -> {
+            Runnable current = taskQueue.poll();
+            while (null != current) {
 
-                    current.run();
+                current.run();
 
-                    current = taskQueue.poll();
-                }
+                current = taskQueue.poll();
             }
         });
     }

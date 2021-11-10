@@ -53,7 +53,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import cube.contact.ContactService;
 import cube.contact.ContactServiceEvent;
-import cube.contact.handler.StableContactHandler;
 import cube.contact.model.Contact;
 import cube.contact.model.Group;
 import cube.contact.model.Self;
@@ -127,6 +126,16 @@ public class MessagingService extends Module {
     private List<Conversation> conversations;
 
     /**
+     * 预载的最近会话数量。
+     */
+    private int preloadConversationRecentNum;
+
+    /**
+     * 预载最近会话的消息数量。
+     */
+    private int preloadConversationMessageNum;
+
+    /**
      * 会话对应的消息列表。
      */
     private Map<Long, MessageList> conversationMessageListMap;
@@ -146,6 +155,8 @@ public class MessagingService extends Module {
         this.lastMessageTime = 0;
         this.conversationMessageListMap = new ConcurrentHashMap<>();
         this.sendingList = new ConcurrentLinkedQueue<>();
+        this.preloadConversationRecentNum = 5;
+        this.preloadConversationMessageNum = 10;
     }
 
     @Override
@@ -307,6 +318,17 @@ public class MessagingService extends Module {
     }
 
     /**
+     * 设置预载消息的数量。
+     *
+     * @param recentConversationNum
+     * @param messageNum
+     */
+    public void setPreloadConversationMessageNum(int recentConversationNum, int messageNum) {
+        this.preloadConversationRecentNum = recentConversationNum;
+        this.preloadConversationMessageNum = messageNum;
+    }
+
+    /**
      * 获取最近的会话清单。
      *
      * @return 返回消息列表。如果返回 {@code null} 值表示消息服务模块未启动。
@@ -348,6 +370,21 @@ public class MessagingService extends Module {
                 }
 
                 this.sortConversationList(this.conversations);
+
+                // 进行预载
+                if (this.preloadConversationRecentNum > 0 && this.preloadConversationMessageNum > 0) {
+                    LogUtils.i(MessagingService.class.getSimpleName(),
+                            "Preload conversation messages: " + preloadConversationRecentNum + " - " + preloadConversationMessageNum);
+                    this.execute(() -> {
+                        long now = System.currentTimeMillis();
+                        for (int i = 0, len = conversations.size(); i < len && i < preloadConversationRecentNum; ++i) {
+                            Conversation conv = conversations.get(i);
+                            getRecentMessages(conv, preloadConversationMessageNum);
+                        }
+                        LogUtils.i(MessagingService.class.getSimpleName(),
+                                "Preload conversation messages elapsed: " + (System.currentTimeMillis() - now) + " ms");
+                    });
+                }
             }
         }
 
@@ -1539,41 +1576,17 @@ public class MessagingService extends Module {
         Self self = this.contactService.getSelf();
         message.setSelfTyper(message.getFrom() == self.id.longValue());
 
-        MutableBoolean gotFrom = new MutableBoolean(false);
-        MutableBoolean gotToOrSource = new MutableBoolean(false);
         MutableBoolean gotAttachment = new MutableBoolean(false);
 
-        CompletionHandler handler = (module) -> {
-            if (gotFrom.value && gotToOrSource.value && gotAttachment.value) {
-                synchronized (message) {
-                    message.notify();
-                }
-            }
-        };
-
-        this.contactService.getContact(message.getFrom(), new StableContactHandler() {
-            @Override
-            public void handleContact(Contact contact) {
-                message.setSender(contact);
-                gotFrom.value = true;
-                handler.handleCompletion(MessagingService.this);
-            }
-        });
+        // 发件人
+        message.setSender(this.contactService.getContact(message.getFrom()));
 
         if (message.isFromGroup()) {
             // TODO 获取群组
-            gotToOrSource.value = true;
-            handler.handleCompletion(MessagingService.this);
         }
         else {
-            this.contactService.getContact(message.getTo(), new StableContactHandler() {
-                @Override
-                public void handleContact(Contact contact) {
-                    message.setReceiver(contact);
-                    gotToOrSource.value = true;
-                    handler.handleCompletion(MessagingService.this);
-                }
-            });
+            // 收件人
+            message.setReceiver(this.contactService.getContact(message.getTo()));
         }
 
         // 获取消息附件
@@ -1588,7 +1601,9 @@ public class MessagingService extends Module {
                     @Override
                     public void handleStarted(FileAnchor anchor) {
                         gotAttachment.value = true;
-                        handler.handleCompletion(MessagingService.this);
+                        synchronized (message) {
+                            message.notify();
+                        }
                     }
 
                     @Override
@@ -1600,14 +1615,18 @@ public class MessagingService extends Module {
                     public void handleSuccess(FileLabel fileLabel) {
                         if (!gotAttachment.value) {
                             gotAttachment.value = true;
-                            handler.handleCompletion(MessagingService.this);
+                            synchronized (message) {
+                                message.notify();
+                            }
                         }
                     }
 
                     @Override
                     public void handleFailure(ModuleError error, @Nullable FileAnchor anchor) {
                         gotAttachment.value = true;
-                        handler.handleCompletion(MessagingService.this);
+                        synchronized (message) {
+                            message.notify();
+                        }
                     }
                 });
             }
@@ -1619,11 +1638,14 @@ public class MessagingService extends Module {
             gotAttachment.value = true;
         }
 
-        synchronized (message) {
-            try {
-                message.wait(5000L);
-            } catch (InterruptedException e) {
-                // Nothing
+        if (!gotAttachment.value) {
+            // 等待附件
+            synchronized (message) {
+                try {
+                    message.wait(5000L);
+                } catch (InterruptedException e) {
+                    // Nothing
+                }
             }
         }
 

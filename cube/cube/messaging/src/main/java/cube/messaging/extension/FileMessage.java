@@ -124,6 +124,11 @@ public class FileMessage extends TypeableMessage {
         return this.getAttachment().existsLocal();
     }
 
+    /**
+     * 获取文件的访问 URL 。
+     *
+     * @return 返回文件的访问 URL 。
+     */
     public String getFileURL() {
         return this.getAttachment().getFileURL();
     }

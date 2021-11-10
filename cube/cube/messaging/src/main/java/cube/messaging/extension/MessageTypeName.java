@@ -46,6 +46,11 @@ public final class MessageTypeName {
      */
     public final static String File = "file";
 
+    /**
+     * 图片消息。
+     */
+    public final static String Image = "image";
+
     private MessageTypeName() {
     }
 }

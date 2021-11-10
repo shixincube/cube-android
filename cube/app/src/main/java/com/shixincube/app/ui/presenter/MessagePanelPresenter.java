@@ -30,6 +30,7 @@ import android.content.Intent;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.shixincube.app.R;
 import com.shixincube.app.ui.activity.ImageShowcaseActivity;
 import com.shixincube.app.ui.adapter.MessagePanelAdapter;
 import com.shixincube.app.ui.base.BaseFragmentActivity;
@@ -220,7 +221,9 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
             FileMessage fileMessage = (FileMessage) message;
             if (fileMessage.existsLocal() && !fileMessage.isImageType()) {
                 // 尝试打开文件
-                FileOpenUtils.openFile(activity, fileMessage.getFilePath());
+                if (!FileOpenUtils.openFile(activity, fileMessage.getFilePath())) {
+                    UIUtils.showToast(UIUtils.getString(R.string.no_support_file_type));
+                }
             }
             else if (fileMessage.isImageType()) {
                 // 图像类型文件，使用图片查看器打开

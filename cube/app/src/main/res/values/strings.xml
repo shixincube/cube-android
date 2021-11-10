@@ -50,6 +50,7 @@
     <string name="shot">拍摄</string>
     <string name="voice_comm">语音通话</string>
     <string name="video_comm">视频通话</string>
+    <string name="no_support_file_type">不支持的文件类型</string>
 
     <!-- 联系人界面 -->
     <string name="new_contact">新的联系人</string>

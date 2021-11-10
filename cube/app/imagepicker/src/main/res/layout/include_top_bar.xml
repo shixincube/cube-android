@@ -20,7 +20,7 @@
         android:layout_height="match_parent"
         android:layout_marginBottom="12dp"
         android:layout_marginTop="12dp"
-        android:layout_toRightOf="@id/btn_back"
+        android:layout_toEndOf="@id/btn_back"
         android:background="#cc111111"/>
 
     <TextView
@@ -28,17 +28,17 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
-        android:layout_marginLeft="8dp"
-        android:layout_toRightOf="@id/btn_back"
+        android:layout_marginStart="8dp"
+        android:layout_toEndOf="@id/btn_back"
         android:text="选择图片"
         android:textColor="#ffffff"
-        android:textSize="16dp"/>
+        android:textSize="16sp"/>
 
     <Button
         android:id="@+id/btn_ok"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
@@ -48,13 +48,13 @@
         android:padding="8dp"
         android:text="完成(3/9)"
         android:textColor="#ffffff"
-        android:textSize="14dp"/>
+        android:textSize="14sp"/>
 
     <ImageView
         android:id="@+id/btn_del"
         android:layout_width="48dp"
         android:layout_height="match_parent"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
         android:background="@drawable/selector_back_press"
         android:padding="14dp"

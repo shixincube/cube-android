@@ -82,6 +82,10 @@
             android:name=".ui.activity.ContactDetailsActivity"
             android:screenOrientation="portrait">
         </activity>
+        <activity
+            android:name=".ui.activity.ImageShowcaseActivity"
+            android:screenOrientation="portrait">
+        </activity>
     </application>
 
 </manifest>

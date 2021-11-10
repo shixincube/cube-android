@@ -26,6 +26,8 @@
 
 package cube.messaging.model;
 
+import android.net.Uri;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -212,6 +214,16 @@ public class FileAttachment implements JSONable {
     }
 
     /**
+     * 获取文件的 URL 。
+     *
+     * @return
+     */
+    public String getFileURL() {
+        return this.existsLocal() ? Uri.fromFile(getFile()).toString() :
+                this.label.getURL();
+    }
+
+    /**
      * 文件是否是图像类型文件。
      *
      * @return
@@ -228,6 +240,14 @@ public class FileAttachment implements JSONable {
         else {
             return false;
         }
+    }
+
+    public boolean hasThumb() {
+        return (null != this.thumbs && !this.thumbs.isEmpty());
+    }
+
+    public FileThumbnail getDefaultThumb() {
+        return this.thumbs.get(0);
     }
 
     /**

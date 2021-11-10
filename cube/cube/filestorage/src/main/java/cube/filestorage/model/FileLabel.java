@@ -30,6 +30,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import cube.auth.AuthService;
+import cube.core.Kernel;
 import cube.core.model.Entity;
 
 /**
@@ -198,11 +199,11 @@ public class FileLabel extends Entity {
     }
 
     public String getURL() {
-        return this.fileURL;
+        return this.fileURL + "&token=" + Kernel.getDefault().getAuthToken().code;
     }
 
     public String getSecureURL() {
-        return this.fileSecureURL;
+        return this.fileSecureURL + "&token=" + Kernel.getDefault().getAuthToken().code;
     }
 
     public void setFilePath(String filePath) {

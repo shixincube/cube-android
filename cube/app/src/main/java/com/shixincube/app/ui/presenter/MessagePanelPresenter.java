@@ -26,9 +26,11 @@
 
 package com.shixincube.app.ui.presenter;
 
+import android.content.Intent;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.shixincube.app.ui.activity.ImageShowcaseActivity;
 import com.shixincube.app.ui.adapter.MessagePanelAdapter;
 import com.shixincube.app.ui.base.BaseFragmentActivity;
 import com.shixincube.app.ui.base.BaseFragmentPresenter;
@@ -219,6 +221,13 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
             if (fileMessage.existsLocal() && !fileMessage.isImageType()) {
                 // 尝试打开文件
                 FileOpenUtils.openFile(activity, fileMessage.getFilePath());
+            }
+            else if (fileMessage.isImageType()) {
+                // 图像类型文件，使用图片查看器打开
+                Intent intent = new Intent(activity, ImageShowcaseActivity.class);
+                intent.putExtra("name", fileMessage.getFileName());
+                intent.putExtra("url", fileMessage.getFileURL());
+                activity.jumpToActivity(intent);
             }
         }
     }

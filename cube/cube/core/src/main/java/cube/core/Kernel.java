@@ -253,7 +253,7 @@ public class Kernel implements PipelineListener {
         return token;
     }
 
-    protected AuthToken getAuthToken() {
+    public AuthToken getAuthToken() {
         AuthService service = (AuthService) this.getModule(AuthService.NAME);
         return service.getToken();
     }

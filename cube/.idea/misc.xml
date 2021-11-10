@@ -56,6 +56,7 @@
         <entry key="app/src/main/res/drawable/shape_strip_button_enable.xml" value="0.3203125" />
         <entry key="app/src/main/res/drawable/shape_vertical_line.xml" value="0.11381578947368422" />
         <entry key="app/src/main/res/layout/activity_contact_details.xml" value="0.21618852459016394" />
+        <entry key="app/src/main/res/layout/activity_image_showcase.xml" value="0.16734972677595628" />
         <entry key="app/src/main/res/layout/activity_login.xml" value="0.17827868852459017" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.14792299898682879" />
         <entry key="app/src/main/res/layout/activity_message_panel.xml" value="0.17144808743169399" />

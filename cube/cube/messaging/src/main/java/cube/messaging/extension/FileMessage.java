@@ -124,6 +124,10 @@ public class FileMessage extends TypeableMessage {
         return this.getAttachment().existsLocal();
     }
 
+    public String getFileURL() {
+        return this.getAttachment().getFileURL();
+    }
+
     /**
      * 是否是图像类型文件。
      *

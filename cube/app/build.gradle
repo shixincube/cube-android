@@ -40,7 +40,7 @@ dependencies {
     implementation 'cn.bingoogolapple:bga-refreshlayout:1.1.7'
     implementation 'de.hdodenhof:circleimageview:3.1.0'
     implementation 'com.github.bumptech.glide:glide:4.12.0'
-    implementation 'com.github.bumptech.glide:compiler:4.12.0'
+    implementation 'com.bm.photoview:library:2.0.7'
     implementation 'com.belerweb:pinyin4j:2.5.1'
     implementation 'com.lovedise:permissiongen:0.1.0'
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
@@ -60,6 +60,7 @@ dependencies {
     implementation project(path: ':cube:filestorage')
     implementation project(path: ':cube:fileprocessor')
     annotationProcessor 'com.jakewharton:butterknife-compiler:10.2.3'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.12.0'
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'

@@ -67,7 +67,6 @@ import cube.core.handler.FailureHandler;
 import cube.core.handler.PipelineHandler;
 import cube.core.handler.StableFailureHandler;
 import cube.filestorage.FileStorage;
-import cube.filestorage.handler.StableDownloadFileHandler;
 import cube.filestorage.handler.StableUploadFileHandler;
 import cube.filestorage.model.FileAnchor;
 import cube.filestorage.model.FileLabel;
@@ -184,17 +183,14 @@ public class MessagingService extends Module {
 
         synchronized (this) {
             if (null != this.contactService.getSelf() && !this.ready && !this.preparing.get()) {
-                this.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        prepare(new CompletionHandler() {
-                            @Override
-                            public void handleCompletion(Module module) {
-                                ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Ready, MessagingService.this);
-                                notifyObservers(event);
-                            }
-                        });
-                    }
+                this.execute(() -> {
+                    prepare(new CompletionHandler() {
+                        @Override
+                        public void handleCompletion(Module module) {
+                            ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Ready, MessagingService.this);
+                            notifyObservers(event);
+                        }
+                    });
                 });
             }
         }
@@ -1206,11 +1202,8 @@ public class MessagingService extends Module {
 
         if (!first.value) {
             // 不是第一次获取数据或者未能连接到服务器，直接回调
-            this.execute(new Runnable() {
-                @Override
-                public void run() {
-                    handler.handleCompletion(MessagingService.this);
-                }
+            this.execute(() -> {
+                handler.handleCompletion(MessagingService.this);
             });
         }
 
@@ -1576,8 +1569,6 @@ public class MessagingService extends Module {
         Self self = this.contactService.getSelf();
         message.setSelfTyper(message.getFrom() == self.id.longValue());
 
-        MutableBoolean gotAttachment = new MutableBoolean(false);
-
         // 发件人
         message.setSender(this.contactService.getContact(message.getFrom()));
 
@@ -1589,64 +1580,9 @@ public class MessagingService extends Module {
             message.setReceiver(this.contactService.getContact(message.getTo()));
         }
 
-        // 获取消息附件
+        // TODO 如果附件有缩略图，本地没有，下载消息附件的缩略图到本地
         FileAttachment attachment = message.getAttachment();
         if (null != attachment) {
-            if (null != attachment.getFile() && attachment.getFile().exists()) {
-                gotAttachment.value = true;
-            }
-            else if (null != attachment.getLabel()) {
-                // 下载文件
-                this.fileStorage.downloadFile(attachment.getLabel(), new StableDownloadFileHandler() {
-                    @Override
-                    public void handleStarted(FileAnchor anchor) {
-                        gotAttachment.value = true;
-                        synchronized (message) {
-                            message.notify();
-                        }
-                    }
-
-                    @Override
-                    public void handleProcessing(FileAnchor anchor) {
-                        // Nothing
-                    }
-
-                    @Override
-                    public void handleSuccess(FileLabel fileLabel) {
-                        if (!gotAttachment.value) {
-                            gotAttachment.value = true;
-                            synchronized (message) {
-                                message.notify();
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void handleFailure(ModuleError error, @Nullable FileAnchor anchor) {
-                        gotAttachment.value = true;
-                        synchronized (message) {
-                            message.notify();
-                        }
-                    }
-                });
-            }
-            else {
-                gotAttachment.value = true;
-            }
-        }
-        else {
-            gotAttachment.value = true;
-        }
-
-        if (!gotAttachment.value) {
-            // 等待附件
-            synchronized (message) {
-                try {
-                    message.wait(5000L);
-                } catch (InterruptedException e) {
-                    // Nothing
-                }
-            }
         }
 
         // 实例化

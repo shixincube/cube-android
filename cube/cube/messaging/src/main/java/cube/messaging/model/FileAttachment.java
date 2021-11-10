@@ -50,11 +50,6 @@ public class FileAttachment implements JSONable {
     private File file;
 
     /**
-     * 文件的本地路径。
-     */
-    private String filePath;
-
-    /**
      * 文件处理时的记录信息。
      */
     private FileAnchor anchor;
@@ -103,8 +98,39 @@ public class FileAttachment implements JSONable {
         }
     }
 
+    /**
+     * 获取文件实例。
+     *
+     * @return
+     */
     public File getFile() {
+        if (null != this.file) {
+            return this.file;
+        }
+
+        if (null != this.label) {
+            String path = this.label.getFilePath();
+            if (null != path) {
+                this.file = new File(path);
+            }
+        }
+        else if (null != this.anchor) {
+            if (null != this.anchor.filePath) {
+                this.file = new File(this.anchor.filePath);
+            }
+        }
+
         return this.file;
+    }
+
+    /**
+     * 文件是否在本地存在。
+     *
+     * @return
+     */
+    public boolean existsLocal() {
+        File file = this.getFile();
+        return (null != file && file.exists());
     }
 
     /**
@@ -170,6 +196,26 @@ public class FileAttachment implements JSONable {
         }
     }
 
+    public long getFileLastModified() {
+        if (null != this.file) {
+            return this.file.lastModified();
+        }
+        else if (null != this.label) {
+            return this.label.getLastModified();
+        }
+        else if (null != this.anchor) {
+            return this.anchor.getLastModified();
+        }
+        else {
+            return 0;
+        }
+    }
+
+    /**
+     * 文件是否是图像类型文件。
+     *
+     * @return
+     */
     public boolean isImageType() {
         String type = this.getFileType();
         if (type.equalsIgnoreCase("png")
@@ -199,11 +245,14 @@ public class FileAttachment implements JSONable {
 
     public void setAnchor(FileAnchor anchor) {
         this.anchor = anchor;
-        this.filePath = anchor.filePath;
     }
 
     public void setLabel(FileLabel label) {
         this.label = label;
+    }
+
+    public FileLabel getLabel() {
+        return this.label;
     }
 
     @Override

@@ -144,6 +144,10 @@ public class FileAnchor extends Entity {
         return this.fileSize;
     }
 
+    public long getLastModified() {
+        return this.lastModified;
+    }
+
     public void setFileCode(String fileCode) {
         this.fileCode = fileCode;
     }

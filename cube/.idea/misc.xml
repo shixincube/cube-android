@@ -75,6 +75,8 @@
         <entry key="app/src/main/res/layout/item_contact.xml" value="0.15710382513661203" />
         <entry key="app/src/main/res/layout/item_conversation.xml" value="0.18237704918032788" />
         <entry key="app/src/main/res/layout/item_file.xml" value="0.19228142076502733" />
+        <entry key="app/src/main/res/layout/item_message_sticker_receive.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/item_message_sticker_send.xml" value="0.5" />
         <entry key="app/src/main/res/layout/item_message_text_receive.xml" value="0.1598360655737705" />
         <entry key="app/src/main/res/layout/item_message_text_send.xml" value="0.1598360655737705" />
         <entry key="app/src/main/res/layout/item_no_support_message.xml" value="0.1598360655737705" />

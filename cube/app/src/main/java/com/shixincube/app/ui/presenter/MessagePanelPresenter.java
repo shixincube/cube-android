@@ -26,11 +26,17 @@
 
 package com.shixincube.app.ui.presenter;
 
+import android.view.View;
+import android.view.ViewGroup;
+
 import com.shixincube.app.ui.adapter.MessagePanelAdapter;
 import com.shixincube.app.ui.base.BaseFragmentActivity;
 import com.shixincube.app.ui.base.BaseFragmentPresenter;
 import com.shixincube.app.ui.view.MessagePanelView;
+import com.shixincube.app.util.FileOpenUtils;
 import com.shixincube.app.util.UIUtils;
+import com.shixincube.app.widget.adapter.OnItemClickListener;
+import com.shixincube.app.widget.adapter.ViewHolder;
 
 import java.io.File;
 import java.io.IOException;
@@ -55,7 +61,7 @@ import cube.util.LogUtils;
 /**
  * 消息面板。
  */
-public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelView> implements MessageEventListener {
+public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelView> implements OnItemClickListener, MessageEventListener {
 
     private int pageSize = 10;
 
@@ -88,6 +94,8 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
 
         if (null == this.adapter) {
             this.adapter = new MessagePanelAdapter(activity, messageList, this);
+            this.adapter.setOnItemClickListener(this);
+
             getView().getMessageListView().setAdapter(this.adapter);
 
             UIUtils.postTaskDelay(() -> moveToBottom(), 200);
@@ -201,6 +209,18 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
     @Override
     public void close() throws IOException {
         CubeEngine.getInstance().getMessagingService().removeEventListener(this.conversation, this);
+    }
+
+    @Override
+    public void onItemClick(ViewHolder helper, ViewGroup parent, View itemView, int position) {
+        Message message = this.adapter.getData().get(position);
+        if (message instanceof FileMessage) {
+            FileMessage fileMessage = (FileMessage) message;
+            if (fileMessage.existsLocal() && !fileMessage.isImageType()) {
+                // 尝试打开文件
+                FileOpenUtils.openFile(activity, fileMessage.getFilePath());
+            }
+        }
     }
 
     @Override

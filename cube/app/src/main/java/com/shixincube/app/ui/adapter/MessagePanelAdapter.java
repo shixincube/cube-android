@@ -35,12 +35,14 @@ import com.shixincube.app.R;
 import com.shixincube.app.manager.AccountHelper;
 import com.shixincube.app.model.Account;
 import com.shixincube.app.ui.presenter.MessagePanelPresenter;
+import com.shixincube.app.util.CalculationUtils;
 import com.shixincube.app.util.DateUtils;
 import com.shixincube.app.widget.adapter.AdapterForRecyclerView;
 import com.shixincube.app.widget.adapter.ViewHolderForRecyclerView;
 
 import java.util.List;
 
+import cube.messaging.extension.FileMessage;
 import cube.messaging.extension.HyperTextMessage;
 import cube.messaging.model.Message;
 
@@ -66,6 +68,9 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
         Message message = this.getData().get(position);
         if (message instanceof HyperTextMessage) {
             return message.isSelfTyper() ? R.layout.item_message_text_send : R.layout.item_message_text_receive;
+        }
+        else if (message instanceof FileMessage) {
+            return message.isSelfTyper() ? R.layout.item_message_sticker_send : R.layout.item_message_sticker_receive;
         }
 
         return R.layout.item_message_no_support;
@@ -122,6 +127,12 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
             // TODO 提取表情
             HyperTextMessage message = (HyperTextMessage) item;
             helper.setText(R.id.tvText, message.getPlaintext());
+        }
+        else if (item instanceof FileMessage) {
+            FileMessage message = (FileMessage) item;
+            helper.setText(R.id.tvTitle, message.getFileName());
+            helper.setText(R.id.tvDescription, CalculationUtils.formatByteDataSize(message.getFileSize()));
+
         }
         else {
             // TODO

@@ -69,14 +69,67 @@ public class FileMessage extends TypeableMessage {
         this.summary = "[文件] " + message.getAttachment().getFileName();
     }
 
+    /**
+     * 获取文件名。
+     *
+     * @return
+     */
     public String getFileName() {
         return this.getAttachment().getFileName();
     }
 
+    /**
+     * 获取文件大小。
+     *
+     * @return
+     */
     public long getFileSize() {
         return this.getAttachment().getFileSize();
     }
 
+    /**
+     * 获取文件最近一次修改时间戳。
+     *
+     * @return
+     */
+    public long getFileLastModified() {
+        return this.getAttachment().getFileLastModified();
+    }
+
+    /**
+     * 获取当前文件路径。
+     *
+     * @return
+     */
+    public String getFilePath() {
+        return (null != this.getAttachment().getFile()) ?
+                this.getAttachment().getFile().getPath() : null;
+    }
+
+    /**
+     * 文件是否在本地存在。
+     *
+     * @return
+     */
+    public boolean existsLocal() {
+        return this.getAttachment().existsLocal();
+    }
+
+    /**
+     * 是否是图像类型文件。
+     *
+     * @return
+     */
+    public boolean isImageType() {
+        return this.getAttachment().isImageType();
+    }
+
+    /**
+     * 获取文件已经被处理的数据大小。
+     * 该方法仅在文件消息被处理时有效。
+     *
+     * @return
+     */
     public long getProcessedSize() {
         return this.getAttachment().getProcessedSize();
     }

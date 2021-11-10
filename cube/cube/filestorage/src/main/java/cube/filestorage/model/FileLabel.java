@@ -149,7 +149,7 @@ public class FileLabel extends Entity {
         }
 
         if (json.has("filePath")) {
-
+            this.filePath = json.getString("filePath");
         }
     }
 

@@ -53,7 +53,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import cube.contact.ContactService;
 import cube.contact.ContactServiceEvent;
-import cube.contact.handler.DefaultContactHandler;
+import cube.contact.handler.StableContactHandler;
 import cube.contact.model.Contact;
 import cube.contact.model.Group;
 import cube.contact.model.Self;
@@ -68,6 +68,7 @@ import cube.core.handler.FailureHandler;
 import cube.core.handler.PipelineHandler;
 import cube.core.handler.StableFailureHandler;
 import cube.filestorage.FileStorage;
+import cube.filestorage.handler.StableDownloadFileHandler;
 import cube.filestorage.handler.StableUploadFileHandler;
 import cube.filestorage.model.FileAnchor;
 import cube.filestorage.model.FileLabel;
@@ -1528,22 +1529,29 @@ public class MessagingService extends Module {
         }
     }
 
+    /**
+     * 填充消息数据各属性的实例。
+     *
+     * @param message
+     * @return
+     */
     protected Message fillMessage(Message message) {
         Self self = this.contactService.getSelf();
         message.setSelfTyper(message.getFrom() == self.id.longValue());
 
         MutableBoolean gotFrom = new MutableBoolean(false);
         MutableBoolean gotToOrSource = new MutableBoolean(false);
+        MutableBoolean gotAttachment = new MutableBoolean(false);
 
         CompletionHandler handler = (module) -> {
-            if (gotFrom.value && gotToOrSource.value) {
+            if (gotFrom.value && gotToOrSource.value && gotAttachment.value) {
                 synchronized (message) {
                     message.notify();
                 }
             }
         };
 
-        this.contactService.getContact(message.getFrom(), new DefaultContactHandler() {
+        this.contactService.getContact(message.getFrom(), new StableContactHandler() {
             @Override
             public void handleContact(Contact contact) {
                 message.setSender(contact);
@@ -1558,7 +1566,7 @@ public class MessagingService extends Module {
             handler.handleCompletion(MessagingService.this);
         }
         else {
-            this.contactService.getContact(message.getTo(), new DefaultContactHandler() {
+            this.contactService.getContact(message.getTo(), new StableContactHandler() {
                 @Override
                 public void handleContact(Contact contact) {
                     message.setReceiver(contact);
@@ -1568,9 +1576,52 @@ public class MessagingService extends Module {
             });
         }
 
+        // 获取消息附件
+        FileAttachment attachment = message.getAttachment();
+        if (null != attachment) {
+            if (null != attachment.getFile() && attachment.getFile().exists()) {
+                gotAttachment.value = true;
+            }
+            else if (null != attachment.getLabel()) {
+                // 下载文件
+                this.fileStorage.downloadFile(attachment.getLabel(), new StableDownloadFileHandler() {
+                    @Override
+                    public void handleStarted(FileAnchor anchor) {
+                        gotAttachment.value = true;
+                        handler.handleCompletion(MessagingService.this);
+                    }
+
+                    @Override
+                    public void handleProcessing(FileAnchor anchor) {
+                        // Nothing
+                    }
+
+                    @Override
+                    public void handleSuccess(FileLabel fileLabel) {
+                        if (!gotAttachment.value) {
+                            gotAttachment.value = true;
+                            handler.handleCompletion(MessagingService.this);
+                        }
+                    }
+
+                    @Override
+                    public void handleFailure(ModuleError error, @Nullable FileAnchor anchor) {
+                        gotAttachment.value = true;
+                        handler.handleCompletion(MessagingService.this);
+                    }
+                });
+            }
+            else {
+                gotAttachment.value = true;
+            }
+        }
+        else {
+            gotAttachment.value = true;
+        }
+
         synchronized (message) {
             try {
-                message.wait(4000L);
+                message.wait(5000L);
             } catch (InterruptedException e) {
                 // Nothing
             }

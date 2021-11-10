@@ -27,6 +27,7 @@
 package cube.filestorage;
 
 import android.os.Build;
+import android.os.Environment;
 import android.util.MutableInt;
 
 import androidx.annotation.Nullable;
@@ -47,6 +48,7 @@ import cube.core.ModuleError;
 import cube.core.Packet;
 import cube.core.PipelineState;
 import cube.core.handler.PipelineHandler;
+import cube.filestorage.handler.DownloadFileHandler;
 import cube.filestorage.handler.StableFileLabelHandler;
 import cube.filestorage.handler.UploadFileHandler;
 import cube.filestorage.model.FileAnchor;
@@ -70,6 +72,8 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
 
     private MutableInt fileBlockSize = new MutableInt(10 * 1024);
 
+    private String fileCachePath;
+
     private StructStorage storage;
 
     private UploadQueue uploadQueue;
@@ -82,6 +86,14 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
     public boolean start() {
         if (!super.start()) {
             return false;
+        }
+
+        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())
+            || !Environment.isExternalStorageRemovable()) {
+            this.fileCachePath = getContext().getExternalCacheDir().getPath();
+        }
+        else {
+            this.fileCachePath = getContext().getCacheDir().getPath();
         }
 
         ContactService contactService = (ContactService) this.kernel.getModule(ContactService.NAME);
@@ -143,21 +155,15 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
     public void uploadFile(File file, UploadFileHandler handler) {
         if (!this.hasStarted() || null == this.self) {
             if (handler.isInMainThread()) {
-                this.executeOnMainThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        ModuleError error = new ModuleError(NAME, FileStorageState.NotReady.code);
-                        handler.handleFailure(error, null);
-                    }
+                this.executeOnMainThread(() -> {
+                    ModuleError error = new ModuleError(NAME, FileStorageState.NotReady.code);
+                    handler.handleFailure(error, null);
                 });
             }
             else {
-                this.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        ModuleError error = new ModuleError(NAME, FileStorageState.NotReady.code);
-                        handler.handleFailure(error, null);
-                    }
+                this.execute(() -> {
+                    ModuleError error = new ModuleError(NAME, FileStorageState.NotReady.code);
+                    handler.handleFailure(error, null);
                 });
             }
             return;
@@ -176,11 +182,43 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
     }
 
     /**
+     * 下载文件到默认的本地目录。
+     *
+     * @param fileLabel
+     * @param handler
+     */
+    public void downloadFile(FileLabel fileLabel, DownloadFileHandler handler) {
+        String filePath = fileLabel.getFilePath();
+        if (null != filePath) {
+            File file = new File(filePath);
+            if (file.exists()) {
+                // 文件在本地已存在
+                if (handler.isInMainThread()) {
+                    this.executeOnMainThread(() -> {
+                        handler.handleSuccess(fileLabel);
+                    });
+                }
+                else {
+                    this.execute(() -> {
+                        handler.handleSuccess(fileLabel);
+                    });
+                }
+
+                return;
+            }
+        }
+
+        // 下载文件
+
+    }
+
+    /**
      * 上传文件数据到默认目录。
      *
      * @param filename
      * @param inputStream
      * @param handler
+     * @deprecated 仅用于测试
      */
     public void uploadFile(String filename, InputStream inputStream, UploadFileHandler handler) {
         if (!this.hasStarted() || null == this.self) {

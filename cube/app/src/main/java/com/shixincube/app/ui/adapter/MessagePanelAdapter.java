@@ -37,6 +37,7 @@ import com.shixincube.app.model.Account;
 import com.shixincube.app.ui.presenter.MessagePanelPresenter;
 import com.shixincube.app.util.CalculationUtils;
 import com.shixincube.app.util.DateUtils;
+import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.adapter.AdapterForRecyclerView;
 import com.shixincube.app.widget.adapter.ViewHolderForRecyclerView;
 
@@ -132,7 +133,7 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
             FileMessage message = (FileMessage) item;
             helper.setText(R.id.tvTitle, message.getFileName());
             helper.setText(R.id.tvDescription, CalculationUtils.formatByteDataSize(message.getFileSize()));
-
+            helper.setImageResource(R.id.ivThumb, UIUtils.getFileIcon(message.getFileType()));
         }
         else {
             // TODO

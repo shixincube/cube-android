@@ -88,6 +88,15 @@ public class FileMessage extends TypeableMessage {
     }
 
     /**
+     * 获取文件类型。
+     *
+     * @return
+     */
+    public String getFileType() {
+        return this.getAttachment().getFileType();
+    }
+
+    /**
      * 获取文件最近一次修改时间戳。
      *
      * @return

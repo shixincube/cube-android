@@ -32,6 +32,7 @@ import android.os.Handler;
 import android.widget.Toast;
 
 import com.shixincube.app.CubeBaseApp;
+import com.shixincube.app.R;
 
 /**
  * UI 实用函数库。
@@ -136,6 +137,50 @@ public final class UIUtils {
      */
     public static String getString(int stringId, Object... formatArgs) {
         return getResources().getString(stringId, formatArgs);
+    }
+
+    /**
+     * 获取文件类型对应的图标。
+     *
+     * @param fileType
+     * @return
+     */
+    public static int getFileIcon(String fileType) {
+        if (fileType.equalsIgnoreCase("jpg")
+                || fileType.equalsIgnoreCase("png")
+                || fileType.equalsIgnoreCase("jpeg")
+                || fileType.equalsIgnoreCase("gif")
+                || fileType.equalsIgnoreCase("bmp")
+                || fileType.equalsIgnoreCase("webp")) {
+            return R.mipmap.ic_file_image;
+        }
+        else if (fileType.equalsIgnoreCase("doc")
+                || fileType.equalsIgnoreCase("docx")) {
+            return R.mipmap.ic_file_docx;
+        }
+        else if (fileType.equalsIgnoreCase("ppt")
+                || fileType.equalsIgnoreCase("pptx")) {
+            return R.mipmap.ic_file_pptx;
+        }
+        else if (fileType.equalsIgnoreCase("xls")
+                || fileType.equalsIgnoreCase("xlsx")) {
+            return R.mipmap.ic_file_xlsx;
+        }
+        else if (fileType.equalsIgnoreCase("pdf")) {
+            return R.mipmap.ic_file_pdf;
+        }
+        else if (fileType.equalsIgnoreCase("zip")
+                || fileType.equalsIgnoreCase("rar")
+                || fileType.equalsIgnoreCase("7z")) {
+            return R.mipmap.ic_file_zip;
+        }
+        else if (fileType.equalsIgnoreCase("txt")
+                || fileType.equalsIgnoreCase("log")) {
+            return R.mipmap.ic_file_txt;
+        }
+        else {
+            return R.mipmap.ic_file;
+        }
     }
 
     public static int dp2px(Context context, float dipValue) {

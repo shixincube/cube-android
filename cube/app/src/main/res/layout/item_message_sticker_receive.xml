@@ -121,12 +121,13 @@
                 </LinearLayout>
 
                 <ProgressBar
-                    android:id="@+id/pbSending"
+                    android:id="@+id/pbReceiving"
                     style="?android:attr/progressBarStyleSmall"
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:layout_gravity="center"
                     android:layout_margin="5dp"
+                    android:indeterminateTint="@color/text_accent"
                     android:visibility="gone"/>
 
                 <!-- 错误提示 -->

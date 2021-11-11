@@ -181,7 +181,6 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
                     @Override
                     public void handleFailure(Module module, ModuleError error) {
                         // 消息错误，更新显示状态
-
                     }
                 });
     }
@@ -192,7 +191,9 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
                 new DefaultSendHandler<Conversation, FileMessage>(true) {
                 @Override
                 public void handleProcessing(Conversation destination, FileMessage message) {
-                    // Nothing
+                    // 将消息添加到界面
+                    adapter.addLastItem(message);
+                    moveToBottom();
                 }
 
                 @Override
@@ -207,6 +208,9 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
                 @Override
                 public void handleSent(Conversation destination, FileMessage message) {
                     LogUtils.d(this.getClass().getSimpleName(), "#sendFileMessage - handleSent");
+
+                    // 更新状态
+                    updateMessageStatus(message);
                 }
             }, new DefaultFailureHandler(true) {
                 @Override
@@ -218,6 +222,19 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
 
     private void moveToBottom() {
         getView().getMessageListView().smoothMoveToPosition(this.adapter.getData().size() - 1);
+    }
+
+    private void updateMessageStatus(Message message) {
+        List<Message> list = adapter.getData();
+        for (int i = 0, length = list.size(); i < length; ++i) {
+            Message current = list.get(i);
+            if (current.id.longValue() == message.id.longValue()) {
+                list.remove(i);
+                list.add(i, message);
+                adapter.notifyDataSetChangedWrapper();
+                break;
+            }
+        }
     }
 
     @Override

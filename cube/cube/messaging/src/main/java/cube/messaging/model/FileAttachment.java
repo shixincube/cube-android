@@ -78,6 +78,11 @@ public class FileAttachment implements JSONable {
     private List<FileThumbnail> thumbs;
 
     /**
+     * 是否禁止使用缩略图功能。
+     */
+    private boolean disableThumb = false;
+
+    /**
      * 构造函数。
      *
      * @param file
@@ -320,6 +325,14 @@ public class FileAttachment implements JSONable {
         return -1;
     }
 
+    public void enableThumb(boolean value) {
+        this.disableThumb = !value;
+    }
+
+    public boolean thumbDisabled() {
+        return this.disableThumb;
+    }
+
     public void setAnchor(FileAnchor anchor) {
         this.anchor = anchor;
     }
@@ -333,7 +346,14 @@ public class FileAttachment implements JSONable {
     }
 
     public void update(FileAttachment attachment) {
-
+        if (null != attachment.thumbs && !attachment.thumbs.isEmpty()) {
+            if (null == this.thumbs) {
+                this.thumbs = new ArrayList<>(attachment.thumbs);
+            }
+            else {
+                this.thumbs.addAll(attachment.thumbs);
+            }
+        }
     }
 
     @Override

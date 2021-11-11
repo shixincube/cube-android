@@ -67,7 +67,6 @@ import cube.core.handler.FailureHandler;
 import cube.core.handler.PipelineHandler;
 import cube.core.handler.StableFailureHandler;
 import cube.fileprocessor.FileProcessor;
-import cube.fileprocessor.model.FileThumbnail;
 import cube.filestorage.FileStorage;
 import cube.filestorage.handler.StableUploadFileHandler;
 import cube.filestorage.model.FileAnchor;
@@ -956,10 +955,11 @@ public class MessagingService extends Module {
 
         // 处理文件附件
         FileAttachment fileAttachment = message.getAttachment();
-        if (null != fileAttachment && fileAttachment.isImageType() && null != this.fileProcessor) {
+        if (null != fileAttachment && fileAttachment.isImageType()
+                && !fileAttachment.thumbDisabled() && null != this.fileProcessor) {
             // 生成缩略图
-            FileThumbnail fileThumbnail = this.fileProcessor.makeImageThumb(fileAttachment.getFile());
-            fileAttachment.setThumbnail(fileThumbnail);
+//            FileThumbnail fileThumbnail = this.fileProcessor.makeImageThumb(fileAttachment.getFile());
+//            fileAttachment.setThumbnail(fileThumbnail);
         }
 
         this.execute(() -> {

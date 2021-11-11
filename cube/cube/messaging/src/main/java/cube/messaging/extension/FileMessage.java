@@ -49,6 +49,7 @@ public class FileMessage extends TypeableMessage {
 
         // 创建消息附件
         FileAttachment attachment = new FileAttachment(file);
+        attachment.enableThumb(false);
         this.setAttachment(attachment);
 
         try {

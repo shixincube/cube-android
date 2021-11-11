@@ -68,24 +68,52 @@ public class StructStorage extends AbstractStorage {
     public void writeFileLabel(FileLabel fileLabel) {
         SQLiteDatabase db = this.getWritableDatabase();
 
-        ContentValues values = new ContentValues();
-        values.put("id", fileLabel.id);
-        values.put("timestamp", fileLabel.getTimestamp());
-        values.put("owner", fileLabel.getOwnerId());
-        values.put("file_code", fileLabel.getFileCode());
-        values.put("file_path", fileLabel.getFilePath());
-        values.put("file_name", fileLabel.getFileName());
-        values.put("file_size", fileLabel.getFileSize());
-        values.put("last_modified", fileLabel.getLastModified());
-        values.put("completed_time", fileLabel.getCompletedTime());
-        values.put("expiry_time", fileLabel.getExpiryTime());
-        values.put("file_type", fileLabel.getFileType());
-        values.put("md5", fileLabel.getMd5Code());
-        values.put("sha1", fileLabel.getSha1Code());
-        values.put("file_url", fileLabel.getURL());
-        values.put("file_secure_url", fileLabel.getSecureURL());
+        Cursor cursor = db.query("file_label", new String[]{ "id" },
+                "id=?", new String[]{ fileLabel.id.toString() }, null, null, null);
+        if (cursor.moveToFirst()) {
+            cursor.close();
 
-        db.insert("file_label", null, values);
+            ContentValues values = new ContentValues();
+            values.put("timestamp", fileLabel.getTimestamp());
+            values.put("owner", fileLabel.getOwnerId());
+            values.put("file_code", fileLabel.getFileCode());
+            values.put("file_path", fileLabel.getFilePath());
+            values.put("file_name", fileLabel.getFileName());
+            values.put("file_size", fileLabel.getFileSize());
+            values.put("last_modified", fileLabel.getLastModified());
+            values.put("completed_time", fileLabel.getCompletedTime());
+            values.put("expiry_time", fileLabel.getExpiryTime());
+            values.put("file_type", fileLabel.getFileType());
+            values.put("md5", fileLabel.getMd5Code());
+            values.put("sha1", fileLabel.getSha1Code());
+            values.put("file_url", fileLabel.getURL());
+            values.put("file_secure_url", fileLabel.getSecureURL());
+            // update
+            db.update("file_label", values,
+                    "id=?", new String[]{ fileLabel.id.toString() });
+        }
+        else {
+            cursor.close();
+
+            ContentValues values = new ContentValues();
+            values.put("id", fileLabel.id);
+            values.put("timestamp", fileLabel.getTimestamp());
+            values.put("owner", fileLabel.getOwnerId());
+            values.put("file_code", fileLabel.getFileCode());
+            values.put("file_path", fileLabel.getFilePath());
+            values.put("file_name", fileLabel.getFileName());
+            values.put("file_size", fileLabel.getFileSize());
+            values.put("last_modified", fileLabel.getLastModified());
+            values.put("completed_time", fileLabel.getCompletedTime());
+            values.put("expiry_time", fileLabel.getExpiryTime());
+            values.put("file_type", fileLabel.getFileType());
+            values.put("md5", fileLabel.getMd5Code());
+            values.put("sha1", fileLabel.getSha1Code());
+            values.put("file_url", fileLabel.getURL());
+            values.put("file_secure_url", fileLabel.getSecureURL());
+            // insert
+            db.insert("file_label", null, values);
+        }
 
         this.closeWritableDatabase(db);
     }

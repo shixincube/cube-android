@@ -46,6 +46,7 @@ import java.util.List;
 import cube.messaging.extension.FileMessage;
 import cube.messaging.extension.HyperTextMessage;
 import cube.messaging.model.Message;
+import cube.messaging.model.MessageState;
 
 /**
  * 消息面板数据适配器。
@@ -134,6 +135,15 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
             helper.setText(R.id.tvTitle, message.getFileName());
             helper.setText(R.id.tvDescription, CalculationUtils.formatByteDataSize(message.getFileSize()));
             helper.setImageResource(R.id.ivThumb, UIUtils.getFileIcon(message.getFileType()));
+            // 显示正在发送进度
+            if (message.isSelfTyper()) {
+                if (message.getState() == MessageState.Sending) {
+                    helper.setViewVisibility(R.id.pbSending, View.VISIBLE);
+                }
+                else {
+                    helper.setViewVisibility(R.id.pbSending, View.GONE);
+                }
+            }
         }
         else {
             // TODO

@@ -96,7 +96,7 @@ public class CubeEngine {
         Log.i("CubeEngine", "#start : " + this.config.print());
 
         // 线程池赋值
-        Promise.sExecutor = Executors.newCachedThreadPool();
+        Promise.setExecutor(Executors.newCachedThreadPool());
 
         this.started = this.kernel.startup(context, this.config, new KernelHandler() {
             @Override
@@ -125,7 +125,7 @@ public class CubeEngine {
     public void stop() {
         this.kernel.shutdown();
 
-        Promise.sExecutor.shutdown();
+        Promise.getExecutor().shutdown();
     }
 
     public void suspend() {

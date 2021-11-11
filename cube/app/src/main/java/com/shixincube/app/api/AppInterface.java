@@ -33,10 +33,12 @@ import com.shixincube.app.model.response.RegisterResponse;
 
 import io.reactivex.rxjava3.core.Observable;
 import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.Query;
+import retrofit2.http.Url;
 
 /**
  * 应用程序接口。
@@ -88,4 +90,13 @@ public interface AppInterface {
      */
     @GET("/account/info/")
     Observable<AccountInfoResponse> getAccountInfo(@Query("id") Long id, @Query("token") String token);
+
+    /**
+     * 下载文件。
+     *
+     * @param url
+     * @return
+     */
+    @GET
+    Observable<ResponseBody> download(@Url String url);
 }

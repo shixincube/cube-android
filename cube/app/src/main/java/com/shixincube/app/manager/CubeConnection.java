@@ -91,7 +91,9 @@ public class CubeConnection implements ServiceConnection {
                 signIn(() -> {
                     // 暖机
                     LogUtils.i("CubeApp", "Engine warmup");
+                    long timestamp = System.currentTimeMillis();
                     CubeEngine.getInstance().warmup();
+                    LogUtils.i("CubeApp", "Engine warmup elapsed: " + (System.currentTimeMillis() - timestamp) + " ms");
 
                     if (null != successHandler) {
                         successHandler.run();

@@ -139,6 +139,10 @@ public final class UIUtils {
         return getResources().getString(stringId, formatArgs);
     }
 
+    public static String getPackageName() {
+        return getContext().getPackageName();
+    }
+
     /**
      * 获取文件类型对应的图标。
      *

@@ -87,6 +87,10 @@ public class Explorer {
         return Explorer.instance;
     }
 
+    public AppInterface getAppInterface() {
+        return this.api;
+    }
+
     /**
      * 校验手机号码是否有效。
      *

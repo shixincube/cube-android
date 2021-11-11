@@ -82,7 +82,7 @@
                         android:layout_height="60dp"
                         android:layout_margin="10dp"
                         android:src="@mipmap/ic_file"
-                        auto:corner_radius="6dp"/>
+                        auto:corner_radius="4dp"/>
 
                     <LinearLayout
                         android:layout_width="wrap_content"

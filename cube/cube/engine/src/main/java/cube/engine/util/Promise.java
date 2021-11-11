@@ -33,10 +33,7 @@ import java.util.concurrent.ExecutorService;
  */
 public class Promise<T> {
 
-    /**
-     * @private
-     */
-    public static ExecutorService sExecutor;
+    protected static ExecutorService sExecutor;
 
     protected PromiseHandler<T> promiseHandler;
 
@@ -51,6 +48,24 @@ public class Promise<T> {
     protected Promise(PromiseHandler<T> promiseHandler) {
         this.promiseHandler = promiseHandler;
         this.promiseFuture = new PromiseFuture<T>(this);
+    }
+
+    /**
+     * 设置执行器。
+     *
+     * @param executor
+     */
+    public static void setExecutor(ExecutorService executor) {
+        sExecutor = executor;
+    }
+
+    /**
+     * 返回执行器实例。
+     *
+     * @return 返回执行器实例。
+     */
+    public static ExecutorService getExecutor() {
+        return sExecutor;
     }
 
     /**

@@ -26,6 +26,8 @@
 
 package com.shixincube.app;
 
+import com.shixincube.app.util.FileUtils;
+
 /**
  * 应用程序常量。
  */
@@ -55,4 +57,9 @@ public final class AppConsts {
      * 令牌对应的账号。
      */
     public final static String APP_ACCOUNT = "AppAccount";
+
+    /**
+     * 图片保存位置。
+     */
+    public final static String IMAGE_DIR = FileUtils.getDir("image");
 }

@@ -26,6 +26,8 @@
 
 package cube.filestorage.model;
 
+import android.os.Build;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -199,11 +201,23 @@ public class FileLabel extends Entity {
     }
 
     public String getURL() {
-        return this.fileURL + "&token=" + Kernel.getDefault().getAuthToken().code;
+        String url = this.fileURL;
+        if (Build.SERIAL.contains("unknown")) {
+            // FIXME 以下判断仅用于测试，Release 时务必使用域名
+            // 模拟器里将 127.0.0.1 修改为 10.0.2.2
+            url = this.fileURL.replace("127.0.0.1", "10.0.2.2");
+        }
+        return url + "&token=" + Kernel.getDefault().getAuthToken().code + "&type=" + this.fileType;
     }
 
     public String getSecureURL() {
-        return this.fileSecureURL + "&token=" + Kernel.getDefault().getAuthToken().code;
+        String url = this.fileSecureURL;
+        if (Build.SERIAL.contains("unknown")) {
+            // FIXME 以下判断仅用于测试，Release 时务必使用域名
+            // 模拟器里将 127.0.0.1 修改为 10.0.2.2
+            url = this.fileSecureURL.replace("127.0.0.1", "10.0.2.2");
+        }
+        return url + "&token=" + Kernel.getDefault().getAuthToken().code + "&type=" + this.fileType;
     }
 
     public void setFilePath(String filePath) {

@@ -88,13 +88,21 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
             return false;
         }
 
+        StringBuilder buf = new StringBuilder();
         if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())
             || !Environment.isExternalStorageRemovable()) {
-            this.fileCachePath = getContext().getExternalCacheDir().getPath();
+            buf.append(getContext().getExternalCacheDir().getAbsolutePath());
+            buf.append(File.separator);
+            buf.append("Android/data/");
+            buf.append(getContext().getPackageName());
+            buf.append(File.separator);
         }
         else {
-            this.fileCachePath = getContext().getCacheDir().getPath();
+            buf.append(getContext().getCacheDir().getAbsoluteFile());
+            buf.append(File.separator);
         }
+        buf.append("cube_file").append(File.separator);
+        this.fileCachePath = buf.toString();
 
         ContactService contactService = (ContactService) this.kernel.getModule(ContactService.NAME);
         contactService.attachWithName(ContactServiceEvent.SelfReady, this);

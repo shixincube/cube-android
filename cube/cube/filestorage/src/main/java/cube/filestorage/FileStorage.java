@@ -91,7 +91,7 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
         StringBuilder buf = new StringBuilder();
         if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())
             || !Environment.isExternalStorageRemovable()) {
-            buf.append(getContext().getExternalCacheDir().getAbsolutePath());
+            buf.append(Environment.getExternalStorageDirectory().getAbsolutePath());
             buf.append(File.separator);
             buf.append("Android/data/");
             buf.append(getContext().getPackageName());
@@ -152,6 +152,15 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
             this.fileURL = this.fileURL.replace("127.0.0.1", "10.0.2.2");
             this.fileSecureURL = this.fileSecureURL.replace("127.0.0.1", "10.0.2.2");
         }
+    }
+
+    /**
+     * 获取文件缓存路径。
+     *
+     * @return 返回文件缓存路径。
+     */
+    public String getFileCachePath() {
+        return this.fileCachePath;
     }
 
     /**

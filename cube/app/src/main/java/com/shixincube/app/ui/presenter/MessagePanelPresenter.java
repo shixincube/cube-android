@@ -162,15 +162,20 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
         CubeEngine.getInstance().getMessagingService().sendMessage(conversation, textMessage,
                 new DefaultSendHandler<Conversation, HyperTextMessage>(true) {
                     @Override
-                    public void handleSending(Conversation destination, HyperTextMessage message) {
+                    public void handleProcessing(Conversation destination, HyperTextMessage message) {
                         // 将消息添加到界面
                         adapter.addLastItem(message);
                         moveToBottom();
                     }
 
                     @Override
+                    public void handleSending(Conversation destination, HyperTextMessage message) {
+                        // Nothing
+                    }
+
+                    @Override
                     public void handleSent(Conversation destination, HyperTextMessage message) {
-                        // 更新状态
+                        // Nothing
                     }
                 }, new DefaultFailureHandler(true) {
                     @Override
@@ -183,26 +188,32 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
 
     public void sendFileMessage(File rawFile) {
         FileMessage fileMessage = new FileMessage(rawFile);
-        CubeEngine.getInstance().getMessagingService().sendMessage(conversation, fileMessage, new DefaultSendHandler<Conversation, FileMessage>(true) {
-            @Override
-            public void handleSending(Conversation destination, FileMessage message) {
-                long processedSize = message.getProcessedSize();
-                if (processedSize >= 0) {
-                    LogUtils.d(this.getClass().getSimpleName(), "#sendFileMessage - handleSending : " +
-                            processedSize + "/" + message.getFileSize());
+        CubeEngine.getInstance().getMessagingService().sendMessage(conversation, fileMessage,
+                new DefaultSendHandler<Conversation, FileMessage>(true) {
+                @Override
+                public void handleProcessing(Conversation destination, FileMessage message) {
+                    // Nothing
                 }
-            }
 
-            @Override
-            public void handleSent(Conversation destination, FileMessage message) {
-                LogUtils.d(this.getClass().getSimpleName(), "#sendFileMessage - handleSent");
-            }
-        }, new DefaultFailureHandler(true) {
-            @Override
-            public void handleFailure(Module module, ModuleError error) {
-                LogUtils.i(this.getClass().getSimpleName(), "#sendFileMessage - handleFailure : " + error.code);
-            }
-        });
+                @Override
+                public void handleSending(Conversation destination, FileMessage message) {
+                    long processedSize = message.getProcessedSize();
+                    if (processedSize >= 0) {
+                        LogUtils.d(this.getClass().getSimpleName(), "#sendFileMessage - handleSending : " +
+                                processedSize + "/" + message.getFileSize());
+                    }
+                }
+
+                @Override
+                public void handleSent(Conversation destination, FileMessage message) {
+                    LogUtils.d(this.getClass().getSimpleName(), "#sendFileMessage - handleSent");
+                }
+            }, new DefaultFailureHandler(true) {
+                @Override
+                public void handleFailure(Module module, ModuleError error) {
+                    LogUtils.i(this.getClass().getSimpleName(), "#sendFileMessage - handleFailure : " + error.code);
+                }
+            });
     }
 
     private void moveToBottom() {

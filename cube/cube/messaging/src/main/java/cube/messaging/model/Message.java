@@ -414,6 +414,11 @@ public class Message extends Entity {
                 if (attachment.has("anchor")) {
                     attachment.getJSONObject("anchor").remove("filePath");
                 }
+
+                if (attachment.has("thumbnail")) {
+                    // 删除本地数据
+                    attachment.remove("thumbnail");
+                }
             } catch (JSONException e) {
                 e.printStackTrace();
             }

@@ -66,6 +66,8 @@ import cube.core.handler.DefaultFailureHandler;
 import cube.core.handler.FailureHandler;
 import cube.core.handler.PipelineHandler;
 import cube.core.handler.StableFailureHandler;
+import cube.fileprocessor.FileProcessor;
+import cube.fileprocessor.model.FileThumbnail;
 import cube.filestorage.FileStorage;
 import cube.filestorage.handler.StableUploadFileHandler;
 import cube.filestorage.model.FileAnchor;
@@ -106,6 +108,8 @@ public class MessagingService extends Module {
     private ContactService contactService;
 
     private FileStorage fileStorage;
+
+    private FileProcessor fileProcessor;
 
     private MessagingRecentEventListener recentEventListener;
 
@@ -164,10 +168,16 @@ public class MessagingService extends Module {
             return false;
         }
 
-        // 尝试启用文件存储器
+        // 启用文件存储器
         if (this.kernel.hasModule(FileStorage.NAME)) {
             this.fileStorage = (FileStorage) this.kernel.getModule(FileStorage.NAME);
             this.fileStorage.start();
+        }
+
+        // 启动文件处理器
+        if (this.kernel.hasModule(FileProcessor.NAME)) {
+            this.fileProcessor = (FileProcessor) this.kernel.getModule(FileProcessor.NAME);
+            this.fileProcessor.start();
         }
 
         // 组装插件
@@ -646,6 +656,10 @@ public class MessagingService extends Module {
 
         this.sendMessage(conversation, message, new DefaultSendHandler<Conversation, T>(false) {
             @Override
+            public void handleProcessing(Conversation destination, T processingMessage) {
+                // Nothing
+            }
+            @Override
             public void handleSending(Conversation destination, T sendingMessage) {
                 // Nothing
             }
@@ -685,6 +699,10 @@ public class MessagingService extends Module {
 
         this.sendMessage(contact, message, new DefaultSendHandler<Contact, T>(false) {
             @Override
+            public void handleProcessing(Contact destination, T processingMessage) {
+                // Nothing
+            }
+            @Override
             public void handleSending(Contact destination, T sendingMessage) {
                 // Nothing
             }
@@ -723,6 +741,10 @@ public class MessagingService extends Module {
         final Object mutex = new Object();
 
         this.sendMessage(group, message, new DefaultSendHandler<Group, T>(false) {
+            @Override
+            public void handleProcessing(Group destination, T processingMessage) {
+                // Nothing
+            }
             @Override
             public void handleSending(Group destination, T sendingMessage) {
                 // Nothing
@@ -765,6 +787,11 @@ public class MessagingService extends Module {
         if (ConversationType.Contact == conversation.getType()) {
             this.sendMessage(conversation.getContact(), message, new SendHandler<Contact, T>() {
                 @Override
+                public void handleProcessing(Contact destination, T message) {
+                    sendHandler.handleProcessing(conversation, message);
+                }
+
+                @Override
                 public void handleSending(Contact destination, T message) {
                     sendHandler.handleSending(conversation, message);
                 }
@@ -787,6 +814,11 @@ public class MessagingService extends Module {
         }
         else if (ConversationType.Group == conversation.getType()) {
             this.sendMessage(conversation.getGroup(), message, new SendHandler<Group, T>() {
+                @Override
+                public void handleProcessing(Group destination, T message) {
+                    sendHandler.handleProcessing(conversation, message);
+                }
+
                 @Override
                 public void handleSending(Group destination, T message) {
                     sendHandler.handleSending(conversation, message);
@@ -828,88 +860,59 @@ public class MessagingService extends Module {
         this.fillMessage(message);
 
         // 异步执行发送流程
-        this.execute(new Runnable() {
-            @Override
-            public void run() {
-                // 进行发送处理
-                processSend(message, new MessageHandler<T>() {
-                    @Override
-                    public void handleMessage(T message) {
-                        // 正在处理消息
-                        if (sendHandler.isInMainThread()) {
-                            executeOnMainThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    sendHandler.handleSending(contact, message);
-                                }
-                            });
-                        }
-                        else {
+        this.execute(() -> {
+            processSend(message, new MessageHandler<T>() {
+                @Override
+                public void handleMessage(T message) {
+                    // 正在处理消息
+                    if (sendHandler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            sendHandler.handleProcessing(contact, message);
+                        });
+                    }
+                    else {
+                        sendHandler.handleProcessing(contact, message);
+                    }
+                }
+            }, new MessageHandler<T>() {
+                @Override
+                public void handleMessage(T message) {
+                    // 正在发送消息
+                    if (sendHandler.isInMainThread()) {
+                        executeOnMainThread(() -> {
                             sendHandler.handleSending(contact, message);
-                        }
+                        });
                     }
-                }, new MessageHandler<T>() {
-                    @Override
-                    public void handleMessage(T message) {
-                        // 消息已发送
-                        if (sendHandler.isInMainThread()) {
-                            executeOnMainThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    sendHandler.handleSent(contact, message);
-                                }
-                            });
-                        }
-                        else {
+                    else {
+                        sendHandler.handleSending(contact, message);
+                    }
+                }
+            }, new MessageHandler<T>() {
+                @Override
+                public void handleMessage(T message) {
+                    // 消息已发送
+                    if (sendHandler.isInMainThread()) {
+                        executeOnMainThread(() -> {
                             sendHandler.handleSent(contact, message);
-                        }
+                        });
                     }
-                }, new StableFailureHandler() {
-                    @Override
-                    public void handleFailure(Module module, ModuleError error) {
-                        if (failureHandler.isInMainThread()) {
-                            executeOnMainThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    failureHandler.handleFailure(module, error);
-                                }
-                            });
-                        }
-                        else {
+                    else {
+                        sendHandler.handleSent(contact, message);
+                    }
+                }
+            }, new StableFailureHandler() {
+                @Override
+                public void handleFailure(Module module, ModuleError error) {
+                    if (failureHandler.isInMainThread()) {
+                        executeOnMainThread(() -> {
                             failureHandler.handleFailure(module, error);
-                        }
+                        });
                     }
-                });
-            }
-        });
-
-        // 回调正在处理
-        if (sendHandler.isInMainThread()) {
-            this.executeOnMainThread(new Runnable() {
-                @Override
-                public void run() {
-                    // 回调
-                    sendHandler.handleSending(contact, message);
+                    else {
+                        failureHandler.handleFailure(module, error);
+                    }
                 }
             });
-        }
-        else {
-            this.execute(new Runnable() {
-                @Override
-                public void run() {
-                    // 回调
-                    sendHandler.handleSending(contact, message);
-                }
-            });
-        }
-
-        // 产生事件
-        this.execute(new Runnable() {
-            @Override
-            public void run() {
-                ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Sending, message);
-                notifyObservers(event);
-            }
         });
     }
 
@@ -935,16 +938,37 @@ public class MessagingService extends Module {
     }
 
     /**
+     * 进行发送处理。
      *
      * @param message
-     * @param processingHandler 消息正在处理。如果消息带附件，该方法在处理附件时会被多次调用。
+     * @param processingHandler 消息正在进行数据处理。例如，生成缩略图操作。
+     * @param sendingHandler 消息正在发送。如果消息带附件，该方法在处理附件时会被多次调用。
      * @param completionHandler 消息发送完成。
      * @param failureHandler
      */
-    private void processSend(Message message, MessageHandler processingHandler,
-                             MessageHandler completionHandler, FailureHandler failureHandler) {
+    private void processSend(Message message,
+                             MessageHandler processingHandler,
+                             MessageHandler sendingHandler,
+                             MessageHandler completionHandler,
+                             FailureHandler failureHandler) {
         // 加入正在发送队列
         this.sendingList.offer(message);
+
+        // 处理文件附件
+        FileAttachment fileAttachment = message.getAttachment();
+        if (null != fileAttachment && fileAttachment.isImageType() && null != this.fileProcessor) {
+            // 生成缩略图
+            FileThumbnail fileThumbnail = this.fileProcessor.makeImageThumb(fileAttachment.getFile());
+            fileAttachment.setThumbnail(fileThumbnail);
+        }
+
+        this.execute(() -> {
+            processingHandler.handleMessage(message);
+
+            // 产生事件
+            ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Processing, message);
+            notifyObservers(event);
+        });
 
         if (!this.pipeline.isReady()) {
             // 修改状态
@@ -955,29 +979,21 @@ public class MessagingService extends Module {
 
             // 不从正在发送列表删除该消息
 
-            this.execute(new Runnable() {
-                @Override
-                public void run() {
-                    ModuleError error = new ModuleError(MessagingService.NAME, MessagingServiceState.PipelineFault.code);
-                    failureHandler.handleFailure(MessagingService.this, error);
+            this.execute(() -> {
+                ModuleError error = new ModuleError(MessagingService.NAME, MessagingServiceState.PipelineFault.code);
+                failureHandler.handleFailure(MessagingService.this, error);
 
-                    // 产生事件
-                    ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Fault, error);
-                    notifyObservers(event);
-                }
+                // 产生事件
+                ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Fault, error);
+                notifyObservers(event);
             });
 
             return;
         }
 
         // 处理文件附件
-        FileAttachment fileAttachment = message.getAttachment();
         if (null != fileAttachment) {
-            if (fileAttachment.isImageType()) {
-                // 生成缩略图
-                // TODO
-            }
-
+            // 上传附录里的文件
             this.uploadAttachment(fileAttachment, new StableUploadFileHandler() {
                 @Override
                 public void handleStarted(FileAnchor anchor) {
@@ -986,7 +1002,11 @@ public class MessagingService extends Module {
 
                 @Override
                 public void handleProcessing(FileAnchor anchor) {
-                    processingHandler.handleMessage(message);
+                    sendingHandler.handleMessage(message);
+
+                    // 产生事件
+                    ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Sending, message);
+                    notifyObservers(event);
                 }
 
                 @Override
@@ -1011,6 +1031,15 @@ public class MessagingService extends Module {
                     e.printStackTrace();
                 }
             }
+        }
+        else {
+            this.execute(() -> {
+                sendingHandler.handleMessage(message);
+
+                // 产生事件
+                ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Sending, message);
+                notifyObservers(event);
+            });
         }
 
         Packet packet = new Packet(MessagingAction.Push, message.toCompactJSON());
@@ -1052,6 +1081,13 @@ public class MessagingService extends Module {
                     // 更新时间戳
                     if (message.getRemoteTimestamp() > lastMessageTime) {
                         lastMessageTime = message.getRemoteTimestamp();
+                    }
+
+                    // 服务器会为生成缩略图的附件生成缩略图，因此服务器会返回生成后的缩略图信息。
+                    // 更新附件，将服务器上的缩略图信息更新到数据库和实例里
+                    if (null != fileAttachment && data.has("attachment")) {
+                        FileAttachment responseAttachment = new FileAttachment(data.getJSONObject("attachment"));
+                        message.getAttachment().update(responseAttachment);
                     }
 
                     // 更新数据库

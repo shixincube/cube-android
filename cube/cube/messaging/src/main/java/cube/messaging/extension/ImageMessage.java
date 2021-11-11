@@ -35,43 +35,43 @@ import cube.messaging.model.Message;
 import cube.messaging.model.MessageType;
 
 /**
- * 仅包含单个文件的消息。
+ * 仅包含单个图像文件的消息。
  */
-public class FileMessage extends TypeableMessage {
+public class ImageMessage extends TypeableMessage {
 
     /**
      * 构造函数。
      *
      * @param file 指定文件。
      */
-    public FileMessage(File file) {
-        super(MessageType.File);
+    public ImageMessage(File file) {
+        super(MessageType.Image);
 
         // 创建消息附件
         FileAttachment attachment = new FileAttachment(file);
         this.setAttachment(attachment);
 
         try {
-            this.payload.put("type", MessageTypeName.File);
+            this.payload.put("type", MessageTypeName.Image);
         } catch (JSONException e) {
             // Nothing
         }
 
-        this.summary = "[文件] " + file.getName();
+        this.summary = "[图片]";
     }
 
-    public FileMessage(Message message) {
-        super(message, MessageType.File);
+    public ImageMessage(Message message) {
+        super(message, MessageType.Image);
 
         try {
             if (!this.payload.has("type")) {
-                this.payload.put("type", MessageTypeName.File);
+                this.payload.put("type", MessageTypeName.Image);
             }
         } catch (JSONException e) {
             // Nothing
         }
 
-        this.summary = "[文件] " + message.getAttachment().getFileName();
+        this.summary = "[图片]";
     }
 
     /**

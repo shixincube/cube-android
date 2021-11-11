@@ -35,6 +35,14 @@ import cube.messaging.model.Message;
 public interface SendHandler <DestinationType, MessageInstanceType extends Message> extends CallbackHandler {
 
     /**
+     * 当消息正在进行数据处理时调用。
+     *
+     * @param destination
+     * @param message
+     */
+    void handleProcessing(DestinationType destination, MessageInstanceType message);
+
+    /**
      * 当消息正在发送时回调。
      *
      * @param destination

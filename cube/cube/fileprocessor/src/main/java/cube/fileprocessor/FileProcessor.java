@@ -35,6 +35,9 @@ import java.util.List;
 
 import cube.core.Module;
 import cube.fileprocessor.biscuit.Biscuit;
+import cube.fileprocessor.model.FileThumbnail;
+import cube.filestorage.FileStorage;
+import cube.util.LogUtils;
 
 /**
  * 文件处理模块。
@@ -43,8 +46,31 @@ public class FileProcessor extends Module {
 
     public final static String NAME = "FileProcessor";
 
+    private String cacheDir;
+
     public FileProcessor() {
-        super(NAME);
+        super(FileProcessor.NAME);
+    }
+
+    @Override
+    public boolean start() {
+        if (!super.start()) {
+            return false;
+        }
+
+        if (this.kernel.hasModule(FileStorage.NAME)) {
+            FileStorage fileStorage = (FileStorage) this.kernel.getModule(FileStorage.NAME);
+            fileStorage.start();
+
+            this.cacheDir = fileStorage.getFileCachePath() + "cache/";
+        }
+        else {
+            this.cacheDir = getContext().getCacheDir().getAbsoluteFile() + "/cache/";
+        }
+
+        LogUtils.d(this.getClass().getSimpleName(), "Cache path: " + this.cacheDir);
+
+        return true;
     }
 
     @Override
@@ -56,11 +82,18 @@ public class FileProcessor extends Module {
         return true;
     }
 
-    public String makeImageThumb(File file) {
+    public FileThumbnail makeImageThumb(File file) {
         List<String> list = Biscuit.with(getContext())
                 .path(file.getPath())
+                .targetDir(this.cacheDir)
+                .originalName(true)
+                .ignoreLessThan(100)
                 .build()
                 .syncCompress();
-        return list.get(0);
+        String path = list.get(0);
+
+
+
+        return null;
     }
 }

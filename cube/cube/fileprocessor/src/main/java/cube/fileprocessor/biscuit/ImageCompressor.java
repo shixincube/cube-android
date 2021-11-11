@@ -175,9 +175,11 @@ public class ImageCompressor implements Compressor {
         if (useOriginalName && !TextUtils.isEmpty(sourcePath.name)) {
             cacheBuilder.append(sourcePath.name);
         } else {
-            cacheBuilder.append("biscuitCache").append(System.currentTimeMillis());
+            cacheBuilder.append("compressed_").append(System.currentTimeMillis());
         }
-        cacheBuilder.append(TextUtils.isEmpty(sourcePath.type) ? Utils.JPG : sourcePath.type);
+        // 修改为 jpg 后缀
+        cacheBuilder.append(Utils.JPG);
+//        cacheBuilder.append(TextUtils.isEmpty(sourcePath.type) ? Utils.JPG : sourcePath.type);
         return cacheBuilder.toString();
     }
 

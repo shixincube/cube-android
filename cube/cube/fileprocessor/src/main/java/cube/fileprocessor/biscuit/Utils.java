@@ -41,7 +41,7 @@ public class Utils {
     static int DEFAULT_HEIGHT_QUALITY = 82;
     static int DEFAULT_X_HEIGHT_QUALITY = 88;
     static int DEFAULT_XX_HEIGHT_QUALITY = 94;
-    static boolean loggingEnabled = true;
+    static boolean loggingEnabled = false;
 
     static {
         format.add(JPG);
@@ -128,7 +128,7 @@ public class Utils {
 
     static void log(String tag, String msg) {
         if (loggingEnabled) {
-            Log.e(tag, msg);
+            Log.d(tag, msg);
         }
     }
 

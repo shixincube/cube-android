@@ -136,6 +136,16 @@ public class CubeEngine {
 
     }
 
+    public void warmup() {
+        // 加载默认联系人分区
+        this.getContactService().getDefaultContactZone();
+
+        // 让最近的最前面的会话预加载数据
+        // 预加载最近 10 个会话的消息，每个会话预加载 10 条
+        this.getMessagingService().setPreloadConversationMessageNum(10, 10);
+        this.getMessagingService().getRecentConversations();
+    }
+
     /**
      * 引擎是否已启动。
      *

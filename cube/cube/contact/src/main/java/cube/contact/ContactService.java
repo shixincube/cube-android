@@ -39,7 +39,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import cube.auth.AuthToken;
 import cube.contact.handler.ContactAppendixHandler;
@@ -48,7 +47,6 @@ import cube.contact.handler.ContactListHandler;
 import cube.contact.handler.ContactZoneHandler;
 import cube.contact.handler.ContactZoneListHandler;
 import cube.contact.handler.DefaultContactAppendixHandler;
-import cube.contact.handler.DefaultContactHandler;
 import cube.contact.handler.DefaultContactZoneHandler;
 import cube.contact.handler.GroupListHandler;
 import cube.contact.handler.SignHandler;
@@ -863,48 +861,9 @@ public class ContactService extends Module {
     }
 
     private void fillContactZone(final ContactZone zone) {
-        AtomicInteger count = new AtomicInteger(zone.getParticipants().size());
-
-        ContactHandler successHandler = new DefaultContactHandler() {
-            @Override
-            public void handleContact(Contact contact) {
-                zone.matchContact(contact);
-
-                if (0 == count.decrementAndGet()) {
-                    synchronized (count) {
-                        count.notify();
-                    }
-                }
-            }
-        };
-
-        FailureHandler failureHandler = new StableFailureHandler() {
-            @Override
-            public void handleFailure(Module module, ModuleError error) {
-                if (0 == count.decrementAndGet()) {
-                    synchronized (count) {
-                        count.notify();
-                    }
-                }
-            }
-        };
-
         for (ContactZoneParticipant participant : zone.getParticipants()) {
             if (null == participant.getContact()) {
-                this.getContact(participant.getContactId(), successHandler, failureHandler);
-            }
-            else {
-                count.decrementAndGet();
-            }
-        }
-
-        if (count.get() > 0) {
-            synchronized (count) {
-                try {
-                    count.wait(this.blockingTimeout * 2L);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                participant.setContact(this.getContact(participant.getContactId()));
             }
         }
     }

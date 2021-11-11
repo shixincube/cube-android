@@ -26,19 +26,16 @@
 
 package com.shixincube.app.ui.presenter;
 
+import static android.content.Context.BIND_AUTO_CREATE;
+
 import android.content.Intent;
 
 import com.shixincube.app.CubeApp;
-import com.shixincube.app.manager.AccountHelper;
-import com.shixincube.app.model.Account;
+import com.shixincube.app.manager.CubeConnection;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.MainView;
 
-import cube.contact.ContactService;
-import cube.contact.handler.SignHandler;
-import cube.contact.model.Self;
-import cube.core.ModuleError;
 import cube.engine.CubeEngine;
 import cube.engine.CubeService;
 import cube.util.LogUtils;
@@ -51,16 +48,15 @@ public class MainPresenter extends BasePresenter<MainView> {
     public MainPresenter(BaseActivity activity) {
         super(activity);
 
-        this.checkAndSignIn();
+        this.check();
     }
 
     /**
      * 检查魔方引擎服务是否启动，如果没有启动则启动
      */
-    private void checkAndSignIn() {
+    private void check() {
         if (CubeEngine.getInstance().hasStarted()) {
             // 已启动
-            this.signIn();
             return;
         }
 
@@ -73,45 +69,11 @@ public class MainPresenter extends BasePresenter<MainView> {
                 intent.setAction(CubeService.ACTION_START);
                 activity.startService(intent);
 
-                signIn();
+                // 在服务器里签入账号
+                CubeConnection connection = new CubeConnection();
+                intent = new Intent(activity, CubeService.class);
+                activity.bindService(intent, connection, BIND_AUTO_CREATE);
             }
         });
-    }
-
-    private void signIn() {
-        (new Thread() {
-            @Override
-            public void run() {
-                int count = 100;
-                while (!CubeEngine.getInstance().isReady()) {
-                    if ((--count) <= 0) {
-                        break;
-                    }
-
-                    try {
-                        Thread.sleep(10L);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                // 已启动，账号签入
-                Account account = AccountHelper.getInstance().getCurrentAccount();
-                boolean result = CubeEngine.getInstance().signIn(account.id, account.name, account.toJSON(), new SignHandler() {
-                    @Override
-                    public void handleSuccess(ContactService service, Self self) {
-                        LogUtils.i("CubeApp", "SignIn success");
-                    }
-
-                    @Override
-                    public void handleFailure(ContactService service, ModuleError error) {
-                        LogUtils.i("CubeApp", "SignIn failure");
-                    }
-                });
-                if (!result) {
-                    LogUtils.w("CubeApp", "SignIn error");
-                }
-            }
-        }).start();
     }
 }

@@ -46,9 +46,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import butterknife.BindView;
 import cube.engine.CubeService;
 import cube.engine.util.Future;
-import cube.engine.util.PromiseHandler;
 import cube.engine.util.Promise;
 import cube.engine.util.PromiseFuture;
+import cube.engine.util.PromiseHandler;
 import kr.co.namee.permissiongen.PermissionGen;
 
 /**
@@ -184,21 +184,18 @@ public class SplashActivity extends BaseActivity {
 
         // 监听引擎启动
         this.connection = new CubeConnection();
-        this.connection.setSuccessHandler(new Runnable() {
-            @Override
-            public void run() {
-                engineStarted.set(true);
-                synchronized (SplashActivity.this) {
-                    if (!jumpToMain) {
-                        if (valid) {
-                            jumpToMain = true;
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    jumpToActivityAndClearTask(MainActivity.class);
-                                }
-                            });
-                        }
+        this.connection.setSuccessHandler(() -> {
+            engineStarted.set(true);
+            synchronized (SplashActivity.this) {
+                if (!jumpToMain) {
+                    if (valid) {
+                        jumpToMain = true;
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                jumpToActivityAndClearTask(MainActivity.class);
+                            }
+                        });
                     }
                 }
             }

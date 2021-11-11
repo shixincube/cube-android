@@ -76,7 +76,7 @@ public class ContactZoneParticipant extends Entity {
         }
     }
 
-    protected void setContact(Contact contact) {
+    public void setContact(Contact contact) {
         synchronized (this) {
             this.contact = contact;
         }

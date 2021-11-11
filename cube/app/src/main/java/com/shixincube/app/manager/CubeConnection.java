@@ -32,14 +32,22 @@ import android.content.res.AssetManager;
 import android.os.IBinder;
 
 import com.shixincube.app.CubeBaseApp;
+import com.shixincube.app.model.Account;
 
 import java.io.IOException;
 import java.io.InputStream;
 
+import cube.contact.ContactService;
+import cube.contact.handler.SignHandler;
+import cube.contact.model.Self;
 import cube.core.ModuleError;
 import cube.engine.CubeBinder;
 import cube.engine.CubeEngine;
 import cube.engine.handler.EngineHandler;
+import cube.engine.util.Future;
+import cube.engine.util.Promise;
+import cube.engine.util.PromiseFuture;
+import cube.engine.util.PromiseHandler;
 import cube.filestorage.FileStorage;
 import cube.filestorage.handler.UploadFileHandler;
 import cube.filestorage.model.FileAnchor;
@@ -72,21 +80,28 @@ public class CubeConnection implements ServiceConnection {
         cubeBinder.setEngineHandler(new EngineHandler() {
             @Override
             public void handleSuccess(CubeEngine engine) {
-                LogUtils.i("CubeApp", "Success");
+                LogUtils.i("CubeApp", "Engine start success");
                 // 设置联系人数据提供器
                 engine.getContactService().setContactDataProvider(AccountHelper.getInstance());
 
                 // 启动消息模块
                 engine.getMessagingService().start();
 
-                if (null != successHandler) {
-                    successHandler.run();
-                }
+                // 签入账号
+                signIn(() -> {
+                    // 暖机
+                    LogUtils.i("CubeApp", "Engine warmup");
+                    CubeEngine.getInstance().warmup();
+
+                    if (null != successHandler) {
+                        successHandler.run();
+                    }
+                }, null, failureHandler);
             }
 
             @Override
             public void handleFailure(int code, String description) {
-                LogUtils.i("CubeApp", "Failure");
+                LogUtils.i("CubeApp", "Engine start failure");
 
                 if (null != failureHandler) {
                     failureHandler.run();
@@ -98,6 +113,64 @@ public class CubeConnection implements ServiceConnection {
     @Override
     public void onServiceDisconnected(ComponentName componentName) {
         // Nothing
+    }
+
+    private void signIn(Runnable startedHandler, Runnable successHandler, Runnable failureHandler) {
+        Promise.create(new PromiseHandler<Account>() {
+            @Override
+            public void emit(PromiseFuture<Account> promise) {
+                int count = 100;
+                while (!CubeEngine.getInstance().isReady()) {
+                    if ((--count) <= 0) {
+                        break;
+                    }
+
+                    try {
+                        Thread.sleep(10L);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                // 已启动，账号签入
+                Account account = AccountHelper.getInstance().getCurrentAccount();
+                // 触发
+                promise.resolve(account);
+            }
+        }).then(new Future<Account>() {
+            @Override
+            public void come(Account account) {
+                boolean result = CubeEngine.getInstance().signIn(account.id, account.name, account.toJSON(), new SignHandler() {
+                    @Override
+                    public void handleSuccess(ContactService service, Self self) {
+                        LogUtils.i("CubeApp", "SignIn success");
+                        if (null != successHandler) {
+                            successHandler.run();
+                        }
+                    }
+
+                    @Override
+                    public void handleFailure(ContactService service, ModuleError error) {
+                        LogUtils.i("CubeApp", "SignIn failure");
+                        if (null != failureHandler) {
+                            failureHandler.run();
+                        }
+                    }
+                });
+
+                if (!result) {
+                    if (null != failureHandler) {
+                        failureHandler.run();
+                    }
+                    LogUtils.w("CubeApp", "SignIn error");
+                }
+                else {
+                    if (null != startedHandler) {
+                        startedHandler.run();
+                    }
+                }
+            }
+        }).launch();
     }
 
     private void test() {

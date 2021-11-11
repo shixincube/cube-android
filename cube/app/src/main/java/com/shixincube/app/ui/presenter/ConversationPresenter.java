@@ -159,7 +159,7 @@ public class ConversationPresenter extends BasePresenter<ConversationView> imple
                     }
                 }
                 else {
-                    // TODO
+                    // TODO 没有会话，修改背景图片
                 }
 
                 promise.resolve(messageConversations);

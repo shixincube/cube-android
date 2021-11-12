@@ -38,6 +38,7 @@ import com.shixincube.app.ui.presenter.MessagePanelPresenter;
 import com.shixincube.app.util.CalculationUtils;
 import com.shixincube.app.util.DateUtils;
 import com.shixincube.app.util.UIUtils;
+import com.shixincube.app.widget.BubbleImageView;
 import com.shixincube.app.widget.adapter.AdapterForRecyclerView;
 import com.shixincube.app.widget.adapter.ViewHolderForRecyclerView;
 
@@ -45,6 +46,7 @@ import java.util.List;
 
 import cube.messaging.extension.FileMessage;
 import cube.messaging.extension.HyperTextMessage;
+import cube.messaging.extension.ImageMessage;
 import cube.messaging.model.Message;
 import cube.messaging.model.MessageState;
 
@@ -71,8 +73,11 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
         if (message instanceof HyperTextMessage) {
             return message.isSelfTyper() ? R.layout.item_message_text_send : R.layout.item_message_text_receive;
         }
+        else if (message instanceof ImageMessage) {
+            return message.isSelfTyper() ? R.layout.item_message_image_send : R.layout.item_message_image_receive;
+        }
         else if (message instanceof FileMessage) {
-            return message.isSelfTyper() ? R.layout.item_message_sticker_send : R.layout.item_message_sticker_receive;
+            return message.isSelfTyper() ? R.layout.item_message_item_send : R.layout.item_message_item_receive;
         }
 
         return R.layout.item_message_no_support;
@@ -129,6 +134,10 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
             // TODO 提取表情
             HyperTextMessage message = (HyperTextMessage) item;
             helper.setText(R.id.tvText, message.getPlaintext());
+        }
+        else if (item instanceof ImageMessage) {
+            ImageMessage message = (ImageMessage) item;
+            BubbleImageView imageView = helper.getView(R.id.bivImage);
         }
         else if (item instanceof FileMessage) {
             FileMessage message = (FileMessage) item;

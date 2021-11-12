@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <!-- 时间 -->
+    <!-- 消息时间 -->
     <TextView
         android:id="@+id/tvTime"
         android:layout_width="wrap_content"
@@ -23,7 +23,7 @@
         android:textSize="12sp"/>
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="end"
         android:gravity="end"
@@ -33,74 +33,62 @@
         android:paddingRight="5dp"
         android:paddingTop="10dp">
 
+        <!-- 重试 -->
+        <LinearLayout
+            android:id="@+id/llError"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/tvRetry"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="@string/retry"/>
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/ivError"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center"
+                android:layout_margin="5dp"
+                android:src="@mipmap/ic_error"/>
+        </LinearLayout>
+
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="10dp"
+            android:layout_marginRight="10dp"
             android:gravity="end"
             android:orientation="vertical">
 
-            <!-- 昵称 -->
             <TextView
                 android:id="@+id/tvName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="end"
                 android:text="@string/app_name"
                 android:textColor="@color/color_accent"
                 android:textSize="12sp"
                 android:visibility="visible"/>
 
-            <LinearLayout
+            <!-- 图片 -->
+            <com.shixincube.app.widget.BubbleImageView
+                android:id="@+id/bivImage"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="horizontal">
-
-                <!-- 进度 -->
-                <ProgressBar
-                    android:id="@+id/pbSending"
-                    style="?android:attr/progressBarStyleSmall"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_gravity="center"
-                    android:layout_margin="5dp"
-                    android:indeterminateTint="@color/text_accent"
-                    android:visibility="gone"/>
-
-                <!-- 错误提示 -->
-                <LinearLayout
-                    android:id="@+id/llError"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:visibility="gone">
-
-                    <TextView
-                        android:id="@+id/tvRetry"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:text="@string/retry"
-                        android:visibility="gone"/>
-
-                    <de.hdodenhof.circleimageview.CircleImageView
-                        android:id="@+id/ivError"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:layout_gravity="center"
-                        android:layout_margin="5dp"
-                        android:src="@mipmap/ic_error"/>
-
-                </LinearLayout>
-
-                <com.shixincube.app.widget.AdvancedImageView
-                    android:id="@+id/ivSticker"
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
-                    auto:corner_radius="4dp"/>
-
-            </LinearLayout>
+                android:adjustViewBounds="true"
+                android:maxHeight="150dp"
+                android:minHeight="80dp"
+                android:minWidth="80dp"
+                android:scaleType="fitCenter"
+                auto:bubble_angle="10dp"
+                auto:bubble_arrowHeight="10dp"
+                auto:bubble_arrowLocation="right"
+                auto:bubble_arrowOffset="-5dp"
+                auto:bubble_arrowTop="20dp"
+                auto:bubble_arrowWidth="8dp"/>
 
         </LinearLayout>
 

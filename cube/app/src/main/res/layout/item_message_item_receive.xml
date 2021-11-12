@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <!-- 时间 -->
+    <!-- 消息时间 -->
     <TextView
         android:id="@+id/tvTime"
         android:layout_width="wrap_content"
@@ -66,13 +66,58 @@
                 android:gravity="center"
                 android:orientation="horizontal">
 
-                <com.shixincube.app.widget.AdvancedImageView
-                    android:id="@+id/ivSticker"
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
-                    auto:corner_radius="4dp"/>
+                <LinearLayout
+                    android:layout_width="240dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:background="@drawable/shape_message_box_partner">
 
-                <!-- 进度 -->
+                    <com.shixincube.app.widget.AdvancedImageView
+                        android:id="@+id/ivThumb"
+                        android:layout_width="60dp"
+                        android:layout_height="60dp"
+                        android:layout_margin="10dp"
+                        android:src="@mipmap/ic_file"
+                        auto:corner_radius="4dp"/>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:gravity="center_vertical"
+                        android:layout_marginEnd="10dp"
+                        android:orientation="vertical">
+
+                        <com.shixincube.app.widget.SymbolTextView
+                            android:id="@+id/tvTitle"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="start|center_vertical"
+                            android:layout_marginBottom="5dp"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:text=""
+                            android:textSize="16sp"
+                            android:textColor="@color/text"/>
+
+                        <TextView
+                            android:id="@+id/tvDescription"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="start|center_vertical"
+                            android:layout_marginTop="5dp"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:text=""
+                            android:textSize="12sp"
+                            android:textColor="@color/text_secondary"/>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
                 <ProgressBar
                     android:id="@+id/pbReceiving"
                     style="?android:attr/progressBarStyleSmall"

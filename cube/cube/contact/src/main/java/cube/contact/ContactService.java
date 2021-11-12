@@ -978,6 +978,7 @@ public class ContactService extends Module {
                     }
                     else {
                         // 更新数据
+                        newZone.resetLast(System.currentTimeMillis());
                         storage.writeContactZone(newZone);
 
                         if (null != successHandler) {

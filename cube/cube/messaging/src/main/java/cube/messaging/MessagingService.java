@@ -1637,12 +1637,9 @@ public class MessagingService extends Module {
 
             // 触发回调，通知应用已收到服务器数据
             if (null != this.pullCompletionHandler) {
-                this.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        pullCompletionHandler.handleCompletion(MessagingService.this);
-                        pullCompletionHandler = null;
-                    }
+                this.execute(() -> {
+                    pullCompletionHandler.handleCompletion(MessagingService.this);
+                    pullCompletionHandler = null;
                 });
             }
 
@@ -1698,6 +1695,8 @@ public class MessagingService extends Module {
         // TODO 如果附件有缩略图，本地没有，下载消息附件的缩略图到本地
         FileAttachment attachment = message.getAttachment();
         if (null != attachment) {
+            if (attachment.hasThumbnail()) {
+            }
         }
 
         // 实例化

@@ -135,6 +135,15 @@ public class FileThumbnail extends Entity {
     }
 
     /**
+     * 文件是否在本地存在。
+     *
+     * @return
+     */
+    public boolean existsLocal() {
+        return (null != this.file && this.file.exists());
+    }
+
+    /**
      * 获取访问文件的 URL 字符串。
      *
      * @return

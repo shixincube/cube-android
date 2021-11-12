@@ -38,7 +38,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import cube.contact.ContactService;
-import cube.contact.handler.SignHandler;
+import cube.contact.handler.DefaultSignHandler;
 import cube.contact.model.Self;
 import cube.core.ModuleError;
 import cube.engine.CubeBinder;
@@ -142,7 +142,7 @@ public class CubeConnection implements ServiceConnection {
         }).then(new Future<Account>() {
             @Override
             public void come(Account account) {
-                boolean result = CubeEngine.getInstance().signIn(account.id, account.name, account.toJSON(), new SignHandler() {
+                boolean result = CubeEngine.getInstance().signIn(account.id, account.name, account.toJSON(), new DefaultSignHandler(true) {
                     @Override
                     public void handleSuccess(ContactService service, Self self) {
                         LogUtils.i("CubeApp", "SignIn success");

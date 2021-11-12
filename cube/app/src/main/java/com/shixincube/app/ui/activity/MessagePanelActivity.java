@@ -47,6 +47,10 @@ import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.emotion.EmotionLayout;
 import com.shixincube.app.widget.keyboard.SoftwareKeyboard;
 import com.shixincube.app.widget.recyclerview.RecyclerView;
+import com.shixincube.filepicker.Constant;
+import com.shixincube.filepicker.activity.BaseActivity;
+import com.shixincube.filepicker.activity.NormalFilePickActivity;
+import com.shixincube.filepicker.filter.entity.NormalFile;
 import com.shixincube.imagepicker.ImagePicker;
 import com.shixincube.imagepicker.bean.ImageItem;
 import com.shixincube.imagepicker.ui.ImageGridActivity;
@@ -68,6 +72,8 @@ import cube.messaging.model.Conversation;
 public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView, MessagePanelPresenter> implements MessagePanelView, BGARefreshLayout.BGARefreshLayoutDelegate {
 
     public final static int REQUEST_IMAGE_PICKER = 1000;
+
+    public final static int REQUEST_FILE_PICKER = 8000;
 
     @BindView(R.id.llMessagePanel)
     LinearLayout messagePanelLayout;
@@ -105,6 +111,8 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
     RelativeLayout voiceCallButton;
     @BindView(R.id.rlVideo)
     RelativeLayout videoCallButton;
+    @BindView(R.id.rlFiles)
+    RelativeLayout filesButton;
 
     private SoftwareKeyboard softwareKeyboard;
 
@@ -218,6 +226,16 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
             Intent intent = new Intent(this, ImageGridActivity.class);
             startActivityForResult(intent, REQUEST_IMAGE_PICKER);
         });
+
+        filesButton.setOnClickListener((view) -> {
+            Intent intent = new Intent(this, NormalFilePickActivity.class);
+            intent.putExtra(Constant.MAX_NUMBER, 9);
+            intent.putExtra(BaseActivity.IS_NEED_FOLDER_LIST, true);
+            intent.putExtra(NormalFilePickActivity.SUFFIX,
+                    new String[] {"jpg", "jpeg", "png", "bmp",
+                            "xlsx", "xls", "doc", "docx", "ppt", "pptx", "pdf"});
+            startActivityForResult(intent, REQUEST_FILE_PICKER);
+        });
     }
 
     private void initKeyboard() {
@@ -310,6 +328,12 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
                         ImageItem item = images.get(0);
                         presenter.sendImageMessage(new File(item.path), origen);
                     }
+                }
+                break;
+            case REQUEST_FILE_PICKER:
+                if (resultCode == RESULT_OK) {
+                    ArrayList<NormalFile> list = data.getParcelableArrayListExtra(Constant.RESULT_PICK_FILE);
+
                 }
                 break;
             default:

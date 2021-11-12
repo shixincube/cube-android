@@ -102,7 +102,7 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
 
             getView().getMessageListView().setAdapter(this.adapter);
 
-            UIUtils.postTaskDelay(() -> moveToBottom(), 200);
+            UIUtils.postTaskDelay(() -> moveToBottom(), 100);
         }
         else {
             this.adapter.notifyDataSetChangedWrapper();

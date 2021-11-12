@@ -30,6 +30,7 @@ public abstract class BaseActivity extends AppCompatActivity implements EasyPerm
 
     protected FolderListHelper mFolderHelper;
     protected boolean isNeedFolderList;
+
     public static final String IS_NEED_FOLDER_LIST = "isNeedFolderList";
 
     abstract void permissionGranted();

@@ -46,10 +46,11 @@
     <string name="retry">重试</string>
     <string name="no_support_message">不支持的消息类型</string>
     <string name="loading_messages">正在加载</string>
-    <string name="album">相册</string>
-    <string name="shot">拍摄</string>
-    <string name="voice_comm">语音通话</string>
-    <string name="video_comm">视频通话</string>
+    <string name="fun_album">相册</string>
+    <string name="fun_shot">拍摄</string>
+    <string name="fun_file">文件</string>
+    <string name="fun_voice_comm">语音通话</string>
+    <string name="fun_video_comm">视频通话</string>
     <string name="no_support_file_type">不支持的文件类型</string>
 
     <!-- 联系人界面 -->

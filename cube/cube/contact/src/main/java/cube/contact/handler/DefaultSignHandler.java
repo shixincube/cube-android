@@ -27,17 +27,22 @@
 package cube.contact.handler;
 
 
-import cube.contact.ContactService;
-import cube.contact.model.Self;
-import cube.core.ModuleError;
-import cube.core.handler.CallbackHandler;
-
 /**
  * 签入/签出账号句柄。
  */
-public interface SignHandler extends CallbackHandler {
+public abstract class DefaultSignHandler implements SignHandler {
 
-    void handleSuccess(ContactService service, Self self);
+    private boolean inMainThread = false;
 
-    void handleFailure(ContactService service, ModuleError error);
+    public DefaultSignHandler() {
+    }
+
+    public DefaultSignHandler(boolean inMainThread) {
+        this.inMainThread = inMainThread;
+    }
+
+    @Override
+    public final boolean isInMainThread() {
+        return this.inMainThread;
+    }
 }

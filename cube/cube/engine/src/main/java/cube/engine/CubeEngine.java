@@ -35,6 +35,7 @@ import java.util.concurrent.Executors;
 
 import cube.auth.AuthService;
 import cube.contact.ContactService;
+import cube.contact.ContactServiceEvent;
 import cube.contact.handler.SignHandler;
 import cube.contact.model.Self;
 import cube.core.Kernel;
@@ -46,11 +47,13 @@ import cube.engine.util.Promise;
 import cube.fileprocessor.FileProcessor;
 import cube.filestorage.FileStorage;
 import cube.messaging.MessagingService;
+import cube.util.ObservableEvent;
+import cube.util.Observer;
 
 /**
  * 魔方引擎 API 入口类。
  */
-public class CubeEngine {
+public class CubeEngine implements Observer {
 
     protected static CubeEngine instance = null;
 
@@ -137,8 +140,7 @@ public class CubeEngine {
     }
 
     public void warmup() {
-        // 加载默认联系人分区
-        this.getContactService().getDefaultContactZone();
+        this.getContactService().attachWithName(ContactServiceEvent.SignIn, this);
 
         // 让最近的最前面的会话预加载数据
         // 预加载最近 10 个会话的消息，每个会话预加载 10 条
@@ -213,5 +215,13 @@ public class CubeEngine {
         ContactService contactService = this.getContactService();
         Self self = new Self(contactId, name, context);
         return contactService.signIn(self, handler);
+    }
+
+    @Override
+    public void update(ObservableEvent event) {
+        if (ContactServiceEvent.SignIn.equals(event.getName())) {
+            // 加载默认联系人分区
+            this.getContactService().getDefaultContactZone();
+        }
     }
 }

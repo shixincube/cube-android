@@ -25,5 +25,5 @@ public class Constant {
     public static final int REQUEST_CODE_TAKE_AUDIO = 0x301;
 
     public static final int REQUEST_CODE_PICK_FILE = 0x400;
-    public static final String RESULT_PICK_FILE = "ResultPickFILE";
+    public static final String RESULT_PICK_FILE = "ResultPickFile";
 }

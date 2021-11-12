@@ -50,6 +50,7 @@ import cube.core.ModuleError;
 import cube.core.handler.CompletionHandler;
 import cube.core.handler.DefaultFailureHandler;
 import cube.engine.CubeEngine;
+import cube.fileprocessor.model.FileThumbnail;
 import cube.messaging.MessageEventListener;
 import cube.messaging.MessageListResult;
 import cube.messaging.MessagingService;
@@ -181,12 +182,13 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
                     @Override
                     public void handleFailure(Module module, ModuleError error) {
                         // 消息错误，更新显示状态
+                        updateMessageStatus(textMessage);
                     }
                 });
     }
 
-    public void sendFileMessage(File rawFile) {
-        FileMessage fileMessage = new FileMessage(rawFile);
+    public void sendFileMessage(File file) {
+        FileMessage fileMessage = new FileMessage(file);
         CubeEngine.getInstance().getMessagingService().sendMessage(conversation, fileMessage,
                 new DefaultSendHandler<Conversation, FileMessage>(true) {
                 @Override
@@ -216,8 +218,25 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
                 @Override
                 public void handleFailure(Module module, ModuleError error) {
                     LogUtils.i(this.getClass().getSimpleName(), "#sendFileMessage - handleFailure : " + error.code);
+
+                    // 更新状态
+                    updateMessageStatus(fileMessage);
                 }
             });
+    }
+
+    /**
+     * 发送图片文件。
+     *
+     * @param file
+     * @param useRaw 是否使用原图。
+     */
+    public void sendImageMessage(File file, boolean useRaw) {
+        if (!useRaw) {
+            // 生成缩略图发送
+            FileThumbnail thumbnail = CubeEngine.getInstance().getFileProcessor().makeImageThumbnail(file);
+            System.out.println(thumbnail.print());
+        }
     }
 
     private void moveToBottom() {

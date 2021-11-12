@@ -82,18 +82,27 @@ public class FileProcessor extends Module {
         return true;
     }
 
-    public FileThumbnail makeImageThumb(File file) {
-        List<String> list = Biscuit.with(getContext())
+    /**
+     * 制作图像文件的缩略图。
+     *
+     * @param file
+     * @return
+     */
+    public FileThumbnail makeImageThumbnail(File file) {
+        Biscuit biscuit = Biscuit.with(getContext())
                 .path(file.getPath())
                 .targetDir(this.cacheDir)
                 .originalName(true)
                 .ignoreLessThan(100)
-                .build()
-                .syncCompress();
-        String path = list.get(0);
+                .build();
+        List<Biscuit.Result> list = biscuit.syncCompress();
+        Biscuit.Result result = list.get(0);
 
-
-
-        return null;
+        String path = result.path;
+        FileThumbnail thumbnail = new FileThumbnail(new File(path),
+                result.outputWidth, result.outputHeight,
+                biscuit.getQuality() / 100.0f,
+                result.inputWidth, result.inputHeight);
+        return thumbnail;
     }
 }

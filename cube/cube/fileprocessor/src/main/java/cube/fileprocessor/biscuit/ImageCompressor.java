@@ -26,6 +26,8 @@ public class ImageCompressor implements Compressor {
 
     private final static String TAG = "ImageCompressor";
 
+    final Biscuit biscuit;
+
     private ImagePath sourcePath;
     private String targetDir;
     private int quality;
@@ -33,9 +35,16 @@ public class ImageCompressor implements Compressor {
     private boolean ignoreAlpha;
     private boolean useOriginalName;
     private long thresholdSize;
+
     String targetPath;
+
+    int inputWidth;
+    int inputHeight;
+
+    int outputWidth;
+    int outputHeight;
+
     CompressException exception;
-    final Biscuit mBiscuit;
 
     public ImageCompressor(String path, String targetDir, int quality, @Biscuit.CompressType int compressType, boolean ignoreAlpha, boolean useOriginalName, long thresholdSize, Biscuit biscuit) {
         this.sourcePath = new ImagePath(path);
@@ -45,7 +54,7 @@ public class ImageCompressor implements Compressor {
         this.ignoreAlpha = ignoreAlpha;
         this.useOriginalName = useOriginalName;
         this.thresholdSize = thresholdSize;
-        this.mBiscuit = biscuit;
+        this.biscuit = biscuit;
     }
 
     @Override
@@ -60,6 +69,10 @@ public class ImageCompressor implements Compressor {
             generateException("an error occurs when trying to decode!");
             return false;
         }
+
+        this.inputWidth = options.outWidth;
+        this.inputHeight = options.outHeight;
+
         boolean compressBySample = compressType == Biscuit.SAMPLE;
         int inSampleSize = 1;
         if (compressBySample) {
@@ -95,6 +108,8 @@ public class ImageCompressor implements Compressor {
             generateException("unsuccessfully compressed to the specified stream!");
             return false;
         }
+        this.outputWidth = scrBitmap.getWidth();
+        this.outputHeight = scrBitmap.getHeight();
         targetPath = getCacheFileName();
         log(TAG, "the image data will be saved at " + targetPath);
         boolean saved = true;
@@ -152,14 +167,14 @@ public class ImageCompressor implements Compressor {
     }
 
     private void dispatchSuccess() {
-        if (mBiscuit != null) {
-            mBiscuit.mDispatcher.dispatchComplete(this);
+        if (biscuit != null) {
+            biscuit.mDispatcher.dispatchComplete(this);
         }
     }
 
     private void dispatchError() {
-        if (mBiscuit != null) {
-            mBiscuit.mDispatcher.dispatchError(this);
+        if (biscuit != null) {
+            biscuit.mDispatcher.dispatchError(this);
         }
     }
 

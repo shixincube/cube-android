@@ -259,6 +259,18 @@ public final class LogUtils {
     }
 
     /**
+     * 以级别为 WARN 的形式输出日志信息和异常信息。
+     * @param tag 日志标签。
+     * @param log 日志内容。
+     * @param throwable 异常描述。
+     */
+    public static void w(String tag, String log, Throwable throwable) {
+        if (sLogLevel >= LEVEL_WARN && null != log && null != tag) {
+            Log.w(tag, log, throwable);
+        }
+    }
+
+    /**
      * 以级别为 ERROR 的形式输出日志。
      * @param tag 日志标签。
      * @param log 日志内容。

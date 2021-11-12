@@ -304,6 +304,15 @@ public class FileAttachment implements JSONable {
         this.thumbConfig = new ThumbConfig(Math.max(thumbnail.getWidth(), thumbnail.getHeight()));
     }
 
+    /**
+     * 返回本地的缩略图。
+     *
+     * @return
+     */
+    public FileThumbnail getThumbnail() {
+        return this.thumbnail;
+    }
+
     public boolean hasThumbnail() {
         return (null != this.thumbnail) || (null != this.thumbs && !this.thumbs.isEmpty());
     }
@@ -339,6 +348,11 @@ public class FileAttachment implements JSONable {
 
     public void setLabel(FileLabel label) {
         this.label = label;
+
+        // 设置缩略图源文件的文件码
+        if (null != this.thumbnail) {
+            this.thumbnail.setSourceFileCode(label.getFileCode());
+        }
     }
 
     public FileLabel getLabel() {

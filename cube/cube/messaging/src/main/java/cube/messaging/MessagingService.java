@@ -26,7 +26,6 @@
 
 package cube.messaging;
 
-import android.util.Log;
 import android.util.MutableBoolean;
 
 import androidx.annotation.Nullable;
@@ -59,6 +58,7 @@ import cube.contact.model.Self;
 import cube.core.Hook;
 import cube.core.Module;
 import cube.core.ModuleError;
+import cube.core.MutableModuleError;
 import cube.core.Packet;
 import cube.core.PipelineState;
 import cube.core.handler.CompletionHandler;
@@ -67,6 +67,7 @@ import cube.core.handler.FailureHandler;
 import cube.core.handler.PipelineHandler;
 import cube.core.handler.StableFailureHandler;
 import cube.fileprocessor.FileProcessor;
+import cube.fileprocessor.model.FileThumbnail;
 import cube.filestorage.FileStorage;
 import cube.filestorage.handler.StableUploadFileHandler;
 import cube.filestorage.model.FileAnchor;
@@ -95,6 +96,8 @@ import cube.util.ObservableEvent;
 public class MessagingService extends Module {
 
     public final static String NAME = "Messaging";
+
+    private final static String TAG = MessagingService.class.getSimpleName();
 
     private long retrospectDuration = 30L * 24L * 60L * 60000L;
 
@@ -378,7 +381,7 @@ public class MessagingService extends Module {
 
                 // 进行预载
                 if (this.preloadConversationRecentNum > 0 && this.preloadConversationMessageNum > 0) {
-                    LogUtils.i(MessagingService.class.getSimpleName(),
+                    LogUtils.i(TAG,
                             "Preload conversation messages: " + preloadConversationRecentNum + " - " + preloadConversationMessageNum);
                     this.execute(() -> {
                         long now = System.currentTimeMillis();
@@ -386,7 +389,7 @@ public class MessagingService extends Module {
                             Conversation conv = conversations.get(i);
                             getRecentMessages(conv, preloadConversationMessageNum);
                         }
-                        LogUtils.i(MessagingService.class.getSimpleName(),
+                        LogUtils.i(TAG,
                                 "Preload conversation messages elapsed: " + (System.currentTimeMillis() - now) + " ms");
                     });
                 }
@@ -515,14 +518,14 @@ public class MessagingService extends Module {
                     @Override
                     public void handleResponse(Packet packet) {
                         if (packet.state.code != PipelineState.Ok.code) {
-                            LogUtils.w(MessagingService.class.getSimpleName(), "#markRead - code : " + packet.state.code);
+                            LogUtils.w(TAG, "#markRead - code : " + packet.state.code);
                             completionHandler.handleCompletion(MessagingService.this);
                             return;
                         }
 
                         int stateCode = packet.extractServiceStateCode();
                         if (stateCode != MessagingServiceState.Ok.code) {
-                            LogUtils.w(MessagingService.class.getSimpleName(), "#markRead - code : " + stateCode);
+                            LogUtils.w(TAG, "#markRead - code : " + stateCode);
                             completionHandler.handleCompletion(MessagingService.this);
                             return;
                         }
@@ -958,8 +961,10 @@ public class MessagingService extends Module {
         if (null != fileAttachment && fileAttachment.isImageType()
                 && !fileAttachment.thumbDisabled() && null != this.fileProcessor) {
             // 生成缩略图
-//            FileThumbnail fileThumbnail = this.fileProcessor.makeImageThumb(fileAttachment.getFile());
-//            fileAttachment.setThumbnail(fileThumbnail);
+            FileThumbnail fileThumbnail = this.fileProcessor.makeImageThumbnail(fileAttachment.getFile());
+            fileAttachment.setThumbnail(fileThumbnail);
+
+            LogUtils.d(TAG, "Thumbnail : " + fileThumbnail.print());
         }
 
         this.execute(() -> {
@@ -981,6 +986,7 @@ public class MessagingService extends Module {
 
             this.execute(() -> {
                 ModuleError error = new ModuleError(MessagingService.NAME, MessagingServiceState.PipelineFault.code);
+                error.data = message;
                 failureHandler.handleFailure(MessagingService.this, error);
 
                 // 产生事件
@@ -993,6 +999,8 @@ public class MessagingService extends Module {
 
         // 处理文件附件
         if (null != fileAttachment) {
+            MutableModuleError moduleError = new MutableModuleError();
+
             // 上传附录里的文件
             this.uploadAttachment(fileAttachment, new StableUploadFileHandler() {
                 @Override
@@ -1018,6 +1026,8 @@ public class MessagingService extends Module {
 
                 @Override
                 public void handleFailure(ModuleError error, @Nullable FileAnchor anchor) {
+                    moduleError.value = error;
+
                     synchronized (fileAttachment) {
                         fileAttachment.notify();
                     }
@@ -1030,6 +1040,17 @@ public class MessagingService extends Module {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
+            }
+
+            if (null != moduleError.value) {
+                // 发生错误
+                moduleError.value.data = message;
+                failureHandler.handleFailure(MessagingService.this, moduleError.value);
+
+                // 产生事件
+                ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Fault, moduleError.value);
+                notifyObservers(event);
+                return;
             }
         }
         else {
@@ -1054,6 +1075,7 @@ public class MessagingService extends Module {
                     storage.updateMessage(message);
 
                     ModuleError error = new ModuleError(MessagingService.NAME, MessagingServiceState.ServerFault.code);
+                    error.data = message;
                     failureHandler.handleFailure(MessagingService.this, error);
 
                     // 产生事件
@@ -1128,6 +1150,7 @@ public class MessagingService extends Module {
                         }
                         else {
                             ModuleError error = new ModuleError(MessagingService.NAME, stateCode);
+                            error.data = message;
                             // 回调
                             failureHandler.handleFailure(MessagingService.this, error);
 
@@ -1139,6 +1162,7 @@ public class MessagingService extends Module {
                     }
                     else {
                         ModuleError error = new ModuleError(MessagingService.NAME, stateCode);
+                        error.data = message;
 
                         // 回调
                         failureHandler.handleFailure(MessagingService.this, error);
@@ -1148,9 +1172,10 @@ public class MessagingService extends Module {
                         notifyObservers(event);
                     }
                 } catch (Exception e) {
-                    LogUtils.w(MessagingService.class.getSimpleName(), e);
+                    LogUtils.w(TAG, e);
 
                     ModuleError error = new ModuleError(MessagingService.NAME, MessagingServiceState.DataStructureError.code);
+                    error.data = message;
                     // 回调
                     failureHandler.handleFailure(MessagingService.this, error);
 
@@ -1191,6 +1216,7 @@ public class MessagingService extends Module {
 
             @Override
             public void handleSuccess(FileLabel fileLabel) {
+                // 设置附件的文件标签
                 attachment.setLabel(fileLabel);
                 handler.handleSuccess(fileLabel);
             }
@@ -1289,7 +1315,7 @@ public class MessagingService extends Module {
      * @param completionHandler
      */
     private void queryRemoteMessage(long beginning, long ending, CompletionHandler completionHandler) {
-        LogUtils.d(MessagingService.class.getSimpleName(), "#queryRemoteMessage : " + Math.floor((ending - beginning) / 1000.0 / 60.0) + " min");
+        LogUtils.d(TAG, "#queryRemoteMessage : " + Math.floor((ending - beginning) / 1000.0 / 60.0) + " min");
 
         if (!this.pipeline.isReady() && this.isAvailableNetwork()) {
             synchronized (this) {
@@ -1304,12 +1330,12 @@ public class MessagingService extends Module {
         // 如果没有网络直接回调函数
         if (!this.pipeline.isReady()) {
             completionHandler.handleCompletion(this);
-            LogUtils.d(MessagingService.class.getSimpleName(), "#queryRemoteMessage - Pipeline is not ready");
+            LogUtils.d(TAG, "#queryRemoteMessage - Pipeline is not ready");
             return;
         }
 
         if (null != this.pullTimer) {
-            LogUtils.d(MessagingService.class.getSimpleName(), "#queryRemoteMessage - Timer is null");
+            LogUtils.d(TAG, "#queryRemoteMessage - Timer is null");
             return;
         }
 
@@ -1415,7 +1441,7 @@ public class MessagingService extends Module {
                         conversationList.add(conversation);
                     }
                 } catch (JSONException e) {
-                    Log.d(MessagingService.class.getSimpleName(),
+                    LogUtils.d(TAG,
                             "#queryRemoteConversations : error conversation list format");
                 }
 
@@ -1529,7 +1555,7 @@ public class MessagingService extends Module {
         try {
             message = new Message(this, data);
         } catch (JSONException e) {
-            Log.w("MessagingService", "#triggerNotify", e);
+            LogUtils.w(TAG, "#triggerNotify", e);
         }
 
         // 填充消息相关实体对象
@@ -1571,7 +1597,7 @@ public class MessagingService extends Module {
         }
 
         if (code != MessagingServiceState.Ok.code) {
-            LogUtils.w(MessagingService.class.getSimpleName(), "#triggerPull state : " + code);
+            LogUtils.w(TAG, "#triggerPull state : " + code);
             return;
         }
 
@@ -1581,7 +1607,7 @@ public class MessagingService extends Module {
             long ending = data.getLong("ending");
             JSONArray messages = data.getJSONArray("messages");
 
-            LogUtils.d(MessagingService.class.getSimpleName(), "Pull messages total: " + total);
+            LogUtils.d(TAG, "Pull messages total: " + total);
 
             for (int i = 0; i < messages.length(); ++i) {
                 JSONObject json = messages.getJSONObject(i);
@@ -1591,7 +1617,7 @@ public class MessagingService extends Module {
             // 对消息进行状态对比
             // 如果服务器状态与本地状态不一致，将服务器上的状态修改为本地状态
         } catch (JSONException e) {
-            LogUtils.w(e);
+            LogUtils.w(TAG, e);
         }
     }
 

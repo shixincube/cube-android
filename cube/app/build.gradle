@@ -59,6 +59,7 @@ dependencies {
     implementation project(path: ':app:imagepicker')
     implementation project(path: ':cube:filestorage')
     implementation project(path: ':cube:fileprocessor')
+    implementation project(path: ':app:filepicker')
     annotationProcessor 'com.jakewharton:butterknife-compiler:10.2.3'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.12.0'
     testImplementation 'junit:junit:4.13.2'

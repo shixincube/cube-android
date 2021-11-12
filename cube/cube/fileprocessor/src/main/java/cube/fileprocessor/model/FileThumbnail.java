@@ -32,6 +32,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.util.Locale;
 
 import cube.auth.AuthService;
 import cube.core.model.Entity;
@@ -68,6 +69,11 @@ public class FileThumbnail extends Entity {
     private int height;
 
     /**
+     * 缩略图使用的图像质量参数。
+     */
+    private double quality;
+
+    /**
      * 原文件文件码。
      */
     private String sourceFileCode;
@@ -83,18 +89,18 @@ public class FileThumbnail extends Entity {
     private int sourceHeight;
 
     /**
-     * 缩略图使用的图像质量参数。
-     */
-    private double quality;
-
-    /**
      * 构造函数。
      *
      * @param file
      */
-    public FileThumbnail(File file) {
+    public FileThumbnail(File file, int width, int height, double quality, int sourceWidth, int sourceHeight) {
         this.file = file;
         this.filePath = file.getAbsolutePath();
+        this.width = width;
+        this.height = height;
+        this.quality = quality;
+        this.sourceWidth = sourceWidth;
+        this.sourceHeight = sourceHeight;
     }
 
     /**
@@ -148,6 +154,22 @@ public class FileThumbnail extends Entity {
 
     public int getHeight() {
         return this.height;
+    }
+
+    public void setSourceFileCode(String fileCode) {
+        this.sourceFileCode = fileCode;
+    }
+
+    public String print() {
+        StringBuilder buf = new StringBuilder();
+        if (null != this.filePath) {
+            buf.append("\"").append(this.filePath).append("\" - ");
+        }
+        buf.append("(").append(this.sourceWidth).append("x").append(this.sourceHeight).append(")");
+        buf.append(" -> ");
+        buf.append("(").append(this.width).append("x").append(this.height).append(")");
+        buf.append(" # ").append(String.format(Locale.ROOT, "%.2f", this.quality));
+        return buf.toString();
     }
 
     @Override

@@ -83,15 +83,27 @@ public class Biscuit {
         }
     }
 
-    public ArrayList<String> syncCompress() {
-        ArrayList<String> results = new ArrayList<>();
+    public ArrayList<Result> syncCompress() {
+        ArrayList<Result> results = new ArrayList<>();
         Iterator<String> iterator = mPaths.iterator();
         while (iterator.hasNext()) {
             String path = iterator.next();
             if (Utils.isImage(path)) {
                 ImageCompressor compressor = new ImageCompressor(path, targetDir, quality, compressType, ignoreAlpha, useOriginalName, thresholdSize, null);
                 boolean success = compressor.compress();
-                results.add(success ? compressor.targetPath : path);
+                Result result = null;
+                if (success) {
+                    result = new Result(compressor.targetPath,
+                            compressor.inputWidth, compressor.inputHeight,
+                            compressor.outputWidth, compressor.outputHeight);
+
+                }
+                else {
+                    result = new Result(path,
+                            compressor.inputWidth, compressor.inputHeight,
+                            compressor.outputWidth, compressor.outputHeight);
+                }
+                results.add(result);
             } else {
                 Log.d(TAG, "Can not recognize the path : " + path);
             }
@@ -226,6 +238,22 @@ public class Biscuit {
     @IntDef({SAMPLE, SCALE})
     @Retention(RetentionPolicy.SOURCE)
     public @interface CompressType {
+    }
+
+    public class Result {
+        public final String path;
+        public final int inputWidth;
+        public final int inputHeight;
+        public final int outputWidth;
+        public final int outputHeight;
+
+        protected Result(String path, int inputWidth, int inputHeight, int outputWidth, int outputHeight) {
+            this.path = path;
+            this.inputWidth = inputWidth;
+            this.inputHeight = inputHeight;
+            this.outputWidth = outputWidth;
+            this.outputHeight = outputHeight;
+        }
     }
 
     public static class Builder {

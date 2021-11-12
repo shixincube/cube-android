@@ -308,7 +308,7 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
 
                         // FIXME XJW
                         ImageItem item = images.get(0);
-                        presenter.sendFileMessage(new File(item.path));
+                        presenter.sendImageMessage(new File(item.path), origen);
                     }
                 }
                 break;

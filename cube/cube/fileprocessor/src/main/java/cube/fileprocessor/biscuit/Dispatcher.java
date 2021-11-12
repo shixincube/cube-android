@@ -37,10 +37,10 @@ public class Dispatcher {
             ImageCompressor compressor = (ImageCompressor) msg.obj;
             switch (msg.what) {
                 case MESSAGE_COMPLETE:
-                    compressor.mBiscuit.dispatchSuccess(compressor.targetPath);
+                    compressor.biscuit.dispatchSuccess(compressor.targetPath);
                     break;
                 case MESSAGE_ERROR:
-                    compressor.mBiscuit.dispatchError(compressor.exception);
+                    compressor.biscuit.dispatchError(compressor.exception);
                     break;
             }
         }

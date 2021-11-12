@@ -82,7 +82,7 @@ public class CubeApp extends CubeBaseApp {
         });
 
         // 显示拍照按钮
-        picker.setShowCamera(true);
+        picker.setShowCamera(false);
         // 允许裁剪（单选才有效）
         picker.setCrop(true);
         // 是否按矩形区域保存

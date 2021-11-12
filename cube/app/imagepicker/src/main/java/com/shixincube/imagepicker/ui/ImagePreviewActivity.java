@@ -17,7 +17,9 @@ import com.shixincube.imagepicker.R;
 import com.shixincube.imagepicker.bean.ImageItem;
 import com.shixincube.imagepicker.view.SuperCheckBox;
 
-
+/**
+ * 图片预览。
+ */
 public class ImagePreviewActivity extends ImagePreviewBaseActivity implements ImagePicker.OnImageSelectedListener, View.OnClickListener, CompoundButton.OnCheckedChangeListener {
 
     public static final String ISORIGIN = "isOrigin";
@@ -52,7 +54,7 @@ public class ImagePreviewActivity extends ImagePreviewBaseActivity implements Im
         onImageSelected(0, null, false);
         ImageItem item = mImageItems.get(mCurrentPosition);
         boolean isSelected = imagePicker.isSelect(item);
-        mTitleCount.setText(getString(R.string.preview_image_count, mCurrentPosition + 1, mImageItems.size()));
+        mTitleCount.setText(getString(R.string.preview_image_count, Integer.toString(mCurrentPosition + 1), Integer.toString(mImageItems.size())));
         mCbCheck.setChecked(isSelected);
         updateOriginImageSize();
         //滑动ViewPager的时候，根据外界的数据改变当前的选中状态和当前的图片的位置描述文本
@@ -63,7 +65,7 @@ public class ImagePreviewActivity extends ImagePreviewBaseActivity implements Im
                 ImageItem item = mImageItems.get(mCurrentPosition);
                 boolean isSelected = imagePicker.isSelect(item);
                 mCbCheck.setChecked(isSelected);
-                mTitleCount.setText(getString(R.string.preview_image_count, mCurrentPosition + 1, mImageItems.size()));
+                mTitleCount.setText(getString(R.string.preview_image_count, Integer.toString(mCurrentPosition + 1), Integer.toString(mImageItems.size())));
             }
         });
         //当点击当前选中按钮的时候，需要根据当前的选中状态添加和移除图片
@@ -73,7 +75,7 @@ public class ImagePreviewActivity extends ImagePreviewBaseActivity implements Im
                 ImageItem imageItem = mImageItems.get(mCurrentPosition);
                 int selectLimit = imagePicker.getSelectLimit();
                 if (mCbCheck.isChecked() && selectedImages.size() >= selectLimit) {
-                    Toast.makeText(ImagePreviewActivity.this, ImagePreviewActivity.this.getString(R.string.select_limit, selectLimit), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ImagePreviewActivity.this, ImagePreviewActivity.this.getString(R.string.select_limit, Integer.toString(selectLimit)), Toast.LENGTH_SHORT).show();
                     mCbCheck.setChecked(false);
                 } else {
                     imagePicker.addSelectedImageItem(mCurrentPosition, imageItem, mCbCheck.isChecked());
@@ -108,7 +110,7 @@ public class ImagePreviewActivity extends ImagePreviewBaseActivity implements Im
     @Override
     public void onImageSelected(int position, ImageItem item, boolean isAdd) {
         if (imagePicker.getSelectImageCount() > 0) {
-            mBtnOk.setText(getString(R.string.select_complete, imagePicker.getSelectImageCount(), imagePicker.getSelectLimit()));
+            mBtnOk.setText(getString(R.string.select_complete, Integer.toString(imagePicker.getSelectImageCount()), Integer.toString(imagePicker.getSelectLimit())));
             mBtnOk.setEnabled(true);
         } else {
             mBtnOk.setText(getString(R.string.complete));

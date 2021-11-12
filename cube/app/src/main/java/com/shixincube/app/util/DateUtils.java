@@ -28,6 +28,7 @@ package com.shixincube.app.util;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 
 /**
  * 日期实用函数。
@@ -76,8 +77,8 @@ public class DateUtils {
         int hourOfDay = time.get(Calendar.HOUR_OF_DAY);
 
         String when = null;
-        if (hourOfDay >= 18) {
-            when = "晚间";
+        if (hourOfDay >= 20) {
+            when = "夜间";
         }
         else if (hourOfDay >= 12) {
             when = "下午";
@@ -92,7 +93,9 @@ public class DateUtils {
             when = "凌晨";
         }
 
-        return when + " " + time.get(Calendar.HOUR) + ":" + time.get(Calendar.MINUTE);
+        return when +
+                String.format(Locale.ROOT, "%02d", time.get(Calendar.HOUR)) + ":" +
+                String.format(Locale.ROOT, "%02d", time.get(Calendar.MINUTE));
     }
 
     private static String formatHourMinute(Calendar time) {

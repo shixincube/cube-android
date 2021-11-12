@@ -28,7 +28,10 @@ import com.shixincube.app.R;
 @SuppressLint("AppCompatCustomView")
 public class BubbleImageView extends ImageView {
 
-    private static final int LOCATION_LEFT = 0;
+    private static final int LOCATION_NONE = 0;
+    private static final int LOCATION_LEFT = -1;
+    private static final int LOCATION_RIGHT = 1;
+
     private static final Bitmap.Config BITMAP_CONFIG = Bitmap.Config.ARGB_8888;
     private static final int COLOR_DRAWABLE_DIMENSION = 1;
 
@@ -37,7 +40,7 @@ public class BubbleImageView extends ImageView {
     private int mArrowWidth = dp2px(20);
     private int mArrowHeight = dp2px(20);
     private int mArrowOffset = 0;
-    private int mArrowLocation = LOCATION_LEFT;
+    private int mArrowLocation = LOCATION_NONE;
 
     private Rect mDrawableRect;
     private Bitmap mBitmap;
@@ -121,16 +124,21 @@ public class BubbleImageView extends ImageView {
         if (getDrawable() == null) {
             return;
         }
-        RectF rect = new RectF(getPaddingLeft(), getPaddingTop(), getRight()
-                - getLeft() - getPaddingRight(), getBottom() - getTop()
+
+        RectF rect = new RectF(getPaddingStart(), getPaddingTop(), getRight()
+                - getLeft() - getPaddingEnd(), getBottom() - getTop()
                 - getPaddingBottom());
 
         Path path = new Path();
 
         if (mArrowLocation == LOCATION_LEFT) {
-            leftPath(rect, path);
-        } else {
-            rightPath(rect, path);
+            drawLeftArrowPath(rect, path);
+        }
+        else if (mArrowLocation == LOCATION_RIGHT) {
+            drawRightArrowPath(rect, path);
+        }
+        else {
+            drawNoneArrowPath(rect, path);
         }
 
         canvas.drawPath(path, mBitmapPaint);
@@ -153,20 +161,24 @@ public class BubbleImageView extends ImageView {
             mPaint.setColor(Color.parseColor("#70000000"));// 半透明
             Rect shadowRect = null;
             if (mArrowLocation == LOCATION_LEFT) {
-                //如果是在左边
                 shadowRect = new Rect(mArrowWidth, 0, getWidth(), getHeight() - getHeight()
-                        * percent / 100);//阴影的宽度（图片的宽度）为ImageView的宽度减去箭头的宽度
-            } else {
+                        * percent / 100);//阴影的宽度（图片的宽度）为 ImageView 的宽度减去箭头的宽度
+            }
+            else if (mArrowLocation == LOCATION_RIGHT) {
                 shadowRect = new Rect(0, 0, getWidth() - mArrowWidth, getHeight() - getHeight()
-                        * percent / 100);//阴影的宽度（图片的宽度）为ImageView的宽度减去箭头的宽度
+                        * percent / 100);//阴影的宽度（图片的宽度）为 ImageView 的宽度减去箭头的宽度
+            }
+            else {
+                shadowRect = new Rect(0, 0, getWidth(), getHeight() - getHeight()
+                        * percent / 100);
             }
             RectF shadowRectF = new RectF(shadowRect);
             //shadowRectF.set(0, 0, getWidth(), getHeight() - getHeight()* percent / 100 );
             canvas.drawRoundRect(shadowRectF, radiusPx, radiusPx, mPaint);
         }
 
-
-        if (mShowText) {//是否画文字
+        // 是否画文字
+        if (mShowText) {
             //画文字
             mPaint.setTextSize(30);
             mPaint.setColor(Color.parseColor("#FFFFFF"));
@@ -174,12 +186,17 @@ public class BubbleImageView extends ImageView {
 
             Rect rect = null;
             int marginLeft = 0;//文字的左边距
-            if (mArrowLocation == LOCATION_LEFT) {//如果是向左的
+            if (mArrowLocation == LOCATION_LEFT) {
                 rect = new Rect(mArrowWidth, 0, 0, 0);
                 marginLeft = (getWidth() - mArrowWidth) / 2;
-            } else {
+            }
+            else if (mArrowLocation == LOCATION_RIGHT) {
                 rect = new Rect(mArrowWidth, 0, 0, 0);
                 marginLeft = getWidth() / 2 - mArrowWidth;
+            }
+            else {
+                rect = new Rect(0, 0, 0, 0);
+                marginLeft = getWidth() / 2;
             }
             mPaint.getTextBounds("100%", 0, "100%".length(), rect);// 确定文字的宽度
             canvas.drawText(percent + "%", marginLeft,
@@ -187,7 +204,29 @@ public class BubbleImageView extends ImageView {
         }
     }
 
-    public void rightPath(RectF rect, Path path) {
+    private void drawNoneArrowPath(RectF rect, Path path) {
+//        path.moveTo(0, rect.top);
+//        path.lineTo(rect.width(), rect.top);
+//        path.lineTo(rect.width(), rect.bottom);
+//        path.lineTo(0, rect.bottom);
+//        path.lineTo(0, 0);
+        path.moveTo(mAngle, rect.top);
+        path.lineTo(rect.width(), rect.top);
+        path.arcTo(new RectF(rect.right - mAngle * 2, rect.top,
+                rect.right, mAngle * 2 + rect.top), 270, 90);
+        path.lineTo(rect.right, rect.height() - mAngle);
+        path.arcTo(new RectF(rect.right - mAngle * 2, rect.bottom
+                - mAngle * 2, rect.right, rect.bottom), 0, 90);
+        path.lineTo(rect.left, rect.bottom);
+        path.arcTo(new RectF(rect.left, rect.bottom - mAngle * 2, mAngle * 2
+                + rect.left, rect.bottom), 90, 90);
+        path.lineTo(rect.left, rect.top);
+        path.arcTo(new RectF(rect.left, rect.top, mAngle * 2 + rect.left,
+                mAngle * 2 + rect.top), 180, 90);
+        path.close();
+    }
+
+    private void drawRightArrowPath(RectF rect, Path path) {
         path.moveTo(mAngle, rect.top);
         path.lineTo(rect.width(), rect.top);
         path.arcTo(new RectF(rect.right - mAngle * 2 - mArrowWidth, rect.top,
@@ -207,7 +246,7 @@ public class BubbleImageView extends ImageView {
         path.close();
     }
 
-    public void leftPath(RectF rect, Path path) {
+    private void drawLeftArrowPath(RectF rect, Path path) {
         path.moveTo(mAngle + mArrowWidth, rect.top);
         path.lineTo(rect.width(), rect.top);
         path.arcTo(new RectF(rect.right - mAngle * 2, rect.top, rect.right,
@@ -224,7 +263,6 @@ public class BubbleImageView extends ImageView {
         path.lineTo(rect.left + mArrowWidth, rect.top);
         path.arcTo(new RectF(rect.left + mArrowWidth, rect.top, mAngle * 2
                 + rect.left + mArrowWidth, mAngle * 2 + rect.top), 180, 90);
-
         path.close();
     }
 

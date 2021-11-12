@@ -42,7 +42,7 @@ public class ImageDataSource implements LoaderManager.LoaderCallbacks<Cursor> {
         this.activity = activity;
         this.loadedListener = loadedListener;
 
-        LoaderManager loaderManager = activity.getSupportLoaderManager();
+        LoaderManager loaderManager = LoaderManager.getInstance(activity);//activity.getSupportLoaderManager();
         if (path == null) {
             loaderManager.initLoader(LOADER_ALL, null, this);//加载所有的图片
         } else {
@@ -68,8 +68,9 @@ public class ImageDataSource implements LoaderManager.LoaderCallbacks<Cursor> {
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        imageFolders.clear();
-        if (data != null) {
+        if (data != null && data.getPosition() <= 0) {
+            imageFolders.clear();
+
             ArrayList<ImageItem> allImages = new ArrayList<>();   //所有图片的集合,不分文件夹
             while (data.moveToNext()) {
                 //查询数据
@@ -108,8 +109,8 @@ public class ImageDataSource implements LoaderManager.LoaderCallbacks<Cursor> {
                 }
             }
             // 防止没有图片报异常
-            if (data.getCount() > 0 && !allImages.isEmpty()) {
-                //构造所有图片的集合
+            if (data.getCount() > 0) {
+                // 构造所有图片的集合
                 ImageFolder allImagesFolder = new ImageFolder();
                 allImagesFolder.name = activity.getResources().getString(R.string.all_images);
                 allImagesFolder.path = "/";

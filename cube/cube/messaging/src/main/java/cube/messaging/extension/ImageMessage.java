@@ -30,6 +30,7 @@ import org.json.JSONException;
 
 import java.io.File;
 
+import cube.fileprocessor.model.FileThumbnail;
 import cube.messaging.model.FileAttachment;
 import cube.messaging.model.Message;
 import cube.messaging.model.MessageType;
@@ -43,13 +44,10 @@ public class ImageMessage extends TypeableMessage {
      * 构造函数。
      *
      * @param file 指定文件。
+     * @param useThumbAsSource 使用缩略图作为源文件。
      */
-    public ImageMessage(File file) {
+    public ImageMessage(File file, boolean useThumbAsSource) {
         super(MessageType.Image);
-
-        // 创建消息附件
-        FileAttachment attachment = new FileAttachment(file);
-        this.setAttachment(attachment);
 
         try {
             this.payload.put("type", MessageTypeName.Image);
@@ -58,6 +56,34 @@ public class ImageMessage extends TypeableMessage {
         }
 
         this.summary = "[图片]";
+
+        // 创建消息附件
+        FileAttachment attachment = new FileAttachment(file);
+        attachment.setCompressed(useThumbAsSource);
+        this.setAttachment(attachment);
+    }
+
+    /**
+     * 构造函数。
+     *
+     * @param file
+     * @param thumbnail
+     */
+    public ImageMessage(File file, FileThumbnail thumbnail) {
+        super(MessageType.Image);
+
+        try {
+            this.payload.put("type", MessageTypeName.Image);
+        } catch (JSONException e) {
+            // Nothing
+        }
+
+        this.summary = "[图片]";
+
+        // 创建消息附件
+        FileAttachment attachment = new FileAttachment(file);
+        attachment.setThumbnail(thumbnail);
+        this.setAttachment(attachment);
     }
 
     public ImageMessage(Message message) {
@@ -139,15 +165,6 @@ public class ImageMessage extends TypeableMessage {
     }
 
     /**
-     * 是否是图像类型文件。
-     *
-     * @return 如果是图像类型文件返回 {@code true} 。
-     */
-    public boolean isImageType() {
-        return this.getAttachment().isImageType();
-    }
-
-    /**
      * 获取文件已经被处理的数据大小。
      * 该方法仅在文件消息被处理时有效。
      *
@@ -155,5 +172,32 @@ public class ImageMessage extends TypeableMessage {
      */
     public long getProcessedSize() {
         return this.getAttachment().getProcessedSize();
+    }
+
+    /**
+     * 获取文件处理进度百分比。
+     *
+     * @return 返回文件处理进度百分比。
+     */
+    public int getProgressPercent() {
+        return this.getAttachment().getProgressPercent();
+    }
+
+    /**
+     * 是否有缩略图。
+     *
+     * @return
+     */
+    public boolean hasThumbnail() {
+        return this.getAttachment().hasThumbnail();
+    }
+
+    /**
+     * 获取缩略图。
+     *
+     * @return
+     */
+    public FileThumbnail getThumbnail() {
+        return this.getAttachment().getThumbnail();
     }
 }

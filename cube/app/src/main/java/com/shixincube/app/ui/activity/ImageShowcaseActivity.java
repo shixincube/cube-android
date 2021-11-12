@@ -116,10 +116,10 @@ public class ImageShowcaseActivity extends BaseActivity {
             this.menuView.setBackgroundColor(UIUtils.getColor(R.color.white));
 
             TextView item = new TextView(this);
-            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, UIUtils.dp2px(this, 50));
+            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, UIUtils.dp2px(50));
             item.setLayoutParams(params);
             item.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
-            item.setPadding(UIUtils.dp2px(this, 20), 0, 0, 0);
+            item.setPadding(UIUtils.dp2px(20), 0, 0, 0);
             item.setTextColor(UIUtils.getColor(R.color.gray0));
             item.setTextSize(14);
             item.setText(UIUtils.getString(R.string.save_to_phone));

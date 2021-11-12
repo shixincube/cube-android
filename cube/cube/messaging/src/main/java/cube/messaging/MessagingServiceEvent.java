@@ -57,6 +57,11 @@ public final class MessagingServiceEvent {
     public final static String Processing = "Processing";
 
     /**
+     * 消息数据已处理完成。
+     */
+    public final static String Processed = "Processed";
+
+    /**
      * 消息被撤回。
      */
     public final static String Recall = "Recall";

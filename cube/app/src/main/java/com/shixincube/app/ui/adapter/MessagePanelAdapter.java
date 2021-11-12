@@ -35,7 +35,6 @@ import com.shixincube.app.R;
 import com.shixincube.app.manager.AccountHelper;
 import com.shixincube.app.model.Account;
 import com.shixincube.app.ui.presenter.MessagePanelPresenter;
-import com.shixincube.app.util.CalculationUtils;
 import com.shixincube.app.util.DateUtils;
 import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.BubbleImageView;
@@ -44,6 +43,7 @@ import com.shixincube.app.widget.adapter.ViewHolderForRecyclerView;
 
 import java.util.List;
 
+import cube.fileprocessor.util.CalculationUtils;
 import cube.messaging.extension.FileMessage;
 import cube.messaging.extension.HyperTextMessage;
 import cube.messaging.extension.ImageMessage;
@@ -138,6 +138,20 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
         else if (item instanceof ImageMessage) {
             ImageMessage message = (ImageMessage) item;
             BubbleImageView imageView = helper.getView(R.id.bivImage);
+            Glide.with(getContext()).load(message.hasThumbnail()
+                    ? message.getThumbnail().getFileURL() : message.getFileURL())
+                    .error(R.mipmap.default_img_failed)
+                    .override(UIUtils.dp2px(80), UIUtils.dp2px(150))
+                    .centerCrop()
+                    .into(imageView);
+            if (message.getState() == MessageState.Sending) {
+                imageView.setPercent(message.getProgressPercent());
+            }
+            else {
+                imageView.setProgressVisible(false);
+                imageView.showShadow(false);
+                UIUtils.getMainThreadHandler().postDelayed(() -> this.presenter.moveToBottom(), 100);
+            }
         }
         else if (item instanceof FileMessage) {
             FileMessage message = (FileMessage) item;

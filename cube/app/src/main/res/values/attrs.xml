@@ -22,7 +22,8 @@
         <attr name="bubble_arrowOffset" format="dimension|reference" />
         <attr name="bubble_angle" format="dimension|reference" />
         <attr name="bubble_arrowLocation" format="enum">
-            <enum name="left" value="0" />
+            <enum name="none" value="0" />
+            <enum name="left" value="-1" />
             <enum name="right" value="1" />
         </attr>
         <attr name="bubble_showText" format="boolean" />

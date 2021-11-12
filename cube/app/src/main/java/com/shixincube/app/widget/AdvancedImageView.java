@@ -364,7 +364,7 @@ public class AdvancedImageView extends ImageView {
     }
 
     public void setBorderWidth(int borderWidth) {
-        this.borderWidth = UIUtils.dp2px(context, borderWidth);
+        this.borderWidth = UIUtils.dp2px(borderWidth);
         calculateRadiiAndRectF(false);
     }
 
@@ -374,7 +374,7 @@ public class AdvancedImageView extends ImageView {
     }
 
     public void setInnerBorderWidth(int innerBorderWidth) {
-        this.innerBorderWidth = UIUtils.dp2px(context, innerBorderWidth);
+        this.innerBorderWidth = UIUtils.dp2px(innerBorderWidth);
         clearInnerBorderWidth();
         invalidate();
     }
@@ -385,27 +385,27 @@ public class AdvancedImageView extends ImageView {
     }
 
     public void setCornerRadius(int cornerRadius) {
-        this.cornerRadius = UIUtils.dp2px(context, cornerRadius);
+        this.cornerRadius = UIUtils.dp2px(cornerRadius);
         calculateRadiiAndRectF(false);
     }
 
     public void setCornerTopLeftRadius(int cornerTopLeftRadius) {
-        this.cornerTopLeftRadius = UIUtils.dp2px(context, cornerTopLeftRadius);
+        this.cornerTopLeftRadius = UIUtils.dp2px(cornerTopLeftRadius);
         calculateRadiiAndRectF(true);
     }
 
     public void setCornerTopRightRadius(int cornerTopRightRadius) {
-        this.cornerTopRightRadius = UIUtils.dp2px(context, cornerTopRightRadius);
+        this.cornerTopRightRadius = UIUtils.dp2px(cornerTopRightRadius);
         calculateRadiiAndRectF(true);
     }
 
     public void setCornerBottomLeftRadius(int cornerBottomLeftRadius) {
-        this.cornerBottomLeftRadius = UIUtils.dp2px(context, cornerBottomLeftRadius);
+        this.cornerBottomLeftRadius = UIUtils.dp2px(cornerBottomLeftRadius);
         calculateRadiiAndRectF(true);
     }
 
     public void setCornerBottomRightRadius(int cornerBottomRightRadius) {
-        this.cornerBottomRightRadius = UIUtils.dp2px(context, cornerBottomRightRadius);
+        this.cornerBottomRightRadius = UIUtils.dp2px(cornerBottomRightRadius);
         calculateRadiiAndRectF(true);
     }
 

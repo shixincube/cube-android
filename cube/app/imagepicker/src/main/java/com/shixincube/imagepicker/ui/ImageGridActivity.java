@@ -114,7 +114,7 @@ public class ImageGridActivity extends ImageBaseActivity implements ImageDataSou
         if (id == R.id.btn_ok) {
             Intent intent = new Intent();
             intent.putExtra(ImagePicker.EXTRA_RESULT_ITEMS, imagePicker.getSelectedImages());
-            intent.putExtra(ImagePreviewActivity.ISORIGIN,isOrigin);
+            intent.putExtra(ImagePreviewActivity.ISORIGIN, isOrigin);
             // 多选不允许裁剪裁剪，返回数据
             setResult(ImagePicker.RESULT_CODE_ITEMS, intent);
             finish();
@@ -148,7 +148,7 @@ public class ImageGridActivity extends ImageBaseActivity implements ImageDataSou
     }
 
     /**
-     * 创建弹出的ListView
+     * 创建弹出的 ListView
      */
     private void createPopupFolderList() {
         mFolderPopupWindow = new FolderPopUpWindow(this, mImageFolderAdapter);
@@ -243,7 +243,8 @@ public class ImageGridActivity extends ImageBaseActivity implements ImageDataSou
                     finish();
                 }
             }
-        } else {
+        }
+        else {
             // 如果是裁剪，因为裁剪指定了存储的 URI ，所以返回的 data 一定为 null
             if (resultCode == RESULT_OK && requestCode == ImagePicker.REQUEST_CODE_TAKE) {
                 //发送广播通知图片增加了

@@ -323,10 +323,10 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
                         // 是否发送原图
                         boolean origen = data.getBooleanExtra(ImagePreviewActivity.ISORIGIN, false);
                         ArrayList<ImageItem> images = (ArrayList<ImageItem>) data.getSerializableExtra(ImagePicker.EXTRA_RESULT_ITEMS);
-
-                        // FIXME XJW
-                        ImageItem item = images.get(0);
-                        presenter.sendImageMessage(new File(item.path), origen);
+                        for (ImageItem item : images) {
+                            // 发送图片消息
+                            presenter.sendImageMessage(new File(item.path), origen);
+                        }
                     }
                 }
                 break;

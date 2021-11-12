@@ -75,7 +75,7 @@ public class ContactsFragment extends BaseFragment<ContactsView, ContactsPresent
         this.headerView = View.inflate(getActivity(), R.layout.header_contacts, null);
         this.footerView = new TextView(getContext());
         ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                UIUtils.dp2px(getContext(), 50));
+                UIUtils.dp2px(50));
         this.footerView.setLayoutParams(params);
         this.footerView.setGravity(Gravity.CENTER);
     }

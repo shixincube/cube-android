@@ -24,7 +24,7 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app.util;
+package cube.fileprocessor.util;
 
 import android.annotation.SuppressLint;
 

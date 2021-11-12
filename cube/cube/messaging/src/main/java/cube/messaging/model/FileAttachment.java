@@ -78,9 +78,9 @@ public class FileAttachment implements JSONable {
     private List<FileThumbnail> thumbs;
 
     /**
-     * 是否禁止使用缩略图功能。
+     * 是否压缩文件。
      */
-    private boolean disableThumb = false;
+    private boolean compressed = false;
 
     /**
      * 构造函数。
@@ -130,6 +130,10 @@ public class FileAttachment implements JSONable {
             }
         }
 
+        if (json.has("compressed")) {
+            this.compressed = json.getBoolean("compressed");
+        }
+
         if (json.has("thumbnail")) {
             this.thumbnail = new FileThumbnail(json.getJSONObject("thumbnail"));
         }
@@ -158,6 +162,10 @@ public class FileAttachment implements JSONable {
         }
 
         return this.file;
+    }
+
+    public void setFile(File file) {
+        this.file = file;
     }
 
     /**
@@ -301,7 +309,10 @@ public class FileAttachment implements JSONable {
      */
     public void setThumbnail(FileThumbnail thumbnail) {
         this.thumbnail = thumbnail;
-        this.thumbConfig = new ThumbConfig(Math.max(thumbnail.getWidth(), thumbnail.getHeight()));
+        // 计算一个合理的图片大小
+        int size = Math.max(thumbnail.getWidth(), thumbnail.getHeight());
+        size = (int) Math.round(((double) size) * 0.75f);
+        this.thumbConfig = new ThumbConfig(size);
     }
 
     /**
@@ -321,6 +332,14 @@ public class FileAttachment implements JSONable {
         return (null != this.thumbnail) ? this.thumbnail : this.thumbs.get(0);
     }
 
+    public void setCompressed(boolean compressed) {
+        this.compressed = compressed;
+    }
+
+    public boolean isCompressed() {
+        return this.compressed;
+    }
+
     /**
      * 在处理状态下获取已处理的文件大小。
      *
@@ -334,12 +353,34 @@ public class FileAttachment implements JSONable {
         return -1;
     }
 
-    public void enableThumb(boolean value) {
-        this.disableThumb = !value;
+    /**
+     * 获取文件的处理进度百分比。
+     *
+     * @return 返回文件的处理进度百分比。
+     */
+    public int getProgressPercent() {
+        if (null != this.anchor) {
+            if (this.anchor.position == this.anchor.getFileSize()) {
+                return 100;
+            }
+
+            return (int) Math.round((double)this.anchor.position / (double) this.anchor.getFileSize() * 100.0f);
+        }
+        else {
+            return 100;
+        }
     }
 
-    public boolean thumbDisabled() {
-        return this.disableThumb;
+    public void enableThumb(double quality) {
+        this.thumbConfig = new ThumbConfig(quality);
+    }
+
+    public void disableThumb() {
+        this.thumbConfig = null;
+    }
+
+    public ThumbConfig getThumbConfig() {
+        return this.thumbConfig;
     }
 
     public void setAnchor(FileAnchor anchor) {
@@ -395,6 +436,8 @@ public class FileAttachment implements JSONable {
                 json.put("thumbs", array);
             }
 
+            json.put("compressed", this.compressed);
+
             // 本地缩略图
             if (null != this.thumbnail) {
                 json.put("thumbnail", this.thumbnail.toJSON());
@@ -421,12 +464,16 @@ public class FileAttachment implements JSONable {
      */
     public class ThumbConfig implements JSONable {
 
-        private double quality = 0.7;
+        public double quality = 0.6;
 
-        private int size = 480;
+        public int size = 480;
 
         public ThumbConfig(int size) {
             this.size = size;
+        }
+
+        public ThumbConfig(double quality) {
+            this.quality = quality;
         }
 
         public ThumbConfig(JSONObject json) throws JSONException {

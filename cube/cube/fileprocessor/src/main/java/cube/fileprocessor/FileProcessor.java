@@ -36,6 +36,7 @@ import java.util.List;
 import cube.core.Module;
 import cube.fileprocessor.biscuit.Biscuit;
 import cube.fileprocessor.model.FileThumbnail;
+import cube.fileprocessor.util.CalculationUtils;
 import cube.filestorage.FileStorage;
 import cube.util.LogUtils;
 
@@ -45,6 +46,8 @@ import cube.util.LogUtils;
 public class FileProcessor extends Module {
 
     public final static String NAME = "FileProcessor";
+
+    private final static String TAG = FileProcessor.class.getSimpleName();
 
     private String cacheDir;
 
@@ -93,7 +96,7 @@ public class FileProcessor extends Module {
                 .path(file.getPath())
                 .targetDir(this.cacheDir)
                 .originalName(true)
-                .ignoreLessThan(100)
+                .ignoreLessThan(200)
                 .build();
         List<Biscuit.Result> list = biscuit.syncCompress();
         Biscuit.Result result = list.get(0);
@@ -103,6 +106,10 @@ public class FileProcessor extends Module {
                 result.outputWidth, result.outputHeight,
                 biscuit.getQuality() / 100.0f,
                 result.inputWidth, result.inputHeight);
+
+        LogUtils.d(TAG, "#makeImageThumbnail : " + CalculationUtils.formatByteDataSize(file.length()) +
+                " -> " + CalculationUtils.formatByteDataSize(thumbnail.getFile().length()));
+
         return thumbnail;
     }
 }

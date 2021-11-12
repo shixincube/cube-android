@@ -50,12 +50,12 @@ import cube.core.ModuleError;
 import cube.core.handler.CompletionHandler;
 import cube.core.handler.DefaultFailureHandler;
 import cube.engine.CubeEngine;
-import cube.fileprocessor.model.FileThumbnail;
 import cube.messaging.MessageEventListener;
 import cube.messaging.MessageListResult;
 import cube.messaging.MessagingService;
 import cube.messaging.extension.FileMessage;
 import cube.messaging.extension.HyperTextMessage;
+import cube.messaging.extension.ImageMessage;
 import cube.messaging.handler.DefaultSendHandler;
 import cube.messaging.handler.MessageListResultHandler;
 import cube.messaging.model.Conversation;
@@ -170,6 +170,11 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
                     }
 
                     @Override
+                    public void handleProcessed(Conversation destination, HyperTextMessage message) {
+                        // Nothing
+                    }
+
+                    @Override
                     public void handleSending(Conversation destination, HyperTextMessage message) {
                         // Nothing
                     }
@@ -196,6 +201,11 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
                     // 将消息添加到界面
                     adapter.addLastItem(message);
                     moveToBottom();
+                }
+
+                @Override
+                public void handleProcessed(Conversation destination, FileMessage message) {
+                    // Nothing
                 }
 
                 @Override
@@ -232,14 +242,41 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
      * @param useRaw 是否使用原图。
      */
     public void sendImageMessage(File file, boolean useRaw) {
-        if (!useRaw) {
-            // 生成缩略图发送
-            FileThumbnail thumbnail = CubeEngine.getInstance().getFileProcessor().makeImageThumbnail(file);
-            System.out.println(thumbnail.print());
-        }
+        // 创建消息
+        ImageMessage imageMessage = new ImageMessage(file, !useRaw);
+
+        CubeEngine.getInstance().getMessagingService().sendMessage(conversation, imageMessage, new DefaultSendHandler<Conversation, ImageMessage>(true) {
+            @Override
+            public void handleProcessing(Conversation destination, ImageMessage message) {
+                // 将消息添加到界面
+                adapter.addLastItem(message);
+                moveToBottom();
+            }
+
+            @Override
+            public void handleProcessed(Conversation destination, ImageMessage message) {
+                // 生成缩略图完成
+                updateMessageStatus(message);
+            }
+
+            @Override
+            public void handleSending(Conversation destination, ImageMessage message) {
+                updateMessageStatus(message);
+            }
+
+            @Override
+            public void handleSent(Conversation destination, ImageMessage message) {
+                updateMessageStatus(message);
+            }
+        }, new DefaultFailureHandler(true) {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                updateMessageStatus(imageMessage);
+            }
+        });
     }
 
-    private void moveToBottom() {
+    public void moveToBottom() {
         getView().getMessageListView().smoothMoveToPosition(this.adapter.getData().size() - 1);
     }
 
@@ -264,7 +301,14 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
     @Override
     public void onItemClick(ViewHolder helper, ViewGroup parent, View itemView, int position) {
         Message message = this.adapter.getData().get(position);
-        if (message instanceof FileMessage) {
+        if (message instanceof  ImageMessage) {
+            ImageMessage imageMessage = (ImageMessage) message;
+            Intent intent = new Intent(activity, ImageShowcaseActivity.class);
+            intent.putExtra("name", imageMessage.getFileName());
+            intent.putExtra("url", imageMessage.getFileURL());
+            activity.jumpToActivity(intent);
+        }
+        else if (message instanceof FileMessage) {
             FileMessage fileMessage = (FileMessage) message;
             if (fileMessage.existsLocal() && !fileMessage.isImageType()) {
                 // 尝试打开文件

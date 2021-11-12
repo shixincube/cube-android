@@ -74,7 +74,6 @@ import cube.filestorage.model.FileAnchor;
 import cube.filestorage.model.FileLabel;
 import cube.messaging.extension.MessageTypePlugin;
 import cube.messaging.handler.DefaultSendHandler;
-import cube.messaging.handler.MessageHandler;
 import cube.messaging.handler.MessageListResultHandler;
 import cube.messaging.handler.SendHandler;
 import cube.messaging.hook.InstantiateHook;
@@ -662,6 +661,10 @@ public class MessagingService extends Module {
                 // Nothing
             }
             @Override
+            public void handleProcessed(Conversation destination, T processedMessage) {
+                // Nothing
+            }
+            @Override
             public void handleSending(Conversation destination, T sendingMessage) {
                 // Nothing
             }
@@ -705,6 +708,10 @@ public class MessagingService extends Module {
                 // Nothing
             }
             @Override
+            public void handleProcessed(Contact destination, T processedMessage) {
+                // Nothing
+            }
+            @Override
             public void handleSending(Contact destination, T sendingMessage) {
                 // Nothing
             }
@@ -745,6 +752,10 @@ public class MessagingService extends Module {
         this.sendMessage(group, message, new DefaultSendHandler<Group, T>(false) {
             @Override
             public void handleProcessing(Group destination, T processingMessage) {
+                // Nothing
+            }
+            @Override
+            public void handleProcessed(Group destination, T processedMessage) {
                 // Nothing
             }
             @Override
@@ -794,6 +805,11 @@ public class MessagingService extends Module {
                 }
 
                 @Override
+                public void handleProcessed(Contact destination, T message) {
+                    sendHandler.handleProcessed(conversation, message);
+                }
+
+                @Override
                 public void handleSending(Contact destination, T message) {
                     sendHandler.handleSending(conversation, message);
                 }
@@ -819,6 +835,11 @@ public class MessagingService extends Module {
                 @Override
                 public void handleProcessing(Group destination, T message) {
                     sendHandler.handleProcessing(conversation, message);
+                }
+
+                @Override
+                public void handleProcessed(Group destination, T message) {
+                    sendHandler.handleProcessed(conversation, message);
                 }
 
                 @Override
@@ -863,10 +884,9 @@ public class MessagingService extends Module {
 
         // 异步执行发送流程
         this.execute(() -> {
-            processSend(message, new MessageHandler<T>() {
+            processSend(message, new DefaultSendHandler<Object, T>() {
                 @Override
-                public void handleMessage(T message) {
-                    // 正在处理消息
+                public void handleProcessing(Object destination, T message) {
                     if (sendHandler.isInMainThread()) {
                         executeOnMainThread(() -> {
                             sendHandler.handleProcessing(contact, message);
@@ -876,10 +896,21 @@ public class MessagingService extends Module {
                         sendHandler.handleProcessing(contact, message);
                     }
                 }
-            }, new MessageHandler<T>() {
+
                 @Override
-                public void handleMessage(T message) {
-                    // 正在发送消息
+                public void handleProcessed(Object destination, T message) {
+                    if (sendHandler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            sendHandler.handleProcessed(contact, message);
+                        });
+                    }
+                    else {
+                        sendHandler.handleProcessed(contact, message);
+                    }
+                }
+
+                @Override
+                public void handleSending(Object destination, T message) {
                     if (sendHandler.isInMainThread()) {
                         executeOnMainThread(() -> {
                             sendHandler.handleSending(contact, message);
@@ -889,10 +920,9 @@ public class MessagingService extends Module {
                         sendHandler.handleSending(contact, message);
                     }
                 }
-            }, new MessageHandler<T>() {
+
                 @Override
-                public void handleMessage(T message) {
-                    // 消息已发送
+                public void handleSent(Object destination, T message) {
                     if (sendHandler.isInMainThread()) {
                         executeOnMainThread(() -> {
                             sendHandler.handleSent(contact, message);
@@ -943,35 +973,58 @@ public class MessagingService extends Module {
      * 进行发送处理。
      *
      * @param message
-     * @param processingHandler 消息正在进行数据处理。例如，生成缩略图操作。
-     * @param sendingHandler 消息正在发送。如果消息带附件，该方法在处理附件时会被多次调用。
-     * @param completionHandler 消息发送完成。
+     * @param sendHandler 消息操作句柄。
      * @param failureHandler
      */
     private void processSend(Message message,
-                             MessageHandler processingHandler,
-                             MessageHandler sendingHandler,
-                             MessageHandler completionHandler,
+                             SendHandler sendHandler,
                              FailureHandler failureHandler) {
         // 加入正在发送队列
         this.sendingList.offer(message);
 
-        // 处理文件附件
-        FileAttachment fileAttachment = message.getAttachment();
-        if (null != fileAttachment && fileAttachment.isImageType()
-                && !fileAttachment.thumbDisabled() && null != this.fileProcessor) {
-            // 生成缩略图
-            FileThumbnail fileThumbnail = this.fileProcessor.makeImageThumbnail(fileAttachment.getFile());
-            fileAttachment.setThumbnail(fileThumbnail);
-
-            LogUtils.d(TAG, "Thumbnail : " + fileThumbnail.print());
-        }
-
         this.execute(() -> {
-            processingHandler.handleMessage(message);
+            sendHandler.handleProcessing(null, message);
 
             // 产生事件
             ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Processing, message);
+            notifyObservers(event);
+        });
+
+        // 处理文件附件
+        FileAttachment fileAttachment = message.getAttachment();
+        if (null != fileAttachment && null != this.fileProcessor) {
+            if (fileAttachment.isCompressed()) {
+                // 需要压缩文件
+                if (fileAttachment.isImageType()) {
+                    // 图片生成缩略图
+                    FileThumbnail fileThumbnail = this.fileProcessor.makeImageThumbnail(fileAttachment.getFile());
+                    // 使用缩略图作为文件
+                    fileAttachment.setFile(fileThumbnail.getFile());
+                    // 同时将缩略图设置为本地缩略图
+                    fileAttachment.setThumbnail(fileThumbnail);
+
+                    LogUtils.d(TAG, "Thumbnail : " + fileThumbnail.print());
+                }
+                else {
+                    // TODO
+                }
+            }
+
+            if (fileAttachment.isImageType() && null != fileAttachment.getThumbConfig()) {
+                // 生成缩略图
+                if (null == fileAttachment.getThumbnail()) {
+                    FileThumbnail fileThumbnail = this.fileProcessor.makeImageThumbnail(fileAttachment.getFile());
+                    fileAttachment.setThumbnail(fileThumbnail);
+                    LogUtils.d(TAG, "Thumbnail : " + fileThumbnail.print());
+                }
+            }
+        }
+
+        this.execute(() -> {
+            sendHandler.handleProcessed(null, message);
+
+            // 产生事件
+            ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Processed, message);
             notifyObservers(event);
         });
 
@@ -1010,7 +1063,7 @@ public class MessagingService extends Module {
 
                 @Override
                 public void handleProcessing(FileAnchor anchor) {
-                    sendingHandler.handleMessage(message);
+                    sendHandler.handleSending(null, message);
 
                     // 产生事件
                     ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Sending, message);
@@ -1055,7 +1108,7 @@ public class MessagingService extends Module {
         }
         else {
             this.execute(() -> {
-                sendingHandler.handleMessage(message);
+                sendHandler.handleSending(null, message);
 
                 // 产生事件
                 ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Sending, message);
@@ -1118,7 +1171,7 @@ public class MessagingService extends Module {
                     if (stateCode == MessagingServiceState.Ok.code) {
                         if (message.getScope() == MessageScope.Unlimited) {
                             // 回调
-                            completionHandler.handleMessage(message);
+                            sendHandler.handleSent(null, message);
 
                             // 产生事件
                             ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Sent, message);
@@ -1126,7 +1179,7 @@ public class MessagingService extends Module {
                         }
                         else {
                             // 回调
-                            completionHandler.handleMessage(message);
+                            sendHandler.handleSent(null, message);
 
                             // 产生事件
                             ObservableEvent event = new ObservableEvent(MessagingServiceEvent.MarkOnlyOwner, message);
@@ -1138,13 +1191,13 @@ public class MessagingService extends Module {
 
                         if (message.getState() == MessageState.SendBlocked) {
                             // 回调
-                            completionHandler.handleMessage(message);
+                            sendHandler.handleSent(null, message);
 
                             event = new ObservableEvent(MessagingServiceEvent.SendBlocked, message);
                         }
                         else if (message.getState() == MessageState.ReceiveBlocked) {
                             // 回调
-                            completionHandler.handleMessage(message);
+                            sendHandler.handleSent(null, message);
 
                             event = new ObservableEvent(MessagingServiceEvent.ReceiveBlocked, message);
                         }

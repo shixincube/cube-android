@@ -55,25 +55,18 @@ public class MainPresenter extends BasePresenter<MainView> {
      * 检查魔方引擎服务是否启动，如果没有启动则启动
      */
     private void check() {
-        if (CubeEngine.getInstance().hasStarted()) {
-            // 已启动
+        if (CubeEngine.getInstance().hasSignIn()) {
+            // 已签入
             return;
         }
 
         LogUtils.i("MainPresenter", "Launch Cube Engine");
 
-        CubeApp.getMainThreadHandler().post(new Runnable() {
-            @Override
-            public void run() {
-                Intent intent = new Intent(activity, CubeService.class);
-                intent.setAction(CubeService.ACTION_START);
-                activity.startService(intent);
-
-                // 在服务器里签入账号
-                CubeConnection connection = new CubeConnection();
-                intent = new Intent(activity, CubeService.class);
-                activity.bindService(intent, connection, BIND_AUTO_CREATE);
-            }
+        CubeApp.getMainThreadHandler().post(() -> {
+            // 使用连接服务的方式签入账号
+            CubeConnection connection = new CubeConnection();
+            Intent intent = new Intent(activity, CubeService.class);
+            activity.bindService(intent, connection, BIND_AUTO_CREATE);
         });
     }
 }

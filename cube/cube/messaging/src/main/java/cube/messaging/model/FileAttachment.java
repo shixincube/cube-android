@@ -220,6 +220,14 @@ public class FileAttachment implements JSONable {
      * @return
      */
     public String getFileType() {
+        if (null != this.file) {
+            String name = this.file.getName();
+            int index = name.lastIndexOf(".");
+            if (index > 0) {
+                return name.substring(index + 1).toLowerCase(Locale.ROOT);
+            }
+        }
+
         if (null != this.label) {
             return this.label.getFileType();
         }

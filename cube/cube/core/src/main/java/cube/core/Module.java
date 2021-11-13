@@ -64,6 +64,11 @@ public abstract class Module extends Subject {
     protected final PluginSystem pluginSystem;
 
     /**
+     * 主线程句柄。
+     */
+    private Handler mainHandler;
+
+    /**
      * 任务队列。
      */
     private Queue<Runnable> taskQueue;
@@ -102,6 +107,8 @@ public abstract class Module extends Subject {
         if (this.started) {
             return false;
         }
+
+        this.mainHandler = new Handler(this.kernel.looper);
 
         this.started = true;
         return true;
@@ -177,8 +184,7 @@ public abstract class Module extends Subject {
     }
 
     protected void executeOnMainThread(Runnable task) {
-        Handler handler = new Handler(this.kernel.looper);
-        handler.post(task);
+        this.mainHandler.post(task);
     }
 
     protected boolean isAvailableNetwork() {

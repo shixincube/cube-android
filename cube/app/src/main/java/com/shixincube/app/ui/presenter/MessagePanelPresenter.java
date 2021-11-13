@@ -230,11 +230,11 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
      * 发送图片文件。
      *
      * @param file
-     * @param useRaw 是否使用原图。
+     * @param useRawImage 是否使用原图。
      */
-    public void sendImageMessage(File file, boolean useRaw) {
+    public void sendImageMessage(File file, boolean useRawImage) {
         // 创建消息
-        ImageMessage imageMessage = new ImageMessage(file, !useRaw);
+        ImageMessage imageMessage = new ImageMessage(file, !useRawImage);
 
         CubeEngine.getInstance().getMessagingService().sendMessage(conversation, imageMessage, new DefaultSendHandler<Conversation, ImageMessage>(true) {
             @Override
@@ -248,6 +248,8 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
             public void handleProcessed(Conversation destination, ImageMessage message) {
                 // 生成缩略图完成
                 updateMessageStatus(message);
+
+                UIUtils.postTaskDelay(() -> moveToBottom(), 100);
             }
 
             @Override

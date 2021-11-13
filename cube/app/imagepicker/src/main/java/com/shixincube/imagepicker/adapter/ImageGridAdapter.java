@@ -47,7 +47,6 @@ public class ImageGridAdapter extends BaseAdapter {
     }
 
     public void refreshData(ArrayList<ImageItem> images) {
-        System.out.println("XJW : " + images);
         if (images == null || images.size() == 0) this.images = new ArrayList<>();
         else this.images = images;
         notifyDataSetChanged();

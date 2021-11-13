@@ -150,7 +150,7 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
             else {
                 imageView.setProgressVisible(false);
                 imageView.showShadow(false);
-                UIUtils.getMainThreadHandler().postDelayed(() -> this.presenter.moveToBottom(), 100);
+                UIUtils.postTaskDelay(() -> this.presenter.moveToBottom(), 100);
             }
         }
         else if (item instanceof FileMessage) {

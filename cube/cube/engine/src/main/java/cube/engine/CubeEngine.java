@@ -203,6 +203,16 @@ public class CubeEngine implements Observer {
     }
 
     /**
+     * 是否已经有账号签入。
+     *
+     * @return 如果有账号签入返回 {@code true} 。
+     */
+    public boolean hasSignIn() {
+        ContactService contactService = this.getContactService();
+        return (null != contactService.getSelf());
+    }
+
+    /**
      * 签入指定的联系人。
      *
      * @param contactId 指定联系人 ID 。

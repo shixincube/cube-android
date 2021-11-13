@@ -60,6 +60,7 @@ public class ImageMessage extends TypeableMessage {
         // 创建消息附件
         FileAttachment attachment = new FileAttachment(file);
         attachment.setCompressed(useThumbAsSource);
+        attachment.enableThumb(0.7);
         this.setAttachment(attachment);
     }
 

@@ -136,8 +136,14 @@ public class CubeConnection implements ServiceConnection {
 
                 // 已启动，账号签入
                 Account account = AccountHelper.getInstance().getCurrentAccount();
-                // 触发
-                promise.resolve(account);
+                if (null != account) {
+                    // 触发
+                    promise.resolve(account);
+                }
+                else {
+                    // 没有账号
+                    promise.reject();
+                }
             }
         }).then(new Future<Account>() {
             @Override

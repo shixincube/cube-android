@@ -156,8 +156,8 @@ public class FileAttachment implements JSONable {
             }
         }
         else if (null != this.anchor) {
-            if (null != this.anchor.filePath) {
-                this.file = new File(this.anchor.filePath);
+            if (null != this.anchor.getFilePath()) {
+                this.file = new File(this.anchor.getFilePath());
             }
         }
 
@@ -208,7 +208,7 @@ public class FileAttachment implements JSONable {
             return this.label.getFileName();
         }
         else if (null != this.anchor) {
-            return this.anchor.fileName;
+            return this.anchor.getFileName();
         }
 
         return null;
@@ -320,7 +320,7 @@ public class FileAttachment implements JSONable {
         // 计算一个合理的图片大小
         int size = Math.max(thumbnail.getWidth(), thumbnail.getHeight());
         size = (int) Math.round(((double) size) * 0.75f);
-        this.thumbConfig = new ThumbConfig(size);
+        this.thumbConfig = new ThumbConfig(size, thumbnail.getQuality());
     }
 
     /**
@@ -372,7 +372,7 @@ public class FileAttachment implements JSONable {
                 return 100;
             }
 
-            return (int) Math.round((double)this.anchor.position / (double) this.anchor.getFileSize() * 100.0f);
+            return (int) Math.floor((double) this.anchor.position / (double) this.anchor.getFileSize() * 100.0f);
         }
         else {
             return 100;
@@ -481,6 +481,11 @@ public class FileAttachment implements JSONable {
         }
 
         public ThumbConfig(double quality) {
+            this.quality = quality;
+        }
+
+        public ThumbConfig(int size, double quality) {
+            this.size = size;
             this.quality = quality;
         }
 

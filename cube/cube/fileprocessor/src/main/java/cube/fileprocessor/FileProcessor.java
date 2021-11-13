@@ -26,6 +26,10 @@
 
 package cube.fileprocessor;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Size;
+
 import androidx.annotation.Nullable;
 
 import org.json.JSONObject;
@@ -96,12 +100,18 @@ public class FileProcessor extends Module {
                 .path(file.getPath())
                 .targetDir(this.cacheDir)
                 .originalName(true)
-                .ignoreLessThan(200)
+                .ignoreLessThan(100)
                 .build();
         List<Biscuit.Result> list = biscuit.syncCompress();
         Biscuit.Result result = list.get(0);
 
         String path = result.path;
+
+        if (0 == result.outputWidth || 0 == result.outputHeight) {
+            Size size = this.getImageSize(path);
+            result = result.reset(path, size);
+        }
+
         FileThumbnail thumbnail = new FileThumbnail(new File(path),
                 result.outputWidth, result.outputHeight,
                 biscuit.getQuality() / 100.0f,
@@ -111,5 +121,15 @@ public class FileProcessor extends Module {
                 " -> " + CalculationUtils.formatByteDataSize(thumbnail.getFile().length()));
 
         return thumbnail;
+    }
+
+    private Size getImageSize(String path) {
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        Bitmap bitmap = BitmapFactory.decodeFile(path, options);
+        if (null == bitmap) {
+            return new Size(480, 480);
+        }
+        return new Size(options.outWidth, options.outHeight);
     }
 }

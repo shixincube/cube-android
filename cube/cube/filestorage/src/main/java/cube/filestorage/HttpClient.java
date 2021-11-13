@@ -31,13 +31,16 @@ import androidx.annotation.Nullable;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.ProtocolException;
 import java.net.URL;
 
 import cube.core.Packet;
@@ -48,11 +51,13 @@ import cube.util.LogUtils;
  */
 public class HttpClient {
 
+    private final static String TAG = HttpClient.class.getName();
+
     private String url;
 
-    private String token;
-
-    private String sn;
+    public HttpClient(String url) {
+        this.url = url;
+    }
 
     public HttpClient(String url, String token, Long sn) {
         this.url = url;
@@ -60,6 +65,90 @@ public class HttpClient {
         this.url += "&sn=" + sn;
     }
 
+    /**
+     * 已 GET 方法从服务器获取数据。
+     *
+     * @param responseStream
+     * @param listener
+     */
+    public void requestGet(OutputStream responseStream, RequestListener listener) {
+        BufferedInputStream bis = null;
+        HttpURLConnection conn = null;
+
+        try {
+            URL realURL = new URL(this.url);
+
+            // 建立连接
+            conn = (HttpURLConnection) realURL.openConnection();
+            conn.setConnectTimeout(5 * 1000);
+            conn.setReadTimeout(10 * 1000);
+            conn.setRequestMethod("GET");
+
+            LogUtils.d(TAG, "Request [GET] : " + this.url);
+
+            conn.setRequestProperty("Accept", "*/*");
+            conn.setRequestProperty("Connection", "Keep-Alive");
+            conn.setRequestProperty("Cache-Control", "no-cache");
+            conn.setRequestProperty("Charset", "UTF-8");
+
+            // 连接
+            conn.connect();
+
+            // 回调
+            listener.onConnected(this);
+
+            long totalLength = 0;
+
+            int stateCode = conn.getResponseCode();
+            if (HttpURLConnection.HTTP_OK == stateCode ||
+                    HttpURLConnection.HTTP_CREATED == stateCode ||
+                    HttpURLConnection.HTTP_ACCEPTED == stateCode) {
+                bis = new BufferedInputStream(conn.getInputStream());
+                byte[] buf = new byte[10240];
+                int length = 0;
+                while ((length = bis.read(buf)) > 0) {
+                    responseStream.write(buf, 0, length);
+
+                    // 回调
+                    listener.onProgress(this, totalLength += length);
+                }
+                responseStream.flush();
+            }
+
+            // 回调
+            listener.onCompleted(this, stateCode, null);
+
+        } catch (MalformedURLException e) {
+            LogUtils.w(TAG, e);
+        } catch (ProtocolException e) {
+            LogUtils.w(TAG, e);
+        } catch (IOException e) {
+            LogUtils.w(TAG, e);
+            // 回调
+            listener.onFailed(this, e);
+        } finally {
+            if (null != bis) {
+                try {
+                    bis.close();
+                } catch (IOException e) {
+                    LogUtils.w(TAG, e);
+                }
+            }
+
+            // 关闭连接
+            if (null != conn) {
+                conn.disconnect();
+            }
+        }
+    }
+
+    /**
+     * 以 POST 方法向服务器发送二进制数据形式 Form 数据。
+     *
+     * @param requestStream
+     * @param boundary
+     * @param listener
+     */
     public void requestPost(InputStream requestStream, String boundary, RequestListener listener) {
         DataOutputStream writer = null;
         BufferedReader reader = null;
@@ -73,7 +162,7 @@ public class HttpClient {
             conn.setReadTimeout(10 * 1000);
             conn.setRequestMethod("POST");
 
-            LogUtils.d(HttpClient.class.getSimpleName(), "Request [POST] : " + this.url);
+            LogUtils.d(TAG, "Request [POST] : " + this.url);
 
             // 设置通用的请求属性
             conn.setRequestProperty("Accept", "*/*");
@@ -90,12 +179,17 @@ public class HttpClient {
             // 回调
             listener.onConnected(this);
 
+            long totalLength = 0;
+
             // 写入数据
             writer = new DataOutputStream(conn.getOutputStream());
             int length = 0;
-            byte[] buf = new byte[1024];
+            byte[] buf = new byte[10240];
             while ((length = requestStream.read(buf)) > 0) {
                 writer.write(buf, 0, length);
+
+                // 回调
+                listener.onProgress(this, totalLength += length);
             }
             writer.flush();
 
@@ -133,9 +227,9 @@ public class HttpClient {
             // 关闭连接
             conn.disconnect();
         } catch (MalformedURLException e) {
-            LogUtils.w(this.getClass().getSimpleName(), e);
+            LogUtils.w(TAG, e);
         } catch (IOException e) {
-            LogUtils.w(this.getClass().getSimpleName(), e);
+            LogUtils.w(TAG, e);
             // 回调
             listener.onFailed(this, e);
         } finally {
@@ -143,7 +237,7 @@ public class HttpClient {
                 try {
                     writer.close();
                 } catch (IOException e) {
-                    LogUtils.w(this.getClass().getSimpleName(), e);
+                    LogUtils.w(TAG, e);
                 }
             }
 
@@ -151,7 +245,7 @@ public class HttpClient {
                 try {
                     reader.close();
                 } catch (IOException e) {
-                    LogUtils.w(this.getClass().getSimpleName(), e);
+                    LogUtils.w(TAG, e);
                 }
             }
         }
@@ -163,6 +257,8 @@ public class HttpClient {
     public interface RequestListener {
 
         void onConnected(HttpClient client);
+
+        void onProgress(HttpClient client, long totalLength);
 
         void onFailed(HttpClient client, Exception exception);
 

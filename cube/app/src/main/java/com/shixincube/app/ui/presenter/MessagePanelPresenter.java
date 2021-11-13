@@ -99,7 +99,7 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
 
         if (null == this.adapter) {
             this.adapter = new MessagePanelAdapter(activity, messageList, this);
-            this.adapter.setOnItemClickListener(this);
+//            this.adapter.setOnItemClickListener(this);
 
             getView().getMessageListView().setAdapter(this.adapter);
 
@@ -291,9 +291,7 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
         CubeEngine.getInstance().getMessagingService().removeEventListener(this.conversation, this);
     }
 
-    @Override
-    public void onItemClick(ViewHolder helper, ViewGroup parent, View itemView, int position) {
-        Message message = this.adapter.getData().get(position);
+    public void fireItemClick(ViewHolder helper, Message message, int position) {
         if (message instanceof  ImageMessage) {
             ImageMessage imageMessage = (ImageMessage) message;
             Intent intent = new Intent(activity, ImageShowcaseActivity.class);
@@ -317,6 +315,22 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
                 activity.jumpToActivity(intent);
             }
         }
+    }
+
+    @Override
+    public void onItemClick(ViewHolder helper, ViewGroup parent, View itemView, int position) {
+        Message message = this.adapter.getData().get(position);
+        this.fireItemClick(helper, message, position);
+    }
+
+    @Override
+    public void onMessageProcessing(Message message, MessagingService service) {
+
+    }
+
+    @Override
+    public void onMessageProcessed(Message message, MessagingService service) {
+
     }
 
     @Override

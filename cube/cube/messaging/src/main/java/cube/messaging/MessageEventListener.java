@@ -34,6 +34,22 @@ import cube.messaging.model.Message;
 public interface MessageEventListener {
 
     /**
+     * 消息正在处理附件数据。
+     *
+     * @param message 消息实体。
+     * @param service 消息服务。
+     */
+    void onMessageProcessing(Message message, MessagingService service);
+
+    /**
+     * 消息附件数据已处理完成。
+     *
+     * @param message 消息实体。
+     * @param service 消息服务。
+     */
+    void onMessageProcessed(Message message, MessagingService service);
+
+    /**
      * 消息正在发送。
      *
      * @param message 消息实体。

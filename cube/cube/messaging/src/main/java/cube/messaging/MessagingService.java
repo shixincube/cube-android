@@ -1542,7 +1542,8 @@ public class MessagingService extends Module {
     public void notifyObservers(ObservableEvent event) {
         super.notifyObservers(event);
 
-        if (MessagingServiceEvent.Notify.equals(event.getName())) {
+        String eventName = event.getName();
+        if (MessagingServiceEvent.Notify.equals(eventName)) {
             Message message = (Message) event.getData();
 
             if (null != this.eventListeners) {
@@ -1558,6 +1559,14 @@ public class MessagingService extends Module {
                     for (MessageEventListener listener : list) {
                         listener.onMessageReceived(message, this);
                     }
+                }
+            }
+        }
+        else if (MessagingServiceEvent.Processing.equals(eventName)) {
+            Message message = (Message) event.getData();
+            if (null != this.eventListeners) {
+                for (MessageEventListener listener : this.eventListeners) {
+                    listener.onMessageProcessing(message, this);
                 }
             }
         }
@@ -1692,10 +1701,11 @@ public class MessagingService extends Module {
             message.setReceiver(this.contactService.getContact(message.getTo()));
         }
 
-        // TODO 如果附件有缩略图，本地没有，下载消息附件的缩略图到本地
+        // 如果附件有缩略图，本地没有，下载消息附件的缩略图到本地
         FileAttachment attachment = message.getAttachment();
         if (null != attachment) {
             if (attachment.hasThumbnail()) {
+
             }
         }
 

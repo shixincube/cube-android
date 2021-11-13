@@ -29,6 +29,7 @@ package com.shixincube.app.ui.adapter;
 import android.content.Context;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 
 import com.bumptech.glide.Glide;
 import com.shixincube.app.R;
@@ -65,6 +66,7 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
     @Override
     public void convert(ViewHolderForRecyclerView helper, Message item, int position) {
         this.setView(helper, item, position);
+        this.bindEvent(helper, item, position);
     }
 
     @Override
@@ -170,6 +172,17 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
         }
         else {
             // TODO
+        }
+    }
+
+    private void bindEvent(ViewHolderForRecyclerView helper, Message item, int position) {
+        if (item instanceof ImageMessage) {
+            BubbleImageView imageView = helper.getView(R.id.bivImage);
+            imageView.setOnClickListener((view) -> this.presenter.fireItemClick(helper, item, position));
+        }
+        else if (item instanceof FileMessage) {
+            LinearLayout layout = helper.getView(R.id.llContact);
+            layout.setOnClickListener((view) -> this.presenter.fireItemClick(helper, item, position));
         }
     }
 }

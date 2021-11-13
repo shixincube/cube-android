@@ -206,7 +206,7 @@ public class BubbleImageView extends ImageView {
         // 是否画文字
         if (mShowText) {
             //画文字
-            mPaint.setTextSize(30);
+            mPaint.setTextSize(32);
             mPaint.setColor(Color.parseColor("#FFFFFF"));
             mPaint.setStrokeWidth(2);
 

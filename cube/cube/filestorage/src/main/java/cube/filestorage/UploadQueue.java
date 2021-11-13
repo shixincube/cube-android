@@ -32,6 +32,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -44,6 +45,8 @@ import cube.util.LogUtils;
  * 上传队列。
  */
 public class UploadQueue {
+
+    private final static String TAG = UploadQueue.class.getSimpleName();
 
     private FileStorage service;
 
@@ -67,6 +70,11 @@ public class UploadQueue {
         this.listener = listener;
     }
 
+    /**
+     * 将文件锚点入队进行数据上传。
+     *
+     * @param fileAnchor
+     */
     public void enqueue(FileAnchor fileAnchor) {
         // 入队
         this.fileAnchorQueue.offer(fileAnchor);
@@ -79,89 +87,90 @@ public class UploadQueue {
     protected void process() {
         this.concurrentCount.incrementAndGet();
 
-        this.service.execute(new Runnable() {
-            @Override
-            public void run() {
-                // 将文件依次出队
-                while (!fileAnchorQueue.isEmpty()) {
-                    FileAnchor anchor = fileAnchorQueue.poll();
-                    if (null == anchor) {
-                        break;
-                    }
-
-                    // 已启动
-                    listener.onUploadStarted(anchor);
-
-                    try {
-                        byte[] data = new byte[fileBlockSize.value];
-
-                        MutableInt length = new MutableInt(0);
-                        while ((length.value = anchor.inputStream.read(data)) > 0) {
-                            FileFormData formData = new FileFormData(service.getSelf().id,
-                                    anchor.fileName, anchor.fileSize, anchor.lastModified,
-                                    anchor.position, length.value);
-                            // 设置数据
-                            formData.setData(data, 0, length.value);
-
-                            HttpClient client = new HttpClient(service.getServiceURL(), service.getTokenCode(),
-                                    System.currentTimeMillis());
-                            client.requestPost(formData.getInputStream(), formData.getBoundary(), new HttpClient.RequestListener() {
-                                @Override
-                                public void onConnected(HttpClient client) {
-                                    // Nothing
-                                }
-
-                                @Override
-                                public void onFailed(HttpClient client, Exception exception) {
-                                    listener.onUploadFailed(anchor, FileStorageState.TransmitFailed.code);
-                                }
-
-                                @Override
-                                public void onCompleted(HttpClient client, int stateCode, Packet packet) {
-                                    if (stateCode == 200) {
-                                        anchor.updatePosition(length.value);
-
-                                        // 正在上传数据
-                                        listener.onUploading(anchor);
-
-                                        if (anchor.isFinish()) {
-                                            // 数据上传完成
-                                            try {
-                                                JSONObject data = packet.extractServiceData();
-                                                anchor.setFileCode(data.getString("fileCode"));
-
-                                                LogUtils.d(UploadQueue.class.getSimpleName(), "File anchor : " + anchor.fileName + " - " + anchor.getFileCode());
-                                            }
-                                            catch (JSONException e) {
-                                                e.printStackTrace();
-                                            }
-
-                                            listener.onUploadCompleted(anchor);
-                                        }
-                                    }
-                                    else {
-                                        LogUtils.w(UploadQueue.class.getSimpleName(), "Error : " + stateCode);
-                                        listener.onUploadFailed(anchor, FileStorageState.TransmitFailed.code);
-                                    }
-                                }
-                            });
-                        }
-
-                        // 关闭流
-                        anchor.close();
-                    } catch (IOException e) {
-                        LogUtils.w(UploadQueue.class.getSimpleName(), e);
-                        listener.onUploadFailed(anchor, FileStorageState.ReadFileFailed.code);
-                        anchor.close();
-                    } catch (Exception e) {
-                        LogUtils.w(UploadQueue.class.getSimpleName(), e);
-                        listener.onUploadFailed(anchor, FileStorageState.TransmitFailed.code);
-                        anchor.close();
-                    }
+        this.service.execute(() -> {
+            // 将文件依次出队
+            while (!fileAnchorQueue.isEmpty()) {
+                FileAnchor anchor = fileAnchorQueue.poll();
+                if (null == anchor) {
+                    break;
                 }
 
-                concurrentCount.decrementAndGet();
+                // 回调已启动
+                listener.onUploadStarted(anchor);
+
+                try {
+                    byte[] data = new byte[fileBlockSize.value];
+
+                    MutableInt length = new MutableInt(0);
+                    while ((length.value = anchor.inputStream.read(data)) > 0) {
+                        FileFormData formData = new FileFormData(service.getSelf().id,
+                                anchor.getFileName(), anchor.getFileSize(), anchor.getLastModified(),
+                                anchor.position, length.value);
+                        // 设置数据
+                        formData.setData(data, 0, length.value);
+
+                        HttpClient client = new HttpClient(service.getServiceURL(), service.getTokenCode(),
+                                System.currentTimeMillis());
+                        client.requestPost(formData.getInputStream(), formData.getBoundary(), new HttpClient.RequestListener() {
+                            @Override
+                            public void onConnected(HttpClient client) {
+                                // Nothing
+                            }
+                            @Override
+                            public void onProgress(HttpClient client, long totalLength) {
+                                // Nothing
+                            }
+
+                            @Override
+                            public void onFailed(HttpClient client, Exception exception) {
+                                listener.onUploadFailed(anchor, FileStorageState.TransmitFailed.code);
+                            }
+
+                            @Override
+                            public void onCompleted(HttpClient client, int stateCode, Packet packet) {
+                                if (stateCode == HttpURLConnection.HTTP_OK) {
+                                    anchor.updatePosition(length.value);
+
+                                    // 正在上传数据
+                                    listener.onUploading(anchor);
+
+                                    if (anchor.isFinish()) {
+                                        // 数据上传完成
+                                        try {
+                                            JSONObject data = packet.extractServiceData();
+                                            anchor.setFileCode(data.getString("fileCode"));
+
+                                            LogUtils.d(TAG, "File anchor : " + anchor.getFileName() + " - " + anchor.getFileCode());
+                                        }
+                                        catch (JSONException e) {
+                                            e.printStackTrace();
+                                        }
+
+                                        listener.onUploadCompleted(anchor);
+                                    }
+                                }
+                                else {
+                                    LogUtils.w(TAG, "Error : " + stateCode);
+                                    listener.onUploadFailed(anchor, FileStorageState.TransmitFailed.code);
+                                }
+                            }
+                        });
+                    }
+
+                    // 关闭流
+                    anchor.close();
+                } catch (IOException e) {
+                    LogUtils.w(TAG, "#process", e);
+                    listener.onUploadFailed(anchor, FileStorageState.ReadFileFailed.code);
+                    anchor.close();
+                } catch (Exception e) {
+                    LogUtils.w(TAG, "#process", e);
+                    listener.onUploadFailed(anchor, FileStorageState.TransmitFailed.code);
+                    anchor.close();
+                }
             }
+
+            concurrentCount.decrementAndGet();
         });
     }
 

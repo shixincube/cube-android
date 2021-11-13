@@ -53,7 +53,7 @@ import cube.pipeline.CellPipeline;
  */
 public class Kernel implements PipelineListener {
 
-    private final static int MAX_THREADS = 8;
+    private final static int MAX_THREADS = 12;
 
     private static Kernel defaultInstance;
 

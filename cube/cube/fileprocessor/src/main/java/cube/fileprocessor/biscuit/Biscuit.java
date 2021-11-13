@@ -4,6 +4,7 @@ package cube.fileprocessor.biscuit;
 import android.content.Context;
 import android.text.TextUtils;
 import android.util.Log;
+import android.util.Size;
 
 import androidx.annotation.IntDef;
 
@@ -241,6 +242,7 @@ public class Biscuit {
     }
 
     public class Result {
+
         public final String path;
         public final int inputWidth;
         public final int inputHeight;
@@ -253,6 +255,10 @@ public class Biscuit {
             this.inputHeight = inputHeight;
             this.outputWidth = outputWidth;
             this.outputHeight = outputHeight;
+        }
+
+        public Result reset(String path, Size size) {
+            return new Result(path, size.getWidth(), size.getHeight(), size.getWidth(), size.getHeight());
         }
     }
 

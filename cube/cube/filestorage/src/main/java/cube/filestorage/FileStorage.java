@@ -60,9 +60,11 @@ import cube.util.Observer;
 /**
  * 文件存储服务。
  */
-public class FileStorage extends Module implements Observer, UploadQueue.UploadQueueListener {
+public class FileStorage extends Module implements Observer, UploadQueue.UploadQueueListener, DownloadQueue.DownloadQueueListener {
 
     public final static String NAME = "FileStorage";
+
+    private final static String TAG = FileStorage.class.getSimpleName();
 
     private Self self;
 
@@ -70,13 +72,15 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
 
     private String fileSecureURL = "https://cube.shixincube.com/filestorage/file/";
 
-    private MutableInt fileBlockSize = new MutableInt(10 * 1024);
+    private MutableInt fileBlockSize = new MutableInt(64 * 1024);
 
     private String fileCachePath;
 
     private StructStorage storage;
 
     private UploadQueue uploadQueue;
+
+    private DownloadQueue downloadQueue;
 
     public FileStorage() {
         super(NAME);
@@ -115,6 +119,9 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
 
         this.uploadQueue = new UploadQueue(this, this.fileBlockSize);
         this.uploadQueue.setListener(this);
+
+        this.downloadQueue = new DownloadQueue(this, this.fileBlockSize);
+        this.downloadQueue.setListener(this);
 
         return true;
     }
@@ -226,7 +233,16 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
         }
 
         // 下载文件
+        File localFile = new File(this.fileCachePath, fileLabel.getFileCode() + "." + fileLabel.getFileType());
+        FileAnchor anchor = new FileAnchor(localFile, fileLabel);
+        if (this.downloadQueue.isProcessing(anchor)) {
+            LogUtils.d(TAG, "#downloadFile file is processing : " + anchor.getFileName());
+            return;
+        }
 
+        LogUtils.d(TAG, "#downloadFile : " + anchor.getFileURL());
+        anchor.setDownloadFileHandler(handler);
+        this.downloadQueue.enqueue(anchor);
     }
 
     /**
@@ -406,78 +422,75 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
 
         PostTask postTask = (anchor, label) -> {
             // 设置文件路径
-            label.setFilePath(anchor.filePath);
+            label.setFilePath(anchor.getFilePath());
 
             // 数据入库
             this.storage.writeFileLabel(label);
         };
 
-        this.execute(new Runnable() {
-            @Override
-            public void run() {
-                // 获取文件标签
-                getRemoteFileLabel(fileAnchor.getFileCode(), new StableFileLabelHandler() {
-                    @Override
-                    public void handleSuccess(FileLabel fileLabel) {
-                        // 后处理
-                        postTask.process(fileAnchor, fileLabel);
+        this.execute(() -> {
+            // 获取文件标签
+            getRemoteFileLabel(fileAnchor.getFileCode(), new StableFileLabelHandler() {
+                @Override
+                public void handleSuccess(FileLabel fileLabel) {
+                    // 后处理
+                    postTask.process(fileAnchor, fileLabel);
 
-                        if (uploadHandler.isInMainThread()) {
-                            executeOnMainThread(() -> {
-                                uploadHandler.handleSuccess(fileLabel);
+                    if (uploadHandler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            uploadHandler.handleSuccess(fileLabel);
+                        });
+                    }
+                    else {
+                        execute(() -> {
+                            uploadHandler.handleSuccess(fileLabel);
+                        });
+                    }
+                }
+
+                @Override
+                public void handleFailure(ModuleError error, @Nullable FileLabel fileLabel) {
+                    // 延迟之后再试
+                    executeDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            // 获取文件标签
+                            getRemoteFileLabel(fileAnchor.getFileCode(), new StableFileLabelHandler() {
+                                @Override
+                                public void handleSuccess(FileLabel fileLabel) {
+                                    // 后处理
+                                    postTask.process(fileAnchor, fileLabel);
+
+                                    if (uploadHandler.isInMainThread()) {
+                                        executeOnMainThread(() -> {
+                                            uploadHandler.handleSuccess(fileLabel);
+                                        });
+                                    }
+                                    else {
+                                        execute(() -> {
+                                            uploadHandler.handleSuccess(fileLabel);
+                                        });
+                                    }
+                                }
+
+                                @Override
+                                public void handleFailure(ModuleError error, @Nullable FileLabel fileLabel) {
+                                    if (uploadHandler.isInMainThread()) {
+                                        executeOnMainThread(() -> {
+                                            uploadHandler.handleFailure(error, fileAnchor);
+                                        });
+                                    }
+                                    else {
+                                        execute(() -> {
+                                            uploadHandler.handleFailure(error, fileAnchor);
+                                        });
+                                    }
+                                }
                             });
                         }
-                        else {
-                            execute(() -> {
-                                uploadHandler.handleSuccess(fileLabel);
-                            });
-                        }
-                    }
-
-                    @Override
-                    public void handleFailure(ModuleError error, @Nullable FileLabel fileLabel) {
-                        // 延迟之后再试
-                        executeDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                // 获取文件标签
-                                getRemoteFileLabel(fileAnchor.getFileCode(), new StableFileLabelHandler() {
-                                    @Override
-                                    public void handleSuccess(FileLabel fileLabel) {
-                                        // 后处理
-                                        postTask.process(fileAnchor, fileLabel);
-
-                                        if (uploadHandler.isInMainThread()) {
-                                            executeOnMainThread(() -> {
-                                                uploadHandler.handleSuccess(fileLabel);
-                                            });
-                                        }
-                                        else {
-                                            execute(() -> {
-                                                uploadHandler.handleSuccess(fileLabel);
-                                            });
-                                        }
-                                    }
-
-                                    @Override
-                                    public void handleFailure(ModuleError error, @Nullable FileLabel fileLabel) {
-                                        if (uploadHandler.isInMainThread()) {
-                                            executeOnMainThread(() -> {
-                                                uploadHandler.handleFailure(error, fileAnchor);
-                                            });
-                                        }
-                                        else {
-                                            execute(() -> {
-                                                uploadHandler.handleFailure(error, fileAnchor);
-                                            });
-                                        }
-                                    }
-                                });
-                            }
-                        }, 500);
-                    }
-                });
-            }
+                    }, 500);
+                }
+            });
         });
     }
 
@@ -495,6 +508,76 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
                 this.execute(() -> {
                     ModuleError error = new ModuleError(NAME, errorCode);
                     uploadHandler.handleFailure(error, fileAnchor);
+                });
+            }
+        }
+    }
+
+    @Override
+    public void onDownloadStarted(FileAnchor fileAnchor) {
+        DownloadFileHandler downloadHandler = fileAnchor.getDownloadHandler();
+        if (null != downloadHandler) {
+            if (downloadHandler.isInMainThread()) {
+                this.executeOnMainThread(() -> {
+                    downloadHandler.handleStarted(fileAnchor);
+                });
+            }
+            else {
+                this.execute(() -> {
+                    downloadHandler.handleStarted(fileAnchor);
+                });
+            }
+        }
+    }
+
+    @Override
+    public void onDownloading(FileAnchor fileAnchor) {
+        DownloadFileHandler downloadHandler = fileAnchor.getDownloadHandler();
+        if (null != downloadHandler) {
+            if (downloadHandler.isInMainThread()) {
+                this.executeOnMainThread(() -> {
+                    downloadHandler.handleProcessing(fileAnchor);
+                });
+            }
+            else {
+                this.execute(() -> {
+                    downloadHandler.handleProcessing(fileAnchor);
+                });
+            }
+        }
+    }
+
+    @Override
+    public void onDownloadCompleted(FileAnchor fileAnchor) {
+        DownloadFileHandler downloadHandler = fileAnchor.getDownloadHandler();
+        if (null != downloadHandler) {
+            if (downloadHandler.isInMainThread()) {
+                this.executeOnMainThread(() -> {
+                    downloadHandler.handleSuccess(fileAnchor.fileLabel);
+                });
+            }
+            else {
+                this.execute(() -> {
+                    downloadHandler.handleSuccess(fileAnchor.fileLabel);
+                });
+            }
+        }
+    }
+
+    @Override
+    public void onDownloadFailed(FileAnchor fileAnchor, int errorCode) {
+        DownloadFileHandler downloadHandler = fileAnchor.getDownloadHandler();
+        if (null != downloadHandler) {
+            if (downloadHandler.isInMainThread()) {
+                this.executeOnMainThread(() -> {
+                    ModuleError error = new ModuleError(NAME, errorCode);
+                    downloadHandler.handleFailure(error, fileAnchor);
+                });
+            }
+            else {
+                this.execute(() -> {
+                    ModuleError error = new ModuleError(NAME, errorCode);
+                    downloadHandler.handleFailure(error, fileAnchor);
                 });
             }
         }

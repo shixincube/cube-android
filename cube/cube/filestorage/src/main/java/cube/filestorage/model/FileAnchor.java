@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import cube.core.model.Entity;
+import cube.filestorage.handler.DownloadFileHandler;
 import cube.filestorage.handler.UploadFileHandler;
 
 /**
@@ -47,22 +48,27 @@ public class FileAnchor extends Entity {
      * 文件的本地路径。
      */
     @Nullable
-    public final String filePath;
+    private final String filePath;
 
     /**
      * 文件名。
      */
-    public final String fileName;
+    private final String fileName;
 
     /**
      * 文件大小，单位：字节。
      */
-    public final long fileSize;
+    private final long fileSize;
 
     /**
      * 文件最近一次修改时间。
      */
-    public final long lastModified;
+    private final long lastModified;
+
+    /**
+     * 文件句柄。
+     */
+    private File file;
 
     /**
      * 当前锚点处理的游标位置，即已处理的数据大小。
@@ -80,18 +86,42 @@ public class FileAnchor extends Entity {
     private String fileCode;
 
     /**
+     * 文件访问 URL 。
+     */
+    private String fileURL;
+
+    /**
+     * 文件标签。
+     */
+    public FileLabel fileLabel;
+
+    /**
      * 上传文件句柄。
      */
-    private UploadFileHandler handler;
+    private UploadFileHandler uploadHandler;
+
+    /**
+     * 下载文件句柄。
+     */
+    private DownloadFileHandler downloadHandler;
 
     public InputStream inputStream;
 
     public FileAnchor(File file) {
-        this(file.getPath(), file.getName(), file.length(), file.lastModified());
+        this(file.getAbsolutePath(), file.getName(), file.length(), file.lastModified());
+        this.file = file;
     }
 
     public FileAnchor(String fileName, long fileSize, long lastModified) {
         this(null, fileName, fileSize, lastModified);
+    }
+
+    public FileAnchor(File file, FileLabel fileLabel) {
+        this(file.getAbsolutePath(), fileLabel.getFileName(), fileLabel.getFileSize(), fileLabel.getLastModified());
+        this.file = file;
+        this.fileURL = fileLabel.getURL();
+        this.fileCode = fileLabel.getFileCode();
+        this.fileLabel = fileLabel;
     }
 
     public FileAnchor(String filePath, String fileName, long fileSize, long lastModified) {
@@ -109,6 +139,7 @@ public class FileAnchor extends Entity {
 
         if (json.has("filePath")) {
             this.filePath = json.getString("filePath");
+            this.file = new File(this.filePath);
         }
         else {
             this.filePath = null;
@@ -120,6 +151,23 @@ public class FileAnchor extends Entity {
         this.lastModified = json.has("lastModified") ? json.getLong("lastModified") : this.timestamp;
         this.position = json.getLong("position");
         this.remaining = 0;
+    }
+
+    public File getFile() {
+        return this.file;
+    }
+
+    /**
+     * 获取文件路径。
+     *
+     * @return 返回文件路径。
+     */
+    public String getFilePath() {
+        return this.filePath;
+    }
+
+    public String getFileURL() {
+        return this.fileURL;
     }
 
     /**
@@ -157,20 +205,45 @@ public class FileAnchor extends Entity {
     }
 
     public void setUploadFileHandler(UploadFileHandler handler) {
-        this.handler = handler;
+        this.uploadHandler = handler;
     }
 
     public UploadFileHandler getUploadFileHandler() {
-        return this.handler;
+        return this.uploadHandler;
+    }
+
+    public void setDownloadFileHandler(DownloadFileHandler handler) {
+        this.downloadHandler = handler;
+    }
+
+    public DownloadFileHandler getDownloadHandler() {
+        return this.downloadHandler;
     }
 
     public void bindInputStream(InputStream inputStream) {
         this.inputStream = inputStream;
     }
 
+    /**
+     * 更新当前文件操作位置。
+     *
+     * @param size
+     */
     public void updatePosition(int size) {
         this.position += size;
         this.remaining = this.fileSize - this.position;
+    }
+
+    /**
+     * 重置当前文件操作位置。
+     *
+     * @param newPosition
+     * @return
+     */
+    public FileAnchor resetPosition(long newPosition) {
+        this.position = newPosition;
+        this.remaining = this.fileSize - this.position;
+        return this;
     }
 
     public long getRemaining() {
@@ -192,6 +265,24 @@ public class FileAnchor extends Entity {
     }
 
     @Override
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+
+        if (null != object && object instanceof FileAnchor) {
+            FileAnchor other = (FileAnchor) object;
+            if (null != this.fileCode && null != other.fileCode) {
+                return this.fileCode.equals(other.fileCode);
+            }
+
+            return (this.fileName.equals(other.fileName) && this.fileSize == other.fileSize);
+        }
+
+        return false;
+    }
+
+    @Override
     public JSONObject toJSON() {
         JSONObject json = new JSONObject();
         try {
@@ -200,6 +291,10 @@ public class FileAnchor extends Entity {
             json.put("fileCode", this.fileCode);
             json.put("lastModified", this.lastModified);
             json.put("position", this.position);
+
+            if (null != this.filePath) {
+                json.put("filePath", this.filePath);
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }

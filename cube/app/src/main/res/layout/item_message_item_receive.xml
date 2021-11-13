@@ -67,6 +67,7 @@
                 android:orientation="horizontal">
 
                 <LinearLayout
+                    android:id="@+id/llContact"
                     android:layout_width="240dp"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"

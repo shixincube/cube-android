@@ -111,7 +111,11 @@ public class FileThumbnail extends Entity {
      */
     public FileThumbnail(JSONObject json) throws JSONException {
         super(json);
-        this.fileLabel = new FileLabel(json.getJSONObject("fileLabel"));
+
+        if (json.has("fileLabel")) {
+            this.fileLabel = new FileLabel(json.getJSONObject("fileLabel"));
+        }
+
         this.width = json.getInt("width");
         this.height = json.getInt("height");
         this.sourceFileCode = json.getString("sourceFileCode");
@@ -152,8 +156,11 @@ public class FileThumbnail extends Entity {
         if (null != this.file && this.file.exists()) {
             return Uri.fromFile(this.file).toString();
         }
-        else {
+        else if (null != this.fileLabel) {
             return this.fileLabel.getURL();
+        }
+        else {
+            return null;
         }
     }
 
@@ -163,6 +170,10 @@ public class FileThumbnail extends Entity {
 
     public int getHeight() {
         return this.height;
+    }
+
+    public double getQuality() {
+        return this.quality;
     }
 
     public void setSourceFileCode(String fileCode) {
@@ -186,7 +197,11 @@ public class FileThumbnail extends Entity {
         JSONObject json = super.toCompactJSON();
         try {
             json.put("domain", AuthService.getDomain());
-            json.put("fileLabel", this.fileLabel.toJSON());
+
+            if (null != this.fileLabel) {
+                json.put("fileLabel", this.fileLabel.toJSON());
+            }
+
             json.put("width", this.width);
             json.put("height", this.height);
             json.put("sourceFileCode", this.sourceFileCode);

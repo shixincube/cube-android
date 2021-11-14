@@ -36,6 +36,7 @@ import java.util.Locale;
 
 import cube.auth.AuthService;
 import cube.core.model.Entity;
+import cube.filestorage.model.FileAnchor;
 import cube.filestorage.model.FileLabel;
 
 /**
@@ -89,6 +90,11 @@ public class FileThumbnail extends Entity {
     private int sourceHeight;
 
     /**
+     * 下载文件的文件锚。
+     */
+    private FileAnchor downloadAnchor;
+
+    /**
      * 构造函数。
      *
      * @param file
@@ -139,12 +145,42 @@ public class FileThumbnail extends Entity {
     }
 
     /**
+     * 获取文件的本地存储路径。
+     *
+     * @return
+     */
+    public String getFilePath() {
+        return this.filePath;
+    }
+
+    /**
+     * 获取文件标签。
+     *
+     * @return
+     */
+    public FileLabel getFileLabel() {
+        return this.fileLabel;
+    }
+
+    /**
      * 文件是否在本地存在。
      *
      * @return
      */
     public boolean existsLocal() {
-        return (null != this.file && this.file.exists());
+        if (null == this.downloadAnchor) {
+            return (null != this.file && this.file.exists() && this.file.length() > 0);
+        }
+        else {
+            if (null != this.fileLabel) {
+                return (null != this.file) ? this.fileLabel.getFileSize() == this.file.length() :
+                        this.fileLabel.getFileSize() == this.downloadAnchor.position;
+            }
+            else {
+                return (null != this.file && this.file.exists()
+                        && this.downloadAnchor.position == this.file.length());
+            }
+        }
     }
 
     /**
@@ -153,7 +189,7 @@ public class FileThumbnail extends Entity {
      * @return
      */
     public String getFileURL() {
-        if (null != this.file && this.file.exists()) {
+        if (null != this.file && this.file.exists() && this.file.length() > 0) {
             return Uri.fromFile(this.file).toString();
         }
         else if (null != this.fileLabel) {
@@ -180,6 +216,15 @@ public class FileThumbnail extends Entity {
         this.sourceFileCode = fileCode;
     }
 
+    public void setDownloadAnchor(FileAnchor fileAnchor) {
+        this.downloadAnchor = fileAnchor;
+    }
+
+    public void resetFile(File file) {
+        this.file = file;
+        this.filePath = file.getAbsolutePath();
+    }
+
     public String print() {
         StringBuilder buf = new StringBuilder();
         if (null != this.filePath) {
@@ -204,7 +249,7 @@ public class FileThumbnail extends Entity {
 
             json.put("width", this.width);
             json.put("height", this.height);
-            json.put("sourceFileCode", this.sourceFileCode);
+            json.put("sourceFileCode", (null != this.sourceFileCode) ? this.sourceFileCode : "");
             json.put("sourceWidth", this.sourceWidth);
             json.put("sourceHeight", this.sourceHeight);
             json.put("quality", this.quality);

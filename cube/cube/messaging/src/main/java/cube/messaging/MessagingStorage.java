@@ -464,10 +464,24 @@ public class MessagingStorage extends AbstractStorage {
         for (Long id : messageIdList) {
             ContentValues values = new ContentValues();
             values.put("remote_state", state.code);
+            // update
             db.update("message", values, "id=?", new String[] {
                     id.toString()
             });
         }
+        this.closeWritableDatabase(db);
+    }
+
+    public void updateMessageAttachment(Long messageId, FileAttachment attachment) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put("attachment", attachment.toJSON().toString());
+        // update
+        db.update("message", values, "id=?", new String[] {
+                messageId.toString()
+        });
+
         this.closeWritableDatabase(db);
     }
 
@@ -610,7 +624,7 @@ public class MessagingStorage extends AbstractStorage {
             try {
                 payload = new JSONObject(payloadString);
             } catch (JSONException e) {
-                // Nothing
+                e.printStackTrace();
             }
 
             FileAttachment attachment = null;
@@ -619,7 +633,7 @@ public class MessagingStorage extends AbstractStorage {
                 try {
                     attachment = new FileAttachment(new JSONObject(attachmentString));
                 } catch (JSONException e) {
-                    // Nothing
+                    e.printStackTrace();
                 }
             }
 

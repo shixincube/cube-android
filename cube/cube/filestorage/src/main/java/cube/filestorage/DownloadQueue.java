@@ -31,7 +31,6 @@ import android.util.MutableInt;
 import androidx.annotation.Nullable;
 
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.List;
 import java.util.Queue;
@@ -75,6 +74,16 @@ public class DownloadQueue {
         this.listener = listener;
     }
 
+    public boolean isProcessing(String fileCode) {
+        for (FileAnchor anchor : processingList) {
+            if (anchor.getFileCode().equals(fileCode)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /**
      * 判断指定的文件锚是否正在被处理。
      *
@@ -86,6 +95,10 @@ public class DownloadQueue {
     }
 
     public void enqueue(FileAnchor fileAnchor) {
+        if (this.processingList.contains(fileAnchor)) {
+            return;
+        }
+
         // 入队
         this.fileAnchorQueue.offer(fileAnchor);
         this.processingList.add(fileAnchor);
@@ -145,7 +158,7 @@ public class DownloadQueue {
                             }
                         }
                     });
-                } catch (IOException e) {
+                } catch (Exception e) {
                     LogUtils.w(TAG, "#process", e);
                     processingList.remove(anchor);
                     listener.onDownloadFailed(anchor, FileStorageState.TransmitFailed.code);

@@ -69,6 +69,7 @@ import cube.core.handler.StableFailureHandler;
 import cube.fileprocessor.FileProcessor;
 import cube.fileprocessor.model.FileThumbnail;
 import cube.filestorage.FileStorage;
+import cube.filestorage.handler.StableDownloadFileHandler;
 import cube.filestorage.handler.StableUploadFileHandler;
 import cube.filestorage.model.FileAnchor;
 import cube.filestorage.model.FileLabel;
@@ -77,6 +78,7 @@ import cube.messaging.handler.DefaultSendHandler;
 import cube.messaging.handler.MessageListResultHandler;
 import cube.messaging.handler.SendHandler;
 import cube.messaging.hook.InstantiateHook;
+import cube.messaging.model.CacheableFileAttachment;
 import cube.messaging.model.Conversation;
 import cube.messaging.model.ConversationReminded;
 import cube.messaging.model.ConversationState;
@@ -144,6 +146,8 @@ public class MessagingService extends Module {
      */
     private Map<Long, MessageList> conversationMessageListMap;
 
+    private Map<String, CacheableFileAttachment> attachmentCache;
+
     /**
      * 正在发送的消息清单。
      */
@@ -161,6 +165,7 @@ public class MessagingService extends Module {
         this.sendingList = new ConcurrentLinkedQueue<>();
         this.preloadConversationRecentNum = 5;
         this.preloadConversationMessageNum = 10;
+        this.attachmentCache = new ConcurrentHashMap<>();
     }
 
     @Override
@@ -1704,8 +1709,82 @@ public class MessagingService extends Module {
         // 如果附件有缩略图，本地没有，下载消息附件的缩略图到本地
         FileAttachment attachment = message.getAttachment();
         if (null != attachment) {
-            if (attachment.hasThumbnail()) {
+            CacheableFileAttachment cachedAttachment = this.attachmentCache.get(attachment.getFileCode());
+            if (null == cachedAttachment) {
+                cachedAttachment = new CacheableFileAttachment(attachment);
+                this.attachmentCache.put(attachment.getFileCode(), cachedAttachment);
+            }
+            else {
+                message.setAttachment(cachedAttachment.fileAttachment);
+            }
 
+            // 添加附件对应的消息
+            cachedAttachment.addMessageId(message.id);
+
+            final FileAttachment currentAttachment = cachedAttachment.fileAttachment;
+
+            if (currentAttachment.hasThumbnail()) {
+                FileThumbnail thumbnail = currentAttachment.getThumbnail();
+                if (!thumbnail.existsLocal()) {
+                    // 缩略图本地文件不存在，下载文件
+                    FileLabel fileLabel = thumbnail.getFileLabel();
+                    if (null == fileLabel) {
+                        // 文件标签不存在说明该缩略图是本地缩略图，服务器上没有该图
+                        // 获取服务器上的缩略图
+                        thumbnail = attachment.getRemoteThumbnail();
+                        fileLabel = thumbnail.getFileLabel();
+                    }
+
+                    LogUtils.d(TAG, "Download file thumbnail : " + fileLabel.getFileCode() +
+                            " (" +  message.id + ") - " + message.getFrom() + " -> " + message.getTo());
+
+                    if (null != fileLabel) {
+                        // 重置本地缩略图
+                        currentAttachment.resetLocalThumbnail(thumbnail);
+
+                        if (!this.fileStorage.isDownloading(fileLabel.getFileCode())) {
+                            // 没有正在下载，对文件进行下载
+
+                            this.fileStorage.downloadFile(fileLabel, new StableDownloadFileHandler() {
+                                @Override
+                                public void handleStarted(FileAnchor anchor) {
+                                    currentAttachment.getLocalThumbnail().setDownloadAnchor(anchor);
+                                }
+
+                                @Override
+                                public void handleProcessing(FileAnchor anchor) {
+                                    // Nothing
+                                }
+
+                                @Override
+                                public void handleSuccess(FileAnchor anchor, FileLabel fileLabel) {
+                                    LogUtils.d(TAG, "#fillMessage - download success : " + anchor.getFileName() +
+                                            " -> " + anchor.getFile().getPath());
+
+                                    // 重置文件
+                                    currentAttachment.getLocalThumbnail().resetFile(anchor.getFile());
+
+                                    // 更新到数据库
+                                    CacheableFileAttachment cfa = attachmentCache.get(attachment.getFileCode());
+                                    if (null != cfa) {
+                                        for (Long messageId : cfa.messageIdList) {
+                                            storage.updateMessageAttachment(messageId, currentAttachment);
+                                        }
+                                    }
+                                }
+
+                                @Override
+                                public void handleFailure(ModuleError error, @Nullable FileAnchor anchor) {
+                                    // Nothing
+                                }
+                            });
+                        }
+                    }
+                    else {
+                        LogUtils.w(TAG, "#fillMessage Can NOT find valid thumbnail file label \"" +
+                                attachment.getFileName() + "\"");
+                    }
+                }
             }
         }
 

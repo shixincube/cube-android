@@ -323,21 +323,30 @@ public class FileAttachment implements JSONable {
         this.thumbConfig = new ThumbConfig(size, thumbnail.getQuality());
     }
 
+    public FileThumbnail getLocalThumbnail() {
+        return this.thumbnail;
+    }
+
+    public void resetLocalThumbnail(FileThumbnail thumbnail) {
+        this.thumbnail = thumbnail;
+    }
+
     /**
-     * 返回本地的缩略图。
+     * 获取缩略图。该方法优先返回本地缩略图。
      *
      * @return
      */
     public FileThumbnail getThumbnail() {
-        return this.thumbnail;
+        return (null != this.thumbnail) ? this.thumbnail :
+                (null != this.thumbs ? this.thumbs.get(0) : null);
     }
 
     public boolean hasThumbnail() {
         return (null != this.thumbnail) || (null != this.thumbs && !this.thumbs.isEmpty());
     }
 
-    public FileThumbnail getDefaultThumbnail() {
-        return (null != this.thumbnail) ? this.thumbnail : this.thumbs.get(0);
+    public FileThumbnail getRemoteThumbnail() {
+        return this.thumbs.get(0);
     }
 
     public void setCompressed(boolean compressed) {

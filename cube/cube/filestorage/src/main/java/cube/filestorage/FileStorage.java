@@ -108,6 +108,11 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
         buf.append("cube_file").append(File.separator);
         this.fileCachePath = buf.toString();
 
+        File dir = new File(this.fileCachePath);
+        if (!dir.exists() || !dir.isDirectory()) {
+            dir.mkdirs();
+        }
+
         ContactService contactService = (ContactService) this.kernel.getModule(ContactService.NAME);
         contactService.attachWithName(ContactServiceEvent.SelfReady, this);
         this.self = contactService.getSelf();
@@ -205,6 +210,10 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
         }
     }
 
+    public boolean isDownloading(String fileCode) {
+        return this.downloadQueue.isProcessing(fileCode);
+    }
+
     /**
      * 下载文件到默认的本地目录。
      *
@@ -217,14 +226,15 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
             File file = new File(filePath);
             if (file.exists()) {
                 // 文件在本地已存在
+                FileAnchor anchor = new FileAnchor(file, fileLabel);
                 if (handler.isInMainThread()) {
                     this.executeOnMainThread(() -> {
-                        handler.handleSuccess(fileLabel);
+                        handler.handleSuccess(anchor, fileLabel);
                     });
                 }
                 else {
                     this.execute(() -> {
-                        handler.handleSuccess(fileLabel);
+                        handler.handleSuccess(anchor, fileLabel);
                     });
                 }
 
@@ -553,12 +563,12 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
         if (null != downloadHandler) {
             if (downloadHandler.isInMainThread()) {
                 this.executeOnMainThread(() -> {
-                    downloadHandler.handleSuccess(fileAnchor.fileLabel);
+                    downloadHandler.handleSuccess(fileAnchor, fileAnchor.fileLabel);
                 });
             }
             else {
                 this.execute(() -> {
-                    downloadHandler.handleSuccess(fileAnchor.fileLabel);
+                    downloadHandler.handleSuccess(fileAnchor, fileAnchor.fileLabel);
                 });
             }
         }

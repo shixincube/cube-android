@@ -24,47 +24,30 @@
  * SOFTWARE.
  */
 
-package cube.filestorage.handler;
+package cube.messaging.model;
 
-import androidx.annotation.Nullable;
+import java.util.List;
+import java.util.Vector;
 
-import cube.core.ModuleError;
-import cube.core.handler.CallbackHandler;
-import cube.filestorage.model.FileAnchor;
-import cube.filestorage.model.FileLabel;
+import cube.core.model.Entity;
 
 /**
- * 下载文件句柄。
+ * 可缓存的附件列表。
  */
-public interface DownloadFileHandler extends CallbackHandler {
+public class CacheableFileAttachment extends Entity {
 
-    /**
-     * 上传流程已启动。
-     *
-     * @param anchor
-     */
-    void handleStarted(FileAnchor anchor);
+    public final List<Long> messageIdList;
 
-    /**
-     * 正在进行文件处理的回调函数。
-     *
-     * @param anchor
-     */
-    void handleProcessing(FileAnchor anchor);
+    public final FileAttachment fileAttachment;
 
-    /**
-     * 上传文件成功的回调函数。
-     *
-     * @param anchor
-     * @param fileLabel
-     */
-    void handleSuccess(FileAnchor anchor, FileLabel fileLabel);
+    public CacheableFileAttachment(FileAttachment fileAttachment) {
+        this.fileAttachment = fileAttachment;
+        this.messageIdList = new Vector<>();
+    }
 
-    /**
-     * 上传文件失败的回调函数。
-     *
-     * @param error
-     * @param anchor
-     */
-    void handleFailure(ModuleError error, @Nullable FileAnchor anchor);
+    public void addMessageId(Long id) {
+        if (!this.messageIdList.contains(id)) {
+            this.messageIdList.add(id);
+        }
+    }
 }

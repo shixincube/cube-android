@@ -41,6 +41,7 @@ public class CacheableFileAttachment extends Entity {
     public final FileAttachment fileAttachment;
 
     public CacheableFileAttachment(FileAttachment fileAttachment) {
+        super();
         this.fileAttachment = fileAttachment;
         this.messageIdList = new Vector<>();
     }

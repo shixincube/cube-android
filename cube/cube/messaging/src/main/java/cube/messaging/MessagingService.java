@@ -211,6 +211,8 @@ public class MessagingService extends Module {
             }
         }
 
+        this.kernel.getInspector().depositMap(this.attachmentCache);
+
         return true;
     }
 
@@ -220,6 +222,8 @@ public class MessagingService extends Module {
 
         // 拆除插件
         this.dissolve();
+
+        this.kernel.getInspector().withdrawMap(this.attachmentCache);
 
         this.contactService.detachWithName(ContactServiceEvent.SelfReady, this.observer);
         this.contactService.detachWithName(ContactServiceEvent.SignIn, this.observer);
@@ -1503,40 +1507,37 @@ public class MessagingService extends Module {
                             "#queryRemoteConversations : error conversation list format");
                 }
 
-                execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (conversationList.isEmpty()) {
-                            // 回调
-                            completionHandler.handleCompletion(MessagingService.this);
-                            return;
-                        }
-
-                        boolean changed = true;
-                        Conversation lastConversation = storage.getLastConversation();
-                        Conversation firstConversation = conversationList.get(0);
-                        if (null != lastConversation && lastConversation.equals(firstConversation)) {
-                            // 本地存储的最近会话与服务器返回的一致，数据没有变化
-                            // 这样判断会有误判，但是仅需要比较一条记录
-                            changed = false;
-                        }
-
-                        // 更新到数据库
-                        storage.updateConversations(conversationList);
-
+                execute(() -> {
+                    if (conversationList.isEmpty()) {
                         // 回调
                         completionHandler.handleCompletion(MessagingService.this);
+                        return;
+                    }
 
-                        // 回调事件监听器
-                        if (changed && null != recentEventListener) {
-                            synchronized (MessagingService.this) {
-                                if (null != conversations) {
-                                    conversations.clear();
-                                }
+                    boolean changed = true;
+                    Conversation lastConversation = storage.getLastConversation();
+                    Conversation firstConversation = conversationList.get(0);
+                    if (null != lastConversation && lastConversation.equals(firstConversation)) {
+                        // 本地存储的最近会话与服务器返回的一致，数据没有变化
+                        // 这样判断会有误判，但是仅需要比较一条记录
+                        changed = false;
+                    }
+
+                    // 更新到数据库
+                    storage.updateConversations(conversationList);
+
+                    // 回调
+                    completionHandler.handleCompletion(MessagingService.this);
+
+                    // 回调事件监听器
+                    if (changed && null != recentEventListener) {
+                        synchronized (MessagingService.this) {
+                            if (null != conversations) {
+                                conversations.clear();
                             }
-
-                            recentEventListener.onConversationListUpdated(getRecentConversations(), MessagingService.this);
                         }
+
+                        recentEventListener.onConversationListUpdated(getRecentConversations(), MessagingService.this);
                     }
                 });
             }
@@ -1715,6 +1716,10 @@ public class MessagingService extends Module {
                 this.attachmentCache.put(attachment.getFileCode(), cachedAttachment);
             }
             else {
+                // 更新寿命
+                cachedAttachment.entityLifeExpiry += LIFESPAN;
+                // 更新数据
+                cachedAttachment.fileAttachment.update(attachment);
                 message.setAttachment(cachedAttachment.fileAttachment);
             }
 
@@ -1765,7 +1770,7 @@ public class MessagingService extends Module {
                                     currentAttachment.getLocalThumbnail().resetFile(anchor.getFile());
 
                                     // 更新到数据库
-                                    CacheableFileAttachment cfa = attachmentCache.get(attachment.getFileCode());
+                                    CacheableFileAttachment cfa = attachmentCache.get(currentAttachment.getFileCode());
                                     if (null != cfa) {
                                         for (Long messageId : cfa.messageIdList) {
                                             storage.updateMessageAttachment(messageId, currentAttachment);

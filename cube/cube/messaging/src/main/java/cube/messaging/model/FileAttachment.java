@@ -423,8 +423,20 @@ public class FileAttachment implements JSONable {
                 this.thumbs = new ArrayList<>(attachment.thumbs);
             }
             else {
-                this.thumbs.addAll(attachment.thumbs);
+                for (FileThumbnail ft : attachment.thumbs) {
+                    if (!this.thumbs.contains(ft)) {
+                        this.thumbs.add(ft);
+                    }
+                }
             }
+        }
+
+        if (null != attachment.thumbConfig) {
+            this.thumbConfig = attachment.thumbConfig;
+        }
+
+        if (null != attachment.thumbnail) {
+            this.thumbnail = attachment.thumbnail;
         }
     }
 

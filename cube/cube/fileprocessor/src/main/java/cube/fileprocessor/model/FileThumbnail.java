@@ -225,6 +225,22 @@ public class FileThumbnail extends Entity {
         this.filePath = file.getAbsolutePath();
     }
 
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+
+        if (null != object && object instanceof FileThumbnail) {
+            FileThumbnail other = (FileThumbnail) object;
+            if (null != other.fileLabel && null != this.fileLabel) {
+                return this.fileLabel.getFileCode().equals(other.fileLabel.getFileCode());
+            }
+        }
+
+        return false;
+    }
+
     public String print() {
         StringBuilder buf = new StringBuilder();
         if (null != this.filePath) {

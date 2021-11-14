@@ -43,7 +43,7 @@ public final class EntityInspector extends TimerTask {
 
     private Timer timer;
 
-    private List<Map<Long, ? extends Entity>> depositedMapArray;
+    private List<Map<? extends Object, ? extends Entity>> depositedMapArray;
 
     private List<List<? extends Entity>> depositedListArray;
 
@@ -77,7 +77,7 @@ public final class EntityInspector extends TimerTask {
      *
      * @param map
      */
-    public void depositMap(Map<Long, ? extends Entity> map) {
+    public void depositMap(Map<? extends Object, ? extends Entity> map) {
         if (!this.depositedMapArray.contains(map)) {
             this.depositedMapArray.add(map);
         }
@@ -88,7 +88,7 @@ public final class EntityInspector extends TimerTask {
      *
      * @param map
      */
-    public void withdrawMap(Map<Long, ? extends Entity> map) {
+    public void withdrawMap(Map<? extends Object, ? extends Entity> map) {
         this.depositedMapArray.remove(map);
     }
 
@@ -118,10 +118,10 @@ public final class EntityInspector extends TimerTask {
 
         long now = System.currentTimeMillis();
 
-        for (Map<Long, ? extends Entity> map : this.depositedMapArray) {
-            Iterator<? extends Map.Entry<Long, ? extends Entity>> iter = map.entrySet().iterator();
+        for (Map<? extends Object, ? extends Entity> map : this.depositedMapArray) {
+            Iterator<? extends Map.Entry<? extends Object, ? extends Entity>> iter = map.entrySet().iterator();
             while (iter.hasNext()) {
-                Map.Entry<Long, ? extends Entity> e = iter.next();
+                Map.Entry<? extends Object, ? extends Entity> e = iter.next();
                 Entity entity = e.getValue();
                 if (now > entity.entityLifeExpiry) {
                     iter.remove();
@@ -141,7 +141,9 @@ public final class EntityInspector extends TimerTask {
             }
         }
 
-        LogUtils.d("EntityInspector", "Clear count: " + count);
+        if (LogUtils.isDebugLevel()) {
+            LogUtils.d("EntityInspector", "Clear count: " + count);
+        }
     }
 
 }

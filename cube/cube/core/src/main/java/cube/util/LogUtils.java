@@ -45,10 +45,6 @@ public final class LogUtils {
      * 日志输出级别 NONE 。
      */
     public static final int LEVEL_OFF = 0;
-    /**
-     * 日志输出级别 ALL 。
-     */
-    public static final int LEVEL_ALL = 7;
 
     /**
      * 日志输出级别 VERBOSE 。
@@ -76,6 +72,11 @@ public final class LogUtils {
     public static final int LEVEL_SYSTEM = 6;
 
     /**
+     * 日志输出级别 ALL 。
+     */
+    public static final int LEVEL_ALL = 7;
+
+    /**
      * 全局日志等级。
      */
     private static int sLogLevel = LEVEL_ALL;
@@ -90,6 +91,33 @@ public final class LogUtils {
     private static final Object sLogLock = new Object();
 
     private LogUtils() {
+    }
+
+    /**
+     * 获取当前日志等级。
+     *
+     * @return
+     */
+    public static int getLevel() {
+        return sLogLevel;
+    }
+
+    /**
+     * 设置当前日志等级。
+     *
+     * @param level
+     */
+    public static void setLevel(int level) {
+        sLogLevel = level;
+    }
+
+    /**
+     * 是否是 DEBUG 等级。
+     *
+     * @return
+     */
+    public static boolean isDebugLevel() {
+        return sLogLevel >= LEVEL_DEBUG;
     }
 
     /**

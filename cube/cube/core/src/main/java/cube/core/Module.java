@@ -47,6 +47,11 @@ import cube.util.Subject;
 public abstract class Module extends Subject {
 
     /**
+     * 内存寿命。
+     */
+    protected final static long LIFESPAN = 5L * 60L * 1000L;
+
+    /**
      * 模块名。
      */
     public final String name;

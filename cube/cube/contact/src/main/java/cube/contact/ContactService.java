@@ -84,11 +84,6 @@ public class ContactService extends Module {
      */
     public final static String NAME = "Contact";
 
-    /**
-     * 内存寿命。
-     */
-    private final static long LIFESPAN = 5L * 60L * 1000L;
-
     /** 阻塞调用方法的超时时间。 */
     private final long blockingTimeout = 10L * 1000L;
 

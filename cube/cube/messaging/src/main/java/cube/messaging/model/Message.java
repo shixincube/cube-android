@@ -32,13 +32,17 @@ import org.json.JSONObject;
 import cube.auth.AuthService;
 import cube.contact.model.Contact;
 import cube.contact.model.Group;
+import cube.core.handler.FailureHandler;
 import cube.core.model.Entity;
 import cube.messaging.MessagingService;
+import cube.messaging.handler.LoadAttachmentHandler;
 
 /**
  * 消息实体。
  */
 public class Message extends Entity {
+
+    private MessagingService service;
 
     /**
      * 消息所在的域。
@@ -152,12 +156,13 @@ public class Message extends Entity {
     /**
      * 构造函数。
      *
-     * @param service
+     * @param service 指定消息服务。
      * @param json 消息的 JSON 结构数据。
      * @throws JSONException
      */
     public Message(MessagingService service, JSONObject json) throws JSONException {
         super(json);
+        this.service = service;
         this.domain = json.getString("domain");
         this.from = json.getLong("from");
         this.to = json.getLong("to");
@@ -213,6 +218,11 @@ public class Message extends Entity {
         this.attachment = attachment;
     }
 
+    /**
+     * 构造函数。
+     *
+     * @param message
+     */
     public Message(Message message) {
         super(message.id, message.timestamp);
         this.domain = message.domain;
@@ -231,6 +241,7 @@ public class Message extends Entity {
         this.owner = message.owner;
         this.selfTyper = message.selfTyper;
         this.summary = message.summary;
+        this.service = message.service;
     }
 
     public long getOwner() {
@@ -241,6 +252,11 @@ public class Message extends Entity {
         return this.from;
     }
 
+    /**
+     * 获取消息发件人。
+     *
+     * @return
+     */
     public Contact getSender() {
         return this.sender;
     }
@@ -249,6 +265,11 @@ public class Message extends Entity {
         return this.to;
     }
 
+    /**
+     * 获取消息收件人。
+     *
+     * @return
+     */
     public Contact getReceiver() {
         return this.receiver;
     }
@@ -269,6 +290,11 @@ public class Message extends Entity {
         return this.localTS;
     }
 
+    /**
+     * 获取消息状态。
+     *
+     * @return
+     */
     public MessageState getState() {
         return this.state;
     }
@@ -277,6 +303,11 @@ public class Message extends Entity {
         return this.scope;
     }
 
+    /**
+     * 获取消息默认摘要。
+     *
+     * @return
+     */
     public String getSummary() {
         return this.summary;
     }
@@ -289,6 +320,11 @@ public class Message extends Entity {
         return this.selfTyper ? this.to : this.from;
     }
 
+    /**
+     * 获取消息负载。
+     *
+     * @return
+     */
     public JSONObject getPayload() {
         return this.payload;
     }
@@ -305,6 +341,11 @@ public class Message extends Entity {
         return this.source > 0;
     }
 
+    /**
+     * 判断消息是否是当前账号撰写的。
+     *
+     * @return
+     */
     public boolean isSelfTyper() {
         return this.selfTyper;
     }
@@ -337,6 +378,15 @@ public class Message extends Entity {
         this.remoteTS = timestamp;
     }
 
+    public void setService(MessagingService service) {
+        this.service = service;
+    }
+
+    public void loadAttachment(LoadAttachmentHandler loadHandler,
+                                   FailureHandler failureHandler) {
+        this.service.loadMessageAttachment(this, loadHandler, failureHandler);
+    }
+
     /**
      * 是否是空消息。
      *
@@ -357,6 +407,10 @@ public class Message extends Entity {
 
     @Override
     public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+
         if (null != object && object instanceof Message) {
             Message other = (Message) object;
             if (other.id.longValue() == this.id.longValue()) {

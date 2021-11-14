@@ -94,6 +94,16 @@ public class DownloadQueue {
         return this.processingList.contains(fileAnchor);
     }
 
+    public FileAnchor getProcessing(String fileCode) {
+        for (FileAnchor anchor : processingList) {
+            if (anchor.getFileCode().equals(fileCode)) {
+                return anchor;
+            }
+        }
+
+        return null;
+    }
+
     public void enqueue(FileAnchor fileAnchor) {
         if (this.processingList.contains(fileAnchor)) {
             return;

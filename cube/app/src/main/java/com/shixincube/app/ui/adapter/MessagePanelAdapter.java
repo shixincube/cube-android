@@ -44,10 +44,16 @@ import com.shixincube.app.widget.adapter.ViewHolderForRecyclerView;
 
 import java.util.List;
 
+import cube.core.Module;
+import cube.core.ModuleError;
+import cube.core.handler.DefaultFailureHandler;
 import cube.fileprocessor.util.CalculationUtils;
+import cube.filestorage.model.FileAnchor;
 import cube.messaging.extension.FileMessage;
 import cube.messaging.extension.HyperTextMessage;
 import cube.messaging.extension.ImageMessage;
+import cube.messaging.handler.DefaultLoadAttachmentHandler;
+import cube.messaging.model.FileAttachment;
 import cube.messaging.model.Message;
 import cube.messaging.model.MessageState;
 
@@ -140,19 +146,39 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
         else if (item instanceof ImageMessage) {
             ImageMessage message = (ImageMessage) item;
             BubbleImageView imageView = helper.getView(R.id.bivImage);
-            Glide.with(getContext()).load(message.hasThumbnail()
-                    ? message.getThumbnail().getFileURL() : message.getFileURL())
-                    .error(R.mipmap.default_img_failed)
-                    .override(UIUtils.dp2px(80), UIUtils.dp2px(150))
-                    .centerCrop()
-                    .into(imageView);
+            // 加载图片
+            message.loadAttachment(new DefaultLoadAttachmentHandler(true) {
+                @Override
+                public void handleLoading(Message message, FileAttachment fileAttachment, FileAnchor fileAnchor) {
+                }
+
+                @Override
+                public void handleLoaded(Message message, FileAttachment fileAttachment) {
+                    Glide.with(getContext()).load(fileAttachment.getFileURL())
+                            .error(R.mipmap.default_img_failed)
+                            .override(UIUtils.dp2px(80), UIUtils.dp2px(150))
+                            .centerCrop()
+                            .into(imageView);
+                    UIUtils.postTaskDelay(() -> presenter.moveToBottom(), 100);
+                }
+            }, new DefaultFailureHandler(true) {
+                @Override
+                public void handleFailure(Module module, ModuleError error) {
+                    Glide.with(getContext()).load(message.hasThumbnail()
+                            ? message.getThumbnail().getFileURL() : message.getFileURL())
+                            .error(R.mipmap.default_img_failed)
+                            .override(UIUtils.dp2px(80), UIUtils.dp2px(150))
+                            .centerCrop()
+                            .into(imageView);
+                    UIUtils.postTaskDelay(() -> presenter.moveToBottom(), 100);
+                }
+            });
             if (message.getState() == MessageState.Sending) {
                 imageView.setPercent(message.getProgressPercent());
             }
             else {
                 imageView.setProgressVisible(false);
                 imageView.showShadow(false);
-                UIUtils.postTaskDelay(() -> this.presenter.moveToBottom(), 100);
             }
         }
         else if (item instanceof FileMessage) {

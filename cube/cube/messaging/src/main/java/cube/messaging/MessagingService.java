@@ -75,6 +75,7 @@ import cube.filestorage.model.FileAnchor;
 import cube.filestorage.model.FileLabel;
 import cube.messaging.extension.MessageTypePlugin;
 import cube.messaging.handler.DefaultSendHandler;
+import cube.messaging.handler.LoadAttachmentHandler;
 import cube.messaging.handler.MessageListResultHandler;
 import cube.messaging.handler.SendHandler;
 import cube.messaging.hook.InstantiateHook;
@@ -969,6 +970,120 @@ public class MessagingService extends Module {
         // TODO
     }
 
+    /**
+     * 加载消息附件到本地。
+     *
+     * @param message
+     * @param <T>
+     */
+    public <T extends Message> void loadMessageAttachment(T message, LoadAttachmentHandler<T> loadHandler,
+                                                          FailureHandler failureHandler) {
+        FileAttachment fileAttachment = message.getAttachment();
+        if (null == fileAttachment) {
+            ModuleError error = new ModuleError(NAME, MessagingServiceState.AttachmentError.code);
+            if (failureHandler.isInMainThread()) {
+                executeOnMainThread(() -> {
+                    failureHandler.handleFailure(MessagingService.this, error);
+                });
+            }
+            else {
+                execute(() -> {
+                    failureHandler.handleFailure(MessagingService.this, error);
+                });
+            }
+            return;
+        }
+
+        if (fileAttachment.existsLocal()) {
+            if (loadHandler.isInMainThread()) {
+                executeOnMainThread(() -> {
+                    loadHandler.handleLoaded(message, fileAttachment);
+                });
+            }
+            else {
+                execute(() -> {
+                    loadHandler.handleLoaded(message, fileAttachment);
+                });
+            }
+            return;
+        }
+
+        CacheableFileAttachment cachedAttachment = this.attachmentCache.get(fileAttachment.getFileCode());
+        if (null == cachedAttachment) {
+            cachedAttachment = new CacheableFileAttachment(fileAttachment);
+            this.attachmentCache.put(fileAttachment.getFileCode(), cachedAttachment);
+        }
+        else {
+            cachedAttachment.entityLifeExpiry += LIFESPAN;
+        }
+
+        cachedAttachment.addMessage(message);
+
+        this.fileStorage.downloadFile(fileAttachment.getLabel(), new StableDownloadFileHandler() {
+            @Override
+            public void handleStarted(FileAnchor anchor) {
+                // Nothing
+            }
+
+            @Override
+            public void handleProcessing(FileAnchor anchor) {
+//                if (loadHandler.isInMainThread()) {
+//                    executeOnMainThread(() -> {
+//                        loadHandler.handleLoading(message, fileAttachment, anchor);
+//                    });
+//                }
+//                else {
+//                    loadHandler.handleLoading(message, fileAttachment, anchor);
+//                }
+            }
+
+            @Override
+            public void handleSuccess(FileAnchor anchor, FileLabel fileLabel) {
+                CacheableFileAttachment cachedAttachment = attachmentCache.get(fileLabel.getFileCode());
+
+                List<Message> list = new ArrayList<>();
+
+                for (Message message : cachedAttachment.messageList) {
+                    // 设置文件
+                    message.getAttachment().setFile(anchor.getFile());
+                    message.getAttachment().getLabel().setFilePath(anchor.getFile().getAbsolutePath());
+
+                    // 更新附件
+                    storage.updateMessageAttachment(message.id, message.getAttachment());
+
+                    list.add(message);
+                }
+
+                if (loadHandler.isInMainThread()) {
+                    executeOnMainThread(() -> {
+                        for (Message current : list) {
+                            loadHandler.handleLoaded((T) current, current.getAttachment());
+                        }
+                    });
+                }
+                else {
+                    for (Message current : list) {
+                        loadHandler.handleLoaded((T) current, current.getAttachment());
+                    }
+                }
+
+                cachedAttachment.messageList.clear();
+            }
+
+            @Override
+            public void handleFailure(ModuleError error, @Nullable FileAnchor anchor) {
+                if (failureHandler.isInMainThread()) {
+                    executeOnMainThread(() -> {
+                        failureHandler.handleFailure(MessagingService.this, error);
+                    });
+                }
+                else {
+                    failureHandler.handleFailure(MessagingService.this, error);
+                }
+            }
+        });
+    }
+
     private void tryAddConversation(Conversation conversation) {
         if (!this.conversations.contains(conversation)) {
             this.conversations.add(conversation);
@@ -1696,6 +1811,9 @@ public class MessagingService extends Module {
         Self self = this.contactService.getSelf();
         message.setSelfTyper(message.getFrom() == self.id.longValue());
 
+        // 设置服务
+        message.setService(this);
+
         // 发件人
         message.setSender(this.contactService.getContact(message.getFrom()));
 
@@ -1724,7 +1842,7 @@ public class MessagingService extends Module {
             }
 
             // 添加附件对应的消息
-            cachedAttachment.addMessageId(message.id);
+            cachedAttachment.addMessage(message);
 
             final FileAttachment currentAttachment = cachedAttachment.fileAttachment;
 
@@ -1772,9 +1890,10 @@ public class MessagingService extends Module {
                                     // 更新到数据库
                                     CacheableFileAttachment cfa = attachmentCache.get(currentAttachment.getFileCode());
                                     if (null != cfa) {
-                                        for (Long messageId : cfa.messageIdList) {
-                                            storage.updateMessageAttachment(messageId, currentAttachment);
+                                        for (Message msg : cfa.messageList) {
+                                            storage.updateMessageAttachment(msg.id, currentAttachment);
                                         }
+                                        cfa.messageList.clear();
                                     }
                                 }
 

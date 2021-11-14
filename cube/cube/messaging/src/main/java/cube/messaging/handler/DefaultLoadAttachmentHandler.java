@@ -24,30 +24,26 @@
  * SOFTWARE.
  */
 
-package cube.messaging.model;
+package cube.messaging.handler;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
-
-import cube.core.model.Entity;
+import cube.messaging.model.Message;
 
 /**
- * 可缓存的附件列表。
+ * 默认加载附件句柄。
  */
-public class CacheableFileAttachment extends Entity {
+public abstract class DefaultLoadAttachmentHandler<MessageInstanceType extends Message> implements LoadAttachmentHandler<MessageInstanceType> {
 
-    public final ConcurrentLinkedQueue<Message> messageList;
+    private boolean inMainThread = true;
 
-    public final FileAttachment fileAttachment;
-
-    public CacheableFileAttachment(FileAttachment fileAttachment) {
-        super();
-        this.fileAttachment = fileAttachment;
-        this.messageList = new ConcurrentLinkedQueue<>();
+    public DefaultLoadAttachmentHandler() {
     }
 
-    public void addMessage(Message message) {
-        if (!this.messageList.contains(message)) {
-            this.messageList.add(message);
-        }
+    public DefaultLoadAttachmentHandler(boolean inMainThread) {
+        this.inMainThread = inMainThread;
+    }
+
+    @Override
+    public boolean isInMainThread() {
+        return this.inMainThread;
     }
 }

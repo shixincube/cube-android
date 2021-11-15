@@ -241,7 +241,7 @@ public class ImageCompressor implements Compressor {
         return inSampleSize;
     }
 
-    //Base on the effect of Wechat (test on Density 2.75 1080*1920)
+    // Base on the effect of Wechat (test on Density 2.75 1080*1920)
     private float calculateScaleSize(BitmapFactory.Options options) {
         float scale = 1f;
         int width = options.outWidth;

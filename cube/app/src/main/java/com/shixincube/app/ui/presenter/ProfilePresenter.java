@@ -49,6 +49,9 @@ public class ProfilePresenter extends BasePresenter<ProfileView> {
     public void loadAccountInfo() {
         // 获取当前账号数据
         Self self = CubeEngine.getInstance().getContactService().getSelf();
+        if (null == self) {
+            return;
+        }
 
         getView().getAvatarImage().setImageResource(AccountHelper
                 .explainAvatarForResource(Account.getAvatar(self.getContext())));

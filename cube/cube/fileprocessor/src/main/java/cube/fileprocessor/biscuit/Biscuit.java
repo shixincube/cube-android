@@ -257,6 +257,10 @@ public class Biscuit {
             this.outputHeight = outputHeight;
         }
 
+        public Result reset(String path) {
+            return new Result(path, this.inputWidth, this.inputHeight, this.outputWidth, this.outputHeight);
+        }
+
         public Result reset(String path, Size size) {
             return new Result(path, size.getWidth(), size.getHeight(), size.getWidth(), size.getHeight());
         }

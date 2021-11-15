@@ -94,17 +94,6 @@ public class FileAttachment implements JSONable {
     /**
      * 构造函数。
      *
-     * @param file
-     * @param thumbnail
-     */
-    public FileAttachment(File file, FileThumbnail thumbnail) {
-        this.file = file;
-        this.thumbnail = thumbnail;
-    }
-
-    /**
-     * 构造函数。
-     *
      * @param json
      * @throws JSONException
      */
@@ -137,6 +126,21 @@ public class FileAttachment implements JSONable {
         if (json.has("thumbnail")) {
             this.thumbnail = new FileThumbnail(json.getJSONObject("thumbnail"));
         }
+
+        if (json.has("filePath")) {
+            this.file = new File(json.getString("filePath"));
+        }
+
+        if (null == this.file || !this.file.exists()) {
+            if (null != this.label && null != this.label.getFilePath()) {
+                this.file = new File(this.label.getFilePath());
+                if (!this.file.exists()) {
+                    if (null != this.anchor && null != this.anchor.getFile()) {
+                        this.file = this.anchor.getFile();
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -145,7 +149,7 @@ public class FileAttachment implements JSONable {
      * @return
      */
     public File getFile() {
-        if (null != this.file) {
+        if (null != this.file && this.file.exists()) {
             return this.file;
         }
 
@@ -155,9 +159,12 @@ public class FileAttachment implements JSONable {
                 this.file = new File(path);
             }
         }
-        else if (null != this.anchor) {
-            if (null != this.anchor.getFilePath()) {
-                this.file = new File(this.anchor.getFilePath());
+
+        if (null != this.file && !this.file.exists()) {
+            if (null != this.anchor) {
+                if (null != this.anchor.getFilePath()) {
+                    this.file = new File(this.anchor.getFilePath());
+                }
             }
         }
 
@@ -204,11 +211,11 @@ public class FileAttachment implements JSONable {
         if (null != this.label) {
             return this.label.getFileName();
         }
-        else if (null != this.file) {
-            return this.file.getName();
-        }
         else if (null != this.anchor) {
             return this.anchor.getFileName();
+        }
+        else if (null != this.file) {
+            return this.file.getName();
         }
 
         return null;
@@ -407,6 +414,10 @@ public class FileAttachment implements JSONable {
     public void setLabel(FileLabel label) {
         this.label = label;
 
+        if (null != label.getFilePath()) {
+            this.file = new File(label.getFilePath());
+        }
+
         // 设置缩略图源文件的文件码
         if (null != this.thumbnail) {
             this.thumbnail.setSourceFileCode(label.getFileCode());
@@ -444,6 +455,12 @@ public class FileAttachment implements JSONable {
     public JSONObject toJSON() {
         JSONObject json = new JSONObject();
 
+        if (null != this.file && null != this.label) {
+            if (null == this.label.getFilePath()) {
+                this.label.setFilePath(this.file.getAbsolutePath());
+            }
+        }
+
         try {
             if (null != this.label) {
                 json.put("label", this.label.toJSON());
@@ -470,6 +487,10 @@ public class FileAttachment implements JSONable {
             // 本地缩略图
             if (null != this.thumbnail) {
                 json.put("thumbnail", this.thumbnail.toJSON());
+            }
+
+            if (null != this.file) {
+                json.put("filePath", this.file.getAbsolutePath());
             }
         } catch (JSONException e) {
             e.printStackTrace();;

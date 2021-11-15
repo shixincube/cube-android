@@ -199,7 +199,7 @@ public class CaptureLayout extends FrameLayout {
             }
         });
 
-        //确认按钮
+        // 确认按钮
         btn_confirm = new TypeButton(getContext(), TypeButton.TYPE_CONFIRM, button_size);
         LayoutParams btn_confirm_param = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
         btn_confirm_param.gravity = Gravity.CENTER_VERTICAL | Gravity.RIGHT;

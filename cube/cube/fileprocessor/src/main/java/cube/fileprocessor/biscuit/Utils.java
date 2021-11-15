@@ -41,7 +41,7 @@ public class Utils {
     static int DEFAULT_HEIGHT_QUALITY = 82;
     static int DEFAULT_X_HEIGHT_QUALITY = 88;
     static int DEFAULT_XX_HEIGHT_QUALITY = 94;
-    static boolean loggingEnabled = false;
+    static boolean loggingEnabled = true;
 
     static {
         format.add(JPG);

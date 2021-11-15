@@ -132,6 +132,9 @@ public class FileThumbnail extends Entity {
         if (json.has("filePath")) {
             this.filePath = json.getString("filePath");
             this.file = new File(this.filePath);
+            if (!this.file.exists()) {
+                this.file = null;
+            }
         }
 
         if (null == this.file && null != this.fileLabel && null != this.fileLabel.getFilePath()) {

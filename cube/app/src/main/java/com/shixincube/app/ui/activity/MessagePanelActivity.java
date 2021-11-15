@@ -343,7 +343,14 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
                 break;
             case REQUEST_TAKE_PHOTO:
                 if (resultCode == RESULT_OK) {
-
+                    String path = data.getStringExtra("path");
+                    if (data.getBooleanExtra("photo", true)) {
+                        // 拍照
+                        presenter.sendImageMessage(new File(path), false);
+                    }
+                    else {
+                        // 录制视频
+                    }
                 }
                 break;
             case REQUEST_FILE_PICKER:

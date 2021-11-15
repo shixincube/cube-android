@@ -13,6 +13,7 @@ import android.view.View;
  * 拍照或录制完成后弹出的确认和返回按钮
  */
 public class TypeButton extends View{
+
     public static final int TYPE_CANCEL = 0x001;
     public static final int TYPE_CONFIRM = 0x002;
     private int button_type;
@@ -91,7 +92,7 @@ public class TypeButton extends View{
             canvas.drawCircle(center_X, center_Y, button_radius, mPaint);
             mPaint.setAntiAlias(true);
             mPaint.setStyle(Paint.Style.STROKE);
-            mPaint.setColor(0xFF00CC00);
+            mPaint.setColor(0xFF0854E6);
             mPaint.setStrokeWidth(strokeWidth);
 
             path.moveTo(center_X - button_size / 6f, center_Y);

@@ -35,6 +35,9 @@ import androidx.annotation.Nullable;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.List;
 
 import cube.core.Module;
@@ -75,6 +78,12 @@ public class FileProcessor extends Module {
             this.cacheDir = getContext().getCacheDir().getAbsoluteFile() + "/cache/";
         }
 
+        File dir = new File(this.cacheDir);
+        if (!dir.exists() || !dir.isDirectory()) {
+            dir.mkdirs();
+        }
+        dir = null;
+
         LogUtils.d(this.getClass().getSimpleName(), "Cache path: " + this.cacheDir);
 
         return true;
@@ -112,6 +121,14 @@ public class FileProcessor extends Module {
             result = result.reset(path, size);
         }
 
+        if (file.getPath().equals(path)) {
+            // 没有进行压缩，复制源文件到缓存
+            File newFile = new File(this.cacheDir, file.getName());
+            copyFile(file, newFile);
+            result = result.reset(newFile.getPath());
+            path = result.path;
+        }
+
         FileThumbnail thumbnail = new FileThumbnail(new File(path),
                 result.outputWidth, result.outputHeight,
                 biscuit.getQuality() / 100.0f,
@@ -131,5 +148,47 @@ public class FileProcessor extends Module {
             return new Size(480, 480);
         }
         return new Size(options.outWidth, options.outHeight);
+    }
+
+    private void copyFile(File sourceFile, File targetFile) {
+        FileInputStream fis = null;
+        FileOutputStream fos = null;
+
+        if (targetFile.exists()) {
+            targetFile.delete();
+        }
+
+        try {
+            // 创建新文件
+            targetFile.createNewFile();
+
+            fis = new FileInputStream(sourceFile);
+            fos = new FileOutputStream(targetFile);
+
+            byte[] buf = new byte[128 * 1024];
+            int length = 0;
+            while ((length = fis.read(buf)) > 0) {
+                fos.write(buf, 0, length);
+            }
+            fos.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (null != fis) {
+                try {
+                    fis.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if (null != fos) {
+                try {
+                    fos.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 }

@@ -974,6 +974,8 @@ public class MessagingService extends Module {
      * 加载消息附件到本地。
      *
      * @param message
+     * @param loadHandler
+     * @param failureHandler
      * @param <T>
      */
     public <T extends Message> void loadMessageAttachment(T message, LoadAttachmentHandler<T> loadHandler,
@@ -1024,19 +1026,29 @@ public class MessagingService extends Module {
         this.fileStorage.downloadFile(fileAttachment.getLabel(), new StableDownloadFileHandler() {
             @Override
             public void handleStarted(FileAnchor anchor) {
-                // Nothing
+                CacheableFileAttachment cachedAttachment = attachmentCache.get(anchor.getFileCode());
+                if (null != cachedAttachment) {
+                    for (Message current : cachedAttachment.messageList) {
+                        current.getAttachment().setAnchor(anchor);
+                    }
+                }
             }
 
             @Override
             public void handleProcessing(FileAnchor anchor) {
-//                if (loadHandler.isInMainThread()) {
-//                    executeOnMainThread(() -> {
-//                        loadHandler.handleLoading(message, fileAttachment, anchor);
-//                    });
-//                }
-//                else {
-//                    loadHandler.handleLoading(message, fileAttachment, anchor);
-//                }
+                CacheableFileAttachment cachedAttachment = attachmentCache.get(anchor.getFileCode());
+                if (null != cachedAttachment) {
+                    for (Message current : cachedAttachment.messageList) {
+                        if (loadHandler.isInMainThread()) {
+                            executeOnMainThread(() -> {
+                                loadHandler.handleLoading((T) current, current.getAttachment(), anchor);
+                            });
+                        }
+                        else {
+                            loadHandler.handleLoading((T) current, current.getAttachment(), anchor);
+                        }
+                    }
+                }
             }
 
             @Override
@@ -1844,7 +1856,8 @@ public class MessagingService extends Module {
         // 如果附件有缩略图，本地没有，下载消息附件的缩略图到本地
         FileAttachment attachment = message.getAttachment();
         if (null != attachment) {
-            if (attachment.hasThumbnail()) {
+            if (!attachment.existsLocal() && attachment.hasThumbnail()) {
+                // 附件文件不存在，且有缩略图
                 FileThumbnail thumbnail = attachment.getThumbnail();
                 if (!thumbnail.existsLocal()) {
                     // 缩略图本地文件不存在，下载文件

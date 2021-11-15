@@ -109,13 +109,20 @@ public class TakePhotoActivity extends BaseActivity {
                 Intent data = new Intent();
                 data.putExtra("photo", true);
                 data.putExtra("path", filePath);
-                setResult(RESULT_OK);
+                setResult(RESULT_OK, data);
                 finish();
             }
 
             @Override
             public void recordSuccess(String url, Bitmap firstFrame) {
-
+                // 保存视频缩略图
+                String thumbPath = saveVideoThumbnail(url, firstFrame);
+                Intent data = new Intent();
+                data.putExtra("photo", false);
+                data.putExtra("path", url);
+                data.putExtra("thumb", thumbPath);
+                setResult(RESULT_OK, data);
+                finish();
             }
         });
 
@@ -153,10 +160,45 @@ public class TakePhotoActivity extends BaseActivity {
     }
 
     private String saveBitmap(Bitmap bitmap) {
-        File file = new File(AppConsts.CAMERA_PHOTO_DIR, "cube_photo_" + System.currentTimeMillis() + ".jpg");
+        File file = new File(AppConsts.CAMERA_PHOTO_DIR, "photo_" + System.currentTimeMillis() + ".jpg");
         if (file.exists()) {
             file.delete();
         }
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(file);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+            fos.flush();
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        } finally {
+            if (null != fos) {
+                try {
+                    fos.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return file.getAbsolutePath();
+    }
+
+    private String saveVideoThumbnail(String videoURL, Bitmap bitmap) {
+        // 提取文件名
+        File file = null;
+        int index = videoURL.lastIndexOf(File.separator);
+        if (index > 0) {
+            String name = videoURL.substring(index + 1);
+            index = name.lastIndexOf(".");
+            if (index > 0) {
+                name = name.substring(0, index);
+            }
+            file = new File(AppConsts.CAMERA_VIDEO_DIR, name + "_thumb.jpg");
+        }
+        else {
+            file = new File(AppConsts.CAMERA_VIDEO_DIR, "video_thumb_" + System.currentTimeMillis() + ".jpg");
+        }
+
         FileOutputStream fos = null;
         try {
             fos = new FileOutputStream(file);

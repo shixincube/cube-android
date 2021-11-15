@@ -201,11 +201,11 @@ public class FileAttachment implements JSONable {
      * @return 返回文件名。
      */
     public String getFileName() {
-        if (null != this.file) {
-            return this.file.getName();
-        }
-        else if (null != this.label) {
+        if (null != this.label) {
             return this.label.getFileName();
+        }
+        else if (null != this.file) {
+            return this.file.getName();
         }
         else if (null != this.anchor) {
             return this.anchor.getFileName();

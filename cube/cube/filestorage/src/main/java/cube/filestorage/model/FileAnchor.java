@@ -34,8 +34,6 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import cube.core.model.Entity;
 import cube.filestorage.handler.DownloadFileHandler;
@@ -105,7 +103,7 @@ public class FileAnchor extends Entity {
     /**
      * 下载文件句柄。
      */
-    private Queue<DownloadFileHandler> downloadHandlers;
+    private DownloadFileHandler downloadHandler;
 
     public InputStream inputStream;
 
@@ -214,20 +212,12 @@ public class FileAnchor extends Entity {
         return this.uploadHandler;
     }
 
-    public void addDownloadFileHandler(DownloadFileHandler handler) {
-        if (null == this.downloadHandlers) {
-            this.downloadHandlers = new ConcurrentLinkedQueue<>();
-            this.downloadHandlers.add(handler);
-        }
-        else {
-            if (!this.downloadHandlers.contains(handler)) {
-                this.downloadHandlers.add(handler);
-            }
-        }
+    public void setDownloadFileHandler(DownloadFileHandler handler) {
+        this.downloadHandler = handler;
     }
 
-    public Queue<DownloadFileHandler> getDownloadHandlers() {
-        return this.downloadHandlers;
+    public DownloadFileHandler getDownloadHandler() {
+        return this.downloadHandler;
     }
 
     public void bindInputStream(InputStream inputStream) {

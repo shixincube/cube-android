@@ -1008,16 +1008,18 @@ public class MessagingService extends Module {
             return;
         }
 
-        CacheableFileAttachment cachedAttachment = this.attachmentCache.get(fileAttachment.getFileCode());
-        if (null == cachedAttachment) {
-            cachedAttachment = new CacheableFileAttachment(fileAttachment);
-            this.attachmentCache.put(fileAttachment.getFileCode(), cachedAttachment);
-        }
-        else {
-            cachedAttachment.entityLifeExpiry += LIFESPAN;
-        }
+        synchronized (this.attachmentCache) {
+            CacheableFileAttachment cachedAttachment = this.attachmentCache.get(fileAttachment.getFileCode());
+            if (null == cachedAttachment) {
+                cachedAttachment = new CacheableFileAttachment(fileAttachment);
+                this.attachmentCache.put(fileAttachment.getFileCode(), cachedAttachment);
+            }
+            else {
+                cachedAttachment.entityLifeExpiry += LIFESPAN;
+            }
 
-        cachedAttachment.addMessage(message);
+            cachedAttachment.addMessage(message);
+        }
 
         this.fileStorage.downloadFile(fileAttachment.getLabel(), new StableDownloadFileHandler() {
             @Override
@@ -1043,7 +1045,8 @@ public class MessagingService extends Module {
 
                 List<Message> list = new ArrayList<>();
 
-                for (Message message : cachedAttachment.messageList) {
+                Message message = cachedAttachment.messageList.poll();
+                while (null != message) {
                     // 设置文件
                     message.getAttachment().setFile(anchor.getFile());
                     message.getAttachment().getLabel().setFilePath(anchor.getFile().getAbsolutePath());
@@ -1052,6 +1055,7 @@ public class MessagingService extends Module {
                     storage.updateMessageAttachment(message.id, message.getAttachment());
 
                     list.add(message);
+                    message = cachedAttachment.messageList.poll();
                 }
 
                 if (loadHandler.isInMainThread()) {
@@ -1066,19 +1070,31 @@ public class MessagingService extends Module {
                         loadHandler.handleLoaded((T) current, current.getAttachment());
                     }
                 }
-
-                cachedAttachment.messageList.clear();
             }
 
             @Override
             public void handleFailure(ModuleError error, @Nullable FileAnchor anchor) {
+                CacheableFileAttachment cachedAttachment = attachmentCache.get(anchor.getFileCode());
+
                 if (failureHandler.isInMainThread()) {
                     executeOnMainThread(() -> {
-                        failureHandler.handleFailure(MessagingService.this, error);
+                        Message message = cachedAttachment.messageList.poll();
+                        while (null != message) {
+                            ModuleError currentError = new ModuleError(NAME, error.code);
+                            currentError.data = message;
+                            failureHandler.handleFailure(MessagingService.this, currentError);
+                            message = cachedAttachment.messageList.poll();
+                        }
                     });
                 }
                 else {
-                    failureHandler.handleFailure(MessagingService.this, error);
+                    Message message = cachedAttachment.messageList.poll();
+                    while (null != message) {
+                        ModuleError currentError = new ModuleError(NAME, error.code);
+                        currentError.data = message;
+                        failureHandler.handleFailure(MessagingService.this, currentError);
+                        message = cachedAttachment.messageList.poll();
+                    }
                 }
             }
         });
@@ -1828,26 +1844,8 @@ public class MessagingService extends Module {
         // 如果附件有缩略图，本地没有，下载消息附件的缩略图到本地
         FileAttachment attachment = message.getAttachment();
         if (null != attachment) {
-            CacheableFileAttachment cachedAttachment = this.attachmentCache.get(attachment.getFileCode());
-            if (null == cachedAttachment) {
-                cachedAttachment = new CacheableFileAttachment(attachment);
-                this.attachmentCache.put(attachment.getFileCode(), cachedAttachment);
-            }
-            else {
-                // 更新寿命
-                cachedAttachment.entityLifeExpiry += LIFESPAN;
-                // 更新数据
-                cachedAttachment.fileAttachment.update(attachment);
-                message.setAttachment(cachedAttachment.fileAttachment);
-            }
-
-            // 添加附件对应的消息
-            cachedAttachment.addMessage(message);
-
-            final FileAttachment currentAttachment = cachedAttachment.fileAttachment;
-
-            if (currentAttachment.hasThumbnail()) {
-                FileThumbnail thumbnail = currentAttachment.getThumbnail();
+            if (attachment.hasThumbnail()) {
+                FileThumbnail thumbnail = attachment.getThumbnail();
                 if (!thumbnail.existsLocal()) {
                     // 缩略图本地文件不存在，下载文件
                     FileLabel fileLabel = thumbnail.getFileLabel();
@@ -1858,20 +1856,42 @@ public class MessagingService extends Module {
                         fileLabel = thumbnail.getFileLabel();
                     }
 
-                    LogUtils.d(TAG, "Download file thumbnail : " + fileLabel.getFileCode() +
-                            " (" +  message.id + ") - " + message.getFrom() + " -> " + message.getTo());
-
                     if (null != fileLabel) {
                         // 重置本地缩略图
-                        currentAttachment.resetLocalThumbnail(thumbnail);
+                        if (null == attachment.getLocalThumbnail()) {
+                            attachment.resetLocalThumbnail(thumbnail);
+                        }
+
+                        synchronized (this.attachmentCache) {
+                            // 填写缩略图的 File Code
+                            CacheableFileAttachment cachedAttachment = this.attachmentCache.get(fileLabel.getFileCode());
+                            if (null == cachedAttachment) {
+                                cachedAttachment = new CacheableFileAttachment(attachment);
+                                this.attachmentCache.put(fileLabel.getFileCode(), cachedAttachment);
+                            }
+                            else {
+                                // 更新寿命
+                                cachedAttachment.entityLifeExpiry += LIFESPAN;
+                            }
+
+                            // 添加附件对应的消息
+                            cachedAttachment.addMessage(message);
+                        }
+
+                        LogUtils.d(TAG, "Download file thumbnail : " + fileLabel.getFileCode() +
+                                " (" +  message.id + ") - " + message.getFrom() + " -> " + message.getTo());
 
                         if (!this.fileStorage.isDownloading(fileLabel.getFileCode())) {
                             // 没有正在下载，对文件进行下载
-
                             this.fileStorage.downloadFile(fileLabel, new StableDownloadFileHandler() {
                                 @Override
                                 public void handleStarted(FileAnchor anchor) {
-                                    currentAttachment.getLocalThumbnail().setDownloadAnchor(anchor);
+                                    CacheableFileAttachment cacheableFileAttachment = attachmentCache.get(anchor.getFileCode());
+                                    if (null != cacheableFileAttachment) {
+                                        for (Message current : cacheableFileAttachment.messageList) {
+                                            current.getAttachment().getLocalThumbnail().setDownloadAnchor(anchor);
+                                        }
+                                    }
                                 }
 
                                 @Override
@@ -1881,19 +1901,25 @@ public class MessagingService extends Module {
 
                                 @Override
                                 public void handleSuccess(FileAnchor anchor, FileLabel fileLabel) {
-                                    LogUtils.d(TAG, "#fillMessage - download success : " + anchor.getFileName() +
+                                    LogUtils.d(TAG, "#fillMessage - download success : " +
+                                            "(" + anchor.getFileCode() + ") " + anchor.getFileName() +
                                             " -> " + anchor.getFile().getPath());
 
-                                    // 重置文件
-                                    currentAttachment.getLocalThumbnail().resetFile(anchor.getFile());
+                                    synchronized (attachmentCache) {
+                                        CacheableFileAttachment cacheableFileAttachment = attachmentCache.get(anchor.getFileCode());
+                                        if (null != cacheableFileAttachment) {
+                                            Message current = cacheableFileAttachment.messageList.poll();
+                                            while (null != current) {
+                                                // 重置文件
+                                                FileThumbnail ft = current.getAttachment().getLocalThumbnail();
+                                                ft.resetFile(anchor.getFile());
 
-                                    // 更新到数据库
-                                    CacheableFileAttachment cfa = attachmentCache.get(currentAttachment.getFileCode());
-                                    if (null != cfa) {
-                                        for (Message msg : cfa.messageList) {
-                                            storage.updateMessageAttachment(msg.id, currentAttachment);
+                                                // 更新到数据库
+                                                storage.updateMessageAttachment(current.id, current.getAttachment());
+                                                // next
+                                                current = cacheableFileAttachment.messageList.poll();
+                                            }
                                         }
-                                        cfa.messageList.clear();
                                     }
                                 }
 

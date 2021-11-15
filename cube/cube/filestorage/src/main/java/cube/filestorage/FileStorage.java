@@ -225,6 +225,10 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
         if (null != filePath) {
             File file = new File(filePath);
             if (file.exists()) {
+                if (LogUtils.isDebugLevel()) {
+                    LogUtils.d(TAG, "File exists : " + fileLabel.getFileCode() + " -> " + file.getPath());
+                }
+
                 // 文件在本地已存在
                 FileAnchor anchor = new FileAnchor(file, fileLabel);
                 if (handler.isInMainThread()) {
@@ -242,20 +246,43 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
             }
         }
 
-        FileAnchor current = this.downloadQueue.getProcessing(fileLabel.getFileCode());
-        if (null != current) {
-            LogUtils.d(TAG, "#downloadFile file is processing : " + current.getFileName());
-            current.addDownloadFileHandler(handler);
+        // 判断文件码
+        File localFile = new File(this.fileCachePath, fileLabel.getFileCode() + "." + fileLabel.getFileType());
+        if (localFile.exists()) {
+            if (LogUtils.isDebugLevel()) {
+                LogUtils.d(TAG, "File exists : " + fileLabel.getFileCode() + " -> " + localFile.getPath());
+            }
+
+            // 文件在本地已存在
+            FileAnchor anchor = new FileAnchor(localFile, fileLabel);
+            if (handler.isInMainThread()) {
+                this.executeOnMainThread(() -> {
+                    handler.handleSuccess(anchor, fileLabel);
+                });
+            }
+            else {
+                this.execute(() -> {
+                    handler.handleSuccess(anchor, fileLabel);
+                });
+            }
+
             return;
         }
 
-        // 下载文件
-        File localFile = new File(this.fileCachePath, fileLabel.getFileCode() + "." + fileLabel.getFileType());
-        FileAnchor anchor = new FileAnchor(localFile, fileLabel);
+        synchronized (this) {
+            FileAnchor current = this.downloadQueue.getProcessing(fileLabel.getFileCode());
+            if (null != current) {
+                LogUtils.d(TAG, "#downloadFile file is processing : " + current.getFileName());
+                return;
+            }
 
-        LogUtils.d(TAG, "#downloadFile : " + anchor.getFileURL());
-        anchor.addDownloadFileHandler(handler);
-        this.downloadQueue.enqueue(anchor);
+            // 下载文件
+            FileAnchor anchor = new FileAnchor(localFile, fileLabel);
+
+            LogUtils.d(TAG, "#downloadFile : " + anchor.getFileURL());
+            anchor.setDownloadFileHandler(handler);
+            this.downloadQueue.enqueue(anchor);
+        }
     }
 
     /**
@@ -528,7 +555,8 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
 
     @Override
     public void onDownloadStarted(FileAnchor fileAnchor) {
-        for (DownloadFileHandler downloadHandler : fileAnchor.getDownloadHandlers()) {
+        DownloadFileHandler downloadHandler = fileAnchor.getDownloadHandler();
+        if (null != downloadHandler) {
             if (downloadHandler.isInMainThread()) {
                 this.executeOnMainThread(() -> {
                     downloadHandler.handleStarted(fileAnchor);
@@ -544,7 +572,8 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
 
     @Override
     public void onDownloading(FileAnchor fileAnchor) {
-        for (DownloadFileHandler downloadHandler : fileAnchor.getDownloadHandlers()) {
+        DownloadFileHandler downloadHandler = fileAnchor.getDownloadHandler();
+        if (null != downloadHandler) {
             if (downloadHandler.isInMainThread()) {
                 this.executeOnMainThread(() -> {
                     downloadHandler.handleProcessing(fileAnchor);
@@ -560,7 +589,8 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
 
     @Override
     public void onDownloadCompleted(FileAnchor fileAnchor) {
-        for (DownloadFileHandler downloadHandler : fileAnchor.getDownloadHandlers()) {
+        DownloadFileHandler downloadHandler = fileAnchor.getDownloadHandler();
+        if (null != downloadHandler) {
             if (downloadHandler.isInMainThread()) {
                 this.executeOnMainThread(() -> {
                     downloadHandler.handleSuccess(fileAnchor, fileAnchor.fileLabel);
@@ -576,7 +606,8 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
 
     @Override
     public void onDownloadFailed(FileAnchor fileAnchor, int errorCode) {
-        for (DownloadFileHandler downloadHandler : fileAnchor.getDownloadHandlers()) {
+        DownloadFileHandler downloadHandler = fileAnchor.getDownloadHandler();
+        if (null != downloadHandler) {
             if (downloadHandler.isInMainThread()) {
                 this.executeOnMainThread(() -> {
                     ModuleError error = new ModuleError(NAME, errorCode);

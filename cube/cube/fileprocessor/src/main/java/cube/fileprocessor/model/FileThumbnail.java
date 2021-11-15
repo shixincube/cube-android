@@ -133,6 +133,11 @@ public class FileThumbnail extends Entity {
             this.filePath = json.getString("filePath");
             this.file = new File(this.filePath);
         }
+
+        if (null == this.file && null != this.fileLabel && null != this.fileLabel.getFilePath()) {
+            this.filePath = this.fileLabel.getFilePath();
+            this.file = new File(this.filePath);
+        }
     }
 
     /**
@@ -168,19 +173,29 @@ public class FileThumbnail extends Entity {
      * @return
      */
     public boolean existsLocal() {
-        if (null == this.downloadAnchor) {
-            return (null != this.file && this.file.exists() && this.file.length() > 0);
+        if (null != this.filePath && null == this.file) {
+            this.file = new File(this.filePath);
         }
-        else {
-            if (null != this.fileLabel) {
-                return (null != this.file) ? this.fileLabel.getFileSize() == this.file.length() :
-                        this.fileLabel.getFileSize() == this.downloadAnchor.position;
-            }
-            else {
-                return (null != this.file && this.file.exists()
-                        && this.downloadAnchor.position == this.file.length());
-            }
+
+        boolean result = (null != this.file && this.file.exists());
+        if (result) {
+            return true;
         }
+
+        if (null != this.fileLabel && null != this.fileLabel.getFilePath()) {
+            this.file = new File(this.fileLabel.getFilePath());
+            this.filePath = this.file.getAbsolutePath();
+            return this.file.exists();
+        }
+
+        if (null != this.fileLabel && null != this.downloadAnchor) {
+            return this.fileLabel.getFileSize() == this.downloadAnchor.position;
+        }
+        else if (null != this.file && null != this.downloadAnchor) {
+            return this.downloadAnchor.position == this.file.length();
+        }
+
+        return false;
     }
 
     /**
@@ -189,7 +204,7 @@ public class FileThumbnail extends Entity {
      * @return
      */
     public String getFileURL() {
-        if (null != this.file && this.file.exists() && this.file.length() > 0) {
+        if (null != this.file && this.file.exists()) {
             return Uri.fromFile(this.file).toString();
         }
         else if (null != this.fileLabel) {
@@ -223,6 +238,9 @@ public class FileThumbnail extends Entity {
     public void resetFile(File file) {
         this.file = file;
         this.filePath = file.getAbsolutePath();
+        if (null != this.fileLabel) {
+            this.fileLabel.setFilePath(this.filePath);
+        }
     }
 
     @Override
@@ -235,6 +253,9 @@ public class FileThumbnail extends Entity {
             FileThumbnail other = (FileThumbnail) object;
             if (null != other.fileLabel && null != this.fileLabel) {
                 return this.fileLabel.getFileCode().equals(other.fileLabel.getFileCode());
+            }
+            else if (null != other.filePath && null != this.filePath) {
+                return this.filePath.equals(other.filePath);
             }
         }
 

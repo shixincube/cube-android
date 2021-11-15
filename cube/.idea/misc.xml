@@ -4,6 +4,22 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="../../../../../../../layout/custom_preview.xml" value="0.31927083333333334" />
+        <entry key="app/filepicker/src/main/res/drawable/vw_divider_rv.xml" value="0.240234375" />
+        <entry key="app/filepicker/src/main/res/drawable/vw_divider_rv_file.xml" value="0.240234375" />
+        <entry key="app/filepicker/src/main/res/drawable/vw_selector_cbx.xml" value="0.240234375" />
+        <entry key="app/filepicker/src/main/res/drawable/vw_selector_cbx_audio.xml" value="0.240234375" />
+        <entry key="app/filepicker/src/main/res/layout/vw_activity_audio_pick.xml" value="0.1676912568306011" />
+        <entry key="app/filepicker/src/main/res/layout/vw_activity_file_pick.xml" value="0.1676912568306011" />
+        <entry key="app/filepicker/src/main/res/layout/vw_activity_image_browser.xml" value="0.1676912568306011" />
+        <entry key="app/filepicker/src/main/res/layout/vw_activity_image_pick.xml" value="0.1676912568306011" />
+        <entry key="app/filepicker/src/main/res/layout/vw_activity_video_pick.xml" value="0.1676912568306011" />
+        <entry key="app/filepicker/src/main/res/layout/vw_layout_folder_list.xml" value="0.1676912568306011" />
+        <entry key="app/filepicker/src/main/res/layout/vw_layout_item_audio_pick.xml" value="0.1676912568306011" />
+        <entry key="app/filepicker/src/main/res/layout/vw_layout_item_folder_list.xml" value="0.1676912568306011" />
+        <entry key="app/filepicker/src/main/res/layout/vw_layout_item_image_pick.xml" value="0.1676912568306011" />
+        <entry key="app/filepicker/src/main/res/layout/vw_layout_item_normal_file_pick.xml" value="0.1676912568306011" />
+        <entry key="app/filepicker/src/main/res/layout/vw_layout_item_video_pick.xml" value="0.1676912568306011" />
+        <entry key="app/filepicker/src/main/res/layout/vw_layout_top_bar.xml" value="0.1676912568306011" />
         <entry key="app/imagepicker/src/main/res/drawable/selector_back_press.xml" value="0.240234375" />
         <entry key="app/imagepicker/src/main/res/drawable/selector_grid_camera_bg.xml" value="0.240234375" />
         <entry key="app/imagepicker/src/main/res/drawable/selector_item_checked.xml" value="0.240234375" />

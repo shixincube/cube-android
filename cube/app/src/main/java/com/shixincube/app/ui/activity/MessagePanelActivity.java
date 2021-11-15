@@ -206,7 +206,7 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
             if (focus) {
                 UIUtils.postTaskDelay(() -> {
                     messageListView.smoothMoveToPosition(messageListView.getAdapter().getItemCount() - 1);
-                }, 1000);
+                }, 500);
 
                 UIUtils.postTaskDelay(() -> {
                     if (!emotionLayout.isShown()) {
@@ -226,7 +226,7 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
             Intent intent = new Intent(this, ImageGridActivity.class);
             startActivityForResult(intent, REQUEST_IMAGE_PICKER);
         });
-
+        // 文件按钮事件
         filesButton.setOnClickListener((view) -> {
             Intent intent = new Intent(this, NormalFilePickActivity.class);
             intent.putExtra(Constant.MAX_NUMBER, 9);
@@ -259,7 +259,10 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
                         }
                         break;
                     case R.id.ivMore:
-                        UIUtils.postTaskDelay(() -> messageListView.smoothMoveToPosition(messageListView.getAdapter().getItemCount() - 1), 100);
+                        UIUtils.postTaskDelay(() -> {
+                            messageListView.smoothMoveToPosition(messageListView.getAdapter().getItemCount() - 1);
+                            inputContentView.clearFocus();
+                        }, 100);
                         inputContentView.clearFocus();
                         if (!moreLayout.isShown()) {
                             emojiButtonView.setImageResource(R.mipmap.message_tool_emotion);

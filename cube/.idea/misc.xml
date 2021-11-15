@@ -4,6 +4,12 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="../../../../../../../layout/custom_preview.xml" value="0.31927083333333334" />
+        <entry key="app/camerapicker/src/main/res/drawable/ic_camera.xml" value="0.240234375" />
+        <entry key="app/camerapicker/src/main/res/drawable/ic_flash_auto.xml" value="0.240234375" />
+        <entry key="app/camerapicker/src/main/res/drawable/ic_flash_off.xml" value="0.240234375" />
+        <entry key="app/camerapicker/src/main/res/drawable/ic_flash_on.xml" value="0.240234375" />
+        <entry key="app/camerapicker/src/main/res/drawable/ic_photo.xml" value="0.240234375" />
+        <entry key="app/camerapicker/src/main/res/layout/camera_view.xml" value="0.1" />
         <entry key="app/filepicker/src/main/res/drawable/vw_divider_rv.xml" value="0.240234375" />
         <entry key="app/filepicker/src/main/res/drawable/vw_divider_rv_file.xml" value="0.240234375" />
         <entry key="app/filepicker/src/main/res/drawable/vw_selector_cbx.xml" value="0.240234375" />
@@ -79,6 +85,7 @@
         <entry key="app/src/main/res/layout/activity_profile_info.xml" value="0.16120218579234974" />
         <entry key="app/src/main/res/layout/activity_register.xml" value="0.125" />
         <entry key="app/src/main/res/layout/activity_splash.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/activity_take_photo.xml" value="0.1676912568306011" />
         <entry key="app/src/main/res/layout/dialog_waiting.xml" value="0.17827868852459017" />
         <entry key="app/src/main/res/layout/emotion_layout.xml" value="0.18886612021857924" />
         <entry key="app/src/main/res/layout/emotion_tab.xml" value="0.18886612021857924" />

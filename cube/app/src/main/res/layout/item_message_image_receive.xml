@@ -70,7 +70,7 @@
                 android:minWidth="80dp"
                 android:scaleType="fitCenter"
                 android:src="@mipmap/default_image"
-                auto:bubble_angle="10dp"
+                auto:bubble_angle="4dp"
                 auto:bubble_arrowLocation="none"
                 auto:bubble_arrowHeight="10dp"
                 auto:bubble_arrowOffset="-5dp"

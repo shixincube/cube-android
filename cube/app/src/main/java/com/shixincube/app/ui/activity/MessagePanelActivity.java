@@ -72,7 +72,7 @@ import cube.messaging.model.Conversation;
 public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView, MessagePanelPresenter> implements MessagePanelView, BGARefreshLayout.BGARefreshLayoutDelegate {
 
     public final static int REQUEST_IMAGE_PICKER = 1000;
-
+    public final static int REQUEST_TAKE_PHOTO = 2000;
     public final static int REQUEST_FILE_PICKER = 8000;
 
     @BindView(R.id.llMessagePanel)
@@ -226,6 +226,10 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
             Intent intent = new Intent(this, ImageGridActivity.class);
             startActivityForResult(intent, REQUEST_IMAGE_PICKER);
         });
+        shotButton.setOnClickListener((view) -> {
+            Intent intent = new Intent(this, TakePhotoActivity.class);
+            startActivityForResult(intent, REQUEST_TAKE_PHOTO);
+        });
         // 文件按钮事件
         filesButton.setOnClickListener((view) -> {
             Intent intent = new Intent(this, NormalFilePickActivity.class);
@@ -278,8 +282,8 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
 
     private void closeBottomAndKeyboard() {
         this.emojiButtonView.setImageResource(R.mipmap.message_tool_emotion);
-        this.moreButtonView.setVisibility(View.VISIBLE);
-        this.sendButton.setVisibility(View.GONE);
+//        this.moreButtonView.setVisibility(View.VISIBLE);
+//        this.sendButton.setVisibility(View.GONE);
 
         if (null != this.softwareKeyboard) {
             this.softwareKeyboard.interceptBackPress();
@@ -289,6 +293,10 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
 //          InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 //          imm.hideSoftInputFromWindow(inputContentView.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
 //        }
+    }
+
+    public void fireClickBlank() {
+        this.closeBottomAndKeyboard();
     }
 
     @Override
@@ -331,6 +339,11 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
                             presenter.sendImageMessage(new File(item.path), origen);
                         }
                     }
+                }
+                break;
+            case REQUEST_TAKE_PHOTO:
+                if (resultCode == RESULT_OK) {
+
                 }
                 break;
             case REQUEST_FILE_PICKER:

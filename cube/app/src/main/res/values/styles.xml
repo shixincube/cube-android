@@ -18,6 +18,14 @@
         <item name="android:backgroundDimAmount">0.6</item>
     </style>
 
+    <!--全屏样式-->
+    <style name="Fullscreen" parent="Theme.Cube">
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="android:windowFullscreen">true</item>
+        <!-- 设置 Activity 切换动画 -->
+        <item name="android:windowAnimationStyle">@style/activityAnimation</item>
+    </style>
+
     <!-- 选项条目样式 -->
     <style name="OptionItem">
         <item name="android:layout_width">match_parent</item>

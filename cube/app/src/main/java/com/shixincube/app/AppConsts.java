@@ -62,4 +62,14 @@ public final class AppConsts {
      * 图片保存位置。
      */
     public final static String IMAGE_DIR = FileUtils.getDir("image");
+
+    /**
+     * 摄像机视频文件保存位置。
+     */
+    public final static String CAMERA_VIDEO_DIR = FileUtils.getDir("camera_video");
+
+    /**
+     * 摄像机照片文件保存位置。
+     */
+    public final static String CAMERA_PHOTO_DIR = FileUtils.getDir("camera_photo");
 }

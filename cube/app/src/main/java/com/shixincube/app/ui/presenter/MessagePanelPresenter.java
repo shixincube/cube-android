@@ -32,6 +32,7 @@ import android.view.ViewGroup;
 
 import com.shixincube.app.R;
 import com.shixincube.app.ui.activity.ImageShowcaseActivity;
+import com.shixincube.app.ui.activity.MessagePanelActivity;
 import com.shixincube.app.ui.adapter.MessagePanelAdapter;
 import com.shixincube.app.ui.base.BaseFragmentActivity;
 import com.shixincube.app.ui.base.BaseFragmentPresenter;
@@ -99,7 +100,7 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
 
         if (null == this.adapter) {
             this.adapter = new MessagePanelAdapter(activity, messageList, this);
-//            this.adapter.setOnItemClickListener(this);
+            this.adapter.setOnItemClickListener(this);
 
             getView().getMessageListView().setAdapter(this.adapter);
 
@@ -319,8 +320,9 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
 
     @Override
     public void onItemClick(ViewHolder helper, ViewGroup parent, View itemView, int position) {
-        Message message = this.adapter.getData().get(position);
-        this.fireItemClick(helper, message, position);
+//        Message message = this.adapter.getData().get(position);
+//        this.fireItemClick(helper, message, position);
+        ((MessagePanelActivity) activity).fireClickBlank();
     }
 
     @Override

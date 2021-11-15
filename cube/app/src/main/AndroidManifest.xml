@@ -86,6 +86,11 @@
             android:name=".ui.activity.ImageShowcaseActivity"
             android:screenOrientation="portrait">
         </activity>
+        <activity
+            android:name=".ui.activity.TakePhotoActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Fullscreen">
+        </activity>
     </application>
 
 </manifest>

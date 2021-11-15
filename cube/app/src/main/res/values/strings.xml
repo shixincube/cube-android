@@ -46,6 +46,7 @@
     <string name="retry">重试</string>
     <string name="no_support_message">不支持的消息类型</string>
     <string name="loading_messages">正在加载</string>
+    <string name="can_not_get_camera_permission">没有获得摄像机使用授权</string>
     <string name="fun_album">相册</string>
     <string name="fun_shot">拍摄</string>
     <string name="fun_file">文件</string>

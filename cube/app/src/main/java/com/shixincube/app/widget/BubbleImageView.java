@@ -68,6 +68,8 @@ public class BubbleImageView extends ImageView {
     private int mArrowOffset = 0;
     private int mArrowLocation = LOCATION_NONE;
 
+    private int textSize = dp2px(12);
+
     private Rect mDrawableRect;
     private Bitmap mBitmap;
     private BitmapShader mBitmapShader;
@@ -78,8 +80,10 @@ public class BubbleImageView extends ImageView {
 
     private Paint mPaint;
     private int percent = 0;
-    private boolean mShowText = true;//是否显示文字
-    private boolean mShowShadow = true;//是否显示阴影
+    // 是否显示文字
+    private boolean mShowText = true;
+    // 是否显示阴影
+    private boolean mShowShadow = true;
 
     public BubbleImageView(Context context) {
         this(context, null);
@@ -178,7 +182,6 @@ public class BubbleImageView extends ImageView {
      * @param radiusPx 圆角的半径
      */
     private void drawText(Canvas canvas, int radiusPx) {
-
         mPaint.setAntiAlias(true); // 消除锯齿
         mPaint.setStyle(Paint.Style.FILL);
 
@@ -206,27 +209,28 @@ public class BubbleImageView extends ImageView {
         // 是否画文字
         if (mShowText) {
             //画文字
-            mPaint.setTextSize(32);
+            mPaint.setTextSize(this.textSize);
             mPaint.setColor(Color.parseColor("#FFFFFF"));
             mPaint.setStrokeWidth(2);
 
             Rect rect = null;
-            int marginLeft = 0;//文字的左边距
+            float marginLeft = 0;//文字的左边距
             if (mArrowLocation == LOCATION_LEFT) {
                 rect = new Rect(mArrowWidth, 0, 0, 0);
-                marginLeft = (getWidth() - mArrowWidth) / 2;
+                marginLeft = (getWidth() - mArrowWidth) * 0.5f;
             }
             else if (mArrowLocation == LOCATION_RIGHT) {
                 rect = new Rect(mArrowWidth, 0, 0, 0);
-                marginLeft = getWidth() / 2 - mArrowWidth;
+                marginLeft = getWidth() * 0.5f - mArrowWidth;
             }
             else {
                 rect = new Rect(0, 0, 0, 0);
-                marginLeft = getWidth() / 2;
+                marginLeft = getWidth() * 0.5f;
             }
-            mPaint.getTextBounds("100%", 0, "100%".length(), rect);// 确定文字的宽度
+            // 确定文字的宽度
+            mPaint.getTextBounds("100%", 0, "100%".length(), rect);
             canvas.drawText(percent + "%", marginLeft,
-                    getHeight() / 2, mPaint);
+                    getHeight() * 0.5f, mPaint);
         }
     }
 

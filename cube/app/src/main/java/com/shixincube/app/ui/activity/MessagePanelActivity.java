@@ -350,6 +350,7 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
                     }
                     else {
                         // 录制视频
+                        // TODO
                     }
                 }
                 break;

@@ -165,7 +165,7 @@ public class AccountHelper implements ContactDataProvider {
 
         synchronized (data) {
             try {
-                data.wait(2000L);
+                data.wait(10 * 1000);
             } catch (InterruptedException e) {
                 // Nothing
             }

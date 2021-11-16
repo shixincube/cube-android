@@ -29,11 +29,14 @@ package com.shixincube.app.ui.presenter;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.FilesView;
+import com.shixincube.app.widget.adapter.AdapterForRecyclerView;
 
 /**
  * 文件清单。
  */
 public class FilesPresenter extends BasePresenter<FilesView> {
+
+    private AdapterForRecyclerView adapter;
 
     public FilesPresenter(BaseActivity activity) {
         super(activity);

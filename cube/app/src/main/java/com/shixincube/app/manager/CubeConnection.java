@@ -211,7 +211,7 @@ public class CubeConnection implements ServiceConnection {
                         }
 
                         @Override
-                        public void handleSuccess(FileLabel fileLabel) {
+                        public void handleSuccess(FileAnchor anchor, FileLabel fileLabel) {
                             System.out.println("XJW : handleSuccess : " + fileLabel.getFileCode() + " - " + fileLabel.getFileName());
                         }
 

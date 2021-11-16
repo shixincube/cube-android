@@ -154,7 +154,7 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
 
                 @Override
                 public void handleLoaded(Message message, FileAttachment fileAttachment) {
-                    Glide.with(getContext()).load(fileAttachment.getFileURL())
+                    Glide.with(getContext()).load(fileAttachment.getPrefFileURL())
                             .error(R.mipmap.default_img_failed)
                             .override(UIUtils.dp2px(80), UIUtils.dp2px(150))
                             .centerCrop()

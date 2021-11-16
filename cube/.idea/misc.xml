@@ -91,7 +91,7 @@
         <entry key="app/src/main/res/layout/emotion_tab.xml" value="0.18886612021857924" />
         <entry key="app/src/main/res/layout/fragment_contacts.xml" value="0.16325136612021857" />
         <entry key="app/src/main/res/layout/fragment_conversation.xml" value="0.16700819672131148" />
-        <entry key="app/src/main/res/layout/fragment_files.xml" value="0.5" />
+        <entry key="app/src/main/res/layout/fragment_files.xml" value="0.1" />
         <entry key="app/src/main/res/layout/fragment_profile.xml" value="0.1" />
         <entry key="app/src/main/res/layout/header_contacts.xml" value="0.15710382513661203" />
         <entry key="app/src/main/res/layout/include_conversation_function.xml" value="0.1" />

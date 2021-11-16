@@ -214,7 +214,8 @@ public class BubbleImageView extends ImageView {
             mPaint.setStrokeWidth(2);
 
             Rect rect = null;
-            float marginLeft = 0;//文字的左边距
+            // 文字的左边距
+            float marginLeft = 0;
             if (mArrowLocation == LOCATION_LEFT) {
                 rect = new Rect(mArrowWidth, 0, 0, 0);
                 marginLeft = (getWidth() - mArrowWidth) * 0.5f;
@@ -228,7 +229,7 @@ public class BubbleImageView extends ImageView {
                 marginLeft = getWidth() * 0.5f;
             }
             // 确定文字的宽度
-            mPaint.getTextBounds("100%", 0, "100%".length(), rect);
+            mPaint.getTextBounds("99%", 0, "99%".length(), rect);
             canvas.drawText(percent + "%", marginLeft,
                     getHeight() * 0.5f, mPaint);
         }

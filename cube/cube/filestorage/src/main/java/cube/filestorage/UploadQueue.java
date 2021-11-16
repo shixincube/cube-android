@@ -138,6 +138,7 @@ public class UploadQueue {
                                         // 数据上传完成
                                         try {
                                             JSONObject data = packet.extractServiceData();
+                                            // 上传完成之后设置文件码
                                             anchor.setFileCode(data.getString("fileCode"));
 
                                             LogUtils.d(TAG, "File anchor : " + anchor.getFileName() + " - " + anchor.getFileCode());
@@ -146,6 +147,7 @@ public class UploadQueue {
                                             e.printStackTrace();
                                         }
 
+                                        // 回调上传结束
                                         listener.onUploadCompleted(anchor);
                                     }
                                 }

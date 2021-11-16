@@ -36,8 +36,8 @@ import java.util.Locale;
 
 import cube.auth.AuthService;
 import cube.core.model.Entity;
-import cube.filestorage.model.FileAnchor;
 import cube.filestorage.model.FileLabel;
+import cube.util.JSONable;
 
 /**
  * 文件缩略图。
@@ -72,7 +72,7 @@ public class FileThumbnail extends Entity {
     /**
      * 缩略图使用的图像质量参数。
      */
-    private double quality;
+    private int quality;
 
     /**
      * 原文件文件码。
@@ -90,16 +90,11 @@ public class FileThumbnail extends Entity {
     private int sourceHeight;
 
     /**
-     * 下载文件的文件锚。
-     */
-    private FileAnchor downloadAnchor;
-
-    /**
      * 构造函数。
      *
      * @param file
      */
-    public FileThumbnail(File file, int width, int height, double quality, int sourceWidth, int sourceHeight) {
+    public FileThumbnail(File file, int width, int height, int quality, int sourceWidth, int sourceHeight) {
         this.file = file;
         this.filePath = file.getAbsolutePath();
         this.width = width;
@@ -127,7 +122,7 @@ public class FileThumbnail extends Entity {
         this.sourceFileCode = json.getString("sourceFileCode");
         this.sourceWidth = json.getInt("sourceWidth");
         this.sourceHeight = json.getInt("sourceHeight");
-        this.quality = json.getDouble("quality");
+        this.quality = json.getInt("quality");
 
         if (json.has("filePath")) {
             this.filePath = json.getString("filePath");
@@ -137,9 +132,12 @@ public class FileThumbnail extends Entity {
             }
         }
 
-        if (null == this.file && null != this.fileLabel && null != this.fileLabel.getFilePath()) {
-            this.filePath = this.fileLabel.getFilePath();
-            this.file = new File(this.filePath);
+        if (null == this.file && null != this.fileLabel) {
+            String path = this.fileLabel.getFilePath();
+            if (null != path) {
+                this.file = new File(path);
+                this.filePath = this.file.getAbsolutePath();
+            }
         }
     }
 
@@ -150,15 +148,6 @@ public class FileThumbnail extends Entity {
      */
     public File getFile() {
         return this.file;
-    }
-
-    /**
-     * 获取文件的本地存储路径。
-     *
-     * @return
-     */
-    public String getFilePath() {
-        return this.filePath;
     }
 
     /**
@@ -176,29 +165,7 @@ public class FileThumbnail extends Entity {
      * @return
      */
     public boolean existsLocal() {
-        if (null != this.filePath && null == this.file) {
-            this.file = new File(this.filePath);
-        }
-
-        boolean result = (null != this.file && this.file.exists());
-        if (result) {
-            return true;
-        }
-
-        if (null != this.fileLabel && null != this.fileLabel.getFilePath()) {
-            this.file = new File(this.fileLabel.getFilePath());
-            this.filePath = this.file.getAbsolutePath();
-            return this.file.exists();
-        }
-
-        if (null != this.fileLabel && null != this.downloadAnchor) {
-            return this.fileLabel.getFileSize() == this.downloadAnchor.position;
-        }
-        else if (null != this.file && null != this.downloadAnchor) {
-            return this.downloadAnchor.position == this.file.length();
-        }
-
-        return false;
+        return (null != this.file && this.file.exists());
     }
 
     /**
@@ -226,16 +193,8 @@ public class FileThumbnail extends Entity {
         return this.height;
     }
 
-    public double getQuality() {
+    public int getQuality() {
         return this.quality;
-    }
-
-    public void setSourceFileCode(String fileCode) {
-        this.sourceFileCode = fileCode;
-    }
-
-    public void setDownloadAnchor(FileAnchor fileAnchor) {
-        this.downloadAnchor = fileAnchor;
     }
 
     public void resetFile(File file) {
@@ -273,7 +232,7 @@ public class FileThumbnail extends Entity {
         buf.append("(").append(this.sourceWidth).append("x").append(this.sourceHeight).append(")");
         buf.append(" -> ");
         buf.append("(").append(this.width).append("x").append(this.height).append(")");
-        buf.append(" # ").append(String.format(Locale.ROOT, "%.2f", this.quality));
+        buf.append(" # ").append(String.format(Locale.ROOT, "%d", this.quality));
         return buf.toString();
     }
 
@@ -310,5 +269,40 @@ public class FileThumbnail extends Entity {
             json.remove("filePath");
         }
         return json;
+    }
+
+    /**
+     * 缩略图操作的配置信息。
+     */
+    public class ThumbConfig implements JSONable {
+
+        public int quality = 60;
+
+        public ThumbConfig() {
+        }
+
+        public ThumbConfig(int quality) {
+            this.quality = quality;
+        }
+
+        public ThumbConfig(JSONObject json) throws JSONException {
+            this.quality = json.getInt("quality");
+        }
+
+        @Override
+        public JSONObject toJSON() {
+            JSONObject json = new JSONObject();
+            try {
+                json.put("quality", this.quality);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            return json;
+        }
+
+        @Override
+        public JSONObject toCompactJSON() {
+            return this.toJSON();
+        }
     }
 }

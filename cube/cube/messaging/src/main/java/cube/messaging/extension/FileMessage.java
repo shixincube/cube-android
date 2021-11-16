@@ -49,7 +49,6 @@ public class FileMessage extends TypeableMessage {
 
         // 创建消息附件
         FileAttachment attachment = new FileAttachment(file);
-        attachment.disableThumb();
         this.setAttachment(attachment);
 
         try {
@@ -72,7 +71,7 @@ public class FileMessage extends TypeableMessage {
             // Nothing
         }
 
-        this.summary = "[文件] " + message.getAttachment().getFileName();
+        this.summary = "[文件] " + message.getAttachment().getPrefFileName();
     }
 
     /**
@@ -81,7 +80,7 @@ public class FileMessage extends TypeableMessage {
      * @return 返回文件名。
      */
     public String getFileName() {
-        return this.getAttachment().getFileName();
+        return this.getAttachment().getPrefFileName();
     }
 
     /**
@@ -90,7 +89,7 @@ public class FileMessage extends TypeableMessage {
      * @return 返回文件大小。
      */
     public long getFileSize() {
-        return this.getAttachment().getFileSize();
+        return this.getAttachment().getPrefFileSize();
     }
 
     /**
@@ -99,7 +98,7 @@ public class FileMessage extends TypeableMessage {
      * @return 返回文件类型。
      */
     public String getFileType() {
-        return this.getAttachment().getFileType();
+        return this.getAttachment().getPrefFileType();
     }
 
     /**
@@ -108,7 +107,7 @@ public class FileMessage extends TypeableMessage {
      * @return 返回文件最近一次修改时间戳。
      */
     public long getFileLastModified() {
-        return this.getAttachment().getFileLastModified();
+        return this.getAttachment().getPrefFileLastModified();
     }
 
     /**
@@ -117,8 +116,8 @@ public class FileMessage extends TypeableMessage {
      * @return 返回当前文件本地存储路径。如果文件不在本地返回 {@code null} 值。
      */
     public String getFilePath() {
-        return (null != this.getAttachment().getFile()) ?
-                this.getAttachment().getFile().getPath() : null;
+        return (null != this.getAttachment().getPrefFile()) ?
+                this.getAttachment().getPrefFile().getPath() : null;
     }
 
     /**
@@ -127,7 +126,7 @@ public class FileMessage extends TypeableMessage {
      * @return 如果文件在本地存在返回 {@code true} 。
      */
     public boolean existsLocal() {
-        return this.getAttachment().existsLocal();
+        return this.getAttachment().existsPrefLocal();
     }
 
     /**
@@ -136,7 +135,7 @@ public class FileMessage extends TypeableMessage {
      * @return 返回文件的访问 URL 。
      */
     public String getFileURL() {
-        return this.getAttachment().getFileURL();
+        return this.getAttachment().getPrefFileURL();
     }
 
     /**
@@ -145,7 +144,7 @@ public class FileMessage extends TypeableMessage {
      * @return 如果是图像类型文件返回 {@code true} 。
      */
     public boolean isImageType() {
-        return this.getAttachment().isImageType();
+        return this.getAttachment().isPrefImageType();
     }
 
     /**
@@ -155,6 +154,6 @@ public class FileMessage extends TypeableMessage {
      * @return 返回文件已被处理的数据大小。
      */
     public long getProcessedSize() {
-        return this.getAttachment().getProcessedSize();
+        return this.getAttachment().getPrefProcessedSize();
     }
 }

@@ -458,26 +458,6 @@ public class Message extends Entity {
     public JSONObject toCompactJSON() {
         JSONObject json = this.toJSON();
         json.remove("summary");
-
-        if (json.has("attachment")) {
-            try {
-                JSONObject attachment = json.getJSONObject("attachment");
-                if (attachment.has("label")) {
-                    attachment.getJSONObject("label").remove("filePath");
-                }
-                if (attachment.has("anchor")) {
-                    attachment.getJSONObject("anchor").remove("filePath");
-                }
-
-                if (attachment.has("thumbnail")) {
-                    // 删除本地数据
-                    attachment.remove("thumbnail");
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-
         return json;
     }
 }

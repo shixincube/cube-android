@@ -27,10 +27,12 @@
 package cube.messaging.extension;
 
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 
 import cube.fileprocessor.model.FileThumbnail;
+import cube.filestorage.model.FileLabel;
 import cube.messaging.model.FileAttachment;
 import cube.messaging.model.Message;
 import cube.messaging.model.MessageType;
@@ -39,6 +41,8 @@ import cube.messaging.model.MessageType;
  * 仅包含单个图像文件的消息。
  */
 public class ImageMessage extends TypeableMessage {
+
+    private FileThumbnail thumbnail;
 
     /**
      * 构造函数。
@@ -60,30 +64,6 @@ public class ImageMessage extends TypeableMessage {
         // 创建消息附件
         FileAttachment attachment = new FileAttachment(file);
         attachment.setCompressed(useThumbAsSource);
-        attachment.enableThumb(0.7);
-        this.setAttachment(attachment);
-    }
-
-    /**
-     * 构造函数。
-     *
-     * @param file
-     * @param thumbnail
-     */
-    public ImageMessage(File file, FileThumbnail thumbnail) {
-        super(MessageType.Image);
-
-        try {
-            this.payload.put("type", MessageTypeName.Image);
-        } catch (JSONException e) {
-            // Nothing
-        }
-
-        this.summary = "[图片]";
-
-        // 创建消息附件
-        FileAttachment attachment = new FileAttachment(file);
-        attachment.setThumbnail(thumbnail);
         this.setAttachment(attachment);
     }
 
@@ -107,7 +87,7 @@ public class ImageMessage extends TypeableMessage {
      * @return 返回文件名。
      */
     public String getFileName() {
-        return this.getAttachment().getFileName();
+        return this.getAttachment().getPrefFileName();
     }
 
     /**
@@ -116,7 +96,7 @@ public class ImageMessage extends TypeableMessage {
      * @return 返回文件大小。
      */
     public long getFileSize() {
-        return this.getAttachment().getFileSize();
+        return this.getAttachment().getPrefFileSize();
     }
 
     /**
@@ -125,7 +105,7 @@ public class ImageMessage extends TypeableMessage {
      * @return 返回文件类型。
      */
     public String getFileType() {
-        return this.getAttachment().getFileType();
+        return this.getAttachment().getPrefFileType();
     }
 
     /**
@@ -134,7 +114,7 @@ public class ImageMessage extends TypeableMessage {
      * @return 返回文件最近一次修改时间戳。
      */
     public long getFileLastModified() {
-        return this.getAttachment().getFileLastModified();
+        return this.getAttachment().getPrefFileLastModified();
     }
 
     /**
@@ -143,8 +123,8 @@ public class ImageMessage extends TypeableMessage {
      * @return 返回当前文件本地存储路径。如果文件不在本地返回 {@code null} 值。
      */
     public String getFilePath() {
-        return (null != this.getAttachment().getFile()) ?
-                this.getAttachment().getFile().getPath() : null;
+        return (null != this.getAttachment().getPrefFile()) ?
+                this.getAttachment().getPrefFile().getPath() : null;
     }
 
     /**
@@ -153,7 +133,7 @@ public class ImageMessage extends TypeableMessage {
      * @return 如果文件在本地存在返回 {@code true} 。
      */
     public boolean existsLocal() {
-        return this.getAttachment().existsLocal();
+        return this.getAttachment().existsPrefLocal();
     }
 
     /**
@@ -162,7 +142,7 @@ public class ImageMessage extends TypeableMessage {
      * @return 返回文件的访问 URL 。
      */
     public String getFileURL() {
-        return this.getAttachment().getFileURL();
+        return this.getAttachment().getPrefFileURL();
     }
 
     /**
@@ -172,7 +152,7 @@ public class ImageMessage extends TypeableMessage {
      * @return 返回文件已被处理的数据大小。
      */
     public long getProcessedSize() {
-        return this.getAttachment().getProcessedSize();
+        return this.getAttachment().getPrefProcessedSize();
     }
 
     /**
@@ -181,7 +161,7 @@ public class ImageMessage extends TypeableMessage {
      * @return 返回文件处理进度百分比。
      */
     public int getProgressPercent() {
-        return this.getAttachment().getProgressPercent();
+        return this.getAttachment().getPrefProgressPercent();
     }
 
     /**
@@ -190,7 +170,12 @@ public class ImageMessage extends TypeableMessage {
      * @return
      */
     public boolean hasThumbnail() {
-        return this.getAttachment().hasThumbnail();
+        FileLabel label = getAttachment().getPrefFileLabel();
+        if (null == label) {
+            return false;
+        }
+
+        return (null != label.getContext());
     }
 
     /**
@@ -199,6 +184,24 @@ public class ImageMessage extends TypeableMessage {
      * @return
      */
     public FileThumbnail getThumbnail() {
-        return this.getAttachment().getThumbnail();
+        if (null != this.thumbnail) {
+            return this.thumbnail;
+        }
+
+        FileLabel label = getAttachment().getPrefFileLabel();
+        if (null == label) {
+            return null;
+        }
+
+        JSONObject thumbJson = label.getContext();
+        if (null != thumbJson) {
+            try {
+                this.thumbnail = new FileThumbnail(thumbJson);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return this.thumbnail;
     }
 }

@@ -178,30 +178,45 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
     /**
      * 上传到默认目录。
      *
-     * @param file
+     * @param fileAnchor
      * @param handler
      */
-    public void uploadFile(File file, UploadFileHandler handler) {
+    public void uploadFile(FileAnchor fileAnchor, UploadFileHandler handler) {
         if (!this.hasStarted() || null == this.self) {
             if (handler.isInMainThread()) {
                 this.executeOnMainThread(() -> {
                     ModuleError error = new ModuleError(NAME, FileStorageState.NotReady.code);
-                    handler.handleFailure(error, null);
+                    handler.handleFailure(error, fileAnchor);
                 });
             }
             else {
                 this.execute(() -> {
                     ModuleError error = new ModuleError(NAME, FileStorageState.NotReady.code);
-                    handler.handleFailure(error, null);
+                    handler.handleFailure(error, fileAnchor);
+                });
+            }
+            return;
+        }
+
+        if (!fileAnchor.getFile().exists()) {
+            if (handler.isInMainThread()) {
+                this.executeOnMainThread(() -> {
+                    ModuleError error = new ModuleError(NAME, FileStorageState.ReadFileFailed.code);
+                    handler.handleFailure(error, fileAnchor);
+                });
+            }
+            else {
+                this.execute(() -> {
+                    ModuleError error = new ModuleError(NAME, FileStorageState.ReadFileFailed.code);
+                    handler.handleFailure(error, fileAnchor);
                 });
             }
             return;
         }
 
         try {
-            FileAnchor fileAnchor = new FileAnchor(file);
             fileAnchor.setUploadFileHandler(handler);
-            fileAnchor.bindInputStream(new FileInputStream(file));
+            fileAnchor.bindInputStream(new FileInputStream(fileAnchor.getFile()));
 
             // 将文件锚点添加到上传队列
             this.uploadQueue.enqueue(fileAnchor);
@@ -453,13 +468,6 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
 
     @Override
     public void onUploadCompleted(FileAnchor fileAnchor) {
-        // 上传完成之后获取文件标签
-
-        final UploadFileHandler uploadHandler = fileAnchor.getUploadFileHandler();
-        if (null == uploadHandler) {
-            return;
-        }
-
         PostTask postTask = (anchor, label) -> {
             // 设置文件路径
             label.setFilePath(anchor.getFilePath());
@@ -468,7 +476,10 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
             this.storage.writeFileLabel(label);
         };
 
+        // 上传完成之后获取文件标签
         this.execute(() -> {
+            final UploadFileHandler uploadHandler = fileAnchor.getUploadFileHandler();
+
             // 获取文件标签
             getRemoteFileLabel(fileAnchor.getFileCode(), new StableFileLabelHandler() {
                 @Override
@@ -476,15 +487,17 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
                     // 后处理
                     postTask.process(fileAnchor, fileLabel);
 
-                    if (uploadHandler.isInMainThread()) {
-                        executeOnMainThread(() -> {
-                            uploadHandler.handleSuccess(fileLabel);
-                        });
-                    }
-                    else {
-                        execute(() -> {
-                            uploadHandler.handleSuccess(fileLabel);
-                        });
+                    if (null != uploadHandler) {
+                        if (uploadHandler.isInMainThread()) {
+                            executeOnMainThread(() -> {
+                                uploadHandler.handleSuccess(fileAnchor, fileLabel);
+                            });
+                        }
+                        else {
+                            execute(() -> {
+                                uploadHandler.handleSuccess(fileAnchor, fileLabel);
+                            });
+                        }
                     }
                 }
 
@@ -501,29 +514,33 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
                                     // 后处理
                                     postTask.process(fileAnchor, fileLabel);
 
-                                    if (uploadHandler.isInMainThread()) {
-                                        executeOnMainThread(() -> {
-                                            uploadHandler.handleSuccess(fileLabel);
-                                        });
-                                    }
-                                    else {
-                                        execute(() -> {
-                                            uploadHandler.handleSuccess(fileLabel);
-                                        });
+                                    if (null != uploadHandler) {
+                                        if (uploadHandler.isInMainThread()) {
+                                            executeOnMainThread(() -> {
+                                                uploadHandler.handleSuccess(fileAnchor, fileLabel);
+                                            });
+                                        }
+                                        else {
+                                            execute(() -> {
+                                                uploadHandler.handleSuccess(fileAnchor, fileLabel);
+                                            });
+                                        }
                                     }
                                 }
 
                                 @Override
                                 public void handleFailure(ModuleError error, @Nullable FileLabel fileLabel) {
-                                    if (uploadHandler.isInMainThread()) {
-                                        executeOnMainThread(() -> {
-                                            uploadHandler.handleFailure(error, fileAnchor);
-                                        });
-                                    }
-                                    else {
-                                        execute(() -> {
-                                            uploadHandler.handleFailure(error, fileAnchor);
-                                        });
+                                    if (null != uploadHandler) {
+                                        if (uploadHandler.isInMainThread()) {
+                                            executeOnMainThread(() -> {
+                                                uploadHandler.handleFailure(error, fileAnchor);
+                                            });
+                                        }
+                                        else {
+                                            execute(() -> {
+                                                uploadHandler.handleFailure(error, fileAnchor);
+                                            });
+                                        }
                                     }
                                 }
                             });
@@ -589,6 +606,9 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
 
     @Override
     public void onDownloadCompleted(FileAnchor fileAnchor) {
+        // 设置标签的本地路径
+        fileAnchor.fileLabel.setFilePath(fileAnchor.getFilePath());
+
         DownloadFileHandler downloadHandler = fileAnchor.getDownloadHandler();
         if (null != downloadHandler) {
             if (downloadHandler.isInMainThread()) {

@@ -733,13 +733,17 @@ public class ContactService extends Module {
      * @return
      */
     public ContactZone getDefaultContactZone() {
+        if (null == this.self) {
+            return null;
+        }
+
         if (null != this.defaultContactZone) {
             return this.defaultContactZone;
         }
 
         final MutableContactZone zone = new MutableContactZone();
 
-        this.getContactZone(this.defaultContactZoneName, new DefaultContactZoneHandler() {
+        this.getContactZone(this.defaultContactZoneName, new DefaultContactZoneHandler(false) {
             @Override
             public void handleContactZone(ContactZone contactZone) {
                 zone.contactZone = contactZone;
@@ -890,7 +894,11 @@ public class ContactService extends Module {
     private void fillContactZone(final ContactZone zone) {
         for (ContactZoneParticipant participant : zone.getParticipants()) {
             if (null == participant.getContact()) {
-                participant.setContact(this.getContact(participant.getContactId()));
+                Contact contact = this.getContact(participant.getContactId());
+                if (null == contact) {
+                    contact = new Contact(participant.id, "");
+                }
+                participant.setContact(contact);
             }
         }
     }

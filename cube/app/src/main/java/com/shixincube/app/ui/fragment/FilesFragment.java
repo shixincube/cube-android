@@ -31,11 +31,17 @@ import com.shixincube.app.ui.activity.MainActivity;
 import com.shixincube.app.ui.base.BaseFragment;
 import com.shixincube.app.ui.presenter.FilesPresenter;
 import com.shixincube.app.ui.view.FilesView;
+import com.shixincube.app.widget.recyclerview.RecyclerView;
+
+import butterknife.BindView;
 
 /**
  * 文件清单。
  */
 public class FilesFragment extends BaseFragment<FilesView, FilesPresenter> implements FilesView {
+
+    @BindView(R.id.rvFiles)
+    RecyclerView filesView;
 
     public FilesFragment() {
         super();

@@ -48,7 +48,7 @@ public class FileAnchor extends Entity {
      * 文件的本地路径。
      */
     @Nullable
-    private final String filePath;
+    private String filePath;
 
     /**
      * 文件名。
@@ -91,11 +91,6 @@ public class FileAnchor extends Entity {
     private String fileURL;
 
     /**
-     * 文件标签。
-     */
-    public FileLabel fileLabel;
-
-    /**
      * 上传文件句柄。
      */
     private UploadFileHandler uploadHandler;
@@ -106,6 +101,8 @@ public class FileAnchor extends Entity {
     private DownloadFileHandler downloadHandler;
 
     public InputStream inputStream;
+
+    public FileLabel fileLabel;
 
     public FileAnchor(File file) {
         this(file.getAbsolutePath(), file.getName(), file.length(), file.lastModified());
@@ -143,11 +140,12 @@ public class FileAnchor extends Entity {
         }
         else {
             this.filePath = null;
+            this.file = null;
         }
 
+        this.fileCode = json.getString("fileCode");
         this.fileName = json.getString("fileName");
         this.fileSize = json.getLong("fileSize");
-        this.fileCode = json.getString("fileCode");
         this.lastModified = json.has("lastModified") ? json.getLong("lastModified") : this.timestamp;
         this.position = json.getLong("position");
         this.remaining = 0;
@@ -155,6 +153,11 @@ public class FileAnchor extends Entity {
 
     public File getFile() {
         return this.file;
+    }
+
+    public void resetFile(File file) {
+        this.file = file;
+        this.filePath = file.getAbsolutePath();
     }
 
     /**
@@ -286,9 +289,9 @@ public class FileAnchor extends Entity {
     public JSONObject toJSON() {
         JSONObject json = new JSONObject();
         try {
+            json.put("fileCode", this.fileCode);
             json.put("fileName", this.fileName);
             json.put("fileSize", this.fileSize);
-            json.put("fileCode", this.fileCode);
             json.put("lastModified", this.lastModified);
             json.put("position", this.position);
 

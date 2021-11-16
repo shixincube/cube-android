@@ -55,9 +55,10 @@ public interface UploadFileHandler extends CallbackHandler {
     /**
      * 上传文件成功的回调函数。
      *
+     * @param fileAnchor
      * @param fileLabel
      */
-    void handleSuccess(FileLabel fileLabel);
+    void handleSuccess(FileAnchor fileAnchor, FileLabel fileLabel);
 
     /**
      * 上传文件失败的回调函数。

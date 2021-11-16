@@ -124,14 +124,15 @@ public class FileProcessor extends Module {
         if (file.getPath().equals(path)) {
             // 没有进行压缩，复制源文件到缓存
             File newFile = new File(this.cacheDir, file.getName());
-            copyFile(file, newFile);
-            result = result.reset(newFile.getPath());
-            path = result.path;
+            if (copyFile(file, newFile)) {
+                result = result.reset(newFile.getPath());
+                path = result.path;
+            }
         }
 
         FileThumbnail thumbnail = new FileThumbnail(new File(path),
                 result.outputWidth, result.outputHeight,
-                biscuit.getQuality() / 100.0f,
+                biscuit.getQuality(),
                 result.inputWidth, result.inputHeight);
 
         LogUtils.d(TAG, "#makeImageThumbnail : " + CalculationUtils.formatByteDataSize(file.length()) +
@@ -150,7 +151,7 @@ public class FileProcessor extends Module {
         return new Size(options.outWidth, options.outHeight);
     }
 
-    private void copyFile(File sourceFile, File targetFile) {
+    private boolean copyFile(File sourceFile, File targetFile) {
         FileInputStream fis = null;
         FileOutputStream fos = null;
 
@@ -159,9 +160,6 @@ public class FileProcessor extends Module {
         }
 
         try {
-            // 创建新文件
-            targetFile.createNewFile();
-
             fis = new FileInputStream(sourceFile);
             fos = new FileOutputStream(targetFile);
 
@@ -173,6 +171,7 @@ public class FileProcessor extends Module {
             fos.flush();
         } catch (IOException e) {
             e.printStackTrace();
+            return false;
         } finally {
             if (null != fis) {
                 try {
@@ -190,5 +189,7 @@ public class FileProcessor extends Module {
                 }
             }
         }
+
+        return true;
     }
 }

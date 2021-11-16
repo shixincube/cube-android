@@ -107,6 +107,38 @@ public class FileLabel extends Entity {
      */
     private String fileSecureURL;
 
+    /**
+     * 构造函数。
+     */
+    public FileLabel(FileAnchor anchor) {
+        super();
+        this.domain = AuthService.getDomain();
+        this.filePath = anchor.getFilePath();
+        this.fileCode = anchor.getFileCode();
+        this.fileName = anchor.getFileName();
+        this.fileSize = anchor.getFileSize();
+        this.lastModified = anchor.getLastModified();
+    }
+
+    /**
+     * 构造函数。
+     *
+     * @param id
+     * @param timestamp
+     * @param ownerId
+     * @param fileCode
+     * @param filePath
+     * @param fileName
+     * @param fileSize
+     * @param lastModified
+     * @param completedTime
+     * @param expiryTime
+     * @param fileType
+     * @param md5Code
+     * @param sha1Code
+     * @param url
+     * @param secureURL
+     */
     public FileLabel(Long id, long timestamp, Long ownerId, String fileCode, String filePath,
                      String fileName, long fileSize, long lastModified, long completedTime, long expiryTime,
                      String fileType, String md5Code, String sha1Code, String url, String secureURL) {

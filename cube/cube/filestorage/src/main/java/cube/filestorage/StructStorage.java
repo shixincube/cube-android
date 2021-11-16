@@ -32,6 +32,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 import cube.core.AbstractStorage;
+import cube.filestorage.model.Directory;
 import cube.filestorage.model.FileLabel;
 
 /**
@@ -141,6 +142,10 @@ public class StructStorage extends AbstractStorage {
         return fileLabel;
     }
 
+    public Directory readDirectory(Long dirId) {
+        return null;
+    }
+
     private FileLabel readFileLabel(Cursor cursor) {
         return new FileLabel(cursor.getLong(cursor.getColumnIndex("id")),
                 cursor.getLong(cursor.getColumnIndex("timestamp")),
@@ -159,10 +164,28 @@ public class StructStorage extends AbstractStorage {
                 cursor.getString(cursor.getColumnIndex("file_secure_url")));
     }
 
+    private Directory readDirectory(Cursor cursor) {
+        return new Directory(cursor.getLong(cursor.getColumnIndex("id")),
+                cursor.getString(cursor.getColumnIndex("name")),
+                cursor.getLong(cursor.getColumnIndex("creation")),
+                cursor.getLong(cursor.getColumnIndex("last_modified")),
+                cursor.getLong(cursor.getColumnIndex("size")),
+                cursor.getInt(cursor.getColumnIndex("hidden")) == 1,
+                cursor.getInt(cursor.getColumnIndex("num_dirs")),
+                cursor.getInt(cursor.getColumnIndex("num_files")),
+                cursor.getLong(cursor.getColumnIndex("parent_id")));
+    }
+
     @Override
     protected void onDatabaseCreate(SQLiteDatabase database) {
         // 本地文件记录
         database.execSQL("CREATE TABLE IF NOT EXISTS `file_label` (`id` BIGINT PRIMARY KEY, `timestamp` BIGINT, `owner` BIGINT, `file_code` TEXT, `file_path` TEXT, `file_name` TEXT, `file_size` BIGINT, `last_modified` BIGINT, `completed_time` BIGINT, `expiry_time` BIGINT, `file_type` TEXT, `md5` TEXT, `sha1` TEXT, `file_url` TEXT, `file_secure_url` TEXT)");
+
+        // 目录基本信息
+        database.execSQL("CREATE TABLE IF NOT EXISTS `directory` (`id` BIGINT PRIMARY KEY, `name` TEXT, `creation` BIGINT, `last_modified` BIGINT, `size` BIGINT, `hidden` INTEGER, `num_dirs` INTEGER, `num_files` INTEGER, `parent_id` BIGINT DEFAULT 0)");
+
+        // 层级结构
+        database.execSQL("CREATE TABLE IF NOT EXISTS `hierarchy` (`sn` BIGINT PRIMARY KEY, `parent_id` BIGINT, `dir_id` BIGINT DEFAULT 0, `file_code` TEXT DEFAULT NULL, `hidden` INTEGER DEFAULT 0)");
     }
 
     @Override

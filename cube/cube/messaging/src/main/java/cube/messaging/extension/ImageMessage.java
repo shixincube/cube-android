@@ -170,12 +170,12 @@ public class ImageMessage extends TypeableMessage {
      * @return
      */
     public boolean hasThumbnail() {
-        FileLabel label = getAttachment().getPrefFileLabel();
-        if (null == label) {
-            return false;
+        if (null != this.thumbnail) {
+            return true;
         }
 
-        return (null != label.getContext());
+        FileThumbnail thumb = getThumbnail();
+        return (null != thumb);
     }
 
     /**

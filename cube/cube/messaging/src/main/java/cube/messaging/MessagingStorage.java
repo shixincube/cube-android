@@ -472,17 +472,19 @@ public class MessagingStorage extends AbstractStorage {
         this.closeWritableDatabase(db);
     }
 
-    public void updateMessageAttachment(Long messageId, FileAttachment attachment) {
+    public boolean updateMessageAttachment(Long messageId, FileAttachment attachment) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
         values.put("attachment", attachment.toJSON().toString());
         // update
-        db.update("message", values, "id=?", new String[] {
+        int row = db.update("message", values, "id=?", new String[] {
                 messageId.toString()
         });
 
         this.closeWritableDatabase(db);
+
+        return row > 0;
     }
 
     /**

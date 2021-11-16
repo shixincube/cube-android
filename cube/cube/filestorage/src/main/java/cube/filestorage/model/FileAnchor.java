@@ -104,15 +104,33 @@ public class FileAnchor extends Entity {
 
     public FileLabel fileLabel;
 
+    /**
+     * 构造函数。
+     *
+     * @param file 指定文件。
+     */
     public FileAnchor(File file) {
         this(file.getAbsolutePath(), file.getName(), file.length(), file.lastModified());
         this.file = file;
     }
 
+    /**
+     * 构造函数。
+     *
+     * @param fileName
+     * @param fileSize
+     * @param lastModified
+     */
     public FileAnchor(String fileName, long fileSize, long lastModified) {
         this(null, fileName, fileSize, lastModified);
     }
 
+    /**
+     * 构造函数。
+     *
+     * @param file
+     * @param fileLabel
+     */
     public FileAnchor(File file, FileLabel fileLabel) {
         this(file.getAbsolutePath(), fileLabel.getFileName(), fileLabel.getFileSize(), fileLabel.getLastModified());
         this.file = file;
@@ -121,6 +139,14 @@ public class FileAnchor extends Entity {
         this.fileLabel = fileLabel;
     }
 
+    /**
+     * 构造函数。
+     *
+     * @param filePath
+     * @param fileName
+     * @param fileSize
+     * @param lastModified
+     */
     public FileAnchor(String filePath, String fileName, long fileSize, long lastModified) {
         super();
         this.filePath = filePath;
@@ -131,16 +157,18 @@ public class FileAnchor extends Entity {
         this.remaining = 0;
     }
 
+    /**
+     * 构造函数。
+     *
+     * @param json
+     * @throws JSONException
+     */
     public FileAnchor(JSONObject json) throws JSONException {
         super(json);
 
         if (json.has("filePath")) {
             this.filePath = json.getString("filePath");
             this.file = new File(this.filePath);
-        }
-        else {
-            this.filePath = null;
-            this.file = null;
         }
 
         this.fileCode = json.getString("fileCode");
@@ -151,10 +179,28 @@ public class FileAnchor extends Entity {
         this.remaining = 0;
     }
 
+    /**
+     * 获取本地文件。
+     *
+     * @return
+     */
     public File getFile() {
+        if (null != this.file) {
+            return this.file;
+        }
+
+        if (null != this.filePath) {
+            this.file = new File(this.filePath);
+        }
+
         return this.file;
     }
 
+    /**
+     * 重置文件。
+     *
+     * @param file
+     */
     public void resetFile(File file) {
         this.file = file;
         this.filePath = file.getAbsolutePath();
@@ -169,6 +215,11 @@ public class FileAnchor extends Entity {
         return this.filePath;
     }
 
+    /**
+     * 获取文件访问 URL 。
+     *
+     * @return
+     */
     public String getFileURL() {
         return this.fileURL;
     }
@@ -187,22 +238,47 @@ public class FileAnchor extends Entity {
         return this.fileName.substring(index + 1);
     }
 
+    /**
+     * 获取文件名。
+     *
+     * @return
+     */
     public String getFileName() {
         return this.fileName;
     }
 
+    /**
+     * 获取文件大小。
+     *
+     * @return
+     */
     public long getFileSize() {
         return this.fileSize;
     }
 
+    /**
+     * 获取文件最近一次修改时间。
+     *
+     * @return
+     */
     public long getLastModified() {
         return this.lastModified;
     }
 
+    /**
+     * 设置文件码。
+     *
+     * @param fileCode
+     */
     public void setFileCode(String fileCode) {
         this.fileCode = fileCode;
     }
 
+    /**
+     * 获取文件码。
+     *
+     * @return
+     */
     public String getFileCode() {
         return this.fileCode;
     }
@@ -221,10 +297,6 @@ public class FileAnchor extends Entity {
 
     public DownloadFileHandler getDownloadHandler() {
         return this.downloadHandler;
-    }
-
-    public void bindInputStream(InputStream inputStream) {
-        this.inputStream = inputStream;
     }
 
     /**
@@ -249,14 +321,36 @@ public class FileAnchor extends Entity {
         return this;
     }
 
+    /**
+     * 获取余下待处理数据。
+     *
+     * @return
+     */
     public long getRemaining() {
         return this.remaining;
     }
 
+    /**
+     * 通过计算数据处理大小判断是否已经处理完数据。
+     *
+     * @return
+     */
     public boolean isFinish() {
         return this.position == this.fileSize;
     }
 
+    /**
+     * 绑定输入流。
+     *
+     * @param inputStream
+     */
+    public void bindInputStream(InputStream inputStream) {
+        this.inputStream = inputStream;
+    }
+
+    /**
+     * 关闭文件输入流。
+     */
     public void close() {
         if (null != this.inputStream) {
             try {
@@ -302,5 +396,10 @@ public class FileAnchor extends Entity {
             e.printStackTrace();
         }
         return json;
+    }
+
+    @Override
+    public JSONObject toCompactJSON() {
+        return this.toJSON();
     }
 }

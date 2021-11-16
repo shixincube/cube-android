@@ -215,6 +215,8 @@ public class MessagingService extends Module {
             }
         }
 
+        ThumbnailDownloadManager.getInstance().setExecutor(this.kernel.getExecutor());
+
         this.kernel.getInspector().depositMap(this.capsuleCache);
 
         return true;
@@ -1079,11 +1081,15 @@ public class MessagingService extends Module {
 
                             for (CacheableFileLabelCapsule.Capsule current : capsule.capsuleList) {
                                 // 设置消息附件
-                                current.message.getAttachment().getPrefFileAnchor().resetFile(anchor.getFile());
-                                current.message.getAttachment().getPrefFileLabel().setFilePath(anchor.getFilePath());
+//                                current.message.getAttachment().getPrefFileAnchor().resetFile(anchor.getFile());
+//                                current.message.getAttachment().getPrefFileLabel().setFilePath(anchor.getFilePath());
+                                current.fileLabel.setFilePath(anchor.getFilePath());
+                                current.message.getAttachment().matchPrefFile(anchor.getFile());
 
                                 // 放入 Map
-                                messageMap.put(current.message.id, current.message);
+                                if (!messageMap.containsKey(current.message.id)) {
+                                    messageMap.put(current.message.id, current.message);
+                                }
 
                                 final LoadAttachmentHandler loadHandler = current.loadHandler;
                                 if (loadHandler.isInMainThread()) {
@@ -1850,38 +1856,19 @@ public class MessagingService extends Module {
 
         // 预载入附件
         FileAttachment attachment = message.getAttachment();
-        if (null != attachment) {
+        if (message.getState() != MessageState.Sending && null != attachment) {
             FileLabel fileLabel = null;
             if (attachment.isCompressed()) {
                 // 压缩模式下直接下载附件原文件
                 if (!attachment.existsPrefLocal()) {
                     fileLabel = attachment.getPrefFileLabel();
+                    System.out.println("XJW X : " + message.id + " - " + attachment.getPrefFileAnchor().toJSON());
                 }
-            }
-            else {
-                // 如果附件里的文件标签关联了缩略图，本地没有，下载缩略图到本地
-                // FIXME 缩略图的管理的流程和预处理附件需要分开
-                /*FileLabel faLabel = attachment.getPrefFileLabel();
-                JSONObject context = faLabel.getContext();
-                if (null != context) {
-                    FileThumbnail thumbnail = null;
-                    try {
-                        thumbnail = new FileThumbnail(context);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-
-                    if (null != thumbnail) {
-                        if (!thumbnail.existsLocal()) {
-                            fileLabel = thumbnail.getFileLabel();
-                        }
-                    }
-                }*/
             }
 
             if (null != fileLabel) {
                 final String fileCode = fileLabel.getFileCode();
-
+                final MutableBoolean downloading = new MutableBoolean(false);
                 synchronized (this.capsuleCache) {
                     // 填写缩略图的 File Code
                     CacheableFileLabelCapsule capsule = this.capsuleCache.get(fileCode);
@@ -1892,6 +1879,7 @@ public class MessagingService extends Module {
                     else {
                         // 更新寿命
                         capsule.entityLifeExpiry += LIFESPAN;
+                        downloading.value = true;
                     }
 
                     // 添加附件对应的消息
@@ -1901,7 +1889,7 @@ public class MessagingService extends Module {
                 LogUtils.d(TAG, "Download file : " + fileLabel.getFileCode() +
                         " (" +  message.id + ") - " + message.getFrom() + " -> " + message.getTo());
 
-                if (!this.fileStorage.isDownloading(fileCode)) {
+                if (!downloading.value) {
                     // 没有正在下载，对文件进行下载
                     this.fileStorage.downloadFile(fileLabel, new StableDownloadFileHandler() {
                         @Override
@@ -1929,6 +1917,8 @@ public class MessagingService extends Module {
                                     while (null != current) {
                                         // 设置文件路径
                                         current.fileLabel.setFilePath(anchor.getFilePath());
+                                        System.out.println("XJW 16 : " + anchor.getFile());
+                                        current.message.getAttachment().matchPrefFile(anchor.getFile());
 
                                         if (!messageMap.containsKey(message.id)) {
                                             messageMap.put(message.id, message);
@@ -1939,7 +1929,9 @@ public class MessagingService extends Module {
                                     }
 
                                     for (Message message : messageMap.values()) {
-                                        storage.updateMessageAttachment(message.id, message.getAttachment());
+                                        boolean result = storage.updateMessageAttachment(message.id, message.getAttachment());
+                                        // FIXME 最近一条消息记录没有更新
+                                        System.out.println("XJW : " + message.id + " - " + result + " - " + message.getAttachment().getPrefFileAnchor().toJSON());
                                     }
                                 }
                             }
@@ -1950,6 +1942,31 @@ public class MessagingService extends Module {
                             // Nothing
                         }
                     });
+                }
+            }
+
+            // 如果附件里的文件标签关联了缩略图，本地没有，下载缩略图到本地
+            // 缩略图的管理的流程和预处理附件需要分开
+            FileLabel faLabel = attachment.getPrefFileLabel();
+            JSONObject context = faLabel.getContext();
+            if (null != context) {
+                // 尝试将上下文转为缩略图对象
+                FileThumbnail thumbnail = null;
+                try {
+                    thumbnail = new FileThumbnail(context);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                if (null != thumbnail) {
+                    if (!thumbnail.existsLocal()) {
+                        FileLabel thumbLabel = thumbnail.getFileLabel();
+                        if (null != thumbLabel) {
+                            ThumbnailDownloadTask task = new ThumbnailDownloadTask(fileStorage,
+                                    storage, message, faLabel, thumbnail);
+                            ThumbnailDownloadManager.getInstance().schedule(task);
+                        }
+                    }
                 }
             }
         }

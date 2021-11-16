@@ -262,7 +262,7 @@ public class Kernel implements PipelineListener {
         return this.context;
     }
 
-    protected ExecutorService getExecutor() {
+    public ExecutorService getExecutor() {
         return this.executor;
     }
 

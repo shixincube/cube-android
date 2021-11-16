@@ -382,6 +382,15 @@ public class FileAttachment implements JSONable {
         }
     }
 
+    public void matchPrefFile(File file) {
+        if (null == this.anchorList.get(0).getFile()) {
+            this.anchorList.get(0).resetFile(file);
+        }
+        if (null == this.labelList.get(0).getFilePath()) {
+            this.labelList.get(0).setFilePath(file.getAbsolutePath());
+        }
+    }
+
     public void update(FileAttachment attachment) {
         for (int i = 0; i < attachment.labelList.size(); ++i) {
             FileLabel newLabel = attachment.labelList.get(i);

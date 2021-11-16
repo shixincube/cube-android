@@ -770,7 +770,16 @@ public class ContactService extends Module {
         }
 
         this.defaultContactZone = zone.contactZone;
-        return zone.contactZone;
+
+        // 检查参与人实例
+        for (ContactZoneParticipant participant : this.defaultContactZone.getParticipants()) {
+            if (null == participant.getContact()) {
+                this.defaultContactZone = null;
+                break;
+            }
+        }
+
+        return this.defaultContactZone;
     }
 
     /**

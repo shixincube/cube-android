@@ -100,7 +100,7 @@
         <entry key="app/src/main/res/layout/item_conversation.xml" value="0.18237704918032788" />
         <entry key="app/src/main/res/layout/item_file.xml" value="0.19228142076502733" />
         <entry key="app/src/main/res/layout/item_message_image_receive.xml" value="0.5" />
-        <entry key="app/src/main/res/layout/item_message_image_send.xml" value="0.25" />
+        <entry key="app/src/main/res/layout/item_message_image_send.xml" value="0.5" />
         <entry key="app/src/main/res/layout/item_message_item_receive.xml" value="0.5" />
         <entry key="app/src/main/res/layout/item_message_item_send.xml" value="0.5" />
         <entry key="app/src/main/res/layout/item_message_sticker_receive.xml" value="0.5" />

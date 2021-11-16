@@ -213,25 +213,32 @@ public class BubbleImageView extends ImageView {
             mPaint.setColor(Color.parseColor("#FFFFFF"));
             mPaint.setStrokeWidth(2);
 
-            Rect rect = null;
+            String text = percent + "%";
+
+            Rect rect = new Rect();
+            // 确定文字的宽度
+            mPaint.getTextBounds(text, 0, text.length(), rect);
+
             // 文字的左边距
             float marginLeft = 0;
+            // 文字上边距
+            float marginTop = 0;
             if (mArrowLocation == LOCATION_LEFT) {
-                rect = new Rect(mArrowWidth, 0, 0, 0);
+//                rect = new Rect(mArrowWidth, 0, 0, 0);
                 marginLeft = (getWidth() - mArrowWidth) * 0.5f;
             }
             else if (mArrowLocation == LOCATION_RIGHT) {
-                rect = new Rect(mArrowWidth, 0, 0, 0);
+//                rect = new Rect(mArrowWidth, 0, 0, 0);
                 marginLeft = getWidth() * 0.5f - mArrowWidth;
             }
             else {
-                rect = new Rect(0, 0, 0, 0);
-                marginLeft = getWidth() * 0.5f;
+//                rect = new Rect(0, 0, 0, 0);
+                marginLeft = ((float) (getWidth() - rect.width())) * 0.5f;
             }
-            // 确定文字的宽度
-            mPaint.getTextBounds("99%", 0, "99%".length(), rect);
-            canvas.drawText(percent + "%", marginLeft,
-                    getHeight() * 0.5f, mPaint);
+
+            marginTop = ((float) getHeight()) * 0.5f;
+
+            canvas.drawText(text, marginLeft, marginTop, mPaint);
         }
     }
 

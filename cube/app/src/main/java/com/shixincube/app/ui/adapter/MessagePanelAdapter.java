@@ -147,14 +147,15 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
             ImageMessage message = (ImageMessage) item;
             BubbleImageView imageView = helper.getView(R.id.bivImage);
             // 加载图片
-            message.loadAttachment(new DefaultLoadAttachmentHandler(true) {
+            message.loadAttachment(new DefaultLoadAttachmentHandler<ImageMessage>(true) {
                 @Override
-                public void handleLoading(Message message, FileAttachment fileAttachment, FileAnchor fileAnchor) {
+                public void handleLoading(ImageMessage message, FileAttachment fileAttachment, FileAnchor fileAnchor) {
+                    // Nothing
                 }
 
                 @Override
-                public void handleLoaded(Message message, FileAttachment fileAttachment) {
-                    Glide.with(getContext()).load(fileAttachment.getPrefFileURL())
+                public void handleLoaded(ImageMessage message, FileAttachment fileAttachment) {
+                    Glide.with(getContext()).load(message.hasThumbnail() ? message.getThumbnail().getFileURL() : fileAttachment.getPrefFileURL())
                             .error(R.mipmap.default_img_failed)
                             .override(UIUtils.dp2px(80), UIUtils.dp2px(150))
                             .centerCrop()
@@ -173,6 +174,7 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
                     UIUtils.postTaskDelay(() -> presenter.moveToBottom(), 100);
                 }
             });
+
             if (message.getState() == MessageState.Sending) {
                 imageView.setPercent(message.getProgressPercent());
             }

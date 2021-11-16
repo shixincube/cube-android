@@ -52,6 +52,7 @@ import cube.filestorage.handler.DownloadFileHandler;
 import cube.filestorage.handler.StableFileLabelHandler;
 import cube.filestorage.handler.UploadFileHandler;
 import cube.filestorage.model.FileAnchor;
+import cube.filestorage.model.FileHierarchy;
 import cube.filestorage.model.FileLabel;
 import cube.util.LogUtils;
 import cube.util.ObservableEvent;
@@ -76,11 +77,19 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
 
     private String fileCachePath;
 
-    private StructStorage storage;
-
     private UploadQueue uploadQueue;
 
     private DownloadQueue downloadQueue;
+
+    /**
+     * 结构存储器。
+     */
+    private StructStorage storage;
+
+    /**
+     * 文件层级管理器。
+     */
+    private FileHierarchy fileHierarchy;
 
     public FileStorage() {
         super(NAME);
@@ -120,6 +129,8 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
         if (null != this.self) {
             this.storage = new StructStorage();
             this.storage.open(getContext(), this.self.id, this.self.domain);
+
+            this.fileHierarchy = new FileHierarchy(this, this.storage, this.self.id);
         }
 
         this.uploadQueue = new UploadQueue(this, this.fileBlockSize);
@@ -173,6 +184,15 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
      */
     public String getFileCachePath() {
         return this.fileCachePath;
+    }
+
+    /**
+     * 获取文件层级管理器。
+     *
+     * @return 返回文件层级管理器。
+     */
+    public FileHierarchy getFileHierarchy() {
+        return this.fileHierarchy;
     }
 
     /**
@@ -245,15 +265,16 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
                 }
 
                 // 文件在本地已存在
-                FileAnchor anchor = new FileAnchor(file, fileLabel);
+                FileAnchor fileAnchor = new FileAnchor(file, fileLabel);
+                fileAnchor.fileLabel.setFilePath(fileAnchor.getFilePath());
                 if (handler.isInMainThread()) {
                     this.executeOnMainThread(() -> {
-                        handler.handleSuccess(anchor, fileLabel);
+                        handler.handleSuccess(fileAnchor, fileLabel);
                     });
                 }
                 else {
                     this.execute(() -> {
-                        handler.handleSuccess(anchor, fileLabel);
+                        handler.handleSuccess(fileAnchor, fileLabel);
                     });
                 }
 
@@ -269,15 +290,16 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
             }
 
             // 文件在本地已存在
-            FileAnchor anchor = new FileAnchor(localFile, fileLabel);
+            FileAnchor fileAnchor = new FileAnchor(localFile, fileLabel);
+            fileAnchor.fileLabel.setFilePath(fileAnchor.getFilePath());
             if (handler.isInMainThread()) {
                 this.executeOnMainThread(() -> {
-                    handler.handleSuccess(anchor, fileLabel);
+                    handler.handleSuccess(fileAnchor, fileLabel);
                 });
             }
             else {
                 this.execute(() -> {
-                    handler.handleSuccess(anchor, fileLabel);
+                    handler.handleSuccess(fileAnchor, fileLabel);
                 });
             }
 
@@ -650,6 +672,10 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
             if (null == this.storage) {
                 this.storage = new StructStorage();
                 this.storage.open(getContext(), this.self.id, this.self.domain);
+            }
+
+            if (null == this.fileHierarchy) {
+                this.fileHierarchy = new FileHierarchy(this, this.storage, this.self.id);
             }
         }
     }

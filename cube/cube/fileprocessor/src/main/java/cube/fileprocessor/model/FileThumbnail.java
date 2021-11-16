@@ -264,11 +264,7 @@ public class FileThumbnail extends Entity {
 
     @Override
     public JSONObject toCompactJSON() {
-        JSONObject json = this.toJSON();
-        if (json.has("filePath")) {
-            json.remove("filePath");
-        }
-        return json;
+        return this.toJSON();
     }
 
     /**

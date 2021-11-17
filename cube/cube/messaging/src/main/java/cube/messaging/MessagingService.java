@@ -89,6 +89,7 @@ import cube.messaging.model.Message;
 import cube.messaging.model.MessageScope;
 import cube.messaging.model.MessageState;
 import cube.messaging.model.MessageType;
+import cube.messaging.model.NullMessage;
 import cube.util.LogUtils;
 import cube.util.ObservableEvent;
 
@@ -351,6 +352,17 @@ public class MessagingService extends Module {
     }
 
     /**
+     * 获取指定 ID 的消息实例。
+     *
+     * @param messageId
+     * @return
+     */
+    public Message getMessageById(Long messageId) {
+        Message message = this.storage.readMessageNoFillById(messageId);
+        return this.fillMessage(message);
+    }
+
+    /**
      * 获取最近的会话清单。
      *
      * @return 返回消息列表。如果返回 {@code null} 值表示消息服务模块未启动。
@@ -444,7 +456,7 @@ public class MessagingService extends Module {
                 // 创建新的会话
                 Contact contact = this.contactService.getContact(id);
                 if (null != contact) {
-                    conversation = new Conversation(contact, ConversationReminded.Normal);
+                    conversation = new Conversation(this.contactService.getSelf(), contact, ConversationReminded.Normal);
                 }
                 else {
                     // TODO Group
@@ -807,6 +819,24 @@ public class MessagingService extends Module {
      * @param conversation
      * @param message
      * @param sendHandler
+     * @param <T>
+     */
+    public <T extends Message> void sendMessage(final Conversation conversation, final T message,
+                                                SendHandler<Conversation, T> sendHandler) {
+        this.sendMessage(conversation, message, sendHandler, new StableFailureHandler() {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                // Nothing
+            }
+        });
+    }
+
+    /**
+     * 向指定会话发送消息。
+     *
+     * @param conversation
+     * @param message
+     * @param sendHandler
      * @param failureHandler
      * @param <T> 消息实例类型。
      */
@@ -1030,7 +1060,7 @@ public class MessagingService extends Module {
         }
 
         final String fileCode = fileAttachment.getPrefFileCode();
-
+        boolean downloading = false;
         synchronized (this.capsuleCache) {
             CacheableFileLabelCapsule capsule = this.capsuleCache.get(fileCode);
             if (null == capsule) {
@@ -1039,12 +1069,13 @@ public class MessagingService extends Module {
             }
             else {
                 capsule.entityLifeExpiry += LIFESPAN;
+                downloading = true;
             }
 
             capsule.addMessage(message, fileAttachment.getPrefFileLabel(), loadHandler, failureHandler);
         }
 
-        if (!this.fileStorage.isDownloading(fileCode)) {
+        if (!downloading) {
             // 下载数据
             this.fileStorage.downloadFile(fileAttachment.getPrefFileLabel(), new StableDownloadFileHandler() {
                 @Override
@@ -1081,8 +1112,6 @@ public class MessagingService extends Module {
 
                             for (CacheableFileLabelCapsule.Capsule current : capsule.capsuleList) {
                                 // 设置消息附件
-//                                current.message.getAttachment().getPrefFileAnchor().resetFile(anchor.getFile());
-//                                current.message.getAttachment().getPrefFileLabel().setFilePath(anchor.getFilePath());
                                 current.fileLabel.setFilePath(anchor.getFilePath());
                                 current.message.getAttachment().matchPrefFile(anchor.getFile());
 
@@ -1200,7 +1229,7 @@ public class MessagingService extends Module {
             notifyObservers(event);
         });
 
-        if (!this.pipeline.isReady()) {
+        if (!this.pipeline.isReady() && message.getScope() == MessageScope.Unlimited) {
             // 修改状态
             message.setState(MessageState.Fault);
 
@@ -1294,6 +1323,36 @@ public class MessagingService extends Module {
                 ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Sending, message);
                 notifyObservers(event);
             });
+        }
+
+        if (message.getScope() == MessageScope.Private) {
+            // 仅在本地生效的消息
+            // 移除正在发送数据
+            removeSendingMessage(message);
+
+            // 修改状态
+            message.setState(MessageState.Read);
+            // 修改远程时间戳
+            message.setRemoteTS(System.currentTimeMillis());
+
+            // 更新时间
+            if (message.getRemoteTimestamp() > lastMessageTime) {
+                lastMessageTime = message.getRemoteTimestamp();
+            }
+
+            // 更新数据库
+            storage.updateMessage(message);
+
+            this.execute(() -> {
+                // 回调
+                sendHandler.handleSent(null, message);
+
+                // 产生事件
+                ObservableEvent event = new ObservableEvent(MessagingServiceEvent.MarkOnlyOwner, message);
+                notifyObservers(event);
+            });
+
+            return;
         }
 
         Packet packet = new Packet(MessagingAction.Push, message.toCompactJSON());
@@ -1723,6 +1782,16 @@ public class MessagingService extends Module {
     }
 
     private void appendMessageToConversation(Long conversationId, Message message) {
+        MessageList list = this.conversationMessageListMap.get(conversationId);
+        if (null != list) {
+            list.appendMessage(message);
+        }
+
+        // 跳过私域消息
+        if (message.getScope() == MessageScope.Private) {
+            return;
+        }
+
         if (null != this.conversations && !this.conversations.isEmpty()) {
             for (Conversation conversation : this.conversations) {
                 if (conversation.getPivotalId().longValue() == conversationId) {
@@ -1731,11 +1800,6 @@ public class MessagingService extends Module {
                     break;
                 }
             }
-        }
-
-        MessageList list = this.conversationMessageListMap.get(conversationId);
-        if (null != list) {
-            list.appendMessage(message);
         }
 
         // 更新会话数据库
@@ -1862,13 +1926,12 @@ public class MessagingService extends Module {
                 // 压缩模式下直接下载附件原文件
                 if (!attachment.existsPrefLocal()) {
                     fileLabel = attachment.getPrefFileLabel();
-                    System.out.println("XJW X : " + message.id + " - " + attachment.getPrefFileAnchor().toJSON());
                 }
             }
 
             if (null != fileLabel) {
                 final String fileCode = fileLabel.getFileCode();
-                final MutableBoolean downloading = new MutableBoolean(false);
+                boolean downloading = false;
                 synchronized (this.capsuleCache) {
                     // 填写缩略图的 File Code
                     CacheableFileLabelCapsule capsule = this.capsuleCache.get(fileCode);
@@ -1879,7 +1942,7 @@ public class MessagingService extends Module {
                     else {
                         // 更新寿命
                         capsule.entityLifeExpiry += LIFESPAN;
-                        downloading.value = true;
+                        downloading = true;
                     }
 
                     // 添加附件对应的消息
@@ -1889,7 +1952,7 @@ public class MessagingService extends Module {
                 LogUtils.d(TAG, "Download file : " + fileLabel.getFileCode() +
                         " (" +  message.id + ") - " + message.getFrom() + " -> " + message.getTo());
 
-                if (!downloading.value) {
+                if (!downloading) {
                     // 没有正在下载，对文件进行下载
                     this.fileStorage.downloadFile(fileLabel, new StableDownloadFileHandler() {
                         @Override
@@ -1917,7 +1980,6 @@ public class MessagingService extends Module {
                                     while (null != current) {
                                         // 设置文件路径
                                         current.fileLabel.setFilePath(anchor.getFilePath());
-                                        System.out.println("XJW 16 : " + anchor.getFile());
                                         current.message.getAttachment().matchPrefFile(anchor.getFile());
 
                                         if (!messageMap.containsKey(message.id)) {
@@ -1929,9 +1991,7 @@ public class MessagingService extends Module {
                                     }
 
                                     for (Message message : messageMap.values()) {
-                                        boolean result = storage.updateMessageAttachment(message.id, message.getAttachment());
-                                        // FIXME 最近一条消息记录没有更新
-                                        System.out.println("XJW : " + message.id + " - " + result + " - " + message.getAttachment().getPrefFileAnchor().toJSON());
+                                        storage.updateMessageAttachment(message.id, message.getAttachment());
                                     }
                                 }
                             }
@@ -1983,6 +2043,11 @@ public class MessagingService extends Module {
     }
 
     protected void fillConversation(Conversation conversation) {
+        if (conversation.getRecentMessage().getFrom() == 0) {
+            conversation.setRecentMessage(new NullMessage(this.contactService.getSelf(),
+                    this.contactService.getContact(conversation.getPivotalId())));
+        }
+
         // 填充消息
         Message recentMessage = this.fillMessage(conversation.getRecentMessage());
         conversation.setRecentMessage(recentMessage);

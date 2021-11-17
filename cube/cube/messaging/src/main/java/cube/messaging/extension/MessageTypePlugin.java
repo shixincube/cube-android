@@ -70,6 +70,9 @@ public class MessageTypePlugin implements Plugin<Message> {
                 else if (MessageTypeName.File.equals(type)) {
                     return new FileMessage(message);
                 }
+                else if (MessageTypeName.Notification.equals(type)) {
+                    return new NotificationMessage(message);
+                }
                 else if (MessageTypeName.Text.equals(type)) {
                     return new TextMessage(message);
                 }

@@ -378,6 +378,10 @@ public class FileAttachment implements JSONable {
     public void matchFileLabel(FileAnchor anchor, FileLabel label) {
         int index = this.anchorList.indexOf(anchor);
         if (index >= 0) {
+            FileLabel old = this.labelList.get(index);
+            if (null == label.getFilePath() && null != old.getFilePath()) {
+                label.setFilePath(old.getFilePath());
+            }
             this.labelList.set(index, label);
         }
     }

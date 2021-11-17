@@ -26,13 +26,19 @@
 
 package cube.messaging.model;
 
+import cube.contact.model.Contact;
+
 /**
  * 空消息，仅用于数据管理的消息。
  */
 public class NullMessage extends Message {
 
-    public NullMessage() {
+    public NullMessage(Contact sender, Contact receiver) {
         super();
+        this.assign(sender.id, receiver.id, 0);
+        this.setSender(sender);
+        this.setReceiver(receiver);
+        this.setRemoteTS(this.getTimestamp());
         this.scope = MessageScope.Private;
         this.summary = "";
     }

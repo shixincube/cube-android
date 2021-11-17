@@ -37,6 +37,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import cube.core.AbstractStorage;
 import cube.messaging.model.Conversation;
@@ -88,38 +89,54 @@ public class MessagingStorage extends AbstractStorage {
 
         SQLiteDatabase db = this.getReadableDatabase();
 
-        try {
-            Cursor cursor = db.rawQuery("SELECT * FROM `conversation` WHERE `state`=? OR `state`=? ORDER BY `timestamp` DESC LIMIT ?",
-                    new String[] { ConversationState.Normal.toString(),
-                            ConversationState.Important.toString(), Integer.toString(limit)});
-            while (cursor.moveToNext()) {
-                String messageString = cursor.getString(cursor.getColumnIndex("recent_message"));
-                Message recentMessage = new Message(this.service, new JSONObject(messageString));
+        Cursor cursor = db.rawQuery("SELECT * FROM `conversation` WHERE `state`=? OR `state`=? ORDER BY `timestamp` DESC LIMIT ?",
+                new String[] { ConversationState.Normal.toString(),
+                        ConversationState.Important.toString(), Integer.toString(limit)});
+        while (cursor.moveToNext()) {
+            String messageString = cursor.getString(cursor.getColumnIndex("recent_message"));
+            Message recentMessage = null;
+            try {
+                recentMessage = new Message(this.service, new JSONObject(messageString));
                 if (recentMessage.isEmpty()) {
                     // 消息是空白
                     continue;
                 }
-
-                Conversation conversation = new Conversation(cursor.getLong(cursor.getColumnIndex("id")),
-                        cursor.getLong(cursor.getColumnIndex("timestamp")),
-                        ConversationType.parse(cursor.getInt(cursor.getColumnIndex("type"))),
-                        ConversationState.parse(cursor.getInt(cursor.getColumnIndex("state"))),
-                        cursor.getLong(cursor.getColumnIndex("pivotal_id")),
-                        recentMessage,
-                        ConversationReminded.parse(cursor.getInt(cursor.getColumnIndex("remind"))),
-                        cursor.getInt(cursor.getColumnIndex("unread")));
-                // 填充实例
-                this.service.fillConversation(conversation);
-
-                list.add(conversation);
+            } catch (JSONException e) {
+                e.printStackTrace();
+                continue;
             }
 
-            cursor.close();
-        } catch (JSONException e) {
-            // Nothing
+            Conversation conversation = new Conversation(cursor.getLong(cursor.getColumnIndex("id")),
+                    cursor.getLong(cursor.getColumnIndex("timestamp")),
+                    ConversationType.parse(cursor.getInt(cursor.getColumnIndex("type"))),
+                    ConversationState.parse(cursor.getInt(cursor.getColumnIndex("state"))),
+                    cursor.getLong(cursor.getColumnIndex("pivotal_id")),
+                    ConversationReminded.parse(cursor.getInt(cursor.getColumnIndex("remind"))),
+                    cursor.getInt(cursor.getColumnIndex("unread")),
+                    recentMessage);
+            // 添加到列表
+            list.add(conversation);
         }
 
+        cursor.close();
         this.closeReadableDatabase(db);
+
+        for (Conversation conversation : list) {
+            Message message = null;
+            if (conversation.getType() == ConversationType.Contact) {
+                message = this.queryLastMessageNoFillByContactId(conversation.getPivotalId(), true);
+            }
+            else if (conversation.getType() == ConversationType.Group) {
+                message = this.queryLastMessageNoFillByGroupId(conversation.getPivotalId(), true);
+            }
+
+            if (null != message) {
+                conversation.setRecentMessage(message);
+            }
+
+            // 填充实例
+            this.service.fillConversation(conversation);
+        }
 
         return list;
     }
@@ -132,7 +149,8 @@ public class MessagingStorage extends AbstractStorage {
     public Conversation getLastConversation() {
         Conversation conversation = null;
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM `conversation` WHERE `state`=? OR `state`=? ORDER BY `timestamp` DESC LIMIT 1", new String[] { ConversationState.Normal.toString(), ConversationState.Important.toString() });
+        Cursor cursor = db.rawQuery("SELECT * FROM `conversation` WHERE `state`=? OR `state`=? ORDER BY `timestamp` DESC LIMIT 1",
+                new String[] { ConversationState.Normal.toString(), ConversationState.Important.toString() });
         if (cursor.moveToFirst()) {
             try {
                 String messageString = cursor.getString(cursor.getColumnIndex("recent_message"));
@@ -143,17 +161,33 @@ public class MessagingStorage extends AbstractStorage {
                         ConversationType.parse(cursor.getInt(cursor.getColumnIndex("type"))),
                         ConversationState.parse(cursor.getInt(cursor.getColumnIndex("state"))),
                         cursor.getLong(cursor.getColumnIndex("pivotal_id")),
-                        recentMessage,
                         ConversationReminded.parse(cursor.getInt(cursor.getColumnIndex("remind"))),
-                        cursor.getInt(cursor.getColumnIndex("unread")));
-                // 填充实例
-                this.service.fillConversation(conversation);
+                        cursor.getInt(cursor.getColumnIndex("unread")),
+                        recentMessage);
             } catch (JSONException e) {
                 // Nothing;
             }
         }
         cursor.close();
         this.closeReadableDatabase(db);
+
+        if (null != conversation) {
+            Message message = null;
+            if (conversation.getType() == ConversationType.Contact) {
+                message = this.queryLastMessageNoFillByContactId(conversation.getPivotalId(), true);
+            }
+            else if (conversation.getType() == ConversationType.Group) {
+                message = this.queryLastMessageNoFillByGroupId(conversation.getPivotalId(), true);
+            }
+
+            if (null != message) {
+                conversation.setRecentMessage(message);
+            }
+
+            // 填充实例
+            this.service.fillConversation(conversation);
+        }
+
         return conversation;
     }
 
@@ -179,18 +213,33 @@ public class MessagingStorage extends AbstractStorage {
                         ConversationType.parse(cursor.getInt(cursor.getColumnIndex("type"))),
                         ConversationState.parse(cursor.getInt(cursor.getColumnIndex("state"))),
                         cursor.getLong(cursor.getColumnIndex("pivotal_id")),
-                        recentMessage,
                         ConversationReminded.parse(cursor.getInt(cursor.getColumnIndex("remind"))),
-                        cursor.getInt(cursor.getColumnIndex("unread")));
-                // 填充实例
-                this.service.fillConversation(conversation);
+                        cursor.getInt(cursor.getColumnIndex("unread")),
+                        recentMessage);
             } catch (Exception e) {
                 // Nothing
             }
         }
         cursor.close();
         this.closeReadableDatabase(db);
-        
+
+        // 读取最近消息
+        if (null != conversation) {
+            Message message = null;
+            if (conversation.getType() == ConversationType.Contact) {
+                message = this.queryLastMessageNoFillByContactId(conversation.getPivotalId(), true);
+            }
+            else if (conversation.getType() == ConversationType.Group) {
+                message = this.queryLastMessageNoFillByGroupId(conversation.getPivotalId(), true);
+            }
+
+            if (null != message) {
+                conversation.setRecentMessage(message);
+            }
+
+            // 填充实例
+            this.service.fillConversation(conversation);
+        }
         return conversation;
     }
 
@@ -350,6 +399,21 @@ public class MessagingStorage extends AbstractStorage {
         }
 
         this.closeWritableDatabase(db);
+    }
+
+    protected Message readMessageNoFillById(Long messageId) {
+        Message message = null;
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM `message` WHERE `id`=?",
+                new String[]{ messageId.toString() });
+        if (cursor.moveToFirst()) {
+            message = this.readMessage(cursor);
+        }
+        cursor.close();
+        this.closeReadableDatabase(db);
+
+        return message;
     }
 
     /**
@@ -603,9 +667,10 @@ public class MessagingStorage extends AbstractStorage {
         final MutableBoolean hasMore = new MutableBoolean(false);
 
         // 查询消息记录，这里比 limit 多查一条记录以判断是否还有更多消息。
-        Cursor cursor = db.rawQuery("SELECT * FROM `message` WHERE `scope`=? AND `rts`<? AND (`from`=? OR `to`=?) AND `source`=0 AND (`state`=? OR `state`=? OR `state`=?) ORDER BY `rts` DESC LIMIT ?"
+        Cursor cursor = db.rawQuery("SELECT * FROM `message` WHERE (`scope`=? OR `scope`=?) AND `rts`<? AND (`from`=? OR `to`=?) AND `source`=0 AND (`state`=? OR `state`=? OR `state`=?) ORDER BY `rts` DESC LIMIT ?"
             , new String[] {
                         Integer.toString(MessageScope.Unlimited),
+                        Integer.toString(MessageScope.Private),
                         Long.toString(timestamp),
                         contactId.toString(),
                         contactId.toString(),
@@ -621,37 +686,7 @@ public class MessagingStorage extends AbstractStorage {
                 break;
             }
 
-            String payloadString = cursor.getString(cursor.getColumnIndex("payload"));
-            JSONObject payload = null;
-            try {
-                payload = new JSONObject(payloadString);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-            FileAttachment attachment = null;
-            String attachmentString = cursor.getString(cursor.getColumnIndex("attachment"));
-            if (null != attachmentString && attachmentString.length() > 3) {
-                try {
-                    attachment = new FileAttachment(new JSONObject(attachmentString));
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            Message message = new Message(cursor.getLong(cursor.getColumnIndex("id")),
-                    cursor.getLong(cursor.getColumnIndex("timestamp")),
-                    this.domain,
-                    cursor.getLong(cursor.getColumnIndex("owner")),
-                    cursor.getLong(cursor.getColumnIndex("from")),
-                    cursor.getLong(cursor.getColumnIndex("to")),
-                    cursor.getLong(cursor.getColumnIndex("source")),
-                    cursor.getLong(cursor.getColumnIndex("lts")),
-                    cursor.getLong(cursor.getColumnIndex("rts")),
-                    payload,
-                    MessageState.parse(cursor.getInt(cursor.getColumnIndex("state"))),
-                    cursor.getInt(cursor.getColumnIndex("scope")),
-                    attachment);
+            Message message = readMessage(cursor);
 
             // 填充
             message = this.service.fillMessage(message);
@@ -675,6 +710,72 @@ public class MessagingStorage extends AbstractStorage {
         };
     }
 
+    private Message queryLastMessageNoFillByContactId(Long contactId, boolean onlyUnlimited) {
+        Message message = null;
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        String scopeCondition = null;
+        if (onlyUnlimited) {
+            scopeCondition = String.format(Locale.ROOT, "(`scope`=%d)", MessageScope.Unlimited);
+        }
+        else {
+            scopeCondition = String.format(Locale.ROOT, "(`scope`=%d OR `scope`=%d)", MessageScope.Unlimited, MessageScope.Private);
+        }
+
+        Cursor cursor = db.rawQuery("SELECT * FROM `message` WHERE " + scopeCondition + " AND (`from`=? OR `to`=?) AND `source`=0 AND (`state`=? OR `state`=? OR `state`=?) ORDER BY `rts` DESC LIMIT 1", new String[] {
+                contactId.toString(),
+                contactId.toString(),
+                MessageState.Read.toString(),
+                MessageState.Sent.toString(),
+                MessageState.Sending.toString()
+        });
+
+        if (cursor.moveToFirst()) {
+            message = this.readMessage(cursor);
+        }
+        cursor.close();
+        this.closeReadableDatabase(db);
+        return message;
+    }
+
+    private Message queryLastMessageNoFillByGroupId(Long groupId, boolean onlyUnlimited) {
+        return null;
+    }
+
+    private Message readMessage(Cursor cursor) {
+        String payloadString = cursor.getString(cursor.getColumnIndex("payload"));
+        JSONObject payload = null;
+        try {
+            payload = new JSONObject(payloadString);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        FileAttachment attachment = null;
+        String attachmentString = cursor.getString(cursor.getColumnIndex("attachment"));
+        if (null != attachmentString && attachmentString.length() > 3) {
+            try {
+                attachment = new FileAttachment(new JSONObject(attachmentString));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+        Message message = new Message(cursor.getLong(cursor.getColumnIndex("id")),
+                cursor.getLong(cursor.getColumnIndex("timestamp")),
+                this.domain,
+                cursor.getLong(cursor.getColumnIndex("owner")),
+                cursor.getLong(cursor.getColumnIndex("from")),
+                cursor.getLong(cursor.getColumnIndex("to")),
+                cursor.getLong(cursor.getColumnIndex("source")),
+                cursor.getLong(cursor.getColumnIndex("lts")),
+                cursor.getLong(cursor.getColumnIndex("rts")),
+                payload,
+                MessageState.parse(cursor.getInt(cursor.getColumnIndex("state"))),
+                cursor.getInt(cursor.getColumnIndex("scope")),
+                attachment);
+        return message;
+    }
 
     @Override
     protected void onDatabaseCreate(SQLiteDatabase database) {

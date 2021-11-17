@@ -26,36 +26,55 @@
 
 package cube.messaging.extension;
 
+import org.json.JSONException;
+
+import cube.messaging.model.Message;
+import cube.messaging.model.MessageScope;
+import cube.messaging.model.MessageType;
+
 /**
- * 消息类型。
+ * 通知形式的消息。
  */
-public final class MessageTypeName {
+public class NotificationMessage extends TypeableMessage {
+
+    public NotificationMessage(String content) {
+        super(MessageType.Notification);
+
+        try {
+            this.payload.put("type", MessageTypeName.Notification);
+            this.payload.put("content", content);
+        } catch (JSONException e) {
+            // Nothing
+        }
+
+        this.scope = MessageScope.Private;
+        this.summary = "[通知]";
+    }
+
+    public NotificationMessage(Message message) {
+        super(message, MessageType.Notification);
+
+        try {
+            this.payload.put("type", MessageTypeName.Notification);
+        } catch (JSONException e) {
+            // Nothing
+        }
+
+        this.scope = MessageScope.Private;
+        this.summary = "[通知]";
+    }
 
     /**
-     * 一般文本类型。
+     * 获取消息内容。
+     *
+     * @return
      */
-    public final static String Text = "text";
-
-    /**
-     * 超文本消息类型。
-     */
-    public final static String Hypertext = "hypertext";
-
-    /**
-     * 文件消息。
-     */
-    public final static String File = "file";
-
-    /**
-     * 图片消息。
-     */
-    public final static String Image = "image";
-
-    /**
-     * 通知消息。
-     */
-    public final static String Notification = "notification";
-
-    private MessageTypeName() {
+    public String getContent() {
+        try {
+            return this.payload.getString("content");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

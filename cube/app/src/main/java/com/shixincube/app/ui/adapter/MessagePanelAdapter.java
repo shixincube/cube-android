@@ -30,6 +30,7 @@ import android.content.Context;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.shixincube.app.R;
@@ -44,16 +45,11 @@ import com.shixincube.app.widget.adapter.ViewHolderForRecyclerView;
 
 import java.util.List;
 
-import cube.core.Module;
-import cube.core.ModuleError;
-import cube.core.handler.DefaultFailureHandler;
 import cube.fileprocessor.util.CalculationUtils;
-import cube.filestorage.model.FileAnchor;
 import cube.messaging.extension.FileMessage;
 import cube.messaging.extension.HyperTextMessage;
 import cube.messaging.extension.ImageMessage;
-import cube.messaging.handler.DefaultLoadAttachmentHandler;
-import cube.messaging.model.FileAttachment;
+import cube.messaging.extension.NotificationMessage;
 import cube.messaging.model.Message;
 import cube.messaging.model.MessageState;
 
@@ -61,6 +57,8 @@ import cube.messaging.model.MessageState;
  * 消息面板数据适配器。
  */
 public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
+
+    private final long showTimeInterval = 10 * 60 * 1000;
 
     private MessagePanelPresenter presenter;
 
@@ -87,6 +85,9 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
         else if (message instanceof FileMessage) {
             return message.isSelfTyper() ? R.layout.item_message_item_send : R.layout.item_message_item_receive;
         }
+        else if (message instanceof NotificationMessage) {
+            return R.layout.item_message_notification;
+        }
 
         return R.layout.item_message_no_support;
     }
@@ -102,7 +103,7 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
         if (position > 0) {
             // 判断是否显示时间
             Message preMessage = getData().get(position - 1);
-            if (item.getRemoteTimestamp() - preMessage.getRemoteTimestamp() > (5L * 60L * 1000L)) {
+            if (item.getRemoteTimestamp() - preMessage.getRemoteTimestamp() > this.showTimeInterval) {
                 helper.setViewVisibility(R.id.tvTime, View.VISIBLE)
                         .setText(R.id.tvTime, DateUtils.formatConversationTime(item.getRemoteTimestamp()));
             }
@@ -128,8 +129,13 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
     }
 
     private void setName(ViewHolderForRecyclerView helper, Message item, int position) {
+        TextView textView = helper.getView(R.id.tvName);
+        if (null == textView) {
+            return;
+        }
+
         if (item.isFromGroup()) {
-            helper.setText(R.id.tvName, item.getSender().getPriorityName());
+            textView.setText(item.getSender().getPriorityName());
             helper.setViewVisibility(R.id.tvName, View.VISIBLE);
         }
         else {
@@ -147,33 +153,12 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
             ImageMessage message = (ImageMessage) item;
             BubbleImageView imageView = helper.getView(R.id.bivImage);
             // 加载图片
-            message.loadAttachment(new DefaultLoadAttachmentHandler<ImageMessage>(true) {
-                @Override
-                public void handleLoading(ImageMessage message, FileAttachment fileAttachment, FileAnchor fileAnchor) {
-                    // Nothing
-                }
-
-                @Override
-                public void handleLoaded(ImageMessage message, FileAttachment fileAttachment) {
-                    Glide.with(getContext()).load(message.hasThumbnail() ? message.getThumbnail().getFileURL() : fileAttachment.getPrefFileURL())
-                            .error(R.mipmap.default_img_failed)
-                            .override(UIUtils.dp2px(80), UIUtils.dp2px(150))
-                            .centerCrop()
-                            .into(imageView);
-                    UIUtils.postTaskDelay(() -> presenter.moveToBottom(), 100);
-                }
-            }, new DefaultFailureHandler(true) {
-                @Override
-                public void handleFailure(Module module, ModuleError error) {
-                    Glide.with(getContext()).load(message.hasThumbnail()
-                            ? message.getThumbnail().getFileURL() : message.getFileURL())
-                            .error(R.mipmap.default_img_failed)
-                            .override(UIUtils.dp2px(80), UIUtils.dp2px(150))
-                            .centerCrop()
-                            .into(imageView);
-                    UIUtils.postTaskDelay(() -> presenter.moveToBottom(), 100);
-                }
-            });
+            Glide.with(getContext()).load(message.hasThumbnail() ? message.getThumbnail().getFileURL() : message.getFileURL())
+                    .error(R.mipmap.default_img_failed)
+                    .override(UIUtils.dp2px(80), UIUtils.dp2px(150))
+                    .centerCrop()
+                    .into(imageView);
+            UIUtils.postTaskDelay(() -> presenter.moveToBottom(), 100);
 
             if (message.getState() == MessageState.Sending) {
                 imageView.setPercent(message.getProgressPercent());
@@ -197,6 +182,10 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
                     helper.setViewVisibility(R.id.pbSending, View.GONE);
                 }
             }
+        }
+        else if (item instanceof NotificationMessage) {
+            NotificationMessage message = (NotificationMessage) item;
+            helper.setText(R.id.tvNotification, message.getContent());
         }
         else {
             // TODO

@@ -33,6 +33,7 @@ import java.util.Date;
 
 import cube.contact.model.Contact;
 import cube.contact.model.Group;
+import cube.contact.model.Self;
 import cube.core.model.Entity;
 
 /**
@@ -122,17 +123,18 @@ public class Conversation extends Entity {
      * @param type
      * @param state
      * @param pivotalId
-     * @param recentMessage
      * @param reminded
+     * @param unreadCount
+     * @param recentMessage
      */
-    public Conversation(Long id, long timestamp, ConversationType type, ConversationState state, Long pivotalId, Message recentMessage, ConversationReminded reminded, int unreadCount) {
+    public Conversation(Long id, long timestamp, ConversationType type, ConversationState state, Long pivotalId, ConversationReminded reminded, int unreadCount, Message recentMessage) {
         super(id, timestamp);
         this.type = type;
         this.state = state;
         this.pivotalId = pivotalId;
-        this.recentMessage = recentMessage;
         this.reminded = reminded;
         this.unreadCount = unreadCount;
+        this.recentMessage = recentMessage;
     }
 
     /**
@@ -141,14 +143,14 @@ public class Conversation extends Entity {
      * @param contact
      * @param reminded
      */
-    public Conversation(Contact contact, ConversationReminded reminded) {
+    public Conversation(Self self, Contact contact, ConversationReminded reminded) {
         super(contact.id);
         this.pivotalId = contact.id;
         this.contact = contact;
         this.type = ConversationType.Contact;
         this.reminded = reminded;
         this.state = ConversationState.Normal;
-        this.recentMessage = new NullMessage();
+        this.recentMessage = new NullMessage(self, contact);
         this.unreadCount = 0;
     }
 

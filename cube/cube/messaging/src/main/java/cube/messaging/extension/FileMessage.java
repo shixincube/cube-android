@@ -64,9 +64,7 @@ public class FileMessage extends TypeableMessage {
         super(message, MessageType.File);
 
         try {
-            if (!this.payload.has("type")) {
-                this.payload.put("type", MessageTypeName.File);
-            }
+            this.payload.put("type", MessageTypeName.File);
         } catch (JSONException e) {
             // Nothing
         }

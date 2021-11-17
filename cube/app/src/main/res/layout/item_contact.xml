@@ -66,8 +66,8 @@
     <View
         android:id="@+id/vLine"
         style="@style/Line"
-        android:layout_marginLeft="@dimen/item_margin_left_and_right"
-        android:layout_marginRight="@dimen/item_margin_left_and_right"
+        android:layout_marginStart="@dimen/item_margin_left_and_right"
+        android:layout_marginEnd="@dimen/item_margin_left_and_right"
         android:visibility="visible"/>
 
 </com.zhy.autolayout.AutoLinearLayout>

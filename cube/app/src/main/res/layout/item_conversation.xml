@@ -9,137 +9,151 @@
     <com.zhy.autolayout.AutoLinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="horizontal"
-        android:paddingStart="2dp"
-        android:paddingEnd="12dp">
-
-        <com.zhy.autolayout.AutoRelativeLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
-
-            <com.zhy.autolayout.AutoRelativeLayout
-                android:id="@+id/rlAvatar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/item_margin_top_and_bottom"
-                android:layout_marginTop="@dimen/item_margin_top_and_bottom"
-                android:layout_marginStart="12dp">
-
-                <!-- 图标/头像 -->
-                <com.shixincube.app.widget.AdvancedImageView
-                    android:id="@+id/ivAvatar"
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
-                    android:layout_centerInParent="true"
-                    android:src="@mipmap/avatar_default"
-                    auto:corner_radius="6dp"/>
-
-            </com.zhy.autolayout.AutoRelativeLayout>
-
-            <!-- 文字气泡 -->
-            <TextView
-                android:id="@+id/tvBadge"
-                android:layout_width="18dp"
-                android:layout_height="18dp"
-                android:layout_alignTop="@id/rlAvatar"
-                android:layout_marginStart="-12dp"
-                android:layout_marginTop="-5dp"
-                android:layout_toEndOf="@id/rlAvatar"
-                android:background="@drawable/shape_badge"
-                android:gravity="center"
-                android:text="@string/number_99"
-                android:textColor="@color/white"
-                android:textSize="11sp"
-                android:visibility="gone"/>
-
-            <!-- 提示气泡 -->
-            <TextView
-                android:id="@+id/tvHintBadge"
-                android:layout_width="10dp"
-                android:layout_height="10dp"
-                android:layout_alignTop="@id/rlAvatar"
-                android:layout_marginStart="-6dp"
-                android:layout_marginTop="-4dp"
-                android:layout_toEndOf="@id/rlAvatar"
-                android:background="@drawable/shape_badge"
-                android:gravity="center"
-                android:text=""
-                android:textColor="@color/white"
-                android:textSize="2sp"
-                android:visibility="gone"/>
-
-        </com.zhy.autolayout.AutoRelativeLayout>
+        android:orientation="vertical">
 
         <com.zhy.autolayout.AutoLinearLayout
             android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:layout_marginStart="10dp"
-            android:gravity="center_vertical"
-            android:orientation="vertical">
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:paddingStart="2dp"
+            android:paddingEnd="12dp">
 
-            <com.zhy.autolayout.AutoLinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical">
+            <com.zhy.autolayout.AutoRelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
 
-                <!-- 标题/昵称 -->
-                <TextView
-                    android:id="@+id/tvDisplayName"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:text=""
-                    android:textColor="@color/text"
-                    android:textSize="17sp"/>
-
-                <!-- 日期 -->
-                <TextView
-                    android:id="@+id/tvDate"
+                <com.zhy.autolayout.AutoRelativeLayout
+                    android:id="@+id/rlAvatar"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:text=""
-                    android:textColor="@color/text_secondary"
-                    android:textSize="14sp"/>
+                    android:layout_marginBottom="@dimen/item_margin_top_and_bottom"
+                    android:layout_marginTop="@dimen/item_margin_top_and_bottom"
+                    android:layout_marginStart="12dp">
 
-            </com.zhy.autolayout.AutoLinearLayout>
+                    <!-- 图标/头像 -->
+                    <com.shixincube.app.widget.AdvancedImageView
+                        android:id="@+id/ivAvatar"
+                        android:layout_width="60dp"
+                        android:layout_height="60dp"
+                        android:layout_centerInParent="true"
+                        android:src="@mipmap/avatar_default"
+                        auto:corner_radius="6dp" />
 
-            <!-- 内容/摘要 -->
-            <com.zhy.autolayout.AutoLinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                </com.zhy.autolayout.AutoRelativeLayout>
 
+                <!-- 文字气泡 -->
                 <TextView
-                    android:id="@+id/tvDraft"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="5dp"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:text="@string/draft"
-                    android:textColor="@color/text_danger"
-                    android:textSize="14sp"
+                    android:id="@+id/tvBadge"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_alignTop="@id/rlAvatar"
+                    android:layout_marginStart="-12dp"
+                    android:layout_marginTop="-5dp"
+                    android:layout_toEndOf="@id/rlAvatar"
+                    android:background="@drawable/shape_badge"
+                    android:gravity="center"
+                    android:text="@string/number_99"
+                    android:textColor="@color/white"
+                    android:textSize="11sp"
                     android:visibility="gone"/>
 
+                <!-- 提示气泡 -->
                 <TextView
-                    android:id="@+id/tvContent"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="5dp"
-                    android:ellipsize="end"
-                    android:maxLines="1"
+                    android:id="@+id/tvHintBadge"
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:layout_alignTop="@id/rlAvatar"
+                    android:layout_marginStart="-6dp"
+                    android:layout_marginTop="-4dp"
+                    android:layout_toEndOf="@id/rlAvatar"
+                    android:background="@drawable/shape_badge"
+                    android:gravity="center"
                     android:text=""
-                    android:textColor="@color/text_accent"
-                    android:textSize="14sp"/>
+                    android:textColor="@color/white"
+                    android:textSize="2sp"
+                    android:visibility="gone"/>
+
+            </com.zhy.autolayout.AutoRelativeLayout>
+
+            <com.zhy.autolayout.AutoLinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginStart="10dp"
+                android:gravity="center_vertical"
+                android:orientation="vertical">
+
+                <com.zhy.autolayout.AutoLinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical">
+
+                    <!-- 标题/昵称 -->
+                    <TextView
+                        android:id="@+id/tvDisplayName"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text=""
+                        android:textColor="@color/text"
+                        android:textSize="17sp"/>
+
+                    <!-- 日期 -->
+                    <TextView
+                        android:id="@+id/tvDate"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text=""
+                        android:textColor="@color/text_secondary"
+                        android:textSize="14sp"/>
+
+                </com.zhy.autolayout.AutoLinearLayout>
+
+                <!-- 内容/摘要 -->
+                <com.zhy.autolayout.AutoLinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tvDraft"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="5dp"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text="@string/draft"
+                        android:textColor="@color/text_danger"
+                        android:textSize="14sp"
+                        android:visibility="gone"/>
+
+                    <TextView
+                        android:id="@+id/tvContent"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="5dp"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text=""
+                        android:textColor="@color/text_accent"
+                        android:textSize="14sp"/>
+
+                </com.zhy.autolayout.AutoLinearLayout>
 
             </com.zhy.autolayout.AutoLinearLayout>
 
         </com.zhy.autolayout.AutoLinearLayout>
+
+        <View
+            android:id="@+id/vLine"
+            style="@style/Line"
+            android:layout_marginStart="84dp"
+            android:layout_marginEnd="0dp"
+            android:visibility="visible"/>
 
     </com.zhy.autolayout.AutoLinearLayout>
 

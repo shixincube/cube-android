@@ -72,6 +72,11 @@ public enum MessageType {
     Card,
 
     /**
+     * 通知。
+     */
+    Notification,
+
+    /**
      * 系统。
      */
     System,

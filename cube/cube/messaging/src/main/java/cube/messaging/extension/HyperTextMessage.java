@@ -77,9 +77,7 @@ public class HyperTextMessage extends TypeableMessage {
         super(message, MessageType.Text);
 
         try {
-            if (!this.payload.has("type")) {
-                this.payload.put("type", MessageTypeName.Hypertext);
-            }
+            this.payload.put("type", MessageTypeName.Hypertext);
 
             this.plaintext = this.payload.getString("content");
         } catch (JSONException e) {

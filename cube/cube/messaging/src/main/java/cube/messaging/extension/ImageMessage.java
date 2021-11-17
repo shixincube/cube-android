@@ -71,9 +71,7 @@ public class ImageMessage extends TypeableMessage {
         super(message, MessageType.Image);
 
         try {
-            if (!this.payload.has("type")) {
-                this.payload.put("type", MessageTypeName.Image);
-            }
+            this.payload.put("type", MessageTypeName.Image);
         } catch (JSONException e) {
             // Nothing
         }

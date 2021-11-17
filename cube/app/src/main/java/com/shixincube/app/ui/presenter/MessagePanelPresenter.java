@@ -44,6 +44,7 @@ import com.shixincube.app.widget.adapter.ViewHolder;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import cube.core.Module;
@@ -57,6 +58,7 @@ import cube.messaging.MessagingService;
 import cube.messaging.extension.FileMessage;
 import cube.messaging.extension.HyperTextMessage;
 import cube.messaging.extension.ImageMessage;
+import cube.messaging.extension.NotificationMessage;
 import cube.messaging.handler.DefaultSendHandler;
 import cube.messaging.handler.MessageListResultHandler;
 import cube.messaging.handler.SimpleSendHandler;
@@ -77,9 +79,12 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
 
     private Conversation conversation;
 
+    private List<Message> messageList;
+
     public MessagePanelPresenter(BaseFragmentActivity activity, Conversation conversation) {
         super(activity);
         this.conversation = conversation;
+        this.messageList = new ArrayList<>();
         CubeEngine.getInstance().getMessagingService().addEventListener(conversation, this);
     }
 
@@ -94,12 +99,13 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
     }
 
     public void loadMessages() {
+        this.messageList.clear();
         MessageListResult result = CubeEngine.getInstance().getMessagingService().getRecentMessages(this.conversation, this.pageSize);
-        List<Message> messageList = result.getList();
+        this.messageList.addAll(result.getList());
         this.hasMoreMessage = result.hasMore();
 
         if (null == this.adapter) {
-            this.adapter = new MessagePanelAdapter(activity, messageList, this);
+            this.adapter = new MessagePanelAdapter(activity, this.messageList, this);
             this.adapter.setOnItemClickListener(this);
 
             getView().getMessageListView().setAdapter(this.adapter);
@@ -109,6 +115,26 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
         else {
             this.adapter.notifyDataSetChangedWrapper();
             moveToBottom();
+        }
+
+        if (this.messageList.isEmpty()) {
+            // 提示
+            String tip = UIUtils.getString(R.string.tip_new_contact_first, this.conversation.getContact().getPriorityName());
+            NotificationMessage tipMessage = new NotificationMessage(tip);
+            CubeEngine.getInstance().getMessagingService().sendMessage(this.conversation, tipMessage,
+                    new SimpleSendHandler<Conversation, NotificationMessage>(false) {
+                @Override
+                public void handleSending(Conversation destination, NotificationMessage message) {
+                    // Nothing
+                }
+
+                @Override
+                public void handleSent(Conversation destination, NotificationMessage message) {
+                    activity.runOnUiThread(() -> {
+                        loadMessages();
+                    });
+                }
+            });
         }
     }
 
@@ -297,7 +323,14 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
             ImageMessage imageMessage = (ImageMessage) message;
             Intent intent = new Intent(activity, ImageShowcaseActivity.class);
             intent.putExtra("name", imageMessage.getFileName());
-            intent.putExtra("url", imageMessage.getFileURL());
+            intent.putExtra("messageId", imageMessage.getId());
+            if (imageMessage.hasThumbnail()) {
+                intent.putExtra("url", imageMessage.getThumbnail().getFileURL());
+                intent.putExtra("raw", imageMessage.getFileURL());
+            }
+            else {
+                intent.putExtra("url", imageMessage.getFileURL());
+            }
             activity.jumpToActivity(intent);
         }
         else if (message instanceof FileMessage) {
@@ -327,12 +360,12 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
 
     @Override
     public void onMessageProcessing(Message message, MessagingService service) {
-
+        // Nothing
     }
 
     @Override
     public void onMessageProcessed(Message message, MessagingService service) {
-
+        // Nothing
     }
 
     @Override

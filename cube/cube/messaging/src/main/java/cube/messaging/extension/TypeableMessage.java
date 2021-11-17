@@ -27,7 +27,6 @@
 package cube.messaging.extension;
 
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import cube.messaging.model.Message;
 import cube.messaging.model.MessageType;
@@ -45,10 +44,6 @@ public class TypeableMessage extends Message {
     public TypeableMessage(Message message, MessageType type) {
         super(message);
         this.type = type;
-    }
-
-    public TypeableMessage(JSONObject payload) {
-        super(payload);
     }
 
     public String getTypeName() {

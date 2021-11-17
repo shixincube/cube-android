@@ -53,6 +53,7 @@
     <string name="fun_voice_comm">语音通话</string>
     <string name="fun_video_comm">视频通话</string>
     <string name="no_support_file_type">不支持的文件类型</string>
+    <string name="tip_new_contact_first">您已添加了%1$s，现在可以开始聊天了。</string>
 
     <!-- 联系人界面 -->
     <string name="new_contact">新的联系人</string>

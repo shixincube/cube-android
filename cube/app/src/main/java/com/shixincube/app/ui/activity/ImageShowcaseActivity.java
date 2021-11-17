@@ -50,6 +50,14 @@ import com.shixincube.app.util.UIUtils;
 import java.io.File;
 
 import butterknife.BindView;
+import cube.core.Module;
+import cube.core.ModuleError;
+import cube.core.handler.DefaultFailureHandler;
+import cube.engine.CubeEngine;
+import cube.filestorage.model.FileAnchor;
+import cube.messaging.handler.DefaultLoadAttachmentHandler;
+import cube.messaging.model.FileAttachment;
+import cube.messaging.model.Message;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
@@ -69,8 +77,10 @@ public class ImageShowcaseActivity extends BaseActivity {
     private FrameLayout menuView;
     private PopupWindow popupWindow;
 
+    private long messageId;
     private String fileName;
     private String fileURL;
+    private String rawFileURL;
 
     public ImageShowcaseActivity() {
         super();
@@ -78,8 +88,10 @@ public class ImageShowcaseActivity extends BaseActivity {
 
     @Override
     public void init() {
+        this.messageId = getIntent().getLongExtra("messageId", 0);
         this.fileName = getIntent().getStringExtra("name");
         this.fileURL = getIntent().getStringExtra("url");
+        this.rawFileURL = getIntent().getStringExtra("raw");
     }
 
     @Override
@@ -95,11 +107,58 @@ public class ImageShowcaseActivity extends BaseActivity {
 
         this.photoView.enable();
 
-        Glide.with(this)
-                .load(Uri.parse(this.fileURL))
-                .placeholder(R.mipmap.default_image)
-                .centerCrop()
-                .into(this.photoView);
+        if (null != this.rawFileURL) {
+            if (this.rawFileURL.startsWith("file:")) {
+                Glide.with(this)
+                        .load(Uri.parse(this.rawFileURL))
+                        .placeholder(R.mipmap.default_image)
+                        .centerCrop()
+                        .into(this.photoView);
+            }
+            else {
+                if (this.messageId > 0) {
+                    Message message = CubeEngine.getInstance().getMessagingService().getMessageById(this.messageId);
+                    message.loadAttachment(new DefaultLoadAttachmentHandler(true) {
+                        @Override
+                        public void handleLoading(Message message, FileAttachment fileAttachment, FileAnchor fileAnchor) {
+                            // Nothing
+                        }
+
+                        @Override
+                        public void handleLoaded(Message message, FileAttachment fileAttachment) {
+                            Glide.with(ImageShowcaseActivity.this)
+                                    .load(Uri.parse(fileAttachment.getPrefFileURL()))
+                                    .placeholder(R.mipmap.default_image)
+                                    .centerCrop()
+                                    .into(photoView);
+                        }
+                    }, new DefaultFailureHandler(true) {
+                        @Override
+                        public void handleFailure(Module module, ModuleError error) {
+                            Glide.with(ImageShowcaseActivity.this)
+                                    .load(Uri.parse(rawFileURL))
+                                    .placeholder(R.mipmap.default_image)
+                                    .centerCrop()
+                                    .into(photoView);
+                        }
+                    });
+                }
+                else {
+                    Glide.with(this)
+                            .load(Uri.parse(this.rawFileURL))
+                            .placeholder(R.mipmap.default_image)
+                            .centerCrop()
+                            .into(this.photoView);
+                }
+            }
+        }
+        else {
+            Glide.with(this)
+                    .load(Uri.parse(this.fileURL))
+                    .placeholder(R.mipmap.default_image)
+                    .centerCrop()
+                    .into(this.photoView);
+        }
     }
 
     @Override

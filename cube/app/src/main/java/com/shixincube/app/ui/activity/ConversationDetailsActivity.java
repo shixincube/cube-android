@@ -27,8 +27,11 @@
 package com.shixincube.app.ui.activity;
 
 import android.content.Intent;
+import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.kyleduo.switchbutton.SwitchButton;
 import com.shixincube.app.R;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.presenter.ConversationDetailsPresenter;
@@ -39,6 +42,7 @@ import com.shixincube.app.widget.recyclerview.RecyclerView;
 import butterknife.BindView;
 import cube.engine.CubeEngine;
 import cube.messaging.model.Conversation;
+import cube.messaging.model.ConversationType;
 
 /**
  * 会话详情。
@@ -47,6 +51,18 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
 
     @BindView(R.id.tvToolbarTitle)
     TextView toolbarTitleTextView;
+
+    @BindView(R.id.rvMembers)
+    RecyclerView membersRecyclerView;
+
+    @BindView(R.id.llGroupDetails)
+    LinearLayout groupDetailsLayout;
+
+    @BindView(R.id.sbCloseRemind)
+    SwitchButton closeRemindSwitch;
+
+    @BindView(R.id.sbTopConversation)
+    SwitchButton topConversationSwitch;
 
     private Conversation conversation;
 
@@ -64,6 +80,15 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
     @Override
     public void initView() {
         this.toolbarTitleTextView.setText(UIUtils.getString(R.string.conv_title));
+
+        if (this.conversation.getType() == ConversationType.Contact) {
+            this.groupDetailsLayout.setVisibility(View.GONE);
+        }
+    }
+
+    @Override
+    public void initData() {
+        this.presenter.load();
     }
 
     @Override
@@ -78,6 +103,6 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
 
     @Override
     public RecyclerView getMemberListView() {
-        return null;
+        return this.membersRecyclerView;
     }
 }

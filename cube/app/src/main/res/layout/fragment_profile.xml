@@ -81,7 +81,7 @@
         auto:start_src="@mipmap/ic_setting_blue"
         auto:start_text="@string/setting"
         auto:start_text_color="@color/text"
-        auto:start_text_size="18sp"
+        auto:start_text_size="16sp"
         auto:end_src="@mipmap/indicator"/>
 
 </com.zhy.autolayout.AutoLinearLayout>

@@ -102,6 +102,7 @@
         <entry key="app/src/main/res/layout/item_contact.xml" value="0.15710382513661203" />
         <entry key="app/src/main/res/layout/item_conversation.xml" value="0.5" />
         <entry key="app/src/main/res/layout/item_file.xml" value="0.19228142076502733" />
+        <entry key="app/src/main/res/layout/item_member_frame.xml" value="0.1" />
         <entry key="app/src/main/res/layout/item_message_image_receive.xml" value="0.5" />
         <entry key="app/src/main/res/layout/item_message_image_send.xml" value="0.5" />
         <entry key="app/src/main/res/layout/item_message_item_receive.xml" value="0.5" />

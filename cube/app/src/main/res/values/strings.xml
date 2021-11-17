@@ -89,6 +89,8 @@
     <string name="draft">[草稿]</string>
     <string name="conv_title">会话详情</string>
     <string name="conv_remind_close">消息免打扰</string>
+    <string name="conv_top">会话置顶</string>
+    <string name="conv_search_content">查找聊天内容</string>
 
     <!-- 常用 -->
     <string name="please_wait_a_moment">请稍候</string>

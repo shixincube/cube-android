@@ -15,14 +15,21 @@
 
         <com.zhy.autolayout.AutoLinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- 群成员列表 -->
+            <!-- 成员列表 -->
             <com.shixincube.app.widget.recyclerview.RecyclerView
-                android:id="@+id/rvMember"
+                android:id="@+id/rvMembers"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:background="@color/white"
+                android:paddingBottom="5dp"
+                android:paddingLeft="7dp"
+                android:paddingRight="7dp"
+                android:paddingTop="15dp"
+                auto:rv_column="5"
+                auto:rv_type="grid"/>
 
             <!-- 群组信息 -->
             <com.zhy.autolayout.AutoLinearLayout
@@ -44,6 +51,29 @@
                 android:orientation="vertical"
                 android:visibility="visible">
 
+                <!-- 查找消息内容 -->
+                <com.shixincube.app.widget.optionitemview.OptionItemView
+                    android:id="@+id/oivSearchContent"
+                    style="@style/OptionItem"
+                    android:background="@drawable/selector_common_item"
+                    android:clickable="true"
+                    android:focusable="true"
+                    auto:start_text_margin_left="@dimen/item_margin_start_and_end"
+                    auto:start_text="@string/conv_search_content"
+                    auto:start_text_color="@color/black"
+                    auto:start_text_size="16sp"
+                    auto:end_src="@mipmap/indicator"/>
+
+            </com.zhy.autolayout.AutoLinearLayout>
+
+            <com.zhy.autolayout.AutoLinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/option_item_margin_top"
+                android:background="@color/white"
+                android:orientation="vertical"
+                android:visibility="visible">
+
                 <!-- 消息免打扰 -->
                 <com.zhy.autolayout.AutoLinearLayout
                     android:layout_width="match_parent"
@@ -55,10 +85,11 @@
                         android:layout_marginStart="@dimen/activity_horizontal_margin"
                         android:layout_weight="1"
                         android:text="@string/conv_remind_close"
-                        android:textColor="@color/text"
+                        android:textColor="@color/black"
                         android:textSize="16sp"/>
 
                     <com.kyleduo.switchbutton.SwitchButton
+                        android:id="@+id/sbCloseRemind"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="@dimen/option_item_margin_start"
@@ -74,6 +105,29 @@
                     android:layout_marginEnd="@dimen/item_margin_start_and_end"/>
 
                 <!-- 会话置顶 -->
+                <com.zhy.autolayout.AutoLinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:gravity="center_vertical">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/activity_horizontal_margin"
+                        android:layout_weight="1"
+                        android:text="@string/conv_top"
+                        android:textColor="@color/black"
+                        android:textSize="16sp"/>
+
+                    <com.kyleduo.switchbutton.SwitchButton
+                        android:id="@+id/sbTopConversation"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="@dimen/option_item_margin_start"
+                        auto:kswBackDrawable="@drawable/ios_back_drawable"
+                        auto:kswThumbDrawable="@drawable/ios_thumb_selector"
+                        auto:kswThumbMarginTop="2dp"
+                        auto:kswThumbMarginBottom="-2dp"/>
+                </com.zhy.autolayout.AutoLinearLayout>
 
             </com.zhy.autolayout.AutoLinearLayout>
 

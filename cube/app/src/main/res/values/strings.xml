@@ -85,8 +85,10 @@
     <string name="add_to_contacts">添加到联系人</string>
     <string name="save_to_phone">保存到手机</string>
 
-    <!-- 会话项 -->
+    <!-- 会话信息 -->
     <string name="draft">[草稿]</string>
+    <string name="conv_title">会话详情</string>
+    <string name="conv_remind_close">消息免打扰</string>
 
     <!-- 常用 -->
     <string name="please_wait_a_moment">请稍候</string>

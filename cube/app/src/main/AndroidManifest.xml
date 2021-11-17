@@ -84,6 +84,10 @@
             android:screenOrientation="portrait">
         </activity>
         <activity
+            android:name=".ui.activity.ConversationDetailsActivity"
+            android:screenOrientation="portrait">
+        </activity>
+        <activity
             android:name=".ui.activity.ImageShowcaseActivity"
             android:screenOrientation="portrait">
         </activity>

@@ -150,32 +150,31 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
             return;
         }
 
-        List<Message> messages = this.adapter.getData();
         Message message = null;
-        if (!messages.isEmpty()) {
-            message = messages.get(0);
+        if (!this.messageList.isEmpty()) {
+            message = this.messageList.get(0);
         }
 
         int max = this.pageSize + this.pageSize;
         CubeEngine.getInstance().getMessagingService().queryMessages(conversation, message, max,
                 new MessageListResultHandler() {
                     @Override
-                    public void handle(List<Message> messageList, boolean hasMore) {
+                    public void handle(List<Message> newMessageList, boolean hasMore) {
                         // 结束刷新
                         getView().getRefreshLayout().endRefreshing();
 
                         hasMoreMessage = hasMore;
 
-                        if (messageList.isEmpty()) {
+                        if (newMessageList.isEmpty()) {
                             return;
                         }
 
                         // Result 清单里的消息是从旧到新的，时间正序，因此倒着插入到列表
-                        for (int i = messageList.size() - 1; i >= 0; --i) {
-                            messages.add(0, messageList.get(i));
+                        for (int i = newMessageList.size() - 1; i >= 0; --i) {
+                            messageList.add(0, newMessageList.get(i));
                         }
 
-                        getView().getMessageListView().moveToPosition(messageList.size() - 1);
+                        getView().getMessageListView().moveToPosition(newMessageList.size() - 1);
                     }
                 });
     }

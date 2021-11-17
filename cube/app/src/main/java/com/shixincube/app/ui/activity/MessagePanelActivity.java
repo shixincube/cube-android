@@ -133,7 +133,7 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
     public void initView() {
         setToolbarTitle(this.conversation.getDisplayName());
 
-        this.toolbarMore.setImageResource(R.mipmap.ic_contact_info_gray);
+        this.toolbarMore.setImageResource(R.mipmap.ic_more_black);
         this.toolbarMore.setVisibility(View.VISIBLE);
 
         this.initRefreshLayout();
@@ -160,6 +160,13 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public void initListener() {
+        // 更多按钮事件
+        this.toolbarMore.setOnClickListener((view) -> {
+            Intent intent = new Intent(MessagePanelActivity.this, ConversationDetailsActivity.class);
+            intent.putExtra("conversationId", this.conversation.getId());
+            jumpToActivity(intent);
+        });
+
         // 消息面板事件
         this.messagePanelLayout.setOnTouchListener((view, event) -> {
             switch (event.getAction()) {

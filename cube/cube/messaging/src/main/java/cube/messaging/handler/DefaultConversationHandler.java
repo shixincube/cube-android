@@ -24,14 +24,24 @@
  * SOFTWARE.
  */
 
-package cube.core.handler;
-
-import cube.core.Module;
+package cube.messaging.handler;
 
 /**
- * 任务完成时的处理句柄。
+ * 默认会话句柄。
  */
-public interface CompletionHandler extends CallbackHandler {
+public abstract class DefaultConversationHandler implements ConversationHandler {
 
-    void handleCompletion(Module module);
+    private boolean inMainThread = false;
+
+    public DefaultConversationHandler() {
+    }
+
+    public DefaultConversationHandler(boolean inMainThread) {
+        this.inMainThread = inMainThread;
+    }
+
+    @Override
+    public boolean isInMainThread() {
+        return this.inMainThread;
+    }
 }

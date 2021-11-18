@@ -24,14 +24,15 @@
  * SOFTWARE.
  */
 
-package cube.core.handler;
+package cube.messaging.handler;
 
-import cube.core.Module;
+import cube.core.handler.CallbackHandler;
+import cube.messaging.model.Conversation;
 
 /**
- * 任务完成时的处理句柄。
+ * 会话句柄。
  */
-public interface CompletionHandler extends CallbackHandler {
+public interface ConversationHandler extends CallbackHandler {
 
-    void handleCompletion(Module module);
+    void handleConversation(Conversation conversation);
 }

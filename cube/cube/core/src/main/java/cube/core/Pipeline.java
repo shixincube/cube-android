@@ -139,16 +139,18 @@ public abstract class Pipeline {
      * 向指定目标发送数据。
      * @param destination
      * @param packet
+     * @return 返回通道是否可处理该发送请求。
      */
-    public abstract void send(String destination, Packet packet);
+    public abstract boolean send(String destination, Packet packet);
 
     /**
      * 向指定目标发送数据。
      * @param destination
      * @param packet
      * @param handler
+     * @return 返回通道是否可处理该发送请求。
      */
-    public abstract void send(String destination, Packet packet, PipelineHandler handler);
+    public abstract boolean send(String destination, Packet packet, PipelineHandler handler);
 
     /**
      * 当网络状态改变时触发。

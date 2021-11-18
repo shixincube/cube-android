@@ -34,10 +34,17 @@ import cube.contact.model.Contact;
 public class NullMessage extends Message {
 
     public NullMessage(Contact sender, Contact receiver) {
-        super();
         this.assign(sender.id, receiver.id, 0);
         this.setSender(sender);
         this.setReceiver(receiver);
+        this.setRemoteTS(this.getTimestamp());
+        this.scope = MessageScope.Private;
+        this.summary = "";
+    }
+
+    public NullMessage(Long senderId, Long receiverId, Long sourceGroupId) {
+        super();
+        this.assign(senderId, receiverId, sourceGroupId);
         this.setRemoteTS(this.getTimestamp());
         this.scope = MessageScope.Private;
         this.summary = "";

@@ -49,7 +49,6 @@ import java.util.List;
 
 import cube.core.Module;
 import cube.core.ModuleError;
-import cube.core.handler.CompletionHandler;
 import cube.core.handler.DefaultFailureHandler;
 import cube.engine.CubeEngine;
 import cube.messaging.MessageEventListener;
@@ -59,6 +58,7 @@ import cube.messaging.extension.FileMessage;
 import cube.messaging.extension.HyperTextMessage;
 import cube.messaging.extension.ImageMessage;
 import cube.messaging.extension.NotificationMessage;
+import cube.messaging.handler.DefaultConversationHandler;
 import cube.messaging.handler.DefaultSendHandler;
 import cube.messaging.handler.MessageListResultHandler;
 import cube.messaging.handler.SimpleSendHandler;
@@ -89,13 +89,17 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
     }
 
     public void markAllRead() {
-        CubeEngine.getInstance().getMessagingService().markRead(conversation,
-                new CompletionHandler() {
-                    @Override
-                    public void handleCompletion(Module module) {
-                        // Nothing
-                    }
-                });
+        CubeEngine.getInstance().getMessagingService().markRead(this.conversation, new DefaultConversationHandler(false) {
+            @Override
+            public void handleConversation(Conversation conversation) {
+                // Nothing
+            }
+        }, new DefaultFailureHandler(false) {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                // Nothing
+            }
+        });
     }
 
     public void loadMessages() {

@@ -26,12 +26,22 @@
 
 package cube.core.handler;
 
-import cube.core.Module;
-
 /**
- * 任务完成时的处理句柄。
+ * 默认完成句柄。
  */
-public interface CompletionHandler extends CallbackHandler {
+public abstract class DefaultCompletionHandler implements CompletionHandler {
 
-    void handleCompletion(Module module);
+    private boolean inMainThread = false;
+
+    public DefaultCompletionHandler() {
+    }
+
+    public DefaultCompletionHandler(boolean inMainThread) {
+        this.inMainThread = inMainThread;
+    }
+
+    @Override
+    public boolean isInMainThread() {
+        return this.inMainThread;
+    }
 }

@@ -206,6 +206,10 @@ public class Entity implements TimeSortable, JSONable {
         this.expiry = expiry;
     }
 
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
+    }
+
     /**
      * 实体数据是否在有效期内。
      *

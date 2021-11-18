@@ -26,6 +26,7 @@
 
 package com.shixincube.app.ui.view;
 
+import com.kyleduo.switchbutton.SwitchButton;
 import com.shixincube.app.widget.recyclerview.RecyclerView;
 
 /**
@@ -35,4 +36,7 @@ public interface ConversationDetailsView {
 
     RecyclerView getMemberListView();
 
+    SwitchButton getCloseRemindSwitchButton();
+
+    SwitchButton getTopConversationSwitchButton();
 }

@@ -31,6 +31,7 @@ import org.json.JSONObject;
 
 import java.util.Date;
 
+import cube.auth.AuthService;
 import cube.contact.model.Contact;
 import cube.contact.model.Group;
 import cube.contact.model.Self;
@@ -105,7 +106,17 @@ public class Conversation extends Entity {
         this.pivotalId = json.getLong("pivotal");
         this.unreadCount = json.getInt("unread");
 
-        this.recentMessage = new Message(null, json.getJSONObject("recentMessage"));
+        if (json.has("recentMessage")) {
+            this.recentMessage = new Message(null, json.getJSONObject("recentMessage"));
+        }
+        else {
+            if (this.type == ConversationType.Contact) {
+                this.recentMessage = new NullMessage(this.pivotalId, this.pivotalId, 0L);
+            }
+            else {
+                this.recentMessage = new NullMessage(this.pivotalId, 0L, this.pivotalId);
+            }
+        }
 
         if (json.has("avatarName")) {
             this.avatarName = json.getString("avatarName");
@@ -157,7 +168,7 @@ public class Conversation extends Entity {
     /**
      * 获取会话类型。
      *
-     * @return
+     * @return 返回会话类型。
      */
     public ConversationType getType() {
         return this.type;
@@ -171,22 +182,47 @@ public class Conversation extends Entity {
         return this.pivotalId;
     }
 
+    /**
+     * 获取会话对应的联系人。
+     *
+     * @return 返回会话对应的联系人。
+     */
     public Contact getContact() {
         return this.contact;
     }
 
+    /**
+     * 获取会话对应的群组。
+     *
+     * @return 返回会话对应的群组。
+     */
     public Group getGroup() {
         return this.group;
     }
 
+    /**
+     * 获取最近的消息。
+     *
+     * @return 返回最近的消息实例。
+     */
     public Message getRecentMessage() {
         return this.recentMessage;
     }
 
+    /**
+     * 获取会话提醒类型。
+     *
+     * @return 返回会话提醒类型。
+     */
     public ConversationReminded getReminded() {
         return this.reminded;
     }
 
+    /**
+     * 获取未读消息数量。
+     *
+     * @return 返回未读消息数量。
+     */
     public int getUnreadCount() {
         return this.unreadCount;
     }
@@ -202,7 +238,7 @@ public class Conversation extends Entity {
     /**
      * 获取显示名。
      *
-     * @return
+     * @return 返回会话的优先显示名。
      */
     public String getDisplayName() {
         if (null != this.contact) {
@@ -219,7 +255,7 @@ public class Conversation extends Entity {
     /**
      * 获取最近的更新日期。
      *
-     * @return
+     * @return 返回最近的更新日期。
      */
     public Date getDate() {
         return new Date(this.timestamp);
@@ -228,16 +264,32 @@ public class Conversation extends Entity {
     /**
      * 获取最近的摘要。
      *
-     * @return
+     * @return 获取最近的摘要。
      */
     public String getRecentSummary() {
         return this.recentMessage.getSummary();
+    }
+
+    /**
+     * 判断会话是否是已关注的会话。
+     *
+     * @return 如果是已关注的会话，返回 {@code true} 。
+     */
+    public boolean focused() {
+        return this.state == ConversationState.Important;
     }
 
     public void setRecentMessage(Message recentMessage) {
         this.recentMessage = recentMessage;
         if (recentMessage.getRemoteTimestamp() > this.timestamp) {
             this.timestamp = recentMessage.getRemoteTimestamp();
+        }
+    }
+
+    @Override
+    public void setTimestamp(long timestamp) {
+        if (timestamp > this.timestamp) {
+            this.timestamp = timestamp;
         }
     }
 
@@ -253,8 +305,20 @@ public class Conversation extends Entity {
         this.unreadCount = count;
     }
 
+    public void setState(ConversationState state) {
+        this.state = state;
+    }
+
+    public void setReminded(ConversationReminded reminded) {
+        this.reminded = reminded;
+    }
+
     @Override
     public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+
         if (null != object && object instanceof Conversation) {
             Conversation other = (Conversation) object;
             if (other.id.longValue() == this.id.longValue()) {
@@ -272,13 +336,33 @@ public class Conversation extends Entity {
 
     @Override
     public JSONObject toJSON() {
-        JSONObject json = super.toJSON();
+        JSONObject json = super.toCompactJSON();
+        try {
+            json.put("domain", AuthService.getDomain());
+            json.put("type", this.type.code);
+            json.put("state", this.state.code);
+            json.put("remind", this.reminded.code);
+            json.put("pivotal", this.pivotalId.longValue());
+            json.put("unread", this.unreadCount);
+
+            if (null != this.recentMessage) {
+                json.put("recentMessage", this.recentMessage.toJSON());
+            }
+
+            if (null != this.avatarName) {
+                json.put("avatarName", this.avatarName);
+            }
+            if (null != this.avatarURL) {
+                json.put("avatarURL", this.avatarURL);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
         return json;
     }
 
     @Override
     public JSONObject toCompactJSON() {
-        JSONObject json = super.toCompactJSON();
-        return json;
+        return this.toJSON();
     }
 }

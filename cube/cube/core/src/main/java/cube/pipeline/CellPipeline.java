@@ -106,18 +106,26 @@ public class CellPipeline extends Pipeline implements TalkListener {
     }
 
     @Override
-    public void send(String destination, Packet packet) {
+    public boolean send(String destination, Packet packet) {
+        if (!this.isReady()) {
+            return false;
+        }
+
         ActionDialect dialect = this.convertPacketToDialect(packet);
-        this.nucleus.getTalkService().speak(destination, dialect);
+        return this.nucleus.getTalkService().speak(destination, dialect);
     }
 
     @Override
-    public void send(String destination, Packet packet, PipelineHandler handler) {
+    public boolean send(String destination, Packet packet, PipelineHandler handler) {
+        if (!this.isReady()) {
+            return false;
+        }
+
         long timestamp = System.currentTimeMillis();
         this.responseCallbackMap.put(packet.sn, new ResponseCallback(destination, handler, timestamp));
 
         ActionDialect dialect = this.convertPacketToDialect(packet);
-        this.nucleus.getTalkService().speak(destination, dialect);
+        return this.nucleus.getTalkService().speak(destination, dialect);
     }
 
     @Override

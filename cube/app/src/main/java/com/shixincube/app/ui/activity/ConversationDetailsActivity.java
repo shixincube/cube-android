@@ -28,6 +28,7 @@ package com.shixincube.app.ui.activity;
 
 import android.content.Intent;
 import android.view.View;
+import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -41,6 +42,10 @@ import com.shixincube.app.widget.recyclerview.RecyclerView;
 
 import butterknife.BindView;
 import cube.engine.CubeEngine;
+import cube.engine.util.Future;
+import cube.engine.util.Promise;
+import cube.engine.util.PromiseFuture;
+import cube.engine.util.PromiseHandler;
 import cube.messaging.model.Conversation;
 import cube.messaging.model.ConversationType;
 
@@ -64,10 +69,19 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
     @BindView(R.id.sbTopConversation)
     SwitchButton topConversationSwitch;
 
+    private boolean isFirst = true;
+
     private Conversation conversation;
 
     public ConversationDetailsActivity() {
         super();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        this.presenter.load();
     }
 
     @Override
@@ -87,8 +101,56 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
     }
 
     @Override
-    public void initData() {
-        this.presenter.load();
+    public void initListener() {
+        this.topConversationSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean checked) {
+                if (conversation.focused() == checked) {
+                    return;
+                }
+                
+                if (checked) {
+                    // 设置置顶
+                    Promise.create(new PromiseHandler<Boolean>() {
+                        @Override
+                        public void emit(PromiseFuture<Boolean> promise) {
+                            boolean result = CubeEngine.getInstance().getMessagingService().focusOnConversation(conversation);
+                            promise.resolve(result);
+                        }
+                    }).thenOnMainThread(new Future<Boolean>() {
+                        @Override
+                        public void come(Boolean data) {
+                            if (data.booleanValue()) {
+                                UIUtils.showToast(UIUtils.getString(R.string.conv_top_confirm));
+                            }
+                            else {
+                                UIUtils.showToast(UIUtils.getString(R.string.please_try_again_later));
+                            }
+                        }
+                    }).launch();
+                }
+                else {
+                    // 取消置顶
+                    Promise.create(new PromiseHandler<Boolean>() {
+                        @Override
+                        public void emit(PromiseFuture<Boolean> promise) {
+                            boolean result = CubeEngine.getInstance().getMessagingService().focusOutConversation(conversation);
+                            promise.resolve(result);
+                        }
+                    }).thenOnMainThread(new Future<Boolean>() {
+                        @Override
+                        public void come(Boolean data) {
+                            if (data.booleanValue()) {
+                                UIUtils.showToast(UIUtils.getString(R.string.conv_top_cancel));
+                            }
+                            else {
+                                UIUtils.showToast(UIUtils.getString(R.string.please_try_again_later));
+                            }
+                        }
+                    }).launch();
+                }
+            }
+        });
     }
 
     @Override
@@ -104,5 +166,15 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
     @Override
     public RecyclerView getMemberListView() {
         return this.membersRecyclerView;
+    }
+
+    @Override
+    public SwitchButton getCloseRemindSwitchButton() {
+        return this.closeRemindSwitch;
+    }
+
+    @Override
+    public SwitchButton getTopConversationSwitchButton() {
+        return this.topConversationSwitch;
     }
 }

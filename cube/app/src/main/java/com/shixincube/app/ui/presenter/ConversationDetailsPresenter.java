@@ -26,8 +26,6 @@
 
 package com.shixincube.app.ui.presenter;
 
-import android.widget.ImageView;
-
 import com.bumptech.glide.Glide;
 import com.shixincube.app.R;
 import com.shixincube.app.manager.AccountHelper;
@@ -49,6 +47,7 @@ import cube.engine.util.Promise;
 import cube.engine.util.PromiseFuture;
 import cube.engine.util.PromiseHandler;
 import cube.messaging.model.Conversation;
+import cube.messaging.model.ConversationReminded;
 import cube.messaging.model.ConversationType;
 
 /**
@@ -75,10 +74,14 @@ public class ConversationDetailsPresenter extends BasePresenter<ConversationDeta
             @Override
             public void emit(PromiseFuture<List<Contact>> promise) {
                 loadMembers();
+                promise.resolve(members);
             }
         }).thenOnMainThread(new Future<List<Contact>>() {
             @Override
             public void come(List<Contact> data) {
+                getView().getCloseRemindSwitchButton().setChecked(!(conversation.getReminded() == ConversationReminded.Normal));
+                getView().getTopConversationSwitchButton().setChecked(conversation.focused());
+
                 adapter.notifyDataSetChangedWrapper();
             }
         }).launch();
@@ -115,7 +118,8 @@ public class ConversationDetailsPresenter extends BasePresenter<ConversationDeta
                     }
                     else {
                         helper.setText(R.id.tvName, item.getPriorityName());
-                        ImageView avatar = helper.getView(R.id.ivAvatar);
+                        AdvancedImageView avatar = helper.getView(R.id.ivAvatar);
+                        avatar.setCornerRadius(4);
                         String avatarName = Account.getAvatar(item.getContext());
                         Glide.with(activity)
                                 .load(AccountHelper.explainAvatarForResource(avatarName))
@@ -124,6 +128,10 @@ public class ConversationDetailsPresenter extends BasePresenter<ConversationDeta
                     }
                 }
             };
+
+            this.adapter.setOnItemClickListener((helper, parent, itemView, position) -> {
+
+            });
 
             getView().getMemberListView().setAdapter(this.adapter);
         }

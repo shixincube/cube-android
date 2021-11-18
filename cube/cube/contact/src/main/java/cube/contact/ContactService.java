@@ -66,10 +66,10 @@ import cube.core.Module;
 import cube.core.ModuleError;
 import cube.core.Packet;
 import cube.core.PipelineState;
-import cube.core.handler.CompletionHandler;
 import cube.core.handler.DefaultFailureHandler;
 import cube.core.handler.FailureHandler;
 import cube.core.handler.PipelineHandler;
+import cube.core.handler.StableCompletionHandler;
 import cube.core.handler.StableFailureHandler;
 import cube.util.LogUtils;
 import cube.util.ObservableEvent;
@@ -1164,9 +1164,12 @@ public class ContactService extends Module {
         MutableBoolean gotGroups = new MutableBoolean(false);
         MutableBoolean gotBlockList = new MutableBoolean(false);
 
-        CompletionHandler completion = (module) -> {
-            if (gotAppendix.value && gotZoneList.value && gotGroups.value && gotBlockList.value) {
-                fireSignInCompleted();
+        StableCompletionHandler completion = new StableCompletionHandler() {
+            @Override
+            public void handleCompletion(Module module) {
+                if (gotAppendix.value && gotZoneList.value && gotGroups.value && gotBlockList.value) {
+                    fireSignInCompleted();
+                }
             }
         };
 

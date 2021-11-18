@@ -65,4 +65,9 @@ public final class MessagingAction {
      * 获取会话列表。
      */
     public final static String GetConversations = "getConversations";
+
+    /**
+     * 更新会话数据。
+     */
+    public final static String UpdateConversation = "updateConversation";
 }

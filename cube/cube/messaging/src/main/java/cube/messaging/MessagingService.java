@@ -65,6 +65,7 @@ import cube.core.handler.CompletionHandler;
 import cube.core.handler.DefaultFailureHandler;
 import cube.core.handler.FailureHandler;
 import cube.core.handler.PipelineHandler;
+import cube.core.handler.StableCompletionHandler;
 import cube.core.handler.StableFailureHandler;
 import cube.fileprocessor.FileProcessor;
 import cube.fileprocessor.model.FileThumbnail;
@@ -74,6 +75,8 @@ import cube.filestorage.handler.StableUploadFileHandler;
 import cube.filestorage.model.FileAnchor;
 import cube.filestorage.model.FileLabel;
 import cube.messaging.extension.MessageTypePlugin;
+import cube.messaging.handler.ConversationHandler;
+import cube.messaging.handler.DefaultConversationHandler;
 import cube.messaging.handler.DefaultSendHandler;
 import cube.messaging.handler.LoadAttachmentHandler;
 import cube.messaging.handler.MessageListResultHandler;
@@ -103,6 +106,8 @@ public class MessagingService extends Module {
     private final static String TAG = MessagingService.class.getSimpleName();
 
     private long retrospectDuration = 30L * 24L * 60L * 60000L;
+
+    private long blockTimeout = 3L * 60L * 1000L;
 
     private MessagingPipelineListener pipelineListener;
 
@@ -205,7 +210,7 @@ public class MessagingService extends Module {
         synchronized (this) {
             if (null != this.contactService.getSelf() && !this.ready && !this.preparing.get()) {
                 this.execute(() -> {
-                    prepare(new CompletionHandler() {
+                    prepare(new StableCompletionHandler() {
                         @Override
                         public void handleCompletion(Module module) {
                             ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Ready, MessagingService.this);
@@ -400,6 +405,7 @@ public class MessagingService extends Module {
                     this.conversations = new Vector<>(list);
                 }
                 else {
+                    this.conversations.clear();
                     this.conversations.addAll(list);
                 }
 
@@ -471,10 +477,54 @@ public class MessagingService extends Module {
      * 标记指定会话里的所有消息为已读。
      *
      * @param conversation 指定会话。
-     * @param completionHandler 指定操作完成的回调句柄。
      */
-    public void markRead(final Conversation conversation, CompletionHandler completionHandler) {
+    public void markRead(final Conversation conversation) {
+        final Object mutex = new Object();
+
+        this.markRead(conversation, new DefaultConversationHandler(false) {
+            @Override
+            public void handleConversation(Conversation conversation) {
+                synchronized (mutex) {
+                    mutex.notify();
+                }
+            }
+        }, new StableFailureHandler() {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                synchronized (mutex) {
+                    mutex.notify();
+                }
+            }
+        });
+
+        synchronized (mutex) {
+            try {
+                mutex.wait(this.blockTimeout);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * 标记指定会话里的所有消息为已读。
+     *
+     * @param conversation 指定会话。
+     * @param conversationHandler 指定回调句柄。
+     * @param failureHandler 指定故障回调句柄。
+     */
+    public void markRead(final Conversation conversation, ConversationHandler conversationHandler, FailureHandler failureHandler) {
         if (conversation.getUnreadCount() == 0) {
+            if (conversationHandler.isInMainThread()) {
+                executeOnMainThread(() -> {
+                    conversationHandler.handleConversation(conversation);
+                });
+            }
+            else {
+                execute(() -> {
+                    conversationHandler.handleConversation(conversation);
+                });
+            }
             return;
         }
 
@@ -503,66 +553,356 @@ public class MessagingService extends Module {
         conversation.getRecentMessage().setState(MessageState.Read);
         conversation.setUnreadCount(0);
 
-        this.execute(new Runnable() {
+        this.execute(() -> {
+            // 更新会话
+            storage.updateConversation(conversation);
+
+            // 更新会话相关的数据
+            List<Long> idList = storage.updateMessageState(conversation, MessageState.Sent, MessageState.Read);
+
+            if (idList.isEmpty()) {
+                // 没有记录
+                if (conversationHandler.isInMainThread()) {
+                    executeOnMainThread(() -> {
+                        conversationHandler.handleConversation(conversation);
+                    });
+                }
+                else {
+                    conversationHandler.handleConversation(conversation);
+                }
+                return;
+            }
+
+            if (!pipeline.isReady()) {
+                ModuleError error = new ModuleError(MessagingService.NAME, MessagingServiceState.PipelineFault.code);
+                error.data = conversation;
+                if (failureHandler.isInMainThread()) {
+                    executeOnMainThread(() -> {
+                        failureHandler.handleFailure(MessagingService.this, error);
+                    });
+                }
+                else {
+                    failureHandler.handleFailure(MessagingService.this, error);
+                }
+                return;
+            }
+
+            JSONArray array = new JSONArray();
+            for (Long id : idList) {
+                array.put(id.longValue());
+            }
+
+            // 发送请求到服务器
+            JSONObject payload = new JSONObject();
+            try {
+                payload.put("contactId", contactService.getSelf().id.longValue());
+                payload.put("messageIdList", array);
+                if (conversation.getType() == ConversationType.Contact) {
+                    payload.put("messageFrom", conversation.getPivotalId().longValue());
+                }
+                else if (conversation.getType() == ConversationType.Group) {
+                    payload.put("messageSource", conversation.getPivotalId().longValue());
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            // 与服务器同步
+            Packet requestPacket = new Packet(MessagingAction.Read, payload);
+            pipeline.send(MessagingService.NAME, requestPacket, new PipelineHandler() {
+                @Override
+                public void handleResponse(Packet packet) {
+                    if (packet.state.code != PipelineState.Ok.code) {
+                        LogUtils.w(TAG, "#markRead - code : " + packet.state.code);
+
+                        ModuleError error = new ModuleError(MessagingService.NAME, packet.state.code);
+                        error.data = conversation;
+                        if (failureHandler.isInMainThread()) {
+                            executeOnMainThread(() -> {
+                                failureHandler.handleFailure(MessagingService.this, error);
+                            });
+                        }
+                        else {
+                            execute(() -> {
+                                failureHandler.handleFailure(MessagingService.this, error);
+                            });
+                        }
+                        return;
+                    }
+
+                    int stateCode = packet.extractServiceStateCode();
+                    if (stateCode != MessagingServiceState.Ok.code) {
+                        LogUtils.w(TAG, "#markRead - code : " + stateCode);
+
+                        ModuleError error = new ModuleError(MessagingService.NAME, stateCode);
+                        error.data = conversation;
+                        if (failureHandler.isInMainThread()) {
+                            executeOnMainThread(() -> {
+                                failureHandler.handleFailure(MessagingService.this, error);
+                            });
+                        }
+                        else {
+                            execute(() -> {
+                                failureHandler.handleFailure(MessagingService.this, error);
+                            });
+                        }
+                        return;
+                    }
+
+                    // 更新消息在服务器上的状态
+                    storage.updateMessagesRemoteState(idList, MessageState.Read);
+
+                    if (conversationHandler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            conversationHandler.handleConversation(conversation);
+                        });
+                    }
+                    else {
+                        execute(() -> {
+                            conversationHandler.handleConversation(conversation);
+                        });
+                    }
+                }
+            });
+        });
+    }
+
+    /**
+     * 将指定会话的一般状态修改为关注状态。
+     *
+     * @param conversation 指定会话。
+     * @return 设置成功返回 {@code true} ，否则返回 {@code false} 。
+     */
+    public boolean focusOnConversation(Conversation conversation) {
+        final MutableBoolean mutex = new MutableBoolean(false);
+
+        this.focusOnConversation(conversation, new DefaultConversationHandler(false) {
             @Override
-            public void run() {
-                // 更新会话
-                storage.updateConversation(conversation);
+            public void handleConversation(Conversation conversation) {
+                mutex.value = true;
+                synchronized (mutex) {
+                    mutex.notify();
+                }
+            }
+        }, new StableFailureHandler() {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                synchronized (mutex) {
+                    mutex.notify();
+                }
+            }
+        });
 
-                // 更新会话相关的数据
-                List<Long> idList = storage.updateMessageState(conversation, MessageState.Sent, MessageState.Read);
+        synchronized (mutex) {
+            try {
+                mutex.wait(this.blockTimeout);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
 
-                if (idList.isEmpty()) {
-                    // 没有记录
-                    completionHandler.handleCompletion(MessagingService.this);
+        return mutex.value;
+    }
+
+    /**
+     * 将指定会话的一般状态修改为关注状态。
+     *
+     * @param conversation 指定会话。
+     * @param conversationHandler 指定回调句柄。
+     * @param failureHandler 指定故障回调句柄。
+     */
+    public void focusOnConversation(Conversation conversation, ConversationHandler conversationHandler, FailureHandler failureHandler) {
+        ConversationState state = conversation.getState();
+        if (ConversationState.Important == state) {
+            if (conversationHandler.isInMainThread()) {
+                this.executeOnMainThread(() -> {
+                    conversationHandler.handleConversation(conversation);
+                });
+            }
+            else {
+                this.execute(() -> {
+                    conversationHandler.handleConversation(conversation);
+                });
+            }
+            return;
+        }
+
+        // 修改状态
+        conversation.setState(ConversationState.Important);
+        // 排序
+        if (!this.conversations.contains(conversation)) {
+            this.conversations.add(conversation);
+        }
+        this.sortConversationList(this.conversations);
+
+        if (!this.updateConversation(conversation, conversationHandler, failureHandler)) {
+            // 更新流程没有执行，将状态修改为原状态
+            conversation.setState(ConversationState.Normal);
+        }
+    }
+
+    /**
+     * 将指定会话的关注状态修改为一般状态。
+     *
+     * @param conversation 指定会话。
+     * @return 设置成功返回 {@code true} ，否则返回 {@code false} 。
+     */
+    public boolean focusOutConversation(Conversation conversation) {
+        final MutableBoolean mutex = new MutableBoolean(false);
+
+        this.focusOutConversation(conversation, new DefaultConversationHandler(false) {
+            @Override
+            public void handleConversation(Conversation conversation) {
+                mutex.value = true;
+                synchronized (mutex) {
+                    mutex.notify();
+                }
+            }
+        }, new StableFailureHandler() {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                synchronized (mutex) {
+                    mutex.notify();
+                }
+            }
+        });
+
+        synchronized (mutex) {
+            try {
+                mutex.wait(this.blockTimeout);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return mutex.value;
+    }
+
+    /**
+     * 将指定会话的关注状态修改为一般状态。
+     *
+     * @param conversation 指定会话。
+     * @param conversationHandler 指定回调句柄。
+     * @param failureHandler 指定故障回调句柄。
+     */
+    public void focusOutConversation(Conversation conversation, ConversationHandler conversationHandler, FailureHandler failureHandler) {
+        ConversationState state = conversation.getState();
+        if (ConversationState.Normal == state) {
+            if (conversationHandler.isInMainThread()) {
+                this.executeOnMainThread(() -> {
+                    conversationHandler.handleConversation(conversation);
+                });
+            }
+            else {
+                this.execute(() -> {
+                    conversationHandler.handleConversation(conversation);
+                });
+            }
+            return;
+        }
+
+        // 修改状态
+        conversation.setState(ConversationState.Normal);
+        // 排序
+        if (!this.conversations.contains(conversation)) {
+            this.conversations.add(conversation);
+        }
+        this.sortConversationList(this.conversations);
+
+        if (!this.updateConversation(conversation, conversationHandler, failureHandler)) {
+            // 更新流程没有执行，将状态修改为原状态
+            conversation.setState(ConversationState.Important);
+        }
+    }
+
+    /**
+     * 执行会话更新流程。
+     *
+     * @param conversation
+     * @param conversationHandler
+     * @param failureHandler
+     * @return
+     */
+    private boolean updateConversation(Conversation conversation, ConversationHandler conversationHandler, FailureHandler failureHandler) {
+        if (!this.pipeline.isReady()) {
+            ModuleError error = new ModuleError(MessagingService.NAME, MessagingServiceState.PipelineFault.code);
+            error.data = conversation;
+            if (failureHandler.isInMainThread()) {
+                this.executeOnMainThread(() -> {
+                    failureHandler.handleFailure(MessagingService.this, error);
+                });
+            }
+            else {
+                this.execute(() -> {
+                    failureHandler.handleFailure(MessagingService.this, error);
+                });
+            }
+
+            return false;
+        }
+
+        Packet requestPacket = new Packet(MessagingAction.UpdateConversation, conversation.toJSON());
+        this.pipeline.send(MessagingService.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    ModuleError error = new ModuleError(MessagingService.NAME, packet.state.code);
+                    error.data = conversation;
+                    if (failureHandler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            failureHandler.handleFailure(MessagingService.this, error);
+                        });
+                    }
+                    else {
+                        execute(() -> {
+                            failureHandler.handleFailure(MessagingService.this, error);
+                        });
+                    }
                     return;
                 }
 
-                JSONArray array = new JSONArray();
-                for (Long id : idList) {
-                    array.put(id.longValue());
+                int state = packet.extractServiceStateCode();
+                if (state != MessagingServiceState.Ok.code) {
+                    ModuleError error = new ModuleError(MessagingService.NAME, state);
+                    error.data = conversation;
+                    if (failureHandler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            failureHandler.handleFailure(MessagingService.this, error);
+                        });
+                    }
+                    else {
+                        execute(() -> {
+                            failureHandler.handleFailure(MessagingService.this, error);
+                        });
+                    }
+                    return;
                 }
 
-                // 发送请求到服务器
-                JSONObject payload = new JSONObject();
                 try {
-                    payload.put("contactId", contactService.getSelf().id.longValue());
-                    payload.put("messageIdList", array);
-                    if (conversation.getType() == ConversationType.Contact) {
-                        payload.put("messageFrom", conversation.getPivotalId().longValue());
-                    }
-                    else if (conversation.getType() == ConversationType.Group) {
-                        payload.put("messageSource", conversation.getPivotalId().longValue());
-                    }
+                    Conversation responseConversation = new Conversation(packet.extractServiceData());
+                    conversation.setState(responseConversation.getState());
+                    conversation.setReminded(responseConversation.getReminded());
                 } catch (JSONException e) {
-                    e.printStackTrace();
+                    LogUtils.w(TAG, "#updateConverstion", e);
                 }
 
-                // 与服务器同步
-                Packet requestPacket = new Packet(MessagingAction.Read, payload);
-                pipeline.send(MessagingService.NAME, requestPacket, new PipelineHandler() {
-                    @Override
-                    public void handleResponse(Packet packet) {
-                        if (packet.state.code != PipelineState.Ok.code) {
-                            LogUtils.w(TAG, "#markRead - code : " + packet.state.code);
-                            completionHandler.handleCompletion(MessagingService.this);
-                            return;
-                        }
+                // 更新数据库
+                storage.updateConversation(conversation);
 
-                        int stateCode = packet.extractServiceStateCode();
-                        if (stateCode != MessagingServiceState.Ok.code) {
-                            LogUtils.w(TAG, "#markRead - code : " + stateCode);
-                            completionHandler.handleCompletion(MessagingService.this);
-                            return;
-                        }
-
-                        // 更新消息在服务器上的状态
-                        storage.updateMessagesRemoteState(idList, MessageState.Read);
-                        completionHandler.handleCompletion(MessagingService.this);
-                    }
-                });
+                if (conversationHandler.isInMainThread()) {
+                    executeOnMainThread(() -> {
+                        conversationHandler.handleConversation(conversation);
+                    });
+                }
+                else {
+                    execute(() -> {
+                        conversationHandler.handleConversation(conversation);
+                    });
+                }
             }
         });
+
+        return true;
     }
 
     /**
@@ -1497,7 +1837,7 @@ public class MessagingService extends Module {
         }
     }
 
-    private void prepare(CompletionHandler handler) {
+    private void prepare(StableCompletionHandler handler) {
         this.preparing.set(true);
 
         Self self = this.contactService.getSelf();
@@ -1538,7 +1878,7 @@ public class MessagingService extends Module {
         MutableBoolean gotConversations = new MutableBoolean(false);
 
         // 从服务器上拉取自上一次时间戳之后的所有消息
-        this.queryRemoteMessage(this.lastMessageTime + 1, now, new CompletionHandler() {
+        this.queryRemoteMessage(this.lastMessageTime + 1, now, new StableCompletionHandler() {
             @Override
             public void handleCompletion(Module module) {
                 gotMessages.value = true;
@@ -1554,11 +1894,11 @@ public class MessagingService extends Module {
         // 获取最新的会话列表
         // 根据最近一次消息时间戳更新数量
         int limit = 30;
-        if (now - this.lastMessageTime > 1L * 60L * 60L * 1000L) {
+        if (now - this.lastMessageTime > 1 * 60 * 60 * 1000) {
             // 大于一小时
             limit = 50;
         }
-        this.queryRemoteConversations(limit, new CompletionHandler() {
+        this.queryRemoteConversations(limit, new StableCompletionHandler() {
             @Override
             public void handleCompletion(Module module) {
                 gotConversations.value = true;
@@ -1579,7 +1919,7 @@ public class MessagingService extends Module {
      * @param ending
      * @param completionHandler
      */
-    private void queryRemoteMessage(long beginning, long ending, CompletionHandler completionHandler) {
+    private void queryRemoteMessage(long beginning, long ending, StableCompletionHandler completionHandler) {
         LogUtils.d(TAG, "#queryRemoteMessage : " + Math.floor((ending - beginning) / 1000.0 / 60.0) + " min");
 
         if (!this.pipeline.isReady() && this.isAvailableNetwork()) {
@@ -1659,7 +1999,7 @@ public class MessagingService extends Module {
      * @param limit
      * @param completionHandler
      */
-    private void queryRemoteConversations(int limit, CompletionHandler completionHandler) {
+    private void queryRemoteConversations(int limit, StableCompletionHandler completionHandler) {
         if (!this.pipeline.isReady() && this.isAvailableNetwork()) {
             synchronized (this) {
                 try {
@@ -1787,20 +2127,28 @@ public class MessagingService extends Module {
             list.appendMessage(message);
         }
 
-        // 跳过私域消息
-        if (message.getScope() == MessageScope.Private) {
-            return;
-        }
-
+        Conversation conversation = null;
         if (null != this.conversations && !this.conversations.isEmpty()) {
-            for (Conversation conversation : this.conversations) {
-                if (conversation.getPivotalId().longValue() == conversationId) {
-                    conversation.setRecentMessage(message);
-                    this.sortConversationList(this.conversations);
+            for (Conversation current : this.conversations) {
+                if (current.getPivotalId().longValue() == conversationId) {
+                    conversation = current;
                     break;
                 }
             }
         }
+
+        // 跳过私域消息
+        if (message.getScope() == MessageScope.Private) {
+            if (null != conversation) {
+                conversation.setTimestamp(message.getLocalTimestamp());
+                this.sortConversationList(this.conversations);
+            }
+            return;
+        }
+
+        // 更新消息
+        conversation.setRecentMessage(message);
+        this.sortConversationList(this.conversations);
 
         // 更新会话数据库
         this.storage.updateRecentMessage(conversationId, message);
@@ -1811,7 +2159,7 @@ public class MessagingService extends Module {
             synchronized (this) {
                 if (!this.ready && !this.preparing.get()) {
                     // 准备数据
-                    this.prepare(new CompletionHandler() {
+                    this.prepare(new StableCompletionHandler() {
                         @Override
                         public void handleCompletion(Module module) {
                             ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Ready, MessagingService.this);
@@ -2062,34 +2410,35 @@ public class MessagingService extends Module {
     }
 
     private void sortConversationList(List<Conversation> list) {
+        List<Conversation> normalList = new ArrayList<>();
+
         // 将 Important 置顶
         Collections.sort(list, new Comparator<Conversation>() {
             @Override
             public int compare(Conversation c1, Conversation c2) {
-                if (c1.getState().code == c2.getState().code) {
-                    // 相同状态，判断时间戳
-                    if (c1.getTimestamp() < c2.getTimestamp()) {
-                        return 1;
-                    }
-                    else if (c1.getTimestamp() > c2.getTimestamp()) {
-                        return -1;
-                    }
-                    else {
-                        return 0;
-                    }
+                if (c1.getTimestamp() < c2.getTimestamp()) {
+                    return 1;
+                }
+                else if (c1.getTimestamp() > c2.getTimestamp()) {
+                    return -1;
                 }
                 else {
-                    if (c1.getState() == ConversationState.Normal && c2.getState() == ConversationState.Important) {
-                        // 交换顺序，把 c2 排到前面
-                        return 1;
-                    }
-                    else if (c1.getState() == ConversationState.Important && c2.getState() == ConversationState.Normal) {
-                        return -1;
-                    }
+                    return 0;
                 }
-
-                return 0;
             }
         });
+
+        Iterator<Conversation> iterator = list.iterator();
+        while (iterator.hasNext()) {
+            Conversation conversation = iterator.next();
+            if (conversation.getState() == ConversationState.Normal ||
+                conversation.getState() == ConversationState.Deleted) {
+                // 添加到临时表
+                normalList.add(conversation);
+                iterator.remove();
+            }
+        }
+
+        list.addAll(normalList);
     }
 }

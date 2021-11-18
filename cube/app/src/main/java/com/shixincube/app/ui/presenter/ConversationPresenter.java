@@ -95,6 +95,15 @@ public class ConversationPresenter extends BasePresenter<ConversationView> imple
                         // TODO
                     }
 
+                    // 会话是否置顶
+                    if (item.conversation.focused()) {
+                        helper.setBackgroundColor(R.id.flRoot, R.color.item_focus_bg);
+                    }
+                    else {
+                        helper.setBackgroundColor(R.id.flRoot, R.color.item_bg);
+                    }
+
+                    // 会话提醒类型
                     if (item.conversation.getReminded() == ConversationReminded.Normal) {
                         if (item.conversation.getUnreadCount() > 0) {
                             helper.setText(R.id.tvBadge, Integer.toString(item.conversation.getUnreadCount()));

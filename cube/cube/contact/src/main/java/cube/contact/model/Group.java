@@ -26,19 +26,56 @@
 
 package cube.contact.model;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * 群组对象。
+ * 群组描述。包含了多个联系人的集合。
  */
 public class Group extends AbstractContact {
 
+    private String tag;
+
+    private long ownerId;
+
+    private long creation;
+
+    private long lastActive;
+
+    private GroupState state;
+
+    private List<Long> memberIdList;
+
+    private List<Contact> memberList;
+
+    private GroupAppendix appendix;
+
     public Group(JSONObject json) throws JSONException {
         super(json);
+        this.tag = json.getString("tag");
+        this.ownerId = json.getLong("ownerId");
+        this.creation = json.getLong("creation");
+        this.lastActive = json.getLong("lastActive");
+        this.state = GroupState.parse(json.getInt("state"));
+        this.memberIdList = new ArrayList<>();
+
+        if (json.has("members")) {
+            JSONArray array = json.getJSONArray("members");
+            for (int i = 0; i < array.length(); ++i) {
+                this.memberIdList.add(array.getLong(i));
+            }
+        }
     }
 
     public String getPriorityName() {
         return this.name;
+    }
+
+    public void setAppendix(GroupAppendix appendix) {
+        this.appendix = appendix;
     }
 }

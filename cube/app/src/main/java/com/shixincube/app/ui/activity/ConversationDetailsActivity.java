@@ -47,12 +47,16 @@ import cube.engine.util.Promise;
 import cube.engine.util.PromiseFuture;
 import cube.engine.util.PromiseHandler;
 import cube.messaging.model.Conversation;
+import cube.messaging.model.ConversationReminded;
 import cube.messaging.model.ConversationType;
+import cube.util.LogUtils;
 
 /**
  * 会话详情。
  */
 public class ConversationDetailsActivity extends BaseActivity<ConversationDetailsView, ConversationDetailsPresenter> implements ConversationDetailsView {
+
+    private final static String TAG = ConversationDetailsActivity.class.getSimpleName();
 
     @BindView(R.id.tvToolbarTitle)
     TextView toolbarTitleTextView;
@@ -102,13 +106,50 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
 
     @Override
     public void initListener() {
+        // 关闭消息提醒按钮事件
+        this.closeRemindSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean checked) {
+                if (checked) {
+                    if (conversation.getReminded() == ConversationReminded.Closed) {
+                        return;
+                    }
+                }
+                else {
+                    if (conversation.getReminded() == ConversationReminded.Normal) {
+                        return;
+                    }
+                }
+
+                Promise.create(new PromiseHandler<Boolean>() {
+                    @Override
+                    public void emit(PromiseFuture<Boolean> promise) {
+                        boolean result = CubeEngine.getInstance().getMessagingService().updateConversation(conversation,
+                                checked ? ConversationReminded.Closed : ConversationReminded.Normal);
+                        promise.resolve(result);
+                    }
+                }).then(new Future<Boolean>() {
+                    @Override
+                    public void come(Boolean data) {
+                        if (data.booleanValue()) {
+                            LogUtils.i(TAG, "Change reminding success : " + conversation.getReminded().name());
+                        }
+                        else {
+                            LogUtils.w(TAG, "Change reminding failure : " + conversation.getReminded().name());
+                        }
+                    }
+                }).launch();
+            }
+        });
+
+        // 置顶按钮事件
         this.topConversationSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean checked) {
                 if (conversation.focused() == checked) {
                     return;
                 }
-                
+
                 if (checked) {
                     // 设置置顶
                     Promise.create(new PromiseHandler<Boolean>() {

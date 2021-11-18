@@ -41,17 +41,17 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import cube.auth.AuthToken;
-import cube.contact.handler.ContactAppendixHandler;
 import cube.contact.handler.ContactHandler;
 import cube.contact.handler.ContactListHandler;
 import cube.contact.handler.ContactZoneHandler;
 import cube.contact.handler.ContactZoneListHandler;
-import cube.contact.handler.DefaultContactAppendixHandler;
 import cube.contact.handler.DefaultContactZoneHandler;
 import cube.contact.handler.GroupListHandler;
 import cube.contact.handler.SignHandler;
+import cube.contact.handler.StableContactAppendixHandler;
 import cube.contact.handler.StableContactHandler;
 import cube.contact.handler.StableContactZoneHandler;
+import cube.contact.handler.WorkingGroupListHandler;
 import cube.contact.model.AbstractContact;
 import cube.contact.model.Contact;
 import cube.contact.model.ContactAppendix;
@@ -84,6 +84,8 @@ public class ContactService extends Module {
      */
     public final static String NAME = "Contact";
 
+    private final static String TAG = ContactService.class.getSimpleName();
+
     /** 阻塞调用方法的超时时间。 */
     private final long blockingTimeout = 10L * 1000L;
 
@@ -109,6 +111,11 @@ public class ContactService extends Module {
     private ConcurrentHashMap<Long, AbstractContact> cache;
 
     private List<ContactZoneListener> contactZoneListenerList;
+
+    /**
+     * 正在工作的群组清单句柄。
+     */
+    private WorkingGroupListHandler workingGroupListHandler;
 
     public ContactService() {
         super(ContactService.NAME);
@@ -460,7 +467,7 @@ public class ContactService extends Module {
      * <b>不建议在主线程里调用该方法。</b>
      *
      * @param contactId 指定联系人 ID 。
-     * @return 返回联系人实例。如果没有获取到数据返回 {code null} 值。
+     * @return 返回联系人实例。如果没有获取到数据返回 {@code null} 值。
      */
     public Contact getContact(Long contactId) {
         if (null == this.self) {
@@ -697,7 +704,7 @@ public class ContactService extends Module {
                     storage.writeContact(contact);
 
                     // 获取附录
-                    getAppendix(contact, new DefaultContactAppendixHandler() {
+                    getAppendix(contact, new StableContactAppendixHandler() {
                         @Override
                         public void handleAppendix(Contact contact, ContactAppendix appendix) {
                             // 写入缓存
@@ -712,16 +719,23 @@ public class ContactService extends Module {
                                 successHandler.handleContact(contact);
                             }
                         }
-                    }, new DefaultFailureHandler((null != failureHandler) && failureHandler.isInMainThread()) {
+                    }, new StableFailureHandler() {
                         @Override
                         public void handleFailure(Module module, ModuleError error) {
                             if (null != failureHandler) {
-                                failureHandler.handleFailure(module, error);
+                                if (failureHandler.isInMainThread()) {
+                                    executeOnMainThread(() -> {
+                                        failureHandler.handleFailure(module, error);
+                                    });
+                                }
+                                else {
+                                    failureHandler.handleFailure(module, error);
+                                }
                             }
                         }
                     });
                 } catch (JSONException e) {
-                    LogUtils.w(ContactService.class.getSimpleName(), e);
+                    LogUtils.w(TAG, e);
                 }
             }
         });
@@ -849,7 +863,7 @@ public class ContactService extends Module {
         });
     }
 
-    protected void getAppendix(Contact contact, ContactAppendixHandler successHandler, FailureHandler failureHandler) {
+    private void getAppendix(Contact contact, StableContactAppendixHandler successHandler, StableFailureHandler failureHandler) {
         JSONObject data = new JSONObject();
         try {
             data.put("contactId", contact.id.longValue());
@@ -863,6 +877,7 @@ public class ContactService extends Module {
                 if (packet.state.code != PipelineState.Ok.code) {
                     execute(() -> {
                         ModuleError error = new ModuleError(ContactService.NAME, packet.state.code);
+                        error.data = contact;
                         failureHandler.handleFailure(ContactService.this, error);
                     });
                     return;
@@ -872,6 +887,7 @@ public class ContactService extends Module {
                 if (stateCode != ContactServiceState.Ok.code) {
                     execute(() -> {
                         ModuleError error = new ModuleError(ContactService.NAME, stateCode);
+                        error.data = contact;
                         failureHandler.handleFailure(ContactService.this, error);
                     });
                     return;
@@ -893,11 +909,16 @@ public class ContactService extends Module {
                 catch (JSONException e) {
                     execute(() -> {
                         ModuleError error = new ModuleError(ContactService.NAME, ContactServiceState.DataStructureError.code);
+                        error.data = contact;
                         failureHandler.handleFailure(ContactService.this, error);
                     });
                 }
             }
         });
+    }
+
+    private void getAppendix(Group group) {
+
     }
 
     private void fillContactZone(final ContactZone zone) {
@@ -1061,14 +1082,46 @@ public class ContactService extends Module {
     }
 
     private void listGroups(long beginning, long ending, GroupListHandler handler) {
-        // TODO
-        ArrayList<Group> list = new ArrayList<>(1);
-        this.execute(new Runnable() {
-            @Override
-            public void run() {
-                handler.handleList(list);
+        if (null != this.workingGroupListHandler) {
+            return;
+        }
+
+        this.workingGroupListHandler = new WorkingGroupListHandler(handler);
+
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("beginning", beginning);
+            payload.put("ending", ending);
+            payload.put("pageSize", 4);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        Packet packet = new Packet(ContactServiceAction.ListGroups, payload);
+        this.pipeline.send(ContactService.NAME, packet);
+    }
+
+    protected void triggerListGroups(JSONObject data) {
+        int total = 0;
+        List<Group> groupList = new ArrayList<>();
+        try {
+            total = data.getInt("total");
+            JSONArray array = data.getJSONArray("list");
+            for (int i = 0; i < array.length(); ++i) {
+                JSONObject current = array.getJSONObject(i);
+                Group group = new Group(current);
+                groupList.add(group);
             }
-        });
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        // 获取群组附录
+//        this.getAppendix();
+
+        if (null != this.workingGroupListHandler) {
+            this.workingGroupListHandler.setTotal(total);
+        }
     }
 
     private void listBlockList(ContactListHandler handler) {
@@ -1176,17 +1229,17 @@ public class ContactService extends Module {
         long now = System.currentTimeMillis();
 
         // 获取附录
-        this.getAppendix(this.self, new DefaultContactAppendixHandler() {
+        this.getAppendix(this.self, new StableContactAppendixHandler() {
             @Override
             public void handleAppendix(Contact contact, ContactAppendix appendix) {
-                LogUtils.d(ContactService.class.getSimpleName(), "#getAppendix");
+                LogUtils.d(TAG, "#getAppendix");
                 gotAppendix.value = true;
                 completion.handleCompletion(null);
             }
-        }, new DefaultFailureHandler() {
+        }, new StableFailureHandler() {
             @Override
             public void handleFailure(Module module, ModuleError error) {
-                LogUtils.d(ContactService.class.getSimpleName(), "#getAppendix error : " + error.code);
+                LogUtils.d(TAG, "#getAppendix error : " + error.code);
                 gotAppendix.value = true;
                 completion.handleCompletion(null);
             }

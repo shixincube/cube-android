@@ -66,21 +66,23 @@ public class ContactAppendix implements JSONable {
     }
 
     /**
-     * 返回备注名。
+     * 获取备注名。
      *
-     * @return
+     * @return 返回备注名。
      */
     public String getRemarkName() {
         return this.remarkName;
     }
 
+    /**
+     * 是否设置了配置名。
+     *
+     * @return 如果设置了备注名返回 {@code true} 。
+     */
     public boolean hasRemarkName() {
         return (null != this.remarkName) && (this.remarkName.length() > 0);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public JSONObject toJSON() {
         JSONObject json = new JSONObject();
@@ -96,9 +98,6 @@ public class ContactAppendix implements JSONable {
         return json;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public JSONObject toCompactJSON() {
         return this.toJSON();

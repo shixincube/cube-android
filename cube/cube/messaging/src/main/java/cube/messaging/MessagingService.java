@@ -816,6 +816,51 @@ public class MessagingService extends Module {
     }
 
     /**
+     * 更新会话的提示状态。
+     *
+     * @param conversation 指定会话。
+     * @param remindedState 指定新的提示状态。
+     * @return 设置成功返回 {@code true} ，否则返回 {@code false} 。
+     */
+    public boolean updateConversation(Conversation conversation, ConversationReminded remindedState) {
+        if (conversation.getReminded() == remindedState) {
+            return false;
+        }
+
+        final MutableBoolean mutex = new MutableBoolean(false);
+
+        // 设置
+        conversation.setReminded(remindedState);
+
+        this.updateConversation(conversation, new DefaultConversationHandler(false) {
+            @Override
+            public void handleConversation(Conversation conversation) {
+                mutex.value = true;
+                synchronized (mutex) {
+                    mutex.notify();
+                }
+            }
+        }, new StableFailureHandler() {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                synchronized (mutex) {
+                    mutex.notify();
+                }
+            }
+        });
+
+        synchronized (mutex) {
+            try {
+                mutex.wait(this.blockTimeout);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return mutex.value;
+    }
+
+    /**
      * 执行会话更新流程。
      *
      * @param conversation

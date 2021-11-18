@@ -151,6 +151,7 @@ public class Conversation extends Entity {
     /**
      * 构造函数。
      *
+     * @param self
      * @param contact
      * @param reminded
      */
@@ -165,6 +166,10 @@ public class Conversation extends Entity {
         this.unreadCount = 0;
     }
 
+    public Long getPivotalId() {
+        return this.pivotalId;
+    }
+
     /**
      * 获取会话类型。
      *
@@ -174,12 +179,13 @@ public class Conversation extends Entity {
         return this.type;
     }
 
+    /**
+     * 获取会话状态。
+     *
+     * @return 返回会话状态。
+     */
     public ConversationState getState() {
         return this.state;
-    }
-
-    public Long getPivotalId() {
-        return this.pivotalId;
     }
 
     /**

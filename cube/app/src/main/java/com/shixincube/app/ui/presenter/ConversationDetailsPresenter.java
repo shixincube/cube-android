@@ -37,6 +37,7 @@ import com.shixincube.app.ui.activity.OperateGroupMemberMemberActivity;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.ConversationDetailsView;
+import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.AdvancedImageView;
 import com.shixincube.app.widget.adapter.AdapterForRecyclerView;
 import com.shixincube.app.widget.adapter.ViewHolderForRecyclerView;
@@ -91,6 +92,10 @@ public class ConversationDetailsPresenter extends BasePresenter<ConversationDeta
         }).launch();
     }
 
+    public void createGroup() {
+        activity.showWaitingDialog(UIUtils.getString(R.string.please_wait_a_moment));
+    }
+
     private void loadMembers() {
         this.members.clear();
 
@@ -143,14 +148,15 @@ public class ConversationDetailsPresenter extends BasePresenter<ConversationDeta
                 if (conversation.getType() == ConversationType.Contact) {
                     if (position == members.size() - 1) {
                         // 创建基于群组的会话
-                        ArrayList<Long> selectedId = new ArrayList<>();
+
                         // 数组长度 -1，因为数组最后一个是 "+" 视图
-                        for (int i = 0, len = members.size() - 1; i < len; ++i) {
-                            selectedId.add(members.get(i).getId());
+                        long[] selectedIdArray = new long[members.size() - 1];
+                        for (int i = 0; i < selectedIdArray.length; ++i) {
+                            selectedIdArray[i] = members.get(i).getId();
                         }
 
                         Intent intent = new Intent(activity, OperateGroupMemberMemberActivity.class);
-                        intent.putExtra("memberIdList", selectedId);
+                        intent.putExtra("memberIdList", selectedIdArray);
                         activity.startActivityForResult(intent, ConversationDetailsActivity.REQUEST_CREATE_OR_UPDATE_GROUP);
                     }
                     else {

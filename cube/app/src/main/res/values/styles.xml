@@ -33,7 +33,7 @@
         <item name="android:background">@color/theme_bg</item>
     </style>
 
-    <!--自定义CheckBox样式-->
+    <!-- 自定义CheckBox样式 -->
     <style name="CustomCheckboxTheme" parent="@android:style/Widget.CompoundButton.CheckBox">
         <item name="android:button">@drawable/checkbox_style</item>
     </style>

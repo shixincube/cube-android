@@ -33,6 +33,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -69,6 +70,9 @@ public abstract class BaseActivity<V, T extends BasePresenter<V>> extends AppCom
 
     @BindView(R.id.tvToolbarSubTitle)
     protected TextView toolbarSubTitle;
+
+    @BindView(R.id.btnToolbarFun)
+    protected Button toolbarFuncButton;
 
     @BindView(R.id.ibToolbarMore)
     protected ImageButton toolbarMore;

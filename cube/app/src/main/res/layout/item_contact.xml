@@ -14,7 +14,7 @@
         android:background="@color/item_index_bg"
         android:gravity="center_vertical"
         android:paddingStart="@dimen/item_margin_left_and_right"
-        android:text="A"
+        android:text="@string/letter_A"
         android:textColor="@color/text_secondary"
         android:textSize="12sp"
         android:visibility="gone"/>
@@ -57,7 +57,7 @@
             style="@style/CustomCheckboxTheme"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/item_margin_left_and_right"
+            android:layout_marginEnd="@dimen/item_margin_start_and_end"
             android:clickable="false"
             android:visibility="gone"/>
 

@@ -110,7 +110,7 @@ public class ContactService extends Module {
 
     private ContactDataProvider contactDataProvider;
 
-    private ConcurrentHashMap<Long, AbstractContact> cache;
+    protected ConcurrentHashMap<Long, AbstractContact> cache;
 
     private List<ContactZoneListener> contactZoneListenerList;
 

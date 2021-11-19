@@ -26,6 +26,9 @@
 
 package com.shixincube.app.ui.view;
 
+import android.view.View;
+import android.widget.Button;
+
 import com.shixincube.app.widget.recyclerview.RecyclerView;
 
 /**
@@ -34,4 +37,10 @@ import com.shixincube.app.widget.recyclerview.RecyclerView;
 public interface OperateGroupMemberView {
 
     RecyclerView getSelectedContactsView();
+
+    RecyclerView getAllContactsView();
+
+    Button getToolbarFunctionButton();
+
+    View getHeaderView();
 }

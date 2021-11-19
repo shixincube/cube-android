@@ -74,6 +74,9 @@ public class WorkingGroupListHandler implements GroupAppendixHandler, FailureHan
 
     public void addGroup(Group group) {
         this.groupList.add(group);
+
+        // 写入缓存
+        this.service.cache.put(group.id, group);
     }
 
     private void finish() {

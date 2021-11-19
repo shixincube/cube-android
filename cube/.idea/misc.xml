@@ -80,6 +80,7 @@
         <entry key="app/src/main/res/drawable/shape_splash_register.xml" value="0.3203125" />
         <entry key="app/src/main/res/drawable/shape_strip_button_disable.xml" value="0.3203125" />
         <entry key="app/src/main/res/drawable/shape_strip_button_enable.xml" value="0.3203125" />
+        <entry key="app/src/main/res/drawable/shape_strip_button_pressed.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/shape_vertical_line.xml" value="0.11381578947368422" />
         <entry key="app/src/main/res/layout/activity_contact_details.xml" value="0.21618852459016394" />
         <entry key="app/src/main/res/layout/activity_conversation_details.xml" value="0.5" />
@@ -100,6 +101,7 @@
         <entry key="app/src/main/res/layout/fragment_files.xml" value="0.1" />
         <entry key="app/src/main/res/layout/fragment_profile.xml" value="0.1" />
         <entry key="app/src/main/res/layout/header_contacts.xml" value="0.15710382513661203" />
+        <entry key="app/src/main/res/layout/header_group_operate.xml" value="0.19672131147540983" />
         <entry key="app/src/main/res/layout/include_conversation_function.xml" value="0.1" />
         <entry key="app/src/main/res/layout/include_toolbar.xml" value="0.2545289855072464" />
         <entry key="app/src/main/res/layout/item_contact.xml" value="0.15710382513661203" />

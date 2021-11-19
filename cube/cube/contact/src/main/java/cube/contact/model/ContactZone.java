@@ -104,6 +104,20 @@ public class ContactZone extends Entity {
         return this.participants;
     }
 
+    /**
+     * 获取参与人的联系人列表。
+     *
+     * @return 返回参与人的联系人列表。
+     */
+    public List<Contact> getParticipantContacts() {
+        List<ContactZoneParticipant> czpList = this.getOrderedParticipants();
+        ArrayList<Contact> list = new ArrayList<>();
+        for (ContactZoneParticipant czp : czpList) {
+            list.add(czp.getContact());
+        }
+        return list;
+    }
+
     public void addParticipant(ContactZoneParticipant participant) {
         this.participants.add(participant);
         this.ordered = false;

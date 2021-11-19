@@ -6,8 +6,8 @@
 
     <com.shixincube.app.widget.AdvancedImageView
         android:id="@+id/aivAvatar"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
+        android:layout_width="38dp"
+        android:layout_height="38dp"
         android:layout_margin="5dp"
         android:src="@mipmap/avatar_default"
         auto:corner_radius="2dp"/>

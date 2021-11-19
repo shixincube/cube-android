@@ -12,19 +12,20 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <!--联系人选择列表-->
+        <!-- 联系人列表 -->
         <com.shixincube.app.widget.recyclerview.RecyclerView
             android:id="@+id/rvContacts"
             android:layout_width="match_parent"
             android:layout_height="match_parent"/>
 
+        <!-- 联系人选择列表 -->
         <com.zhy.autolayout.AutoLinearLayout
             android:id="@+id/llTop"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@color/theme_bg"
             android:orientation="vertical"
-            android:paddingTop="10dp">
+            android:paddingTop="5dp">
 
             <com.zhy.autolayout.AutoLinearLayout
                 android:layout_width="match_parent"
@@ -40,7 +41,7 @@
                 <com.shixincube.app.widget.recyclerview.RecyclerView
                     android:id="@+id/rvSelectedContacts"
                     android:layout_width="wrap_content"
-                    android:layout_height="35dp"
+                    android:layout_height="48dp"
                     auto:rv_column="1"
                     auto:rv_orientation="horizontal"/>
 

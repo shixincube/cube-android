@@ -31,12 +31,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
  * 群组描述。包含了多个联系人的集合。
  */
-public class Group extends AbstractContact {
+public class Group extends AbstractContact implements Comparator<Group> {
 
     private String tag;
 
@@ -75,7 +76,41 @@ public class Group extends AbstractContact {
         return this.name;
     }
 
+    public Long getOwnerId() {
+        return this.ownerId;
+    }
+
+    public String getTag() {
+        return this.tag;
+    }
+
+    public long getCreationTime() {
+        return this.creation;
+    }
+
+    public long getLastActive() {
+        return this.lastActive;
+    }
+
+    public List<Long> getMemberIdList() {
+        return this.memberIdList;
+    }
+
+    public GroupState getState() {
+        return this.state;
+    }
+
+    public GroupAppendix getAppendix() {
+        return this.appendix;
+    }
+
     public void setAppendix(GroupAppendix appendix) {
         this.appendix = appendix;
+    }
+
+    @Override
+    public int compare(Group group1, Group group2) {
+        // 时间降序
+        return (int) (group2.lastActive - group1.lastActive);
     }
 }

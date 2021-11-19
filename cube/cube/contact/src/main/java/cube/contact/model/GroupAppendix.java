@@ -96,6 +96,10 @@ public class GroupAppendix implements JSONable {
         this.commId = json.getLong("commId");
     }
 
+    public Group getOwner() {
+        return this.owner;
+    }
+
     @Override
     public JSONObject toJSON() {
         JSONObject json = new JSONObject();

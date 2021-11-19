@@ -24,33 +24,14 @@
  * SOFTWARE.
  */
 
-package cube.contact.handler;
+package cube.core.handler;
 
-import java.util.List;
-
-import cube.contact.model.Group;
+import cube.core.Module;
 
 /**
- * 工作中的群组列表句柄。
+ * 任务已开始的处理句柄。
  */
-public class WorkingGroupListHandler implements GroupListHandler {
+public interface StartHandler extends CallbackHandler {
 
-    private final GroupListHandler handler;
-
-    private int total = 0;
-
-    public WorkingGroupListHandler(GroupListHandler handler) {
-        this.handler = handler;
-    }
-
-    public void setTotal(int total) {
-        if (total > 0) {
-            this.total = total;
-        }
-    }
-
-    @Override
-    public void handleList(List<Group> groupList) {
-
-    }
+    void handleStart(Module module);
 }

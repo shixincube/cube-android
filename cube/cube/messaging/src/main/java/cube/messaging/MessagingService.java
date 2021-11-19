@@ -2182,21 +2182,21 @@ public class MessagingService extends Module {
             }
         }
 
-        // 跳过私域消息
-        if (message.getScope() == MessageScope.Private) {
-            if (null != conversation) {
+        if (null != conversation) {
+            // 跳过私域消息
+            if (message.getScope() == MessageScope.Private) {
                 conversation.setTimestamp(message.getLocalTimestamp());
                 this.sortConversationList(this.conversations);
+                return;
             }
-            return;
+
+            // 更新消息
+            conversation.setRecentMessage(message);
+            this.sortConversationList(this.conversations);
+
+            // 更新会话数据库
+            this.storage.updateRecentMessage(conversationId, message);
         }
-
-        // 更新消息
-        conversation.setRecentMessage(message);
-        this.sortConversationList(this.conversations);
-
-        // 更新会话数据库
-        this.storage.updateRecentMessage(conversationId, message);
     }
 
     protected void fireContactEvent(ObservableEvent event) {

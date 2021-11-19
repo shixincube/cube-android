@@ -27,7 +27,6 @@
 package cube.filestorage;
 
 import android.os.Build;
-import android.os.Environment;
 import android.util.MutableInt;
 
 import androidx.annotation.Nullable;
@@ -102,24 +101,21 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
         }
 
         StringBuilder buf = new StringBuilder();
-        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())
-            || !Environment.isExternalStorageRemovable()) {
-            buf.append(Environment.getExternalStorageDirectory().getAbsolutePath());
-            buf.append(File.separator);
-            buf.append("Android/data/");
-            buf.append(getContext().getPackageName());
-            buf.append(File.separator);
-        }
-        else {
-            buf.append(getContext().getCacheDir().getAbsoluteFile());
-            buf.append(File.separator);
-        }
-        buf.append("cube_file").append(File.separator);
+        buf.append(this.getContext().getFilesDir());
+        buf.append(File.separator);
+        buf.append("cube_files");
+        buf.append(File.separator);
+
         this.fileCachePath = buf.toString();
+        LogUtils.d(TAG, "Cube file dir: " + this.fileCachePath);
 
         File dir = new File(this.fileCachePath);
         if (!dir.exists() || !dir.isDirectory()) {
             dir.mkdirs();
+        }
+
+        if (!dir.exists()) {
+            LogUtils.e(TAG, "Can NOT create file storage dir: " + dir.getPath());
         }
 
         ContactService contactService = (ContactService) this.kernel.getModule(ContactService.NAME);

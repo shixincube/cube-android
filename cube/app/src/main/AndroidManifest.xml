@@ -13,6 +13,7 @@
 
     <application
         android:name=".CubeApp"
+        android:requestLegacyExternalStorage="true"
         android:allowBackup="true"
         android:usesCleartextTraffic="true"
         android:icon="@mipmap/ic_launcher"

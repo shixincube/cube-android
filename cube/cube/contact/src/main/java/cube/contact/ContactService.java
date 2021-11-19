@@ -46,12 +46,11 @@ import cube.contact.handler.ContactListHandler;
 import cube.contact.handler.ContactZoneHandler;
 import cube.contact.handler.ContactZoneListHandler;
 import cube.contact.handler.DefaultContactZoneHandler;
-import cube.contact.handler.GroupListHandler;
 import cube.contact.handler.SignHandler;
 import cube.contact.handler.StableContactAppendixHandler;
 import cube.contact.handler.StableContactHandler;
 import cube.contact.handler.StableContactZoneHandler;
-import cube.contact.handler.WorkingGroupListHandler;
+import cube.contact.handler.StableGroupAppendixHandler;
 import cube.contact.model.AbstractContact;
 import cube.contact.model.Contact;
 import cube.contact.model.ContactAppendix;
@@ -59,6 +58,7 @@ import cube.contact.model.ContactZone;
 import cube.contact.model.ContactZoneParticipant;
 import cube.contact.model.ContactZoneState;
 import cube.contact.model.Group;
+import cube.contact.model.GroupAppendix;
 import cube.contact.model.MutableContact;
 import cube.contact.model.MutableContactZone;
 import cube.contact.model.Self;
@@ -66,6 +66,8 @@ import cube.core.Module;
 import cube.core.ModuleError;
 import cube.core.Packet;
 import cube.core.PipelineState;
+import cube.core.handler.CompletionHandler;
+import cube.core.handler.DefaultCompletionHandler;
 import cube.core.handler.DefaultFailureHandler;
 import cube.core.handler.FailureHandler;
 import cube.core.handler.PipelineHandler;
@@ -115,7 +117,7 @@ public class ContactService extends Module {
     /**
      * 正在工作的群组清单句柄。
      */
-    private WorkingGroupListHandler workingGroupListHandler;
+    protected WorkingGroupListHandler workingGroupListHandler;
 
     public ContactService() {
         super(ContactService.NAME);
@@ -646,7 +648,7 @@ public class ContactService extends Module {
             packetData.put("id", contactId.longValue());
             packetData.put("domain", this.getAuthToken().domain);
         } catch (JSONException e) {
-            Log.w(ContactService.class.getName(), "#getContact", e);
+            Log.w(TAG, "#getContact", e);
         }
 
         Packet requestPacket = new Packet(ContactServiceAction.GetContact, packetData);
@@ -766,7 +768,7 @@ public class ContactService extends Module {
                     zone.notify();
                 }
             }
-        }, new DefaultFailureHandler() {
+        }, new DefaultFailureHandler(false) {
             @Override
             public void handleFailure(Module module, ModuleError error) {
                 synchronized (zone) {
@@ -785,13 +787,16 @@ public class ContactService extends Module {
 
         this.defaultContactZone = zone.contactZone;
 
-        // 检查参与人实例
-        for (ContactZoneParticipant participant : this.defaultContactZone.getParticipants()) {
-            if (null == participant.getContact()) {
-                this.defaultContactZone = null;
-                break;
+        if (null != this.defaultContactZone) {
+            // 检查参与人实例
+            for (ContactZoneParticipant participant : this.defaultContactZone.getParticipants()) {
+                if (null == participant.getContact()) {
+                    this.defaultContactZone = null;
+                    break;
+                }
             }
         }
+
 
         return this.defaultContactZone;
     }
@@ -917,8 +922,58 @@ public class ContactService extends Module {
         });
     }
 
-    private void getAppendix(Group group) {
+    private void getAppendix(Group group, StableGroupAppendixHandler successHandler, StableFailureHandler failureHandler) {
+        JSONObject data = new JSONObject();
+        try {
+            data.put("groupId", group.id.longValue());
+        } catch (JSONException e) {
+            // Nothing
+        }
+        Packet request = new Packet(ContactServiceAction.GetAppendix, data);
+        this.pipeline.send(ContactService.NAME, request, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    execute(() -> {
+                        ModuleError error = new ModuleError(ContactService.NAME, packet.state.code);
+                        error.data = group;
+                        failureHandler.handleFailure(ContactService.this, error);
+                    });
+                    return;
+                }
 
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != ContactServiceState.Ok.code) {
+                    execute(() -> {
+                        ModuleError error = new ModuleError(ContactService.NAME, stateCode);
+                        error.data = group;
+                        failureHandler.handleFailure(ContactService.this, error);
+                    });
+                    return;
+                }
+
+                try {
+                    GroupAppendix appendix = new GroupAppendix(ContactService.this, group,
+                            packet.extractServiceData());
+                    // 更新存储
+                    storage.writeAppendix(appendix);
+
+                    // 赋值
+                    group.setAppendix(appendix);
+
+                    execute(() -> {
+                        successHandler.handleAppendix(group, appendix);
+                    });
+                }
+                catch (JSONException e) {
+                    execute(() -> {
+                        ModuleError error = new ModuleError(ContactService.NAME, ContactServiceState.DataStructureError.code);
+                        error.data = group;
+                        failureHandler.handleFailure(ContactService.this, error);
+                    });
+                }
+            }
+        });
     }
 
     private void fillContactZone(final ContactZone zone) {
@@ -1022,7 +1077,7 @@ public class ContactService extends Module {
                         notifyObservers(event);
                     }
                 } catch (JSONException e) {
-                    LogUtils.w(ContactService.class.getSimpleName(), e);
+                    LogUtils.w(TAG, e);
                 }
             }
         });
@@ -1081,12 +1136,12 @@ public class ContactService extends Module {
         });
     }
 
-    private void listGroups(long beginning, long ending, GroupListHandler handler) {
+    private void listGroups(long beginning, long ending, CompletionHandler completionHandler) {
         if (null != this.workingGroupListHandler) {
             return;
         }
 
-        this.workingGroupListHandler = new WorkingGroupListHandler(handler);
+        this.workingGroupListHandler = new WorkingGroupListHandler(this, completionHandler);
 
         JSONObject payload = new JSONObject();
         try {
@@ -1102,25 +1157,44 @@ public class ContactService extends Module {
     }
 
     protected void triggerListGroups(JSONObject data) {
-        int total = 0;
-        List<Group> groupList = new ArrayList<>();
         try {
-            total = data.getInt("total");
+            int total = data.getInt("total");
+
+            if (null != this.workingGroupListHandler) {
+                this.workingGroupListHandler.setTotal(total);
+            }
+
             JSONArray array = data.getJSONArray("list");
             for (int i = 0; i < array.length(); ++i) {
                 JSONObject current = array.getJSONObject(i);
                 Group group = new Group(current);
-                groupList.add(group);
+
+                // 保存到数据库
+                storage.writeGroup(group);
+
+                if (null != this.workingGroupListHandler) {
+                    // 添加待处理群组
+                    this.workingGroupListHandler.addGroup(group);
+
+                    this.getAppendix(group, new StableGroupAppendixHandler() {
+                        @Override
+                        public void handleAppendix(Group group, GroupAppendix appendix) {
+                            workingGroupListHandler.handleAppendix(group, appendix);
+                        }
+                    }, new StableFailureHandler() {
+                        @Override
+                        public void handleFailure(Module module, ModuleError error) {
+                            workingGroupListHandler.handleFailure(module, error);
+                        }
+                    });
+                }
+            }
+
+            if (null != this.workingGroupListHandler) {
+                this.workingGroupListHandler.firePageLoaded();
             }
         } catch (JSONException e) {
             e.printStackTrace();
-        }
-
-        // 获取群组附录
-//        this.getAppendix();
-
-        if (null != this.workingGroupListHandler) {
-            this.workingGroupListHandler.setTotal(total);
         }
     }
 
@@ -1260,9 +1334,9 @@ public class ContactService extends Module {
         });
 
         // 更新群组列表
-        this.listGroups(now - this.retrospectDuration, now, new GroupListHandler() {
+        this.listGroups(now - this.retrospectDuration, now, new DefaultCompletionHandler(false) {
             @Override
-            public void handleList(List<Group> groupList) {
+            public void handleCompletion(Module module) {
                 LogUtils.d(ContactService.class.getSimpleName(), "#listGroups");
                 gotGroups.value = true;
                 completion.handleCompletion(null);

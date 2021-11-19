@@ -37,6 +37,8 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import cell.api.Nucleus;
 import cell.api.NucleusConfig;
@@ -65,6 +67,8 @@ public class CellPipeline extends Pipeline implements TalkListener {
 
     private Map<Long, ResponseCallback> responseCallbackMap;
 
+    private ExecutorService executor;
+
     public CellPipeline(Context context) {
         super();
         this.opening = false;
@@ -74,6 +78,7 @@ public class CellPipeline extends Pipeline implements TalkListener {
         this.nucleus = new Nucleus(context, config);
         this.nucleus.getTalkService().addListener(this);
 
+        this.executor = Executors.newCachedThreadPool();
         this.responseCallbackMap = new ConcurrentHashMap<>();
     }
 
@@ -146,14 +151,16 @@ public class CellPipeline extends Pipeline implements TalkListener {
     public void onListened(Speakable speakable, String cellet, Primitive primitive) {
         ActionDialect dialect = new ActionDialect(primitive);
         // 转为数据包格式
-        Packet packet = this.convertDialectToPacket(dialect);
+        final Packet packet = this.convertDialectToPacket(dialect);
 
-        ResponseCallback callback = this.responseCallbackMap.remove(packet.sn);
-        if (null != callback) {
-            callback.handler.handleResponse(packet);
-        }
+        this.executor.execute(() -> {
+            ResponseCallback callback = responseCallbackMap.remove(packet.sn);
+            if (null != callback) {
+                callback.handler.handleResponse(packet);
+            }
 
-        this.triggerListener(cellet, packet);
+            this.triggerListener(cellet, packet);
+        });
     }
 
     @Override

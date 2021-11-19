@@ -56,7 +56,7 @@ public class MainPresenter extends BasePresenter<MainView> {
      */
     private void check() {
         if (CubeEngine.getInstance().hasSignIn()) {
-            // 已签入
+            // 已调用过签入
             return;
         }
 

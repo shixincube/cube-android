@@ -40,6 +40,8 @@ import cube.contact.model.ContactZone;
 import cube.contact.model.ContactZoneParticipant;
 import cube.contact.model.ContactZoneParticipantState;
 import cube.contact.model.ContactZoneState;
+import cube.contact.model.Group;
+import cube.contact.model.GroupAppendix;
 import cube.core.AbstractStorage;
 import cube.core.model.Entity;
 
@@ -254,12 +256,104 @@ public class ContactStorage extends AbstractStorage {
         this.closeWritableDatabase(db);
     }
 
+    public void writeGroup(Group group) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put("name", group.getName());
+        values.put("owner", group.getOwnerId());
+        values.put("tag", group.getTag());
+        values.put("creation", group.getCreationTime());
+        values.put("last_active", group.getLastActive());
+        values.put("state", group.getState().code);
+        if (null != group.getContext()) {
+            values.put("context", group.getContext().toString());
+        }
+
+        Cursor cursor = db.query("group", new String[]{ "sn" },
+                "id=?", new String[]{ group.id.toString() }, null, null, null);
+        if (cursor.moveToFirst()) {
+            cursor.close();
+
+            // 更新
+            db.update("group", values, "id=?", new String[]{ group.id.toString() });
+        }
+        else {
+            cursor.close();
+
+            // 插入
+            values.put("id", group.id);
+            db.insert("group", null, values);
+        }
+
+        // 处理成员列表
+        for (Long memberId : group.getMemberIdList()) {
+            cursor = db.query("group_member", new String[]{ "sn" },
+                    "group=? AND contact_id=?", new String[]{ group.id.toString(), memberId.toString() },
+                    null, null, null);
+            if (cursor.moveToFirst()) {
+                cursor.close();
+            }
+            else {
+                cursor.close();
+
+                // 插入数据
+                ContentValues member = new ContentValues();
+                member.put("group", group.id);
+                member.put("contact_id", memberId);
+                member.put("timestamp", group.getTimestamp());
+                db.insert("group_member", null, member);
+            }
+        }
+
+        this.closeWritableDatabase(db);
+
+        // 写入附录
+        GroupAppendix appendix = group.getAppendix();
+        if (null != appendix) {
+            this.writeAppendix(appendix);
+        }
+    }
+
     /**
      * 写入联系人附录。
      *
      * @param appendix
      */
     public void writeAppendix(ContactAppendix appendix) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        Cursor cursor = db.query("appendix", new String[] { "id" },
+                "id=?", new String[] { appendix.getOwner().id.toString() }, null, null, null);
+        if (cursor.moveToFirst()) {
+            cursor.close();
+
+            // 更新
+            ContentValues values = new ContentValues();
+            values.put("timestamp", System.currentTimeMillis());
+            values.put("data", appendix.toJSON().toString());
+            db.update("appendix", values, "id=?", new String[] { appendix.getOwner().id.toString() });
+        }
+        else {
+            cursor.close();
+
+            // 插入
+            ContentValues values = new ContentValues();
+            values.put("id", appendix.getOwner().id);
+            values.put("timestamp", System.currentTimeMillis());
+            values.put("data", appendix.toJSON().toString());
+            db.insert("appendix", null, values);
+        }
+
+        this.closeWritableDatabase(db);
+    }
+
+    /**
+     * 写入群组附录。
+     *
+     * @param appendix
+     */
+    public void writeAppendix(GroupAppendix appendix) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         Cursor cursor = db.query("appendix", new String[] { "id" },
@@ -457,10 +551,10 @@ public class ContactStorage extends AbstractStorage {
     @Override
     protected void onDatabaseCreate(SQLiteDatabase database) {
         // 联系人表
-        database.execSQL("CREATE TABLE IF NOT EXISTS `contact` (`sn` INTEGER PRIMARY KEY AUTOINCREMENT, `id` BIGINT, `name` TEXT, `context` TEXT, `timestamp` BIGINT DEFAULT 0, `last` BIGINT DEFAULT 0, `expiry` BIGINT DEFAULT 0)");
+        database.execSQL("CREATE TABLE IF NOT EXISTS `contact` (`sn` INTEGER PRIMARY KEY AUTOINCREMENT, `id` BIGINT NOT NULL UNIQUE, `name` TEXT, `context` TEXT, `timestamp` BIGINT DEFAULT 0, `last` BIGINT DEFAULT 0, `expiry` BIGINT DEFAULT 0)");
 
         // 群组表
-        database.execSQL("CREATE TABLE IF NOT EXISTS `group` (`sn` INTEGER PRIMARY KEY AUTOINCREMENT, `id` BIGINT, `name` TEXT, `owner` BIGINT, `tag` TEXT, `creation` BIGINT, `last_active` BIGINT, `state` INTEGER, `context` TEXT)");
+        database.execSQL("CREATE TABLE IF NOT EXISTS `group` (`sn` INTEGER PRIMARY KEY AUTOINCREMENT, `id` BIGINT NOT NULL UNIQUE, `name` TEXT, `owner` BIGINT, `tag` TEXT, `creation` BIGINT, `last_active` BIGINT, `state` INTEGER, `context` TEXT DEFAULT NULL)");
 
         // 群成员表
         database.execSQL("CREATE TABLE IF NOT EXISTS `group_member` (`sn` INTEGER PRIMARY KEY AUTOINCREMENT, `group` BIGINT, `contact_id` BIGINT, `timestamp` BIGINT)");

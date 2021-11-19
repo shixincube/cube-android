@@ -52,6 +52,12 @@ public class AbstractContact extends Entity {
      */
     public Object customData = null;
 
+    public AbstractContact(String name) {
+        super();
+        this.name = name;
+        this.domain = AuthService.getDomain();
+    }
+
     public AbstractContact(Long id, String name) {
         super(id);
         this.name = name;

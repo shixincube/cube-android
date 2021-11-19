@@ -256,6 +256,12 @@ public class ContactStorage extends AbstractStorage {
         this.closeWritableDatabase(db);
     }
 
+    public Group readGroup(Long groupId) {
+        Group group = null;
+
+        return group;
+    }
+
     public void writeGroup(Group group) {
         SQLiteDatabase db = this.getWritableDatabase();
 

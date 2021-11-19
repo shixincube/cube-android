@@ -41,7 +41,7 @@ public class Group extends AbstractContact implements Comparator<Group> {
 
     private String tag;
 
-    private long ownerId;
+    private Long ownerId;
 
     private long creation;
 
@@ -54,6 +54,16 @@ public class Group extends AbstractContact implements Comparator<Group> {
     private List<Contact> memberList;
 
     private GroupAppendix appendix;
+
+    public Group(Long ownerId, String name) {
+        super(name);
+        this.ownerId = ownerId;
+        this.tag = GroupTag.Public;
+        this.creation = this.getTimestamp();
+        this.lastActive = this.creation;
+        this.state = GroupState.Normal;
+        this.memberIdList = new ArrayList<>();
+    }
 
     public Group(JSONObject json) throws JSONException {
         super(json);
@@ -122,5 +132,43 @@ public class Group extends AbstractContact implements Comparator<Group> {
     public int compare(Group group1, Group group2) {
         // 时间降序
         return (int) (group2.lastActive - group1.lastActive);
+    }
+
+    @Override
+    public JSONObject toJSON() {
+        JSONObject json = super.toJSON();
+        try {
+            json.put("tag", this.tag);
+            json.put("ownerId", this.ownerId.longValue());
+            json.put("creation", this.creation);
+            json.put("lastActive", this.lastActive);
+            json.put("state", this.state.code);
+
+            if (!this.memberIdList.isEmpty()) {
+                JSONArray array = new JSONArray();
+                for (Long memberId : this.memberIdList) {
+                    array.put(memberId.longValue());
+                }
+                json.put("members", array);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return json;
+    }
+
+    @Override
+    public JSONObject toCompactJSON() {
+        JSONObject json = super.toCompactJSON();
+        try {
+            json.put("tag", this.tag);
+            json.put("ownerId", this.ownerId.longValue());
+            json.put("creation", this.creation);
+            json.put("lastActive", this.lastActive);
+            json.put("state", this.state.code);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return json;
     }
 }

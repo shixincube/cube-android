@@ -46,6 +46,7 @@ import cube.contact.handler.ContactListHandler;
 import cube.contact.handler.ContactZoneHandler;
 import cube.contact.handler.ContactZoneListHandler;
 import cube.contact.handler.DefaultContactZoneHandler;
+import cube.contact.handler.GroupHandler;
 import cube.contact.handler.SignHandler;
 import cube.contact.handler.StableContactAppendixHandler;
 import cube.contact.handler.StableContactHandler;
@@ -863,6 +864,132 @@ public class ContactService extends Module {
                     execute(() -> {
                         failureHandler.handleFailure(module, error);
                     });
+                }
+            }
+        });
+    }
+
+    /**
+     * 创建群组。
+     *
+     * @param members 指定成员列表。
+     * @param successHandler 指定创建成功回调句柄。
+     * @param failureHandler 指定创建故障回调句柄。
+     */
+    public void createGroup(List<Contact> members, GroupHandler successHandler, FailureHandler failureHandler) {
+        String name = this.self.getName() + "创建的群组";
+        this.createGroup(name, members, successHandler, failureHandler);
+    }
+
+    /**
+     * 创建群组。
+     *
+     * @param name 指定群组名称。
+     * @param members 指定成员列表。
+     * @param successHandler 指定创建成功回调句柄。
+     * @param failureHandler 指定创建故障回调句柄。
+     */
+    public void createGroup(String name, List<Contact> members, GroupHandler successHandler, FailureHandler failureHandler) {
+        if (!this.pipeline.isReady()) {
+            ModuleError error = new ModuleError(NAME, ContactServiceState.NoNetwork.code);
+            if (failureHandler.isInMainThread()) {
+                executeOnMainThread(() -> {
+                    failureHandler.handleFailure(ContactService.this, error);
+                });
+            }
+            else {
+                execute(() -> {
+                    failureHandler.handleFailure(ContactService.this, error);
+                });
+            }
+            return;
+        }
+
+        Group rawGroup = new Group(this.self.id, name);
+
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("group", rawGroup.toCompactJSON());
+
+            JSONArray array = new JSONArray();
+            for (Contact member : members) {
+                array.put(member.id.longValue());
+            }
+            payload.put("members", array);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        Packet requestPacket = new Packet(ContactServiceAction.CreateGroup, payload);
+        this.pipeline.send(ContactService.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code == PipelineState.Ok.code) {
+                    ModuleError error = new ModuleError(NAME, packet.state.code);
+                    if (failureHandler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            failureHandler.handleFailure(ContactService.this, error);
+                        });
+                    }
+                    else {
+                        execute(() -> {
+                            failureHandler.handleFailure(ContactService.this, error);
+                        });
+                    }
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode == ContactServiceState.Ok.code) {
+                    ModuleError error = new ModuleError(NAME, stateCode);
+                    if (failureHandler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            failureHandler.handleFailure(ContactService.this, error);
+                        });
+                    }
+                    else {
+                        execute(() -> {
+                            failureHandler.handleFailure(ContactService.this, error);
+                        });
+                    }
+                    return;
+                }
+
+                try {
+                    Group group = new Group(packet.extractServiceData());
+
+                    // 写入数据库
+                    storage.writeGroup(group);
+
+                    // 写入缓存
+                    cache.put(group.id, group);
+
+                    getAppendix(group, new StableGroupAppendixHandler() {
+                        @Override
+                        public void handleAppendix(Group group, GroupAppendix appendix) {
+                            if (successHandler.isInMainThread()) {
+                                executeOnMainThread(() -> {
+                                    successHandler.handleGroup(group);
+                                });
+                            }
+                            else {
+                                successHandler.handleGroup(group);
+                            }
+                        }
+                    }, new StableFailureHandler() {
+                        @Override
+                        public void handleFailure(Module module, ModuleError error) {
+                            if (failureHandler.isInMainThread()) {
+                                executeOnMainThread(() -> {
+                                    failureHandler.handleFailure(module, error);
+                                });
+                            }
+                            else {
+                                failureHandler.handleFailure(module, error);
+                            }
+                        }
+                    });
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
             }
         });

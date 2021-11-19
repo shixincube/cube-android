@@ -28,7 +28,6 @@ package com.shixincube.app.ui.presenter;
 
 import com.shixincube.app.R;
 import com.shixincube.app.manager.AccountHelper;
-import com.shixincube.app.model.Account;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.ProfileView;
@@ -53,8 +52,7 @@ public class ProfilePresenter extends BasePresenter<ProfileView> {
             return;
         }
 
-        getView().getAvatarImage().setImageResource(AccountHelper
-                .explainAvatarForResource(Account.getAvatar(self.getContext())));
+        getView().getAvatarImage().setImageResource(AccountHelper.getAvatarResource(self));
         getView().getNickNameText().setText(self.getPriorityName());
         getView().getCubeIdText().setText(UIUtils.getString(R.string.my_cube_id, self.getId().toString()));
     }

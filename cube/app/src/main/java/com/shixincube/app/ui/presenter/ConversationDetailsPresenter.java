@@ -26,10 +26,14 @@
 
 package com.shixincube.app.ui.presenter;
 
+import android.content.Intent;
+
 import com.bumptech.glide.Glide;
 import com.shixincube.app.R;
 import com.shixincube.app.manager.AccountHelper;
-import com.shixincube.app.model.Account;
+import com.shixincube.app.ui.activity.ContactDetailsActivity;
+import com.shixincube.app.ui.activity.ConversationDetailsActivity;
+import com.shixincube.app.ui.activity.OperateGroupMemberMemberActivity;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.ConversationDetailsView;
@@ -99,6 +103,13 @@ public class ConversationDetailsPresenter extends BasePresenter<ConversationDeta
         }
     }
 
+    private void showContactDetails(Contact contact) {
+        Intent intent = new Intent(activity, ContactDetailsActivity.class);
+        intent.putExtra("contactId", contact.getId());
+        intent.putExtra("allowGoToChat", false);
+        activity.jumpToActivity(intent);
+    }
+
     private void setAdapter() {
         if (null == this.adapter) {
             this.adapter = new AdapterForRecyclerView<Contact>(activity, this.members, R.layout.item_member_frame) {
@@ -120,9 +131,8 @@ public class ConversationDetailsPresenter extends BasePresenter<ConversationDeta
                         helper.setText(R.id.tvName, item.getPriorityName());
                         AdvancedImageView avatar = helper.getView(R.id.ivAvatar);
                         avatar.setCornerRadius(4);
-                        String avatarName = Account.getAvatar(item.getContext());
                         Glide.with(activity)
-                                .load(AccountHelper.explainAvatarForResource(avatarName))
+                                .load(AccountHelper.getAvatarResource(item))
                                 .centerCrop()
                                 .into(avatar);
                     }
@@ -130,7 +140,27 @@ public class ConversationDetailsPresenter extends BasePresenter<ConversationDeta
             };
 
             this.adapter.setOnItemClickListener((helper, parent, itemView, position) -> {
+                if (conversation.getType() == ConversationType.Contact) {
+                    if (position == members.size() - 1) {
+                        // 创建基于群组的会话
+                        ArrayList<Long> selectedId = new ArrayList<>();
+                        // 数组长度 -1，因为数组最后一个是 "+" 视图
+                        for (int i = 0, len = members.size() - 1; i < len; ++i) {
+                            selectedId.add(members.get(i).getId());
+                        }
 
+                        Intent intent = new Intent(activity, OperateGroupMemberMemberActivity.class);
+                        intent.putExtra("memberIdList", selectedId);
+                        activity.startActivityForResult(intent, ConversationDetailsActivity.REQUEST_CREATE_OR_UPDATE_GROUP);
+                    }
+                    else {
+                        Contact contact = members.get(position);
+                        showContactDetails(contact);
+                    }
+                }
+                else {
+
+                }
             });
 
             getView().getMemberListView().setAdapter(this.adapter);

@@ -122,9 +122,8 @@ public class ContactsPresenter extends BasePresenter<ContactsView> {
                 @Override
                 public void convert(ViewHolderForRecyclerView helper, Contact item, int position) {
                     // 头像
-                    String avatarName = Account.getAvatar(item.getContext());
                     ImageView avatarView = helper.getView(R.id.ivAvatar);
-                    Glide.with(activity).load(AccountHelper.explainAvatarForResource(avatarName)).centerCrop().into(avatarView);
+                    Glide.with(activity).load(AccountHelper.getAvatarResource(item)).centerCrop().into(avatarView);
 
                     // 名称
                     helper.setText(R.id.tvName, item.getPriorityName());

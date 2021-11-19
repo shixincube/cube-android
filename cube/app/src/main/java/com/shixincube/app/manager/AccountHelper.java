@@ -174,7 +174,12 @@ public class AccountHelper implements ContactDataProvider {
         return data.jsonObject;
     }
 
-    public static int explainAvatarForResource(String avatarName) {
+    public static int getAvatarResource(Contact contact) {
+        String name = Account.getAvatar(contact.getContext());
+        return explainAvatarForResource(name);
+    }
+
+    private static int explainAvatarForResource(String avatarName) {
         if (null == avatarName) {
             return R.mipmap.avatar_default;
         }

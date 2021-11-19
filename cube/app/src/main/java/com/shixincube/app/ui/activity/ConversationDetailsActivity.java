@@ -58,6 +58,8 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
 
     private final static String TAG = ConversationDetailsActivity.class.getSimpleName();
 
+    public final static int REQUEST_CREATE_OR_UPDATE_GROUP = 1000;
+
     @BindView(R.id.tvToolbarTitle)
     TextView toolbarTitleTextView;
 
@@ -192,6 +194,15 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
                 }
             }
         });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_CREATE_OR_UPDATE_GROUP) {
+            System.out.println("XJW");
+        }
     }
 
     @Override

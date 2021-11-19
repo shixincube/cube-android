@@ -35,7 +35,6 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.shixincube.app.R;
 import com.shixincube.app.manager.AccountHelper;
-import com.shixincube.app.model.Account;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.util.UIUtils;
@@ -79,6 +78,8 @@ public class ContactDetailsActivity extends BaseActivity {
 
     private Contact contact;
 
+    private boolean allowGoToChat;
+
     public ContactDetailsActivity() {
         super();
     }
@@ -87,6 +88,7 @@ public class ContactDetailsActivity extends BaseActivity {
     public void init() {
         Intent intent = getIntent();
         Long contactId = intent.getExtras().getLong("contactId");
+        this.allowGoToChat = intent.getBooleanExtra("allowGoToChat", true);
         this.contact = CubeEngine.getInstance().getContactService().getContact(contactId);
     }
 
@@ -98,12 +100,18 @@ public class ContactDetailsActivity extends BaseActivity {
         }
 
         toolbarMore.setVisibility(View.VISIBLE);
+
+        if (this.allowGoToChat) {
+            this.toChatButton.setVisibility(View.VISIBLE);
+        }
+        else {
+            this.toChatButton.setVisibility(View.GONE);
+        }
     }
 
     @Override
     public void initData() {
-        String avatarName = Account.getAvatar(this.contact.getContext());
-        Glide.with(this).load(AccountHelper.explainAvatarForResource(avatarName)).centerCrop().into(avatarView);
+        Glide.with(this).load(AccountHelper.getAvatarResource(this.contact)).centerCrop().into(avatarView);
         this.nameView.setText(this.contact.getPriorityName());
 
         this.cubeIdView.setText(UIUtils.getString(R.string.my_cube_id, this.contact.getId().toString()));

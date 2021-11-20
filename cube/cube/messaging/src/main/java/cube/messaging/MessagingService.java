@@ -52,6 +52,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import cube.contact.ContactService;
 import cube.contact.ContactServiceEvent;
+import cube.contact.handler.StableGroupHandler;
 import cube.contact.model.AbstractContact;
 import cube.contact.model.Contact;
 import cube.contact.model.Group;
@@ -433,6 +434,43 @@ public class MessagingService extends Module {
     }
 
     /**
+     * 创建关联群组的会话。
+     *
+     * @param memberList
+     * @param successHandler
+     * @param failureHandler
+     */
+    public void createGroupConversation(List<Contact> memberList, ConversationHandler successHandler, FailureHandler failureHandler) {
+        this.contactService.createGroup(memberList, new StableGroupHandler() {
+            @Override
+            public void handleGroup(Group group) {
+                // 创建会话
+                Conversation conversation = getConversation(group.id);
+                if (successHandler.isInMainThread()) {
+                    executeOnMainThread(() -> {
+                        successHandler.handleConversation(conversation);
+                    });
+                }
+                else {
+                    successHandler.handleConversation(conversation);
+                }
+            }
+        }, new StableFailureHandler() {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                if (failureHandler.isInMainThread()) {
+                    executeOnMainThread(() -> {
+                        failureHandler.handleFailure(MessagingService.this, error);
+                    });
+                }
+                else {
+                    failureHandler.handleFailure(MessagingService.this, error);
+                }
+            }
+        });
+    }
+
+    /**
      * 获取指定 ID 的会话。
      *
      * @param id 指定会话 ID 。
@@ -476,13 +514,7 @@ public class MessagingService extends Module {
             }
 
             if (null != conversation && null != this.conversations) {
-                synchronized (this) {
-                    if (!this.conversations.contains(conversation)) {
-                        this.conversations.add(conversation);
-
-                        this.sortConversationList(this.conversations);
-                    }
-                }
+                this.tryAddConversation(conversation);
             }
         }
 
@@ -2234,10 +2266,11 @@ public class MessagingService extends Module {
         }
 
         if (null != conversation) {
-            // 跳过私域消息
+            // 跳过私域消息，仅用私域数据更新时间戳，不更新最近消息实体
             if (message.getScope() == MessageScope.Private) {
                 conversation.setTimestamp(message.getLocalTimestamp());
                 this.sortConversationList(this.conversations);
+                this.storage.updateConversationTimestamp(conversation);
                 return;
             }
 
@@ -2246,7 +2279,7 @@ public class MessagingService extends Module {
             this.sortConversationList(this.conversations);
 
             // 更新会话数据库
-            this.storage.updateRecentMessage(conversationId, message);
+            this.storage.updateRecentMessage(conversation);
         }
     }
 

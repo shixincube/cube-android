@@ -175,12 +175,12 @@ public class Conversation extends Entity {
      */
     public Conversation(Self self, Group group, ConversationReminded reminded) {
         super(group.id);
-        this.pivotalId = contact.id;
+        this.pivotalId = group.id;
         this.group = group;
-        this.type = ConversationType.Contact;
+        this.type = ConversationType.Group;
         this.reminded = reminded;
         this.state = ConversationState.Normal;
-        this.recentMessage = new NullMessage(self, contact);
+        this.recentMessage = new NullMessage(self, group);
         this.unreadCount = 0;
     }
 

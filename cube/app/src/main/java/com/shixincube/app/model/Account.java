@@ -98,10 +98,16 @@ public class Account implements JSONable {
             return "";
         }
 
-        String pinyin = PinyinUtils.getPinyin(contact.getPriorityName());
+        String pinyin = contact.getPriorityName();
         try {
             if (null != contact.getContext()) {
-                contact.getContext().put("nameSpelling", pinyin);
+                JSONObject context = contact.getContext();
+                if (context.has("nameSpelling")) {
+                    return context.getString("nameSpelling");
+                }
+
+                pinyin = PinyinUtils.getPinyin(contact.getPriorityName());
+                context.put("nameSpelling", pinyin);
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -119,7 +125,13 @@ public class Account implements JSONable {
         String pinyin = contact.getPriorityName();
         try {
             if (null != contact.getContext()) {
-                pinyin = contact.getContext().getString("nameSpelling");
+                JSONObject context = contact.getContext();
+                if (context.has("nameSpelling")) {
+                    pinyin = context.getString("nameSpelling");
+                }
+                else {
+                    pinyin = PinyinUtils.getPinyin(contact.getPriorityName());
+                }
             }
             else {
                 pinyin = PinyinUtils.getPinyin(contact.getPriorityName());

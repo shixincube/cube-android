@@ -101,7 +101,11 @@ public class Group extends AbstractContact implements Comparator<Group> {
     }
 
     public String getPriorityName() {
-        return this.name;
+        if (null == this.appendix) {
+            return this.name;
+        }
+
+        return this.appendix.hasRemark() ? this.appendix.getRemark() : this.name;
     }
 
     public Long getOwnerId() {
@@ -163,6 +167,18 @@ public class Group extends AbstractContact implements Comparator<Group> {
         }
 
         return this.memberList;
+    }
+
+    public List<Contact> getMemberListWithoutOwner() {
+        List<Contact> list = new ArrayList<>(getMemberList());
+        for (int i = 0; i < list.size(); ++i) {
+            Contact contact = list.get(i);
+            if (contact.id.longValue() == this.ownerId.longValue()) {
+                list.remove(i);
+                break;
+            }
+        }
+        return list;
     }
 
     public void setAppendix(GroupAppendix appendix) {

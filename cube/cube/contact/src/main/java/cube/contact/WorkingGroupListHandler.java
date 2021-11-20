@@ -37,6 +37,7 @@ import cube.core.Module;
 import cube.core.ModuleError;
 import cube.core.handler.CompletionHandler;
 import cube.core.handler.FailureHandler;
+import cube.util.LogUtils;
 
 /**
  * 工作中的群组列表句柄。
@@ -82,6 +83,10 @@ public class WorkingGroupListHandler implements GroupAppendixHandler, FailureHan
     private void finish() {
         this.completionHandler.handleCompletion(this.service);
         this.service.workingGroupListHandler = null;
+
+        if (LogUtils.isDebugLevel()) {
+            LogUtils.d(WorkingGroupListHandler.class.getSimpleName(), "#finish size: " + this.total);
+        }
     }
 
     @Override

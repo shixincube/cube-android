@@ -32,6 +32,8 @@
         android:padding="5dp"
         android:text="通知内容"
         android:textSize="12sp"
-        android:textColor="@color/white"/>
+        android:textColor="@color/white"
+        android:maxLines="10"
+        android:ellipsize="end"/>
 
 </LinearLayout>

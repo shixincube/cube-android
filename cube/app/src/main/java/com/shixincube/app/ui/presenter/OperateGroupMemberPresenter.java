@@ -26,6 +26,7 @@
 
 package com.shixincube.app.ui.presenter;
 
+import android.content.Intent;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,6 +37,7 @@ import com.bumptech.glide.Glide;
 import com.shixincube.app.R;
 import com.shixincube.app.manager.AccountHelper;
 import com.shixincube.app.model.Account;
+import com.shixincube.app.ui.activity.MessagePanelActivity;
 import com.shixincube.app.ui.activity.OperateGroupMemberMemberActivity;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
@@ -49,7 +51,6 @@ import com.shixincube.app.widget.adapter.ViewHolderForRecyclerView;
 import java.util.ArrayList;
 import java.util.List;
 
-import cube.contact.handler.DefaultGroupHandler;
 import cube.contact.model.Contact;
 import cube.contact.model.ContactZone;
 import cube.contact.model.Group;
@@ -61,6 +62,9 @@ import cube.engine.util.Future;
 import cube.engine.util.Promise;
 import cube.engine.util.PromiseFuture;
 import cube.engine.util.PromiseHandler;
+import cube.messaging.extension.NotificationMessage;
+import cube.messaging.handler.DefaultConversationHandler;
+import cube.messaging.model.Conversation;
 
 /**
  * 创建群组。
@@ -90,14 +94,37 @@ public class OperateGroupMemberPresenter extends BasePresenter<OperateGroupMembe
     public void createGroupAndJump() {
         this.activity.showWaitingDialog(UIUtils.getString(R.string.please_wait_a_moment));
 
-        CubeEngine.getInstance().getContactService().createGroup(this.selectedMembers, new DefaultGroupHandler(true) {
+        // 创建基于群组的会话
+        CubeEngine.getInstance().getMessagingService().createGroupConversation(this.selectedMembers, new DefaultConversationHandler(true) {
             @Override
-            public void handleGroup(Group group) {
+            public void handleConversation(Conversation conversation) {
+                // 创建群组成功
+                UIUtils.showToast(UIUtils.getString(R.string.create_group_success));
 
+                StringBuilder tip = new StringBuilder("您邀请");
+                List<Contact> members = conversation.getGroup().getMemberListWithoutOwner();
+                for (int i = 0; i < members.size() && i < 5; ++i) {
+                    tip.append(members.get(i).getPriorityName());
+                    tip.append("、");
+                }
+                tip.delete(tip.length() - 1, tip.length());
+                tip.append("加入了聊天。");
+
+                // 添加通知到会话
+                CubeEngine.getInstance().getMessagingService().sendMessage(conversation,
+                        new NotificationMessage(tip.toString()));
+
+                activity.hideWaitingDialog();
+
+                Intent intent = new Intent(activity, MessagePanelActivity.class);
+                intent.putExtra("conversationId", conversation.getId());
+                activity.jumpToActivity(intent);
+                activity.finish();
             }
         }, new DefaultFailureHandler(true) {
             @Override
             public void handleFailure(Module module, ModuleError error) {
+                activity.hideWaitingDialog();
                 UIUtils.showToast(UIUtils.getString(R.string.create_group_failure));
             }
         });
@@ -109,7 +136,12 @@ public class OperateGroupMemberPresenter extends BasePresenter<OperateGroupMembe
             public void emit(PromiseFuture<List<Contact>> promise) {
                 ContactZone contactZone = CubeEngine.getInstance().getContactService().getDefaultContactZone();
                 allContacts.clear();
-                allContacts.addAll(contactZone.getParticipantContacts());
+
+                for (Contact contact : contactZone.getParticipantContacts()) {
+                    Account.setNameSpelling(contact);
+                    allContacts.add(contact);
+                }
+
                 promise.resolve(allContacts);
             }
         }).thenOnMainThread(new Future<List<Contact>>() {

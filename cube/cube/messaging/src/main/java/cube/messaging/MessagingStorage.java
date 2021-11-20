@@ -312,6 +312,22 @@ public class MessagingStorage extends AbstractStorage {
     }
 
     /**
+     * 仅更新会话的时间戳。
+     *
+     * @param conversation
+     */
+    public void updateConversationTimestamp(Conversation conversation) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        // 更新
+        ContentValues values = new ContentValues();
+        values.put("timestamp", conversation.getTimestamp());
+        db.update("conversation", values, "id=?", new String[]{ conversation.id.toString() });
+
+        this.closeWritableDatabase(db);
+    }
+
+    /**
      * 更新列表里的所有会话。
      *
      * @param conversations 指定会话清单。
@@ -357,42 +373,41 @@ public class MessagingStorage extends AbstractStorage {
     /**
      * 更新指定会的最近消息。
      *
-     * @param conversationId
-     * @param message
+     * @param conversation
      */
-    public void updateRecentMessage(Long conversationId, Message message) {
+    public void updateRecentMessage(Conversation conversation) {
         SQLiteDatabase db = this.getWritableDatabase();
+
+        Message message = conversation.getRecentMessage();
 
         boolean unread = !message.isSelfTyper();
 
         Cursor cursor = db.query("conversation", new String[]{ "type" },
-                "id=?", new String[]{ conversationId.toString() }, null, null, null);
+                "id=?", new String[]{ conversation.id.toString() }, null, null, null);
         if (cursor.moveToFirst()) {
             cursor.close();
 
-            String sql = "UPDATE `conversation` SET `timestamp`=" + message.getRemoteTimestamp()
+            String sql = "UPDATE `conversation` SET `timestamp`=" + conversation.getTimestamp()
                     + " , `recent_message`=? "
                     + (unread ? ", `unread`=`unread`+1 " : " ")
                     + "WHERE `id`=?";
 
             db.execSQL(sql, new String[] {
                     message.toJSON().toString(),
-                    conversationId.toString()
+                    conversation.id.toString()
             });
         }
         else {
             cursor.close();
 
-            ConversationType type = message.isFromGroup() ? ConversationType.Group : ConversationType.Contact;
-
             // 插入
             ContentValues values = new ContentValues();
-            values.put("id", conversationId);
-            values.put("timestamp", message.getRemoteTimestamp());
-            values.put("type", type.code);
-            values.put("state", ConversationState.Normal.code);
-            values.put("pivotal_id", conversationId);
-            values.put("remind", ConversationReminded.Normal.code);
+            values.put("id", conversation.id);
+            values.put("timestamp", conversation.getTimestamp());
+            values.put("type", conversation.getType().code);
+            values.put("state", conversation.getState().code);
+            values.put("pivotal_id", conversation.getPivotalId());
+            values.put("remind", conversation.getReminded().code);
             values.put("recent_message", message.toJSON().toString());
             values.put("unread", unread ? 1 : 0);
             db.insert("conversation", null, values);

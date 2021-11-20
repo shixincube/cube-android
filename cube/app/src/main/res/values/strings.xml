@@ -89,6 +89,7 @@
     <string name="save_to_phone">保存到手机</string>
 
     <!-- 群组信息 -->
+    <string name="create_group_success">创建群聊成功</string>
     <string name="create_group_failure">创建群聊失败，请稍候再试</string>
 
     <!-- 会话信息 -->

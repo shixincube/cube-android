@@ -484,6 +484,10 @@ public class ContactService extends Module {
         // 从缓存里读取
         AbstractContact abstractContact = this.cache.get(contactId);
         if (null != abstractContact) {
+            if (!(abstractContact instanceof Contact)) {
+                return null;
+            }
+
             // 更新缓存寿命
             abstractContact.entityLifeExpiry += LIFESPAN;
             return (Contact) abstractContact;
@@ -519,6 +523,10 @@ public class ContactService extends Module {
         // 从缓存里读取
         AbstractContact abstractContact = this.cache.get(contactId);
         if (null != abstractContact) {
+            if (!(abstractContact instanceof Contact)) {
+                return null;
+            }
+
             // 更新缓存寿命
             abstractContact.entityLifeExpiry += LIFESPAN;
             return (Contact) abstractContact;
@@ -608,7 +616,7 @@ public class ContactService extends Module {
 
         // 从缓存里读取
         AbstractContact abstractContact = this.cache.get(contactId);
-        if (null != abstractContact) {
+        if (null != abstractContact && abstractContact instanceof Contact) {
             // 更新缓存寿命
             abstractContact.entityLifeExpiry += LIFESPAN;
 
@@ -957,7 +965,7 @@ public class ContactService extends Module {
         this.pipeline.send(ContactService.NAME, requestPacket, new PipelineHandler() {
             @Override
             public void handleResponse(Packet packet) {
-                if (packet.state.code == PipelineState.Ok.code) {
+                if (packet.state.code != PipelineState.Ok.code) {
                     ModuleError error = new ModuleError(NAME, packet.state.code);
                     if (failureHandler.isInMainThread()) {
                         executeOnMainThread(() -> {
@@ -973,7 +981,7 @@ public class ContactService extends Module {
                 }
 
                 int stateCode = packet.extractServiceStateCode();
-                if (stateCode == ContactServiceState.Ok.code) {
+                if (stateCode != ContactServiceState.Ok.code) {
                     ModuleError error = new ModuleError(NAME, stateCode);
                     if (failureHandler.isInMainThread()) {
                         executeOnMainThread(() -> {
@@ -1043,6 +1051,10 @@ public class ContactService extends Module {
         // 从缓存里读取
         AbstractContact abstractGroup = this.cache.get(groupId);
         if (null != abstractGroup) {
+            if (!(abstractGroup instanceof Group)) {
+                return null;
+            }
+
             // 更新缓存寿命
             abstractGroup.entityLifeExpiry += LIFESPAN;
 
@@ -1111,7 +1123,7 @@ public class ContactService extends Module {
 
         // 从缓存里读取
         AbstractContact abstractContact = this.cache.get(groupId);
-        if (null != abstractContact) {
+        if (null != abstractContact && abstractContact instanceof Group) {
             // 更新缓存寿命
             abstractContact.entityLifeExpiry += LIFESPAN;
 
@@ -1580,6 +1592,10 @@ public class ContactService extends Module {
         try {
             int total = data.getInt("total");
 
+            if (LogUtils.isDebugLevel()) {
+                LogUtils.d(TAG, "List groups total: " + total);
+            }
+
             if (null != this.workingGroupListHandler) {
                 this.workingGroupListHandler.setTotal(total);
             }
@@ -1754,7 +1770,12 @@ public class ContactService extends Module {
         });
 
         // 更新群组列表
-        this.listGroups(now - this.retrospectDuration, now, new DefaultCompletionHandler(false) {
+        // 计算起始时间
+        long beginning = this.storage.queryLastGroupActiveTime();
+        if (beginning == 0) {
+            beginning = now - this.retrospectDuration;
+        }
+        this.listGroups(beginning, now, new DefaultCompletionHandler(false) {
             @Override
             public void handleCompletion(Module module) {
                 LogUtils.d(ContactService.class.getSimpleName(), "#listGroups");

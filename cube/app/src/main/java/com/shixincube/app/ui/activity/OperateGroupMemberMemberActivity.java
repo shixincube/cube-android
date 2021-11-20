@@ -102,6 +102,7 @@ public class OperateGroupMemberMemberActivity extends BaseActivity<OperateGroupM
         this.toolbarFuncButton.setOnClickListener((view) -> {
             if (this.createMode) {
                 // 创建群组
+                presenter.createGroupAndJump();
             }
             else {
                 // 添加群成员

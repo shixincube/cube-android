@@ -100,6 +100,14 @@ public class GroupAppendix implements JSONable {
         return this.owner;
     }
 
+    public String getRemark() {
+        return this.remark;
+    }
+
+    public boolean hasRemark() {
+        return (null != this.remark && this.remark.length() > 0);
+    }
+
     @Override
     public JSONObject toJSON() {
         JSONObject json = new JSONObject();

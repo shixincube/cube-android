@@ -258,6 +258,26 @@ public class ContactStorage extends AbstractStorage {
     }
 
     /**
+     * 获取最近更新的群组的时间戳。
+     *
+     * @return
+     */
+    public long queryLastGroupActiveTime() {
+        long timestamp = 0;
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        String sql = "SELECT `last_active` FROM `group` ORDER BY `last_active` DESC LIMIT 1";
+        Cursor cursor = db.rawQuery(sql, null);
+        if (cursor.moveToFirst()) {
+            timestamp = cursor.getLong(0);
+        }
+        cursor.close();
+        this.closeReadableDatabase(db);
+
+        return timestamp;
+    }
+
+    /**
      * 读取群组
      * @param groupId
      * @return
@@ -325,20 +345,20 @@ public class ContactStorage extends AbstractStorage {
             values.put("context", group.getContext().toString());
         }
 
-        Cursor cursor = db.query("group", new String[]{ "sn" },
+        Cursor cursor = db.query("`group`", new String[]{ "sn" },
                 "id=?", new String[]{ group.id.toString() }, null, null, null);
         if (cursor.moveToFirst()) {
             cursor.close();
 
             // 更新
-            db.update("group", values, "id=?", new String[]{ group.id.toString() });
+            db.update("`group`", values, "id=?", new String[]{ group.id.toString() });
         }
         else {
             cursor.close();
 
             // 插入
             values.put("id", group.id);
-            db.insert("group", null, values);
+            db.insert("`group`", null, values);
         }
 
         // 处理成员列表
@@ -354,7 +374,7 @@ public class ContactStorage extends AbstractStorage {
 
                 // 插入数据
                 ContentValues member = new ContentValues();
-                member.put("group", group.id);
+                member.put("`group`", group.id);
                 member.put("contact_id", memberId);
                 member.put("timestamp", group.getTimestamp());
                 db.insert("group_member", null, member);

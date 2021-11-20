@@ -35,12 +35,15 @@ import android.widget.RelativeLayout;
 
 import com.jaeger.library.StatusBarUtil;
 import com.shixincube.app.R;
+import com.shixincube.app.api.Explorer;
 import com.shixincube.app.manager.AccountHelper;
 import com.shixincube.app.manager.CubeConnection;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
+import com.shixincube.app.util.DeviceUtils;
 import com.shixincube.app.util.UIUtils;
 
+import java.util.Date;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import butterknife.BindView;
@@ -49,6 +52,8 @@ import cube.engine.util.Future;
 import cube.engine.util.Promise;
 import cube.engine.util.PromiseFuture;
 import cube.engine.util.PromiseHandler;
+import cube.util.LogUtils;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import kr.co.namee.permissiongen.PermissionGen;
 
 /**
@@ -151,6 +156,9 @@ public class SplashActivity extends BaseActivity {
                 valid = false;
                 if (AccountHelper.getInstance(getApplicationContext()).checkValidToken()) {
                     valid = true;
+
+                    // 使用令牌登录到应用服务器
+                    login(AccountHelper.getInstance().getTokenCode());
                 }
                 else {
                     valid = false;
@@ -202,5 +210,16 @@ public class SplashActivity extends BaseActivity {
         });
         intent = new Intent(this, CubeService.class);
         bindService(intent, this.connection, BIND_AUTO_CREATE);
+    }
+
+    private void login(String tokenCode) {
+        String device = DeviceUtils.getDeviceDescription(this.getApplicationContext());
+        Explorer.getInstance().login(tokenCode, device)
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.io())
+                .subscribe(accountInfoResponse -> {
+                    LogUtils.i(SplashActivity.class.getSimpleName(),
+                            "Login expire: " + (new Date(accountInfoResponse.expire).toString()));
+                });
     }
 }

@@ -52,6 +52,7 @@ import cube.contact.handler.StableContactAppendixHandler;
 import cube.contact.handler.StableContactHandler;
 import cube.contact.handler.StableContactZoneHandler;
 import cube.contact.handler.StableGroupAppendixHandler;
+import cube.contact.handler.StableGroupHandler;
 import cube.contact.model.AbstractContact;
 import cube.contact.model.Contact;
 import cube.contact.model.ContactAppendix;
@@ -62,6 +63,7 @@ import cube.contact.model.Group;
 import cube.contact.model.GroupAppendix;
 import cube.contact.model.MutableContact;
 import cube.contact.model.MutableContactZone;
+import cube.contact.model.MutableGroup;
 import cube.contact.model.Self;
 import cube.core.Module;
 import cube.core.ModuleError;
@@ -465,6 +467,39 @@ public class ContactService extends Module {
     }
 
     /**
+     * 获取本地存储的联系人。
+     *
+     * @param contactId 指定联系人 ID 。
+     * @return 返回找到的联系人实例。
+     */
+    public Contact getLocalContact(Long contactId) {
+        if (null == this.self) {
+            return null;
+        }
+
+        if (contactId.longValue() == this.self.id.longValue()) {
+            return this.self;
+        }
+
+        // 从缓存里读取
+        AbstractContact abstractContact = this.cache.get(contactId);
+        if (null != abstractContact) {
+            // 更新缓存寿命
+            abstractContact.entityLifeExpiry += LIFESPAN;
+            return (Contact) abstractContact;
+        }
+
+        // 读取数据库
+        Contact contact = this.storage.readContact(contactId);
+        if (null != contact) {
+            contact.entityLifeExpiry += LIFESPAN;
+            this.cache.put(contact.id, contact);
+        }
+
+        return contact;
+    }
+
+    /**
      * 获取指定 ID 的联系人。
      *
      * <b>不建议在主线程里调用该方法。</b>
@@ -798,7 +833,6 @@ public class ContactService extends Module {
             }
         }
 
-
         return this.defaultContactZone;
     }
 
@@ -995,6 +1029,256 @@ public class ContactService extends Module {
         });
     }
 
+    /**
+     * 获取指定群组。
+     *
+     * @param groupId
+     * @return
+     */
+    public Group getGroup(Long groupId) {
+        if (null == this.self) {
+            return null;
+        }
+
+        // 从缓存里读取
+        AbstractContact abstractGroup = this.cache.get(groupId);
+        if (null != abstractGroup) {
+            // 更新缓存寿命
+            abstractGroup.entityLifeExpiry += LIFESPAN;
+
+            Group group = (Group) abstractGroup;
+            if (!group.isFilled()) {
+                this.fillGroup(group);
+            }
+
+            return group;
+        }
+
+        final MutableGroup mutableGroup = new MutableGroup();
+
+        this.getGroup(groupId, new StableGroupHandler() {
+            @Override
+            public void handleGroup(Group group) {
+                mutableGroup.group = group;
+                synchronized (mutableGroup) {
+                    mutableGroup.notify();
+                }
+            }
+        }, new StableFailureHandler() {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                synchronized (mutableGroup) {
+                    mutableGroup.notify();
+                }
+            }
+        });
+
+        synchronized (mutableGroup) {
+            try {
+                mutableGroup.wait(this.blockingTimeout);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return mutableGroup.group;
+    }
+
+    /**
+     * 获取群组。
+     *
+     * @param groupId 指定群组 ID 。
+     * @param successHandler 指定操作成功回调句柄。
+     * @param failureHandler 指定操作故障回调句柄。
+     */
+    public void getGroup(Long groupId, GroupHandler successHandler, FailureHandler failureHandler) {
+        if (null == this.self) {
+            if (null != failureHandler) {
+                Runnable callback = () -> {
+                    ModuleError error = new ModuleError(ContactService.NAME, ContactServiceState.IllegalOperation.code);
+                    failureHandler.handleFailure(ContactService.this, error);
+                };
+
+                if (failureHandler.isInMainThread()) {
+                    this.executeOnMainThread(callback);
+                }
+                else {
+                    this.execute(callback);
+                }
+            }
+            return;
+        }
+
+        // 从缓存里读取
+        AbstractContact abstractContact = this.cache.get(groupId);
+        if (null != abstractContact) {
+            // 更新缓存寿命
+            abstractContact.entityLifeExpiry += LIFESPAN;
+
+            Group group = (Group) abstractContact;
+            if (!group.isFilled()) {
+                fillGroup(group);
+            }
+
+            if (successHandler.isInMainThread()) {
+                this.executeOnMainThread(() -> {
+                    successHandler.handleGroup(group);
+                });
+            }
+            else {
+                this.execute(() -> {
+                    successHandler.handleGroup(group);
+                });
+            }
+
+            return;
+        }
+
+        // 从数据库读取
+        Group group = this.storage.readGroup(groupId);
+        if (null != group) {
+            // 在没有连接服务器或者数据有效时返回
+            if (!this.pipeline.isReady() || group.isValid()) {
+                // 填充数据
+                this.fillGroup(group);
+
+                // 写入缓存
+                this.cache.put(groupId, group);
+
+                if (successHandler.isInMainThread()) {
+                    this.executeOnMainThread(() -> {
+                        successHandler.handleGroup(group);
+                    });
+                }
+                else {
+                    this.execute(() -> {
+                        successHandler.handleGroup(group);
+                    });
+                }
+
+                return;
+            }
+        }
+
+        if (!this.pipeline.isReady()) {
+            // 数据通道未就绪
+            if (null != failureHandler) {
+                if (failureHandler.isInMainThread()) {
+                    this.executeOnMainThread(() -> {
+                        ModuleError error = new ModuleError(NAME, ContactServiceState.NoNetwork.code);
+                        failureHandler.handleFailure(ContactService.this, error);
+                    });
+                }
+                else {
+                    this.execute(() -> {
+                        ModuleError error = new ModuleError(NAME, ContactServiceState.NoNetwork.code);
+                        failureHandler.handleFailure(ContactService.this, error);
+                    });
+                }
+            }
+
+            return;
+        }
+
+        JSONObject packetData = new JSONObject();
+        try {
+            packetData.put("id", groupId.longValue());
+            packetData.put("domain", this.getAuthToken().domain);
+        } catch (JSONException e) {
+            Log.w(TAG, "#getGroup", e);
+        }
+
+        Packet requestPacket = new Packet(ContactServiceAction.GetGroup, packetData);
+        this.pipeline.send(ContactService.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    if (null != failureHandler) {
+                        if (failureHandler.isInMainThread()) {
+                            executeOnMainThread(() -> {
+                                ModuleError error = new ModuleError(ContactService.NAME, ContactServiceState.ServerError.code);
+                                failureHandler.handleFailure(ContactService.this, error);
+                            });
+                        }
+                        else {
+                            execute(() -> {
+                                ModuleError error = new ModuleError(ContactService.NAME, ContactServiceState.ServerError.code);
+                                failureHandler.handleFailure(ContactService.this, error);
+                            });
+                        }
+                    }
+
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != ContactServiceState.Ok.code) {
+                    if (null != failureHandler) {
+                        if (failureHandler.isInMainThread()) {
+                            executeOnMainThread(() -> {
+                                ModuleError error = new ModuleError(ContactService.NAME, stateCode);
+                                failureHandler.handleFailure(ContactService.this, error);
+                            });
+                        }
+                        else {
+                            execute(() -> {
+                                ModuleError error = new ModuleError(ContactService.NAME, stateCode);
+                                failureHandler.handleFailure(ContactService.this, error);
+                            });
+                        }
+                    }
+                    return;
+                }
+
+                try {
+                    JSONObject json = packet.extractServiceData();
+                    json.put("domain", getAuthToken().domain);
+                    Group group = new Group(json);
+
+                    // 写入数据库
+                    storage.writeGroup(group);
+
+                    // 获取附录
+                    getAppendix(group, new StableGroupAppendixHandler() {
+                        @Override
+                        public void handleAppendix(Group group, GroupAppendix appendix) {
+                            // 填充数据
+                            fillGroup(group);
+
+                            // 写入缓存
+                            cache.put(groupId, group);
+
+                            if (successHandler.isInMainThread()) {
+                                executeOnMainThread(() -> {
+                                    successHandler.handleGroup(group);
+                                });
+                            }
+                            else {
+                                successHandler.handleGroup(group);
+                            }
+                        }
+                    }, new StableFailureHandler() {
+                        @Override
+                        public void handleFailure(Module module, ModuleError error) {
+                            if (null != failureHandler) {
+                                if (failureHandler.isInMainThread()) {
+                                    executeOnMainThread(() -> {
+                                        failureHandler.handleFailure(module, error);
+                                    });
+                                }
+                                else {
+                                    failureHandler.handleFailure(module, error);
+                                }
+                            }
+                        }
+                    });
+                } catch (JSONException e) {
+                    LogUtils.w(TAG, e);
+                }
+            }
+        });
+    }
+
     private void getAppendix(Contact contact, StableContactAppendixHandler successHandler, StableFailureHandler failureHandler) {
         JSONObject data = new JSONObject();
         try {
@@ -1111,6 +1395,15 @@ public class ContactService extends Module {
                     contact = new Contact(participant.id, "");
                 }
                 participant.setContact(contact);
+            }
+        }
+    }
+
+    private void fillGroup(final Group group) {
+        for (Long memberId : group.getMemberIdList()) {
+            Contact contact = this.getContact(memberId);
+            if (null != contact) {
+                group.updateMember(contact);
             }
         }
     }

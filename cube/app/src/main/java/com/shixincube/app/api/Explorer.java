@@ -128,6 +128,17 @@ public class Explorer {
     }
 
     /**
+     * 账号登录。
+     *
+     * @param token
+     * @param device
+     * @return
+     */
+    public Observable<LoginResponse> login(String token, String device) {
+        return this.api.login(getRequestBody(new LoginRequest(token, device)));
+    }
+
+    /**
      * 获取自己的账号信息。
      *
      * @param token

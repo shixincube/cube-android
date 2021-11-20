@@ -28,17 +28,18 @@ package cube.messaging.handler;
 
 import java.util.List;
 
+import cube.core.handler.CallbackHandler;
 import cube.messaging.model.Message;
 
 /**
  * 消息查询结果句柄。
  */
-public interface MessageListResultHandler {
+public interface MessageListResultHandler extends CallbackHandler {
 
     /**
      *
      * @param messageList 消息清单。
      * @param hasMore 是否还有更多消息。
      */
-    void handle(List<Message> messageList, boolean hasMore);
+    void handleMessageList(List<Message> messageList, boolean hasMore);
 }

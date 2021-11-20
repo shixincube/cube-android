@@ -24,44 +24,15 @@
  * SOFTWARE.
  */
 
-package cube.messaging.model;
-
-import cube.contact.model.Contact;
-import cube.contact.model.Group;
+package cube.contact.model;
 
 /**
- * 空消息，仅用于数据管理的消息。
+ * 用于同步方法的实体封装。
  */
-public class NullMessage extends Message {
+public class MutableGroup {
 
-    public NullMessage(Contact sender, Contact receiver) {
-        this.assign(sender.id, receiver.id, 0);
-        this.setSender(sender);
-        this.setReceiver(receiver);
-        this.setRemoteTS(this.getTimestamp());
-        this.scope = MessageScope.Private;
-        this.summary = "";
-    }
+    public Group group;
 
-    public NullMessage(Contact sender, Group group) {
-        this.assign(sender.id, 0, group.id);
-        this.setSender(sender);
-        this.setSourceGroup(group);
-        this.setRemoteTS(this.getTimestamp());
-        this.scope = MessageScope.Private;
-        this.summary = "";
-    }
-
-    public NullMessage(Long senderId, Long receiverId, Long sourceGroupId) {
-        super();
-        this.assign(senderId, receiverId, sourceGroupId);
-        this.setRemoteTS(this.getTimestamp());
-        this.scope = MessageScope.Private;
-        this.summary = "";
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return true;
+    public MutableGroup() {
     }
 }

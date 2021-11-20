@@ -24,44 +24,24 @@
  * SOFTWARE.
  */
 
-package cube.messaging.model;
-
-import cube.contact.model.Contact;
-import cube.contact.model.Group;
+package cube.messaging.handler;
 
 /**
- * 空消息，仅用于数据管理的消息。
+ * 默认消息列表结果句柄。
  */
-public class NullMessage extends Message {
+public abstract class DefaultMessageListResultHandler implements MessageListResultHandler {
 
-    public NullMessage(Contact sender, Contact receiver) {
-        this.assign(sender.id, receiver.id, 0);
-        this.setSender(sender);
-        this.setReceiver(receiver);
-        this.setRemoteTS(this.getTimestamp());
-        this.scope = MessageScope.Private;
-        this.summary = "";
+    private boolean inMainThread = true;
+
+    public DefaultMessageListResultHandler() {
     }
 
-    public NullMessage(Contact sender, Group group) {
-        this.assign(sender.id, 0, group.id);
-        this.setSender(sender);
-        this.setSourceGroup(group);
-        this.setRemoteTS(this.getTimestamp());
-        this.scope = MessageScope.Private;
-        this.summary = "";
-    }
-
-    public NullMessage(Long senderId, Long receiverId, Long sourceGroupId) {
-        super();
-        this.assign(senderId, receiverId, sourceGroupId);
-        this.setRemoteTS(this.getTimestamp());
-        this.scope = MessageScope.Private;
-        this.summary = "";
+    public DefaultMessageListResultHandler(boolean inMainThread) {
+        this.inMainThread = inMainThread;
     }
 
     @Override
-    public boolean isEmpty() {
-        return true;
+    public boolean isInMainThread() {
+        return this.inMainThread;
     }
 }

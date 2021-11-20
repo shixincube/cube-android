@@ -33,6 +33,8 @@ import com.google.gson.annotations.SerializedName;
  */
 public class LoginRequest {
 
+    public String token;
+
     @SerializedName("phone")
     public String phoneNumber;
 
@@ -43,6 +45,11 @@ public class LoginRequest {
     public LoginRequest(String phoneNumber, String password, String device) {
         this.phoneNumber = phoneNumber;
         this.password = password;
+        this.device = device;
+    }
+
+    public LoginRequest(String token, String device) {
+        this.token = token;
         this.device = device;
     }
 }

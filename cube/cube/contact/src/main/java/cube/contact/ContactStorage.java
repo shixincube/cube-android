@@ -42,6 +42,7 @@ import cube.contact.model.ContactZoneParticipantState;
 import cube.contact.model.ContactZoneState;
 import cube.contact.model.Group;
 import cube.contact.model.GroupAppendix;
+import cube.contact.model.GroupState;
 import cube.core.AbstractStorage;
 import cube.core.model.Entity;
 
@@ -256,12 +257,58 @@ public class ContactStorage extends AbstractStorage {
         this.closeWritableDatabase(db);
     }
 
+    /**
+     * 读取群组
+     * @param groupId
+     * @return
+     */
     public Group readGroup(Long groupId) {
         Group group = null;
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query("`group`", new String[]{ "*" },
+                "`id`=?", new String[]{ groupId.toString() }, null, null, null);
+        if (cursor.moveToFirst()) {
+            // 实例化
+            group = this.readGroup(cursor);
+        }
+        cursor.close();
+
+        if (null != group) {
+            // 读取成员列表
+            cursor = db.query("group_member", new String[]{ "contact_id" },
+                    "`group`=?", new String[]{ groupId.toString() }, null, null, null);
+            while (cursor.moveToNext()) {
+                Long memberId = cursor.getLong(0);
+                group.addMember(memberId);
+            }
+            cursor.close();
+
+            // 读取附录
+            cursor = db.query("appendix", new String[]{ "data" },
+                    "`id`=?", new String[]{ groupId.toString() }, null, null, null);
+            if (cursor.moveToFirst()) {
+                String string = cursor.getString(0);
+                try {
+                    GroupAppendix appendix = new GroupAppendix(this.service, group, new JSONObject(string));
+                    group.setAppendix(appendix);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+            cursor.close();
+        }
+
+        this.closeReadableDatabase(db);
 
         return group;
     }
 
+    /**
+     * 写入群组数据。
+     *
+     * @param group
+     */
     public void writeGroup(Group group) {
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -272,6 +319,8 @@ public class ContactStorage extends AbstractStorage {
         values.put("creation", group.getCreationTime());
         values.put("last_active", group.getLastActive());
         values.put("state", group.getState().code);
+        values.put("last", group.getLast());
+        values.put("expiry", group.getExpiry());
         if (null != group.getContext()) {
             values.put("context", group.getContext().toString());
         }
@@ -295,7 +344,7 @@ public class ContactStorage extends AbstractStorage {
         // 处理成员列表
         for (Long memberId : group.getMemberIdList()) {
             cursor = db.query("group_member", new String[]{ "sn" },
-                    "group=? AND contact_id=?", new String[]{ group.id.toString(), memberId.toString() },
+                    "`group`=? AND contact_id=?", new String[]{ group.id.toString(), memberId.toString() },
                     null, null, null);
             if (cursor.moveToFirst()) {
                 cursor.close();
@@ -326,7 +375,7 @@ public class ContactStorage extends AbstractStorage {
      *
      * @param appendix
      */
-    public void writeAppendix(ContactAppendix appendix) {
+    public synchronized void writeAppendix(ContactAppendix appendix) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         Cursor cursor = db.query("appendix", new String[] { "id" },
@@ -359,7 +408,7 @@ public class ContactStorage extends AbstractStorage {
      *
      * @param appendix
      */
-    public void writeAppendix(GroupAppendix appendix) {
+    public synchronized void writeAppendix(GroupAppendix appendix) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         Cursor cursor = db.query("appendix", new String[] { "id" },
@@ -554,13 +603,43 @@ public class ContactStorage extends AbstractStorage {
         return exists;
     }
 
+    private Group readGroup(Cursor cursor) {
+        JSONObject context = null;
+        String contextString = cursor.getString(cursor.getColumnIndex("context"));
+        if (null != contextString && contextString.length() > 2) {
+            try {
+                context = new JSONObject(contextString);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+        Group group = new Group(cursor.getLong(cursor.getColumnIndex("id")),
+                cursor.getString(cursor.getColumnIndex("name")),
+                cursor.getLong(cursor.getColumnIndex("owner")),
+                cursor.getString(cursor.getColumnIndex("tag")),
+                cursor.getLong(cursor.getColumnIndex("creation")),
+                cursor.getLong(cursor.getColumnIndex("last_active")),
+                GroupState.parse(cursor.getInt(cursor.getColumnIndex("state"))));
+
+        long last = cursor.getLong(cursor.getColumnIndex("last"));
+        long expiry = cursor.getLong(cursor.getColumnIndex("expiry"));
+        group.resetExpiry(expiry, last);
+
+        if (null != context) {
+            group.setContext(context);
+        }
+
+        return group;
+    }
+
     @Override
     protected void onDatabaseCreate(SQLiteDatabase database) {
         // 联系人表
-        database.execSQL("CREATE TABLE IF NOT EXISTS `contact` (`sn` INTEGER PRIMARY KEY AUTOINCREMENT, `id` BIGINT NOT NULL UNIQUE, `name` TEXT, `context` TEXT, `timestamp` BIGINT DEFAULT 0, `last` BIGINT DEFAULT 0, `expiry` BIGINT DEFAULT 0)");
+        database.execSQL("CREATE TABLE IF NOT EXISTS `contact` (`sn` INTEGER PRIMARY KEY AUTOINCREMENT, `id` BIGINT NOT NULL UNIQUE, `name` TEXT, `context` TEXT DEFAULT NULL, `timestamp` BIGINT DEFAULT 0, `last` BIGINT DEFAULT 0, `expiry` BIGINT DEFAULT 0)");
 
         // 群组表
-        database.execSQL("CREATE TABLE IF NOT EXISTS `group` (`sn` INTEGER PRIMARY KEY AUTOINCREMENT, `id` BIGINT NOT NULL UNIQUE, `name` TEXT, `owner` BIGINT, `tag` TEXT, `creation` BIGINT, `last_active` BIGINT, `state` INTEGER, `context` TEXT DEFAULT NULL)");
+        database.execSQL("CREATE TABLE IF NOT EXISTS `group` (`sn` INTEGER PRIMARY KEY AUTOINCREMENT, `id` BIGINT NOT NULL UNIQUE, `name` TEXT, `owner` BIGINT, `tag` TEXT, `creation` BIGINT, `last_active` BIGINT, `state` INTEGER, `context` TEXT DEFAULT NULL, `last` BIGINT DEFAULT 0, `expiry` BIGINT DEFAULT 0)");
 
         // 群成员表
         database.execSQL("CREATE TABLE IF NOT EXISTS `group_member` (`sn` INTEGER PRIMARY KEY AUTOINCREMENT, `group` BIGINT, `contact_id` BIGINT, `timestamp` BIGINT)");

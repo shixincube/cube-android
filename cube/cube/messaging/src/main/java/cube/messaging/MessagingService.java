@@ -52,6 +52,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import cube.contact.ContactService;
 import cube.contact.ContactServiceEvent;
+import cube.contact.model.AbstractContact;
 import cube.contact.model.Contact;
 import cube.contact.model.Group;
 import cube.contact.model.Self;
@@ -460,12 +461,27 @@ public class MessagingService extends Module {
 
             if (null == conversation) {
                 // 创建新的会话
-                Contact contact = this.contactService.getContact(id);
+                Group group = null;
+                Contact contact = this.contactService.getLocalContact(id);
+                if (null == contact) {
+                    group = this.contactService.getGroup(id);
+                }
+
                 if (null != contact) {
                     conversation = new Conversation(this.contactService.getSelf(), contact, ConversationReminded.Normal);
                 }
-                else {
-                    // TODO Group
+                else if (null != group) {
+                    conversation = new Conversation(this.contactService.getSelf(), group, ConversationReminded.Normal);
+                }
+            }
+
+            if (null != conversation && null != this.conversations) {
+                synchronized (this) {
+                    if (!this.conversations.contains(conversation)) {
+                        this.conversations.add(conversation);
+
+                        this.sortConversationList(this.conversations);
+                    }
                 }
             }
         }
@@ -1000,7 +1016,16 @@ public class MessagingService extends Module {
             return result;
         }
         else if (conversation.getType() == ConversationType.Group) {
-            // TODO
+            MessageListResult result = this.storage.queryMessagesByReverseWithGroup(conversation.getGroup().getId(),
+                    System.currentTimeMillis(), limit);
+            // 从数据库里查出来的是时间倒序，从大到小
+            // 这里对列表进行翻转，翻转为时间正序
+            Collections.reverse(result.getList());
+
+            // 重置列表
+            list.reset(result);
+
+            return result;
         }
 
         return null;
@@ -1015,40 +1040,45 @@ public class MessagingService extends Module {
      * @param handler
      */
     public void queryMessages(Conversation conversation, Message message, int limit, MessageListResultHandler handler) {
-        this.execute(new Runnable() {
-            @Override
-            public void run() {
-                if (ConversationType.Contact == conversation.getType()) {
-                    // 如果消息为空指针，则查询最近的消息
-                    if (null == message) {
-                        MessageListResult result = getRecentMessages(conversation, limit);
-                        executeOnMainThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                handler.handle(result.getList(), result.hasMore());
-                            }
-                        });
-                        return;
-                    }
+        // 如果消息为空指针，则查询最近的消息
+        if (null == message) {
+            MessageListResult result = getRecentMessages(conversation, limit);
+            if (handler.isInMainThread()) {
+                executeOnMainThread(() -> {
+                    handler.handleMessageList(result.getList(), result.hasMore());
+                });
+            }
+            else {
+                execute(() -> {
+                    handler.handleMessageList(result.getList(), result.hasMore());
+                });
+            }
 
-                    // 从数据库查询
-                    MessageListResult result = storage.queryMessagesByReverseWithContact(conversation.getPivotalId(), message.getRemoteTimestamp(), limit);
+            return;
+        }
 
-                    MessageList list = conversationMessageListMap.get(conversation.id);
-                    if (null != list) {
-                        list.insertMessages(result.getList());
-                    }
+        this.execute(() -> {
+            // 从数据库查询
+            MutableMessageListResult result = new MutableMessageListResult();
+            if (ConversationType.Contact == conversation.getType()) {
+                result.value = storage.queryMessagesByReverseWithContact(conversation.getPivotalId(), message.getRemoteTimestamp(), limit);
+            }
+            else if (ConversationType.Group == conversation.getType()) {
+                result.value = storage.queryMessagesByReverseWithGroup(conversation.getPivotalId(), message.getRemoteTimestamp(), limit);
+            }
 
-                    executeOnMainThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            handler.handle(result.getList(), result.hasMore());
-                        }
-                    });
-                }
-                else if (ConversationType.Group == conversation.getType()) {
-                    // TODO
-                }
+            MessageList list = conversationMessageListMap.get(conversation.id);
+            if (null != list) {
+                list.insertMessages(result.value.getList());
+            }
+
+            if (handler.isInMainThread()) {
+                executeOnMainThread(() -> {
+                    handler.handleMessageList(result.value.getList(), result.value.hasMore());
+                });
+            }
+            else {
+                handler.handleMessageList(result.value.getList(), result.value.hasMore());
             }
         });
     }
@@ -1305,61 +1335,92 @@ public class MessagingService extends Module {
      * @param <T> 消息实例类型。
      */
     public <T extends Message> void sendMessage(Contact contact, T message, SendHandler<Contact, T> sendHandler, FailureHandler failureHandler) {
+        this.sendMessage((AbstractContact) contact, message, sendHandler, failureHandler);
+    }
+
+    /**
+     * 向指定群组发送消息。
+     *
+     * @param group
+     * @param message
+     * @param sendHandler
+     * @param failureHandler
+     * @param <T>
+     */
+    public <T extends Message> void sendMessage(Group group, T message, SendHandler<Group, T> sendHandler, FailureHandler failureHandler) {
+        this.sendMessage((AbstractContact) group, message, sendHandler, failureHandler);
+    }
+
+    /**
+     * 向指定目标发送消息。
+     *
+     * @param abstractContact
+     * @param message
+     * @param sendHandler
+     * @param failureHandler
+     */
+    private void sendMessage(AbstractContact abstractContact, Message message, SendHandler sendHandler, FailureHandler failureHandler) {
         // 消息数据赋值
-        message.assign(this.contactService.getSelf().id, contact.id, 0);
+        if (abstractContact instanceof Contact) {
+            message.assign(this.contactService.getSelf().id, abstractContact.id, 0);
+        }
+        else if (abstractContact instanceof Group) {
+            message.assign(this.contactService.getSelf().id, 0, abstractContact.id);
+        }
+
         // 设置状态为正在发送
         message.setState(MessageState.Sending);
-        // 填写数据
+        // 填写数据，不能异步填充，必须先填充，再异步发送
         this.fillMessage(message);
 
         // 异步执行发送流程
         this.execute(() -> {
-            processSend(message, new DefaultSendHandler<Object, T>() {
+            processSend(message, new DefaultSendHandler<AbstractContact, Message>() {
                 @Override
-                public void handleProcessing(Object destination, T message) {
+                public void handleProcessing(AbstractContact destination, Message message) {
                     if (sendHandler.isInMainThread()) {
                         executeOnMainThread(() -> {
-                            sendHandler.handleProcessing(contact, message);
+                            sendHandler.handleProcessing(destination, message);
                         });
                     }
                     else {
-                        sendHandler.handleProcessing(contact, message);
+                        sendHandler.handleProcessing(destination, message);
                     }
                 }
 
                 @Override
-                public void handleProcessed(Object destination, T message) {
+                public void handleProcessed(AbstractContact destination, Message message) {
                     if (sendHandler.isInMainThread()) {
                         executeOnMainThread(() -> {
-                            sendHandler.handleProcessed(contact, message);
+                            sendHandler.handleProcessed(destination, message);
                         });
                     }
                     else {
-                        sendHandler.handleProcessed(contact, message);
+                        sendHandler.handleProcessed(destination, message);
                     }
                 }
 
                 @Override
-                public void handleSending(Object destination, T message) {
+                public void handleSending(AbstractContact destination, Message message) {
                     if (sendHandler.isInMainThread()) {
                         executeOnMainThread(() -> {
-                            sendHandler.handleSending(contact, message);
+                            sendHandler.handleSending(destination, message);
                         });
                     }
                     else {
-                        sendHandler.handleSending(contact, message);
+                        sendHandler.handleSending(destination, message);
                     }
                 }
 
                 @Override
-                public void handleSent(Object destination, T message) {
+                public void handleSent(AbstractContact destination, Message message) {
                     if (sendHandler.isInMainThread()) {
                         executeOnMainThread(() -> {
-                            sendHandler.handleSent(contact, message);
+                            sendHandler.handleSent(destination, message);
                         });
                     }
                     else {
-                        sendHandler.handleSent(contact, message);
+                        sendHandler.handleSent(destination, message);
                     }
                 }
             }, new StableFailureHandler() {
@@ -1376,18 +1437,6 @@ public class MessagingService extends Module {
                 }
             });
         });
-    }
-
-    /**
-     * 向指定群组发送消息。
-     *
-     * @param group
-     * @param message
-     * @param sendHandler
-     * @param failureHandler
-     */
-    public <T extends Message> void sendMessage(Group group, Message message, SendHandler<Group, T> sendHandler, FailureHandler failureHandler) {
-        // TODO
     }
 
     /**
@@ -1558,11 +1607,13 @@ public class MessagingService extends Module {
     }
 
     private void tryAddConversation(Conversation conversation) {
-        if (!this.conversations.contains(conversation)) {
-            this.conversations.add(conversation);
-            this.sortConversationList(this.conversations);
+        synchronized (this) {
+            if (!this.conversations.contains(conversation)) {
+                this.conversations.add(conversation);
+                this.sortConversationList(this.conversations);
 
-            this.storage.writeConversation(conversation);
+                this.storage.writeConversation(conversation);
+            }
         }
     }
 
@@ -1601,7 +1652,7 @@ public class MessagingService extends Module {
                     LogUtils.d(TAG, "Thumbnail : " + fileThumbnail.print());
                 }
                 else {
-                    // TODO
+                    // TODO 其他文件类型的压缩实现
                 }
             }
         }
@@ -2304,7 +2355,7 @@ public class MessagingService extends Module {
         message.setSender(this.contactService.getContact(message.getFrom()));
 
         if (message.isFromGroup()) {
-            // TODO 获取群组
+            message.setSourceGroup(this.contactService.getGroup(message.getSource()));
         }
         else {
             // 收件人
@@ -2437,8 +2488,14 @@ public class MessagingService extends Module {
 
     protected void fillConversation(Conversation conversation) {
         if (conversation.getRecentMessage().getFrom() == 0) {
-            conversation.setRecentMessage(new NullMessage(this.contactService.getSelf(),
-                    this.contactService.getContact(conversation.getPivotalId())));
+            if (conversation.getType() == ConversationType.Contact) {
+                conversation.setRecentMessage(new NullMessage(this.contactService.getSelf(),
+                        this.contactService.getContact(conversation.getPivotalId())));
+            }
+            else if (conversation.getType() == ConversationType.Group) {
+                conversation.setRecentMessage(new NullMessage(this.contactService.getSelf(),
+                        this.contactService.getGroup(conversation.getPivotalId())));
+            }
         }
 
         // 填充消息
@@ -2450,7 +2507,8 @@ public class MessagingService extends Module {
             conversation.setPivotal(contact);
         }
         else if (ConversationType.Group == conversation.getType()) {
-            // TODO
+            Group group = this.contactService.getGroup(conversation.getPivotalId());
+            conversation.setPivotal(group);
         }
     }
 

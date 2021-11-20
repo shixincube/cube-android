@@ -59,8 +59,8 @@ import cube.messaging.extension.HyperTextMessage;
 import cube.messaging.extension.ImageMessage;
 import cube.messaging.extension.NotificationMessage;
 import cube.messaging.handler.DefaultConversationHandler;
+import cube.messaging.handler.DefaultMessageListResultHandler;
 import cube.messaging.handler.DefaultSendHandler;
-import cube.messaging.handler.MessageListResultHandler;
 import cube.messaging.handler.SimpleSendHandler;
 import cube.messaging.model.Conversation;
 import cube.messaging.model.Message;
@@ -161,9 +161,9 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
 
         int max = this.pageSize + this.pageSize;
         CubeEngine.getInstance().getMessagingService().queryMessages(conversation, message, max,
-                new MessageListResultHandler() {
+                new DefaultMessageListResultHandler(true) {
                     @Override
-                    public void handle(List<Message> newMessageList, boolean hasMore) {
+                    public void handleMessageList(List<Message> newMessageList, boolean hasMore) {
                         // 结束刷新
                         getView().getRefreshLayout().endRefreshing();
 

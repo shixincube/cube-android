@@ -105,6 +105,15 @@ public class AccountHelper implements ContactDataProvider {
         return true;
     }
 
+    /**
+     * 获取令牌码。
+     *
+     * @return
+     */
+    public String getTokenCode() {
+        return this.tokenCode;
+    }
+
     public void setCurrentAccount(Account account) {
         this.current = account;
         this.editor.putString(AppConsts.APP_ACCOUNT, account.toJSON().toString());

@@ -166,6 +166,24 @@ public class Conversation extends Entity {
         this.unreadCount = 0;
     }
 
+    /**
+     * 构造函数。
+     *
+     * @param self
+     * @param group
+     * @param reminded
+     */
+    public Conversation(Self self, Group group, ConversationReminded reminded) {
+        super(group.id);
+        this.pivotalId = contact.id;
+        this.group = group;
+        this.type = ConversationType.Contact;
+        this.reminded = reminded;
+        this.state = ConversationState.Normal;
+        this.recentMessage = new NullMessage(self, contact);
+        this.unreadCount = 0;
+    }
+
     public Long getPivotalId() {
         return this.pivotalId;
     }

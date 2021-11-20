@@ -49,9 +49,13 @@ import com.shixincube.app.widget.adapter.ViewHolderForRecyclerView;
 import java.util.ArrayList;
 import java.util.List;
 
+import cube.contact.handler.DefaultGroupHandler;
 import cube.contact.model.Contact;
 import cube.contact.model.ContactZone;
 import cube.contact.model.Group;
+import cube.core.Module;
+import cube.core.ModuleError;
+import cube.core.handler.DefaultFailureHandler;
 import cube.engine.CubeEngine;
 import cube.engine.util.Future;
 import cube.engine.util.Promise;
@@ -81,6 +85,22 @@ public class OperateGroupMemberPresenter extends BasePresenter<OperateGroupMembe
     public void load() {
         this.setAdapter();
         this.loadData();
+    }
+
+    public void createGroupAndJump() {
+        this.activity.showWaitingDialog(UIUtils.getString(R.string.please_wait_a_moment));
+
+        CubeEngine.getInstance().getContactService().createGroup(this.selectedMembers, new DefaultGroupHandler(true) {
+            @Override
+            public void handleGroup(Group group) {
+
+            }
+        }, new DefaultFailureHandler(true) {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                UIUtils.showToast(UIUtils.getString(R.string.create_group_failure));
+            }
+        });
     }
 
     private void loadData() {

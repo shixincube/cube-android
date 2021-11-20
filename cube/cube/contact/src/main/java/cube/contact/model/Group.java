@@ -30,9 +30,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.Collator;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * 群组描述。包含了多个联系人的集合。
@@ -55,6 +58,8 @@ public class Group extends AbstractContact implements Comparator<Group> {
 
     private GroupAppendix appendix;
 
+    private boolean ordered = false;
+
     public Group(Long ownerId, String name) {
         super(name);
         this.ownerId = ownerId;
@@ -63,6 +68,19 @@ public class Group extends AbstractContact implements Comparator<Group> {
         this.lastActive = this.creation;
         this.state = GroupState.Normal;
         this.memberIdList = new ArrayList<>();
+        this.memberIdList.add(ownerId);
+    }
+
+    public Group(Long id, String name, Long ownerId, String tag,
+                 long creationTime, long lastActiveTime, GroupState state) {
+        super(id, name);
+        this.ownerId = ownerId;
+        this.tag = tag;
+        this.creation = creationTime;
+        this.lastActive = lastActiveTime;
+        this.state = state;
+        this.memberIdList = new ArrayList<>();
+        this.memberIdList.add(ownerId);
     }
 
     public Group(JSONObject json) throws JSONException {
@@ -124,8 +142,57 @@ public class Group extends AbstractContact implements Comparator<Group> {
         return false;
     }
 
+    public void addMember(Long memberId) {
+        if (!this.memberIdList.contains(memberId)) {
+            this.memberIdList.add(memberId);
+        }
+    }
+
+    public void removeMember(Long memberId) {
+        this.memberIdList.remove(memberId);
+    }
+
+    public List<Contact> getMemberList() {
+        if (null == this.memberList) {
+            return null;
+        }
+
+        if (!this.ordered) {
+            this.ordered = true;
+            Collections.sort(this.memberList, new PinYinComparator());
+        }
+
+        return this.memberList;
+    }
+
     public void setAppendix(GroupAppendix appendix) {
         this.appendix = appendix;
+    }
+
+    public void updateMember(Contact contact) {
+        if (null == this.memberList) {
+            this.memberList = new ArrayList<>();
+            this.memberList.add(contact);
+            return;
+        }
+
+        int index = this.memberList.indexOf(contact);
+        if (index >= 0) {
+            this.memberList.set(index, contact);
+        }
+        else {
+            this.memberList.add(contact);
+            this.ordered = false;
+        }
+    }
+
+    /**
+     * 是否已填充数据。
+     *
+     * @return
+     */
+    public boolean isFilled() {
+        return (null != this.memberList && this.memberList.size() == this.memberIdList.size());
     }
 
     @Override
@@ -170,5 +237,20 @@ public class Group extends AbstractContact implements Comparator<Group> {
             e.printStackTrace();
         }
         return json;
+    }
+
+    protected class PinYinComparator implements Comparator<Contact> {
+
+        private Collator collator;
+
+        public PinYinComparator() {
+            this.collator = Collator.getInstance(Locale.CHINESE);
+        }
+
+        @Override
+        public int compare(Contact contact1, Contact contact2) {
+            return this.collator.compare(contact1.getPriorityName(),
+                    contact2.getPriorityName());
+        }
     }
 }

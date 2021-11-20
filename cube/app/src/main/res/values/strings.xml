@@ -88,6 +88,9 @@
     <string name="add_to_contacts">添加到联系人</string>
     <string name="save_to_phone">保存到手机</string>
 
+    <!-- 群组信息 -->
+    <string name="create_group_failure">创建群聊失败，请稍候再试</string>
+
     <!-- 会话信息 -->
     <string name="draft">[草稿]</string>
     <string name="conv_title">会话详情</string>

@@ -24,44 +24,18 @@
  * SOFTWARE.
  */
 
-package cube.messaging.model;
-
-import cube.contact.model.Contact;
-import cube.contact.model.Group;
+package cube.contact.handler;
 
 /**
- * 空消息，仅用于数据管理的消息。
+ * 群组句柄。
  */
-public class NullMessage extends Message {
+public abstract class StableGroupHandler implements GroupHandler {
 
-    public NullMessage(Contact sender, Contact receiver) {
-        this.assign(sender.id, receiver.id, 0);
-        this.setSender(sender);
-        this.setReceiver(receiver);
-        this.setRemoteTS(this.getTimestamp());
-        this.scope = MessageScope.Private;
-        this.summary = "";
-    }
-
-    public NullMessage(Contact sender, Group group) {
-        this.assign(sender.id, 0, group.id);
-        this.setSender(sender);
-        this.setSourceGroup(group);
-        this.setRemoteTS(this.getTimestamp());
-        this.scope = MessageScope.Private;
-        this.summary = "";
-    }
-
-    public NullMessage(Long senderId, Long receiverId, Long sourceGroupId) {
-        super();
-        this.assign(senderId, receiverId, sourceGroupId);
-        this.setRemoteTS(this.getTimestamp());
-        this.scope = MessageScope.Private;
-        this.summary = "";
+    public StableGroupHandler() {
     }
 
     @Override
-    public boolean isEmpty() {
-        return true;
+    public final boolean isInMainThread() {
+        return false;
     }
 }

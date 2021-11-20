@@ -370,6 +370,10 @@ public class Message extends Entity {
         this.receiver = receiver;
     }
 
+    public void setSourceGroup(Group group) {
+        this.sourceGroup = group;
+    }
+
     public void setState(MessageState state) {
         this.state = state;
     }

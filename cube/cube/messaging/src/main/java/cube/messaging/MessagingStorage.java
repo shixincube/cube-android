@@ -363,9 +363,9 @@ public class MessagingStorage extends AbstractStorage {
     public void updateRecentMessage(Long conversationId, Message message) {
         SQLiteDatabase db = this.getWritableDatabase();
 
-        boolean unread = message.getFrom() == conversationId.longValue();
+        boolean unread = !message.isSelfTyper();
 
-        Cursor cursor = db.query("conversation", new String[]{ "id" },
+        Cursor cursor = db.query("conversation", new String[]{ "type" },
                 "id=?", new String[]{ conversationId.toString() }, null, null, null);
         if (cursor.moveToFirst()) {
             cursor.close();
@@ -435,7 +435,8 @@ public class MessagingStorage extends AbstractStorage {
                     "source=0 AND scope=0 AND state=? AND `from`=?",
                     new String[]{
                             currentState.toString(),
-                            conversation.getPivotalId().toString() }, null, null, null);
+                            conversation.getPivotalId().toString()
+                    }, null, null, null);
             while (cursor.moveToNext()) {
                 Long id = cursor.getLong(0);
                 idList.add(id);
@@ -450,7 +451,25 @@ public class MessagingStorage extends AbstractStorage {
                             conversation.getPivotalId().toString()});
         }
         else if (conversation.getType() == ConversationType.Group) {
-            // TODO
+            // 查找符合条件的数据
+            Cursor cursor = db.query("message", new String[]{ "id" },
+                    "scope=0 AND state=? AND source=?",
+                    new String[]{
+                            currentState.toString(),
+                            conversation.getPivotalId().toString()
+                    }, null, null, null);
+            while (cursor.moveToNext()) {
+                Long id = cursor.getLong(0);
+                idList.add(id);
+            }
+            cursor.close();
+
+            ContentValues values = new ContentValues();
+            values.put("state", newState.code);
+            db.update("message", values, "scope=0 AND state=? AND source=?",
+                    new String[] {
+                            currentState.toString(),
+                            conversation.getPivotalId().toString()});
         }
 
         this.closeWritableDatabase(db);
@@ -475,53 +494,6 @@ public class MessagingStorage extends AbstractStorage {
 
         return time;
     }
-
-    /*
-     * 查询最近消息列表。
-     *
-     * @param limit
-     * @return
-     */
-    /*public List<Message> queryRecentMessages(int limit) {
-        List<Message> list = new ArrayList<>();
-
-        List<Long> messageIdList = new ArrayList<>();
-
-        // 查询最近记录
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT `message_id` FROM `recent_messager` ORDER BY `time` DESC LIMIT ?",
-                new String[]{ Integer.toString(limit) });
-        while (cursor.moveToNext()) {
-            Long messageId = cursor.getLong(0);
-            messageIdList.add(messageId);
-        }
-        cursor.close();
-
-        // 查询消息
-        for (Long messageId : messageIdList) {
-            cursor = db.query("message", new String[]{ "data" },
-                    "id=?", new String[]{ messageId.toString() }, null, null, null);
-            if (cursor.moveToFirst()) {
-                String dataString = cursor.getString(0);
-                try {
-                    JSONObject json = new JSONObject(dataString);
-                    Message message = new Message(this.service, json);
-
-                    // 填充数据
-                    message = this.service.fillMessage(message);
-
-                    list.add(message);
-                } catch (JSONException e) {
-                    // Nothing
-                }
-            }
-            cursor.close();
-        }
-
-        this.closeReadableDatabase(db);
-
-        return list;
-    }*/
 
     public void updateMessagesRemoteState(List<Long> messageIdList, MessageState state) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -710,6 +682,63 @@ public class MessagingStorage extends AbstractStorage {
         };
     }
 
+    /**
+     * 反向查询消息。
+     *
+     * @param groupId
+     * @param timestamp
+     * @param limit
+     * @return
+     */
+    protected MessageListResult queryMessagesByReverseWithGroup(Long groupId, long timestamp, int limit) {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        final List<Message> messageList = new ArrayList<>();
+        final MutableBoolean hasMore = new MutableBoolean(false);
+
+        // 查询消息记录，这里比 limit 多查一条记录以判断是否还有更多消息。
+        Cursor cursor = db.rawQuery("SELECT * FROM `message` WHERE (`scope`=? OR `scope`=?) AND `rts`<? AND `source`=? AND (`state`=? OR `state`=? OR `state`=?) ORDER BY `rts` DESC LIMIT ?"
+                , new String[] {
+                        Integer.toString(MessageScope.Unlimited),
+                        Integer.toString(MessageScope.Private),
+                        Long.toString(timestamp),
+                        groupId.toString(),
+                        MessageState.Sending.toString(),
+                        MessageState.Sent.toString(),
+                        MessageState.Read.toString(),
+                        Integer.toString(limit + 1)
+                });
+
+        while (cursor.moveToNext()) {
+            if (messageList.size() == limit) {
+                hasMore.value = true;
+                break;
+            }
+
+            Message message = readMessage(cursor);
+
+            // 填充
+            message = this.service.fillMessage(message);
+            messageList.add(message);
+        }
+
+        cursor.close();
+        this.closeReadableDatabase(db);
+
+        return new MessageListResult() {
+
+            @Override
+            public List<Message> getList() {
+                return messageList;
+            }
+
+            @Override
+            public boolean hasMore() {
+                return hasMore.value;
+            }
+        };
+    }
+
     private Message queryLastMessageNoFillByContactId(Long contactId, boolean onlyUnlimited) {
         Message message = null;
         SQLiteDatabase db = this.getReadableDatabase();
@@ -739,7 +768,30 @@ public class MessagingStorage extends AbstractStorage {
     }
 
     private Message queryLastMessageNoFillByGroupId(Long groupId, boolean onlyUnlimited) {
-        return null;
+        Message message = null;
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        String scopeCondition = null;
+        if (onlyUnlimited) {
+            scopeCondition = String.format(Locale.ROOT, "(`scope`=%d)", MessageScope.Unlimited);
+        }
+        else {
+            scopeCondition = String.format(Locale.ROOT, "(`scope`=%d OR `scope`=%d)", MessageScope.Unlimited, MessageScope.Private);
+        }
+
+        Cursor cursor = db.rawQuery("SELECT * FROM `message` WHERE " + scopeCondition + " AND `source`=? AND (`state`=? OR `state`=? OR `state`=?) ORDER BY `rts` DESC LIMIT 1", new String[] {
+                groupId.toString(),
+                MessageState.Read.toString(),
+                MessageState.Sent.toString(),
+                MessageState.Sending.toString()
+        });
+
+        if (cursor.moveToFirst()) {
+            message = this.readMessage(cursor);
+        }
+        cursor.close();
+        this.closeReadableDatabase(db);
+        return message;
     }
 
     private Message readMessage(Cursor cursor) {

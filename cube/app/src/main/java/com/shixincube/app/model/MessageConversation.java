@@ -27,7 +27,7 @@
 package com.shixincube.app.model;
 
 import com.shixincube.app.R;
-import com.shixincube.app.manager.AccountHelper;
+import com.shixincube.app.util.AvatarUtils;
 
 import cube.contact.model.Contact;
 import cube.messaging.model.Conversation;
@@ -55,7 +55,7 @@ public class MessageConversation {
 
         if (conversation.getType() == ConversationType.Contact) {
             Contact contact = conversation.getContact();
-            this.avatarResourceId = AccountHelper.getAvatarResource(contact);
+            this.avatarResourceId = AvatarUtils.getAvatarResource(contact);
         }
         else if (conversation.getType() == ConversationType.Group) {
             this.avatarResourceId = R.mipmap.avatar_default;

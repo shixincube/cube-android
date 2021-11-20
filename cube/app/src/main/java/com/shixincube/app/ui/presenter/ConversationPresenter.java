@@ -37,6 +37,7 @@ import com.shixincube.app.ui.activity.MessagePanelActivity;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.ConversationView;
+import com.shixincube.app.util.AvatarUtils;
 import com.shixincube.app.util.DateUtils;
 import com.shixincube.app.widget.adapter.AdapterForRecyclerView;
 import com.shixincube.app.widget.adapter.OnItemClickListener;
@@ -49,9 +50,9 @@ import java.util.List;
 
 import cube.engine.CubeEngine;
 import cube.engine.util.Future;
-import cube.engine.util.PromiseHandler;
 import cube.engine.util.Promise;
 import cube.engine.util.PromiseFuture;
+import cube.engine.util.PromiseHandler;
 import cube.messaging.MessagingRecentEventListener;
 import cube.messaging.MessagingService;
 import cube.messaging.model.Conversation;
@@ -83,17 +84,21 @@ public class ConversationPresenter extends BasePresenter<ConversationView> imple
             this.adapter = new AdapterForRecyclerView<MessageConversation>(this.activity, this.messageConversations, R.layout.item_conversation) {
                 @Override
                 public void convert(ViewHolderForRecyclerView helper, MessageConversation item, int position) {
-                    if (item.conversation.getType() == ConversationType.Contact) {
-                        ImageView avatar = helper.getView(R.id.ivAvatar);
-                        avatar.setImageResource(item.avatarResourceId);
+                    ImageView avatar = helper.getView(R.id.ivAvatar);
 
+                    if (item.conversation.getType() == ConversationType.Contact) {
+                        avatar.setImageResource(item.avatarResourceId);
                         helper.setText(R.id.tvDisplayName, item.conversation.getContact().getPriorityName());
-                        helper.setText(R.id.tvDate, DateUtils.formatConversationTime(item.conversation.getDate()));
-                        helper.setText(R.id.tvContent, item.conversation.getRecentSummary());
                     }
-                    else {
-                        // TODO
+                    else if (item.conversation.getType() == ConversationType.Group) {
+                        AvatarUtils.fillGroupAvatar(activity, item.conversation.getGroup(), avatar);
+                        helper.setText(R.id.tvDisplayName, item.conversation.getGroup().getPriorityName());
                     }
+
+                    // 日期
+                    helper.setText(R.id.tvDate, DateUtils.formatConversationTime(item.conversation.getDate()));
+                    // 摘要
+                    helper.setText(R.id.tvContent, item.conversation.getRecentSummary());
 
                     // 会话是否置顶
                     if (item.conversation.focused()) {

@@ -58,8 +58,6 @@ public class Group extends AbstractContact implements Comparator<Group> {
 
     private GroupAppendix appendix;
 
-    private boolean ordered = false;
-
     public Group(Long ownerId, String name) {
         super(name);
         this.ownerId = ownerId;
@@ -136,6 +134,10 @@ public class Group extends AbstractContact implements Comparator<Group> {
         return this.appendix;
     }
 
+    public int numMembers() {
+        return this.memberIdList.size();
+    }
+
     public boolean isMember(Contact contact) {
         for (Long id : this.memberIdList) {
             if (id.longValue() == contact.id.longValue()) {
@@ -156,16 +158,17 @@ public class Group extends AbstractContact implements Comparator<Group> {
         this.memberIdList.remove(memberId);
     }
 
-    public List<Contact> getMemberList() {
+    public List<Contact> getOrderedMemberList() {
         if (null == this.memberList) {
             return null;
         }
 
-        if (!this.ordered) {
-            this.ordered = true;
-            Collections.sort(this.memberList, new PinYinComparator());
-        }
+        List<Contact> list = new ArrayList<>(this.memberList);
+        Collections.sort(list, new PinYinComparator());
+        return list;
+    }
 
+    public List<Contact> getMemberList() {
         return this.memberList;
     }
 
@@ -198,7 +201,6 @@ public class Group extends AbstractContact implements Comparator<Group> {
         }
         else {
             this.memberList.add(contact);
-            this.ordered = false;
         }
     }
 

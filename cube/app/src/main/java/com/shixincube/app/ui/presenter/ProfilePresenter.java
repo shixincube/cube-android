@@ -27,10 +27,10 @@
 package com.shixincube.app.ui.presenter;
 
 import com.shixincube.app.R;
-import com.shixincube.app.manager.AccountHelper;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.ProfileView;
+import com.shixincube.app.util.AvatarUtils;
 import com.shixincube.app.util.UIUtils;
 
 import cube.contact.model.Self;
@@ -52,7 +52,7 @@ public class ProfilePresenter extends BasePresenter<ProfileView> {
             return;
         }
 
-        getView().getAvatarImage().setImageResource(AccountHelper.getAvatarResource(self));
+        getView().getAvatarImage().setImageResource(AvatarUtils.getAvatarResource(self));
         getView().getNickNameText().setText(self.getPriorityName());
         getView().getCubeIdText().setText(UIUtils.getString(R.string.my_cube_id, self.getId().toString()));
     }

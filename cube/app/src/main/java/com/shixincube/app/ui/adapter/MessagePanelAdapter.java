@@ -34,8 +34,8 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.shixincube.app.R;
-import com.shixincube.app.manager.AccountHelper;
 import com.shixincube.app.ui.presenter.MessagePanelPresenter;
+import com.shixincube.app.util.AvatarUtils;
 import com.shixincube.app.util.DateUtils;
 import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.BubbleImageView;
@@ -122,7 +122,7 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
             return;
         }
 
-        Glide.with(getContext()).load(AccountHelper.getAvatarResource(item.getSender())).centerCrop().into(view);
+        Glide.with(getContext()).load(AvatarUtils.getAvatarResource(item.getSender())).centerCrop().into(view);
     }
 
     private void setName(ViewHolderForRecyclerView helper, Message item, int position) {

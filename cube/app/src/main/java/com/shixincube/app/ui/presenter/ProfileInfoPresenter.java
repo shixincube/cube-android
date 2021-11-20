@@ -26,10 +26,10 @@
 
 package com.shixincube.app.ui.presenter;
 
-import com.shixincube.app.manager.AccountHelper;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.ProfileInfoView;
+import com.shixincube.app.util.AvatarUtils;
 
 import cube.contact.model.Self;
 import cube.engine.CubeEngine;
@@ -45,7 +45,7 @@ public class ProfileInfoPresenter extends BasePresenter<ProfileInfoView> {
 
     public void loadAccountInfo() {
         Self self = CubeEngine.getInstance().getContactService().getSelf();
-        getView().getAvatarImage().setImageResource(AccountHelper.getAvatarResource(self));
+        getView().getAvatarImage().setImageResource(AvatarUtils.getAvatarResource(self));
         getView().getNickNameItem().setEndText(self.getPriorityName());
         getView().getCubeIdItem().setEndText(self.getId().toString());
     }

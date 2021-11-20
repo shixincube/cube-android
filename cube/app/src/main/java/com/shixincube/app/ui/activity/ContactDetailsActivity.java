@@ -34,9 +34,9 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.shixincube.app.R;
-import com.shixincube.app.manager.AccountHelper;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
+import com.shixincube.app.util.AvatarUtils;
 import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.optionitemview.OptionItemView;
 
@@ -111,7 +111,7 @@ public class ContactDetailsActivity extends BaseActivity {
 
     @Override
     public void initData() {
-        Glide.with(this).load(AccountHelper.getAvatarResource(this.contact)).centerCrop().into(avatarView);
+        Glide.with(this).load(AvatarUtils.getAvatarResource(this.contact)).centerCrop().into(avatarView);
         this.nameView.setText(this.contact.getPriorityName());
 
         this.cubeIdView.setText(UIUtils.getString(R.string.my_cube_id, this.contact.getId().toString()));

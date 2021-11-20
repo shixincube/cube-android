@@ -30,13 +30,13 @@ import android.content.Intent;
 
 import com.bumptech.glide.Glide;
 import com.shixincube.app.R;
-import com.shixincube.app.manager.AccountHelper;
 import com.shixincube.app.ui.activity.ContactDetailsActivity;
 import com.shixincube.app.ui.activity.ConversationDetailsActivity;
 import com.shixincube.app.ui.activity.OperateGroupMemberMemberActivity;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.ConversationDetailsView;
+import com.shixincube.app.util.AvatarUtils;
 import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.AdvancedImageView;
 import com.shixincube.app.widget.adapter.AdapterForRecyclerView;
@@ -137,7 +137,7 @@ public class ConversationDetailsPresenter extends BasePresenter<ConversationDeta
                         AdvancedImageView avatar = helper.getView(R.id.ivAvatar);
                         avatar.setCornerRadius(4);
                         Glide.with(activity)
-                                .load(AccountHelper.getAvatarResource(item))
+                                .load(AvatarUtils.getAvatarResource(item))
                                 .centerCrop()
                                 .into(avatar);
                     }

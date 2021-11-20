@@ -30,7 +30,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.shixincube.app.AppConsts;
-import com.shixincube.app.R;
 import com.shixincube.app.api.Explorer;
 import com.shixincube.app.model.Account;
 
@@ -181,35 +180,6 @@ public class AccountHelper implements ContactDataProvider {
         }
 
         return data.jsonObject;
-    }
-
-    public static int getAvatarResource(Contact contact) {
-        String name = Account.getAvatar(contact.getContext());
-        return explainAvatarForResource(name);
-    }
-
-    private static int explainAvatarForResource(String avatarName) {
-        if (null == avatarName) {
-            return R.mipmap.avatar_default;
-        }
-
-        if (avatarName.equals("avatar01")) { return R.mipmap.avatar_01; }
-        else if (avatarName.equals("avatar02")) { return R.mipmap.avatar_02; }
-        else if (avatarName.equals("avatar03")) { return R.mipmap.avatar_03; }
-        else if (avatarName.equals("avatar04")) { return R.mipmap.avatar_04; }
-        else if (avatarName.equals("avatar05")) { return R.mipmap.avatar_05; }
-        else if (avatarName.equals("avatar06")) { return R.mipmap.avatar_06; }
-        else if (avatarName.equals("avatar07")) { return R.mipmap.avatar_07; }
-        else if (avatarName.equals("avatar08")) { return R.mipmap.avatar_08; }
-        else if (avatarName.equals("avatar09")) { return R.mipmap.avatar_09; }
-        else if (avatarName.equals("avatar10")) { return R.mipmap.avatar_10; }
-        else if (avatarName.equals("avatar11")) { return R.mipmap.avatar_11; }
-        else if (avatarName.equals("avatar12")) { return R.mipmap.avatar_12; }
-        else if (avatarName.equals("avatar13")) { return R.mipmap.avatar_13; }
-        else if (avatarName.equals("avatar14")) { return R.mipmap.avatar_14; }
-        else if (avatarName.equals("avatar15")) { return R.mipmap.avatar_15; }
-        else if (avatarName.equals("avatar16")) { return R.mipmap.avatar_16; }
-        else { return R.mipmap.avatar_default; }
     }
 
     private String loadTokenCode() {

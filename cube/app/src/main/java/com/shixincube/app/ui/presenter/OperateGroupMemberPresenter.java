@@ -26,6 +26,7 @@
 
 package com.shixincube.app.ui.presenter;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.text.TextUtils;
 import android.view.View;
@@ -119,6 +120,10 @@ public class OperateGroupMemberPresenter extends BasePresenter<OperateGroupMembe
                 Intent intent = new Intent(activity, MessagePanelActivity.class);
                 intent.putExtra("conversationId", conversation.getId());
                 activity.jumpToActivity(intent);
+
+                Intent data = new Intent();
+                data.putExtra("conversationId", conversation.getId());
+                activity.setResult(Activity.RESULT_OK, data);
                 activity.finish();
             }
         }, new DefaultFailureHandler(true) {

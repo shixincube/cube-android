@@ -210,7 +210,7 @@ public class OptionItemView extends View {
         width = getWidth();
         height = getHeight();
 
-        //抗锯齿处理
+        // 抗锯齿处理
         canvas.setDrawFilter(new PaintFlagsDrawFilter(0, Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG));
 
         rect.left = getPaddingLeft();
@@ -218,15 +218,15 @@ public class OptionItemView extends View {
         rect.top = getPaddingTop();
         rect.bottom = height - getPaddingBottom();
 
-        //抗锯齿
+        // 抗锯齿
         paint.setAntiAlias(true);
         paint.setTextSize(titleTextSize > startTextSize ? titleTextSize > endTextSize ? titleTextSize : endTextSize : startTextSize > endTextSize ? startTextSize : endTextSize);
 //        mPaint.setTextSize(titleTextSize);
         paint.setStyle(Paint.Style.FILL);
-        //文字水平居中
+        // 文字水平居中
         paint.setTextAlign(Paint.Align.CENTER);
 
-        //计算垂直居中baseline
+        // 计算垂直居中baseline
         Paint.FontMetrics fontMetrics = paint.getFontMetrics();
         int baseLine = (int) ((rect.bottom + rect.top - fontMetrics.bottom - fontMetrics.top) / 2);
 

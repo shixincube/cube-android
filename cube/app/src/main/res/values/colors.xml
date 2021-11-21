@@ -12,6 +12,10 @@
     <color name="color_primary">#DFDFDF</color>
     <color name="color_accent">#7E7E7E</color>
 
+    <color name="color_danger_stroke">#D54A47</color>
+    <color name="color_danger">#E64340</color>
+    <color name="color_danger_text">#FFFFFF</color>
+
     <color name="button_red">#E44447</color>
     <color name="button_red_pressed">#CD3E40</color>
 
@@ -38,7 +42,7 @@
 
     <color name="item_text">#464646</color>
     <color name="item_bg">#FFFFFF</color>
-    <color name="item_focus_bg">#E9E9E9</color>
+    <color name="item_focus_bg">#EFEFEF</color>
     <color name="item_index_bg">#E5E5E5</color>
     <color name="badge_bg">#FF3E3E</color>
 

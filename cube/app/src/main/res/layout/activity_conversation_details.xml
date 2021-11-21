@@ -23,7 +23,7 @@
                 android:id="@+id/rvMembers"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@color/white"
+                android:background="@color/item_bg"
                 android:paddingBottom="5dp"
                 android:paddingLeft="7dp"
                 android:paddingRight="7dp"
@@ -37,8 +37,108 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/option_item_margin_top"
-                android:background="@color/white"
+                android:background="@color/item_bg"
                 android:orientation="vertical">
+
+                <!-- 群组名称 -->
+                <com.shixincube.app.widget.optionitemview.OptionItemView
+                    android:id="@+id/oivGroupName"
+                    style="@style/OptionItem"
+                    android:background="@drawable/selector_option_item"
+                    auto:start_text="@string/group_name"
+                    auto:start_text_color="@color/text"
+                    auto:start_text_margin_left="@dimen/option_item_margin_start"
+                    auto:start_text_size="16sp"
+                    auto:end_text="@string/untitled"
+                    auto:end_text_color="@color/text_secondary"
+                    auto:end_text_size="16sp"
+                    auto:end_image_margin_left="0dp"
+                    auto:end_image_margin_right="10dp"
+                    auto:end_src="@mipmap/indicator"/>
+
+                <View
+                    style="@style/Line"
+                    android:layout_marginStart="@dimen/item_margin_start_and_end"
+                    android:layout_marginEnd="@dimen/item_margin_start_and_end"/>
+
+                <!-- 群组公告 -->
+                <com.zhy.autolayout.AutoLinearLayout
+                    android:id="@+id/llGroupNotice"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginBottom="4dp"
+                    android:background="@color/item_bg"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="40dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/option_item_margin_left"
+                            android:layout_weight="1"
+                            android:text="@string/group_notice"
+                            android:textColor="@color/text"
+                            android:textSize="16sp"/>
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.5"
+                            android:layout_gravity="end"
+                            android:gravity="end"
+                            android:paddingTop="4dp"
+                            android:layout_marginEnd="@dimen/item_margin_start_and_end">
+                            <ImageView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="end"
+                                android:layout_marginEnd="-6dp"
+                                android:src="@mipmap/indicator"/>
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvGroupNotice"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="10dp"
+                        android:layout_marginLeft="25dp"
+                        android:layout_marginRight="25dp"
+                        android:layout_marginTop="5dp"
+                        android:text="@string/no_setting"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="14sp"/>
+
+                </com.zhy.autolayout.AutoLinearLayout>
+
+                <View
+                    style="@style/Line"
+                    android:layout_marginStart="@dimen/item_margin_start_and_end"
+                    android:layout_marginEnd="@dimen/item_margin_start_and_end"/>
+
+                <!-- 群组备注 -->
+                <com.shixincube.app.widget.optionitemview.OptionItemView
+                    android:id="@+id/oivRemarkGroup"
+                    style="@style/OptionItem"
+                    android:background="@drawable/selector_option_item"
+                    auto:start_text="@string/remark"
+                    auto:start_text_color="@color/text"
+                    auto:start_text_margin_left="@dimen/option_item_margin_start"
+                    auto:start_text_size="16sp"
+                    auto:end_text="@string/no_setting"
+                    auto:end_text_color="@color/text_secondary"
+                    auto:end_text_size="16sp"
+                    auto:end_image_margin_left="0dp"
+                    auto:end_image_margin_right="11dp"
+                    auto:end_src="@mipmap/indicator"/>
+
             </com.zhy.autolayout.AutoLinearLayout>
 
             <!-- 操作区 -->
@@ -115,7 +215,7 @@
                         android:layout_marginStart="@dimen/activity_horizontal_margin"
                         android:layout_weight="1"
                         android:text="@string/conv_top"
-                        android:textColor="@color/black"
+                        android:textColor="@color/text"
                         android:textSize="16sp"/>
 
                     <com.kyleduo.switchbutton.SwitchButton
@@ -130,6 +230,77 @@
                 </com.zhy.autolayout.AutoLinearLayout>
 
             </com.zhy.autolayout.AutoLinearLayout>
+
+            <!-- 群组操作区 -->
+            <com.zhy.autolayout.AutoLinearLayout
+                android:id="@+id/llGroupOperation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/option_item_margin_top"
+                android:background="@color/item_bg"
+                android:orientation="vertical"
+                android:visibility="visible">
+
+                <com.shixincube.app.widget.optionitemview.OptionItemView
+                    android:id="@+id/oivNameInGroup"
+                    style="@style/OptionItem"
+                    android:background="@drawable/selector_option_item"
+                    auto:start_text="@string/my_nickname_in_this_group"
+                    auto:start_text_color="@color/text"
+                    auto:start_text_margin_left="@dimen/option_item_margin_start"
+                    auto:start_text_size="16sp"
+                    auto:end_text=""
+                    auto:end_text_color="@color/text_secondary"
+                    auto:end_text_margin_right="@dimen/option_item_margin_end"
+                    auto:end_text_size="14sp"/>
+
+                <View
+                    style="@style/Line"
+                    android:layout_marginStart="@dimen/item_margin_start_and_end"
+                    android:layout_marginEnd="@dimen/item_margin_start_and_end"/>
+
+                <com.zhy.autolayout.AutoLinearLayout
+                    android:id="@+id/llShowNickName"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:background="@drawable/selector_option_item"
+                    android:gravity="center_vertical"
+                    android:visibility="visible">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/activity_horizontal_margin"
+                        android:layout_weight="1"
+                        android:text="@string/display_member_name"
+                        android:textColor="@color/text"
+                        android:textSize="16sp"/>
+
+                    <com.kyleduo.switchbutton.SwitchButton
+                        android:id="@+id/sbDisplayMemberName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="@dimen/option_item_margin_start"
+                        auto:kswBackDrawable="@drawable/ios_back_drawable"
+                        auto:kswThumbDrawable="@drawable/ios_thumb_selector"
+                        auto:kswThumbMarginTop="2dp"
+                        auto:kswThumbMarginBottom="-2dp"/>
+                </com.zhy.autolayout.AutoLinearLayout>
+
+            </com.zhy.autolayout.AutoLinearLayout>
+
+            <Button
+                android:id="@+id/btnQuitGroup"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
+                android:layout_marginBottom="20dp"
+                android:layout_marginStart="@dimen/option_item_margin_start"
+                android:layout_marginEnd="@dimen/option_item_margin_end"
+                android:layout_marginTop="@dimen/option_item_margin_top"
+                android:background="@drawable/shape_button_danger"
+                android:text="@string/delete_and_quit"
+                android:textColor="@color/color_danger_text"
+                android:textSize="16sp"/>
 
         </com.zhy.autolayout.AutoLinearLayout>
 

@@ -104,7 +104,9 @@ public class ConversationDetailsPresenter extends BasePresenter<ConversationDeta
             this.members.add(new DummyContact("+"));
         }
         else if (this.conversation.getType() == ConversationType.Group) {
-
+            this.members.addAll(this.conversation.getGroup().getMemberList());
+            this.members.add(new DummyContact("+"));
+            this.members.add(new DummyContact("-"));
         }
     }
 
@@ -128,6 +130,14 @@ public class ConversationDetailsPresenter extends BasePresenter<ConversationDeta
                             avatar.setCornerRadius(0);
                             Glide.with(activity)
                                     .load(R.mipmap.ic_group_add_member)
+                                    .centerCrop()
+                                    .into(avatar);
+                        }
+                        else if (item.getName().equals("-")) {
+                            AdvancedImageView avatar = helper.getView(R.id.ivAvatar);
+                            avatar.setCornerRadius(0);
+                            Glide.with(activity)
+                                    .load(R.mipmap.ic_group_remove_member)
                                     .centerCrop()
                                     .into(avatar);
                         }
@@ -160,12 +170,23 @@ public class ConversationDetailsPresenter extends BasePresenter<ConversationDeta
                         activity.startActivityForResult(intent, ConversationDetailsActivity.REQUEST_CREATE_OR_UPDATE_GROUP);
                     }
                     else {
+                        // 点击的是联系人
                         Contact contact = members.get(position);
                         showContactDetails(contact);
                     }
                 }
                 else {
-
+                    if (position == members.size() - 1) {
+                        // 点击 "-"
+                    }
+                    if (position == members.size() - 2) {
+                        // 点击 "+"
+                    }
+                    else {
+                        // 点击的是联系人
+                        Contact contact = members.get(position);
+                        showContactDetails(contact);
+                    }
                 }
             });
 

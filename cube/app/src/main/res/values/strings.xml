@@ -89,6 +89,11 @@
     <string name="save_to_phone">保存到手机</string>
 
     <!-- 群组信息 -->
+    <string name="group_name">群组名称</string>
+    <string name="group_notice">群组公告</string>
+    <string name="my_nickname_in_this_group">我在本群的昵称</string>
+    <string name="display_member_name">显示群成员昵称</string>
+    <string name="delete_and_quit">删除并退出</string>
     <string name="create_group_success">创建群聊成功</string>
     <string name="create_group_failure">创建群聊失败，请稍候再试</string>
 
@@ -102,6 +107,9 @@
     <string name="conv_top_cancel">取消置顶</string>
 
     <!-- 常用 -->
+    <string name="remark">备注</string>
+    <string name="untitled">未命名</string>
+    <string name="no_setting">未设置</string>
     <string name="please_wait_a_moment">请稍候</string>
     <string name="please_try_again_later">请稍候再试</string>
     <string name="save">保存</string>

@@ -66,6 +66,11 @@ public class GroupAppendix implements JSONable {
     private boolean following;
 
     /**
+     * 是否显示成员名。
+     */
+    private boolean memberNameDisplayed;
+
+    /**
      * 群的上下文。当前账号私有数据。
      */
     private JSONObject context;
@@ -88,6 +93,7 @@ public class GroupAppendix implements JSONable {
 
         this.remark = json.getString("remark");
         this.following = json.getBoolean("following");
+        this.memberNameDisplayed = json.has("memberNameDisplayed") && json.getBoolean("memberNameDisplayed");
 
         if (json.has("context")) {
             this.context = json.getJSONObject("context");
@@ -98,6 +104,24 @@ public class GroupAppendix implements JSONable {
 
     public Group getOwner() {
         return this.owner;
+    }
+
+    /**
+     * 是否有通知。
+     *
+     * @return
+     */
+    public boolean hasNotice() {
+        return this.notice.length() > 0;
+    }
+
+    /**
+     * 获取通知文本。
+     *
+     * @return 返回通知文本。
+     */
+    public String getNotice() {
+        return this.notice;
     }
 
     public String getRemark() {
@@ -126,6 +150,7 @@ public class GroupAppendix implements JSONable {
 
             json.put("remark", this.remark);
             json.put("following", this.following);
+            json.put("memberNameDisplayed", this.memberNameDisplayed);
 
             if (null != this.context) {
                 json.put("context", this.context);

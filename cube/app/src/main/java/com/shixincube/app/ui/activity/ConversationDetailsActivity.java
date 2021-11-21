@@ -28,6 +28,7 @@ package com.shixincube.app.ui.activity;
 
 import android.content.Intent;
 import android.view.View;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -38,9 +39,12 @@ import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.presenter.ConversationDetailsPresenter;
 import com.shixincube.app.ui.view.ConversationDetailsView;
 import com.shixincube.app.util.UIUtils;
+import com.shixincube.app.widget.optionitemview.OptionItemView;
 import com.shixincube.app.widget.recyclerview.RecyclerView;
 
 import butterknife.BindView;
+import cube.contact.model.Group;
+import cube.contact.model.GroupAppendix;
 import cube.engine.CubeEngine;
 import cube.engine.util.Future;
 import cube.engine.util.Promise;
@@ -69,11 +73,26 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
     @BindView(R.id.llGroupDetails)
     LinearLayout groupDetailsLayout;
 
+    @BindView(R.id.llGroupOperation)
+    LinearLayout groupOperationLayout;
+
+    @BindView(R.id.oivGroupName)
+    OptionItemView groupNameItemView;
+
+    @BindView(R.id.tvGroupNotice)
+    TextView groupNoticeView;
+
+    @BindView(R.id.oivRemarkGroup)
+    OptionItemView groupRemarkItemView;
+
     @BindView(R.id.sbCloseRemind)
     SwitchButton closeRemindSwitch;
 
     @BindView(R.id.sbTopConversation)
     SwitchButton topConversationSwitch;
+
+    @BindView(R.id.btnQuitGroup)
+    Button quitGroupButton;
 
     private boolean isFirst = true;
 
@@ -103,6 +122,19 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
 
         if (this.conversation.getType() == ConversationType.Contact) {
             this.groupDetailsLayout.setVisibility(View.GONE);
+            this.groupOperationLayout.setVisibility(View.GONE);
+            this.quitGroupButton.setVisibility(View.GONE);
+        }
+        else if (this.conversation.getType() == ConversationType.Group) {
+            this.groupNameItemView.setEndText(this.conversation.getDisplayName());
+            Group group = this.conversation.getGroup();
+            GroupAppendix appendix = group.getAppendix();
+            if (appendix.hasNotice()) {
+                this.groupNoticeView.setText(appendix.getNotice());
+            }
+            else {
+                this.groupNoticeView.setVisibility(View.GONE);
+            }
         }
     }
 
@@ -201,7 +233,10 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == REQUEST_CREATE_OR_UPDATE_GROUP) {
-            System.out.println("XJW");
+            if (resultCode == RESULT_OK) {
+                // 创建群聊成功，结束当前界面
+                finish();
+            }
         }
     }
 
@@ -218,6 +253,11 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
     @Override
     public RecyclerView getMemberListView() {
         return this.membersRecyclerView;
+    }
+
+    @Override
+    public OptionItemView getGroupNameItemView() {
+        return this.groupNameItemView;
     }
 
     @Override

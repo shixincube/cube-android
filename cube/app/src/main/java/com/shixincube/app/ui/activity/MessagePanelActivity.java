@@ -27,11 +27,13 @@
 package com.shixincube.app.ui.activity;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -296,10 +298,16 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
             this.softwareKeyboard.interceptBackPress();
         }
 
-//        if (inputContentView.isActivated()) {
-//          InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-//          imm.hideSoftInputFromWindow(inputContentView.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
-//        }
+        if (inputContentView.isShown()) {
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (imm.isActive() && null != getCurrentFocus()) {
+                imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+
+                if (getCurrentFocus() == inputContentView) {
+                    inputContentView.clearFocus();
+                }
+            }
+        }
     }
 
     public void fireClickBlank() {

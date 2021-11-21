@@ -26,66 +26,38 @@
 
 package cube.contact.model;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * 群组状态。
+ * 群操作时用户捆绑相关成员的元素。
  */
-public enum GroupState {
+public class GroupBundle {
 
-    /**
-     * 正常状态。
-     */
-    Normal(0),
+    public Group group;
 
-    /**
-     * 解散状态。
-     */
-    Dismissed(1),
+    public List<Long> modifiedIdList;
 
-    /**
-     * 禁用状态。
-     */
-    Forbidden(2),
+    public Long operatorId;
 
-    /**
-     * 高风险状态。
-     */
-    HighRisk(3),
+    public GroupBundle(JSONObject json) {
+        try {
+            this.group = new Group(json);
 
-    /**
-     * 失效状态。
-     */
-    Disabled(9),
+            this.modifiedIdList = new ArrayList<>();
+            JSONArray modified = json.getJSONArray("modified");
+            for (int i = 0; i < modified.length(); ++i) {
+                Long id = modified.getLong(i);
+                this.modifiedIdList.add(id);
+            }
 
-    /**
-     * 未知状态。
-     */
-    Unknown(-1);
-
-    public final int code;
-
-    GroupState(int code) {
-        this.code = code;
-    }
-
-    @Override
-    public String toString() {
-        return Integer.toString(this.code);
-    }
-
-    public static GroupState parse(int code) {
-        switch (code) {
-            case 0:
-                return Normal;
-            case 1:
-                return Dismissed;
-            case 2:
-                return Forbidden;
-            case 3:
-                return HighRisk;
-            case 9:
-                return Disabled;
-            default:
-                return Unknown;
+            this.operatorId = json.getLong("operator");
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
     }
 }

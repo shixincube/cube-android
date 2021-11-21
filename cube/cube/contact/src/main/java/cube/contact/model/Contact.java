@@ -178,6 +178,9 @@ public class Contact extends AbstractContact {
     @Override
     public JSONObject toCompactJSON() {
         JSONObject json = super.toCompactJSON();
+        if (json.has("context")) {
+            json.remove("context");
+        }
         return json;
     }
 }

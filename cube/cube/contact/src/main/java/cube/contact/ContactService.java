@@ -61,6 +61,8 @@ import cube.contact.model.ContactZoneParticipant;
 import cube.contact.model.ContactZoneState;
 import cube.contact.model.Group;
 import cube.contact.model.GroupAppendix;
+import cube.contact.model.GroupBundle;
+import cube.contact.model.GroupState;
 import cube.contact.model.MutableContact;
 import cube.contact.model.MutableContactZone;
 import cube.contact.model.MutableGroup;
@@ -1016,6 +1018,9 @@ public class ContactService extends Module {
                             else {
                                 successHandler.handleGroup(group);
                             }
+
+                            ObservableEvent event = new ObservableEvent(ContactServiceEvent.GroupCreated, group);
+                            notifyObservers(event);
                         }
                     }, new StableFailureHandler() {
                         @Override
@@ -1038,10 +1043,212 @@ public class ContactService extends Module {
     }
 
     /**
+     * 退出群组。如果本人是群主，则群组被解散。
+     *
+     * @param group 指定群组。
+     * @param successHandler 指定操作成功回调句柄。
+     * @param failureHandler 指定操作失败回调句柄。
+     */
+    public void quitGroup(Group group, GroupHandler successHandler, FailureHandler failureHandler) {
+        if (group.getOwnerId().equals(this.self.id)) {
+            // 群主是本人，解散群
+            this.dissolveGroup(group, successHandler, failureHandler);
+            return;
+        }
+
+        if (!this.pipeline.isReady()) {
+            ModuleError error = new ModuleError(NAME, ContactServiceState.NoNetwork.code);
+            error.data = group;
+            if (failureHandler.isInMainThread()) {
+                executeOnMainThread(() -> {
+                    failureHandler.handleFailure(ContactService.this, error);
+                });
+            }
+            else {
+                execute(() -> {
+                    failureHandler.handleFailure(ContactService.this, error);
+                });
+            }
+            return;
+        }
+
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("groupId", group.id.longValue());
+            JSONArray list = new JSONArray();
+            list.put(this.self.id.longValue());
+            payload.put("memberIdList", list);
+            payload.put("operator", this.self.toCompactJSON());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        Packet requestPacket = new Packet(ContactServiceAction.RemoveGroupMember, payload);
+        this.pipeline.send(ContactService.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    ModuleError error = new ModuleError(NAME, packet.state.code);
+                    error.data = group;
+                    if (failureHandler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            failureHandler.handleFailure(ContactService.this, error);
+                        });
+                    }
+                    else {
+                        execute(() -> {
+                            failureHandler.handleFailure(ContactService.this, error);
+                        });
+                    }
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != ContactServiceState.Ok.code) {
+                    ModuleError error = new ModuleError(NAME, stateCode);
+                    error.data = group;
+                    if (failureHandler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            failureHandler.handleFailure(ContactService.this, error);
+                        });
+                    }
+                    else {
+                        execute(() -> {
+                            failureHandler.handleFailure(ContactService.this, error);
+                        });
+                    }
+                    return;
+                }
+
+                GroupBundle bundle = new GroupBundle(packet.extractServiceData());
+                storage.removeGroupMember(bundle);
+
+                // 更新状态
+                long now = System.currentTimeMillis();
+                group.setState(GroupState.Disabled);
+                group.setLastActive(now);
+                group.resetLast(now);
+                group.removeMember(self.id);
+
+                storage.updateGroupProperty(group);
+
+                // 从缓存里删除
+                cache.remove(group.id);
+
+                if (successHandler.isInMainThread()) {
+                    executeOnMainThread(() -> {
+                        successHandler.handleGroup(group);
+                    });
+                }
+                else {
+                    execute(() -> {
+                        successHandler.handleGroup(group);
+                    });
+                }
+
+                ObservableEvent event = new ObservableEvent(ContactServiceEvent.GroupQuit, group);
+                notifyObservers(event);
+            }
+        });
+    }
+
+    /**
+     * 解散群组。只有群主可以解散群。
+     *
+     * @param group 指定群组。
+     * @param successHandler 指定操作成功回调句柄。
+     * @param failureHandler 指定操作失败回调句柄。
+     */
+    public void dissolveGroup(Group group, GroupHandler successHandler, FailureHandler failureHandler) {
+        if (!this.pipeline.isReady()) {
+            ModuleError error = new ModuleError(NAME, ContactServiceState.NoNetwork.code);
+            error.data = group;
+            if (failureHandler.isInMainThread()) {
+                executeOnMainThread(() -> {
+                    failureHandler.handleFailure(ContactService.this, error);
+                });
+            }
+            else {
+                execute(() -> {
+                    failureHandler.handleFailure(ContactService.this, error);
+                });
+            }
+            return;
+        }
+
+        // 解散群组
+        Packet requestPacket = new Packet(ContactServiceAction.DissolveGroup, group.toCompactJSON());
+        this.pipeline.send(ContactService.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    ModuleError error = new ModuleError(NAME, packet.state.code);
+                    error.data = group;
+                    if (failureHandler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            failureHandler.handleFailure(ContactService.this, error);
+                        });
+                    }
+                    else {
+                        execute(() -> {
+                            failureHandler.handleFailure(ContactService.this, error);
+                        });
+                    }
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != ContactServiceState.Ok.code) {
+                    ModuleError error = new ModuleError(NAME, stateCode);
+                    error.data = group;
+                    if (failureHandler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            failureHandler.handleFailure(ContactService.this, error);
+                        });
+                    }
+                    else {
+                        execute(() -> {
+                            failureHandler.handleFailure(ContactService.this, error);
+                        });
+                    }
+                    return;
+                }
+
+                try {
+                    Group responseGroup = new Group(packet.extractServiceData());
+                    group.setState(responseGroup.getState());
+                    group.setLastActive(responseGroup.getLastActive());
+                    group.resetLast(System.currentTimeMillis());
+
+                    // 更新状态
+                    storage.updateGroupProperty(group);
+
+                    if (successHandler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            successHandler.handleGroup(group);
+                        });
+                    }
+                    else {
+                        execute(() -> {
+                            successHandler.handleGroup(group);
+                        });
+                    }
+
+                    execute(() -> {
+                        ObservableEvent event = new ObservableEvent(ContactServiceEvent.GroupDissolved, group);
+                        notifyObservers(event);
+                    });
+                } catch (JSONException e) {
+                    LogUtils.w(TAG, "dissolve group failed", e);
+                }
+            }
+        });
+    }
+
+    /**
      * 获取指定群组。
      *
-     * @param groupId
-     * @return
+     * @param groupId 指定群组 ID 。
+     * @return 返回群组实例，如果没有该群组返回 {@code null} 值。
      */
     public Group getGroup(Long groupId) {
         if (null == this.self) {
@@ -1588,52 +1795,6 @@ public class ContactService extends Module {
         this.pipeline.send(ContactService.NAME, packet);
     }
 
-    protected void triggerListGroups(JSONObject data) {
-        try {
-            int total = data.getInt("total");
-
-            if (LogUtils.isDebugLevel()) {
-                LogUtils.d(TAG, "List groups total: " + total);
-            }
-
-            if (null != this.workingGroupListHandler) {
-                this.workingGroupListHandler.setTotal(total);
-            }
-
-            JSONArray array = data.getJSONArray("list");
-            for (int i = 0; i < array.length(); ++i) {
-                JSONObject current = array.getJSONObject(i);
-                Group group = new Group(current);
-
-                // 保存到数据库
-                storage.writeGroup(group);
-
-                if (null != this.workingGroupListHandler) {
-                    // 添加待处理群组
-                    this.workingGroupListHandler.addGroup(group);
-
-                    this.getAppendix(group, new StableGroupAppendixHandler() {
-                        @Override
-                        public void handleAppendix(Group group, GroupAppendix appendix) {
-                            workingGroupListHandler.handleAppendix(group, appendix);
-                        }
-                    }, new StableFailureHandler() {
-                        @Override
-                        public void handleFailure(Module module, ModuleError error) {
-                            workingGroupListHandler.handleFailure(module, error);
-                        }
-                    });
-                }
-            }
-
-            if (null != this.workingGroupListHandler) {
-                this.workingGroupListHandler.firePageLoaded();
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-    }
-
     private void listBlockList(ContactListHandler handler) {
         // TODO
         ArrayList<Contact> list = new ArrayList<>(1);
@@ -1673,7 +1834,7 @@ public class ContactService extends Module {
     }
 
     private void fireSignInCompleted() {
-        LogUtils.d(ContactService.class.getSimpleName(), "#fireSignInCompleted");
+        LogUtils.d(TAG, "#fireSignInCompleted");
 
         if (this.signInReady.get()) {
             return;
@@ -1685,7 +1846,7 @@ public class ContactService extends Module {
         this.storage.writeContact(this.self);
 
         // 通知 Sign-In 事件
-        ObservableEvent event = new ObservableEvent(ContactServiceEvent.SignIn, self);
+        ObservableEvent event = new ObservableEvent(ContactServiceEvent.SignIn, this.self);
         notifyObservers(event);
 
         if (null != this.signInHandler) {
@@ -1800,5 +1961,160 @@ public class ContactService extends Module {
         this.notifyObservers(event);
 
         this.self = null;
+        this.cache.clear();
+    }
+
+    protected void triggerListGroups(JSONObject data) {
+        try {
+            int total = data.getInt("total");
+
+            if (LogUtils.isDebugLevel()) {
+                LogUtils.d(TAG, "List groups total: " + total);
+            }
+
+            if (null != this.workingGroupListHandler) {
+                this.workingGroupListHandler.setTotal(total);
+            }
+
+            JSONArray array = data.getJSONArray("list");
+            for (int i = 0; i < array.length(); ++i) {
+                JSONObject current = array.getJSONObject(i);
+                Group group = new Group(current);
+
+                // 保存到数据库
+                storage.writeGroup(group);
+
+                if (null != this.workingGroupListHandler) {
+                    // 添加待处理群组
+                    this.workingGroupListHandler.addGroup(group);
+
+                    this.getAppendix(group, new StableGroupAppendixHandler() {
+                        @Override
+                        public void handleAppendix(Group group, GroupAppendix appendix) {
+                            workingGroupListHandler.handleAppendix(group, appendix);
+                        }
+                    }, new StableFailureHandler() {
+                        @Override
+                        public void handleFailure(Module module, ModuleError error) {
+                            workingGroupListHandler.handleFailure(module, error);
+                        }
+                    });
+                }
+            }
+
+            if (null != this.workingGroupListHandler) {
+                this.workingGroupListHandler.firePageLoaded();
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    protected void triggerCreateGroup(Packet packet) {
+        if (packet.response) {
+            return;
+        }
+
+        try {
+            Group group = new Group(packet.extractServiceData());
+            // 写入数据库
+            this.storage.writeGroup(group);
+
+            this.getAppendix(group, new StableGroupAppendixHandler() {
+                @Override
+                public void handleAppendix(Group group, GroupAppendix appendix) {
+                    // 更新到缓存
+                    cache.put(group.id, group);
+
+                    if (!group.isFilled()) {
+                        fillGroup(group);
+                    }
+
+                    ObservableEvent event = new ObservableEvent(ContactServiceEvent.GroupCreated, group);
+                    notifyObservers(event);
+                }
+            }, new StableFailureHandler() {
+                @Override
+                public void handleFailure(Module module, ModuleError error) {
+                    ModuleError fault = new ModuleError(NAME, error.code, "Get group appendix failed");
+                    fault.data = group;
+                    ObservableEvent event = new ObservableEvent(ContactServiceEvent.Fault, fault);
+                    notifyObservers(event);
+                }
+            });
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    protected void triggerDissolveGroup(Packet packet) {
+        if (packet.response) {
+            return;
+        }
+
+        try {
+            Group group = new Group(packet.extractServiceData());
+
+            AbstractContact abstractGroup = this.cache.get(group.id);
+            if (null != abstractGroup) {
+                Group current = (Group) abstractGroup;
+                current.update(group);
+                group = current;
+            }
+
+            // 更新
+            this.storage.updateGroupProperty(group);
+
+            ObservableEvent event = new ObservableEvent(ContactServiceEvent.GroupDissolved, group);
+            notifyObservers(event);
+        } catch (JSONException e) {
+            LogUtils.w(TAG, "#triggerDissolveGroup", e);
+        }
+    }
+
+    protected void triggerRemoveGroupMember(Packet packet) {
+        if (packet.response) {
+            return;
+        }
+
+        GroupBundle bundle = new GroupBundle(packet.extractServiceData());
+        Group group = bundle.group;
+
+        boolean quit = false;
+        for (Long memberId : bundle.modifiedIdList) {
+            if (memberId.equals(this.self.id)) {
+                quit = true;
+                break;
+            }
+        }
+
+        AbstractContact abstractGroup = this.cache.get(group.id);
+        if (null != abstractGroup) {
+            Group current = (Group) abstractGroup;
+            // 更新
+            current.update(group);
+            for (Long memberId : bundle.modifiedIdList) {
+                current.removeMember(memberId);
+            }
+            group = current;
+        }
+
+        if (quit) {
+            // 退出群组
+            group.setState(GroupState.Disabled);
+        }
+
+        // 更新数据库
+        this.storage.updateGroupProperty(group);
+        this.storage.removeGroupMember(bundle);
+
+        if (quit) {
+            ObservableEvent event = new ObservableEvent(ContactServiceEvent.GroupQuit, group);
+            notifyObservers(event);
+        }
+        else {
+            ObservableEvent event = new ObservableEvent(ContactServiceEvent.GroupMemberRemoved, group);
+            notifyObservers(event);
+        }
     }
 }

@@ -56,6 +56,11 @@ public class Packet {
      */
     public PipelineState state;
 
+    /**
+     * 是否是应答。
+     */
+    public boolean response = false;
+
     public Packet(String name) {
         this(Utils.generateUnsignedSerialNumber(), name, null);
     }

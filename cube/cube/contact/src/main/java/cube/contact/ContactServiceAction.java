@@ -162,11 +162,6 @@ public final class ContactServiceAction {
     public final static String GroupAppendixUpdated = "groupAppendixUpdated";
 
     /**
-     * 置顶操作。
-     */
-    public final static String TopList = "topList";
-
-    /**
      * 阻止清单操作。
      */
     public final static String BlockList = "blockList";

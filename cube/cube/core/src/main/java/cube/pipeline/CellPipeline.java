@@ -156,6 +156,7 @@ public class CellPipeline extends Pipeline implements TalkListener {
         this.executor.execute(() -> {
             ResponseCallback callback = responseCallbackMap.remove(packet.sn);
             if (null != callback) {
+                packet.response = true;
                 callback.handler.handleResponse(packet);
             }
 

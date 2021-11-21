@@ -56,6 +56,7 @@ import cube.contact.handler.StableGroupHandler;
 import cube.contact.model.AbstractContact;
 import cube.contact.model.Contact;
 import cube.contact.model.Group;
+import cube.contact.model.GroupState;
 import cube.contact.model.Self;
 import cube.core.Hook;
 import cube.core.Module;
@@ -208,6 +209,7 @@ public class MessagingService extends Module {
         this.contactService.attachWithName(ContactServiceEvent.SelfReady, this.observer);
         this.contactService.attachWithName(ContactServiceEvent.SignIn, this.observer);
         this.contactService.attachWithName(ContactServiceEvent.SignOut, this.observer);
+        this.contactService.attachWithName(ContactServiceEvent.GroupDissolved, this.observer);
 
         synchronized (this) {
             if (null != this.contactService.getSelf() && !this.ready && !this.preparing.get()) {
@@ -242,6 +244,7 @@ public class MessagingService extends Module {
         this.contactService.detachWithName(ContactServiceEvent.SelfReady, this.observer);
         this.contactService.detachWithName(ContactServiceEvent.SignIn, this.observer);
         this.contactService.detachWithName(ContactServiceEvent.SignOut, this.observer);
+        this.contactService.detachWithName(ContactServiceEvent.GroupDissolved, this.observer);
 
         this.pipeline.removeListener(MessagingService.NAME, this.pipelineListener);
 
@@ -381,10 +384,10 @@ public class MessagingService extends Module {
     /**
      * 获取最近的会话清单。
      *
-     * @param max 指定最大记录数量。
+     * @param maxNum 指定最大记录数量。
      * @return 返回消息列表。如果返回 {@code null} 值表示消息服务模块未启动。
      */
-    public List<Conversation> getRecentConversations(int max) {
+    public List<Conversation> getRecentConversations(int maxNum) {
         if (!this.hasStarted()) {
             return null;
         }
@@ -401,7 +404,22 @@ public class MessagingService extends Module {
 
         synchronized (this) {
             if (null == this.conversations || this.conversations.isEmpty()) {
-                List<Conversation> list = this.storage.queryRecentConversations(max);
+                List<Conversation> list = this.storage.queryRecentConversations(maxNum);
+
+                // 检查列表里的会话群组有没有已失效的
+                Iterator<Conversation> iter = list.iterator();
+                while (iter.hasNext()) {
+                    Conversation conversation = iter.next();
+                    if (conversation.getType() == ConversationType.Group) {
+                        Group group = conversation.getGroup();
+                        if (group.getState() != GroupState.Normal) {
+                            // 将已经失效的群组对应的会话删除
+                            conversation.setState(ConversationState.Deleted);
+                            this.storage.updateConversation(conversation);
+                            iter.remove();
+                        }
+                    }
+                }
 
                 if (null == this.conversations) {
                     this.conversations = new Vector<>(list);
@@ -468,6 +486,10 @@ public class MessagingService extends Module {
                 }
             }
         });
+    }
+
+    public void deleteConversation(Conversation conversation, ConversationHandler successHandler, FailureHandler failureHandler) {
+
     }
 
     /**
@@ -914,7 +936,7 @@ public class MessagingService extends Module {
      * @param conversation
      * @param conversationHandler
      * @param failureHandler
-     * @return
+     * @return 如果操作被执行返回 {@code true} 。
      */
     private boolean updateConversation(Conversation conversation, ConversationHandler conversationHandler, FailureHandler failureHandler) {
         if (!this.pipeline.isReady()) {
@@ -2298,8 +2320,12 @@ public class MessagingService extends Module {
                 }
             }
         }
-        else if (ContactServiceEvent.SignOut.equals(event.name)) {
+        else if (ContactServiceEvent.GroupDissolved.equals(event.name)) {
             // TODO
+        }
+        else if (ContactServiceEvent.SignOut.equals(event.name)) {
+            this.conversations.clear();
+            this.conversationMessageListMap.clear();
         }
     }
 

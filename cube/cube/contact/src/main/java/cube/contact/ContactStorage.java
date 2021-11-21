@@ -42,6 +42,7 @@ import cube.contact.model.ContactZoneParticipantState;
 import cube.contact.model.ContactZoneState;
 import cube.contact.model.Group;
 import cube.contact.model.GroupAppendix;
+import cube.contact.model.GroupBundle;
 import cube.contact.model.GroupState;
 import cube.core.AbstractStorage;
 import cube.core.model.Entity;
@@ -266,8 +267,8 @@ public class ContactStorage extends AbstractStorage {
         long timestamp = 0;
 
         SQLiteDatabase db = this.getReadableDatabase();
-        String sql = "SELECT `last_active` FROM `group` ORDER BY `last_active` DESC LIMIT 1";
-        Cursor cursor = db.rawQuery(sql, null);
+        String sql = "SELECT `last_active` FROM `group` WHERE `state`=? ORDER BY `last_active` DESC LIMIT 1";
+        Cursor cursor = db.rawQuery(sql, new String[]{ GroupState.Normal.toString() });
         if (cursor.moveToFirst()) {
             timestamp = cursor.getLong(0);
         }
@@ -352,6 +353,10 @@ public class ContactStorage extends AbstractStorage {
 
             // 更新
             db.update("`group`", values, "id=?", new String[]{ group.id.toString() });
+
+            // 删除群成员列表
+            db.delete("group_member", "`group`=?",
+                    new String[]{ group.id.toString() });
         }
         else {
             cursor.close();
@@ -388,6 +393,36 @@ public class ContactStorage extends AbstractStorage {
         if (null != appendix) {
             this.writeAppendix(appendix);
         }
+    }
+
+    public void updateGroupProperty(Group group) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("name", group.getName());
+        values.put("owner", group.getOwnerId());
+        values.put("tag", group.getTag());
+        values.put("last_active", group.getLastActive());
+        values.put("state", group.getState().code);
+        values.put("last", group.getLast());
+        values.put("expiry", group.getExpiry());
+        if (null != group.getContext()) {
+            values.put("context", group.getContext().toString());
+        }
+
+        // update
+        db.update("`group`", values, "id=?", new String[]{ group.id.toString() });
+        this.closeWritableDatabase(db);
+    }
+
+    public void removeGroupMember(GroupBundle bundle) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        for (Long memberId : bundle.modifiedIdList) {
+            db.delete("group_member", "`group`=? AND contact_id=?",
+                    new String[]{ bundle.group.id.toString(), memberId.toString() });
+        }
+
+        this.closeWritableDatabase(db);
     }
 
     /**

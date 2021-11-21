@@ -57,6 +57,15 @@ public class ContactPipelineListener implements PipelineListener {
         else if (ContactServiceAction.ListGroups.equals(packet.name)) {
             this.service.triggerListGroups(packet.extractServiceData());
         }
+        else if (ContactServiceAction.CreateGroup.equals(packet.name)) {
+            this.service.triggerCreateGroup(packet);
+        }
+        else if (ContactServiceAction.RemoveGroupMember.equals(packet.name)) {
+            this.service.triggerRemoveGroupMember(packet);
+        }
+        else if (ContactServiceAction.DissolveGroup.equals(packet.name)) {
+            this.service.triggerDissolveGroup(packet);
+        }
         else if (ContactServiceAction.SignOut.equals(packet.name)) {
             this.service.triggerSignOut();
         }

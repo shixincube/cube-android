@@ -106,6 +106,25 @@ public class Group extends AbstractContact implements Comparator<Group> {
         return this.appendix.hasRemark() ? this.appendix.getRemark() : this.name;
     }
 
+    /**
+     * 获取群主。
+     *
+     * @return
+     */
+    public Contact getOwner() {
+        if (null == this.memberList) {
+            return null;
+        }
+
+        for (Contact contact : this.memberList) {
+            if (contact.id.equals(this.ownerId)) {
+                return contact;
+            }
+        }
+
+        return null;
+    }
+
     public Long getOwnerId() {
         return this.ownerId;
     }
@@ -156,6 +175,16 @@ public class Group extends AbstractContact implements Comparator<Group> {
 
     public void removeMember(Long memberId) {
         this.memberIdList.remove(memberId);
+        
+        if (null != this.memberList) {
+            for (int i = 0; i < this.memberList.size(); ++i) {
+                Contact contact = this.memberList.get(i);
+                if (contact.id.equals(memberId)) {
+                    this.memberList.remove(i);
+                    break;
+                }
+            }
+        }
     }
 
     public List<Contact> getOrderedMemberList() {
@@ -188,6 +217,14 @@ public class Group extends AbstractContact implements Comparator<Group> {
         this.appendix = appendix;
     }
 
+    public void setState(GroupState state) {
+        this.state = state;
+    }
+
+    public void setLastActive(long time) {
+        this.lastActive = time;
+    }
+
     public void updateMember(Contact contact) {
         if (null == this.memberList) {
             this.memberList = new ArrayList<>();
@@ -211,6 +248,14 @@ public class Group extends AbstractContact implements Comparator<Group> {
      */
     public boolean isFilled() {
         return (null != this.memberList && this.memberList.size() == this.memberIdList.size());
+    }
+
+    public void update(Group source) {
+        this.ownerId = source.ownerId;
+        this.tag = source.tag;
+        this.name = source.name;
+        this.state = source.state;
+        this.lastActive = source.lastActive;
     }
 
     @Override

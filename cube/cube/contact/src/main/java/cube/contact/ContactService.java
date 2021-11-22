@@ -1052,7 +1052,7 @@ public class ContactService extends Module {
     public void quitGroup(Group group, GroupHandler successHandler, FailureHandler failureHandler) {
         if (group.getOwnerId().equals(this.self.id)) {
             // 群主是本人，解散群
-            this.dissolveGroup(group, successHandler, failureHandler);
+            this.dismissGroup(group, successHandler, failureHandler);
             return;
         }
 
@@ -1158,7 +1158,7 @@ public class ContactService extends Module {
      * @param successHandler 指定操作成功回调句柄。
      * @param failureHandler 指定操作失败回调句柄。
      */
-    public void dissolveGroup(Group group, GroupHandler successHandler, FailureHandler failureHandler) {
+    public void dismissGroup(Group group, GroupHandler successHandler, FailureHandler failureHandler) {
         if (!this.pipeline.isReady()) {
             ModuleError error = new ModuleError(NAME, ContactServiceState.NoNetwork.code);
             error.data = group;
@@ -1176,7 +1176,7 @@ public class ContactService extends Module {
         }
 
         // 解散群组
-        Packet requestPacket = new Packet(ContactServiceAction.DissolveGroup, group.toCompactJSON());
+        Packet requestPacket = new Packet(ContactServiceAction.DismissGroup, group.toCompactJSON());
         this.pipeline.send(ContactService.NAME, requestPacket, new PipelineHandler() {
             @Override
             public void handleResponse(Packet packet) {
@@ -1234,7 +1234,7 @@ public class ContactService extends Module {
                     }
 
                     execute(() -> {
-                        ObservableEvent event = new ObservableEvent(ContactServiceEvent.GroupDissolved, group);
+                        ObservableEvent event = new ObservableEvent(ContactServiceEvent.GroupDismissed, group);
                         notifyObservers(event);
                     });
                 } catch (JSONException e) {
@@ -1625,6 +1625,8 @@ public class ContactService extends Module {
                 group.updateMember(contact);
             }
         }
+
+        group.setIsOwner(group.getOwnerId().equals(this.self.id));
     }
 
     /**
@@ -2047,7 +2049,7 @@ public class ContactService extends Module {
         }
     }
 
-    protected void triggerDissolveGroup(Packet packet) {
+    protected void triggerDismissGroup(Packet packet) {
         if (packet.response) {
             return;
         }
@@ -2065,10 +2067,10 @@ public class ContactService extends Module {
             // 更新
             this.storage.updateGroupProperty(group);
 
-            ObservableEvent event = new ObservableEvent(ContactServiceEvent.GroupDissolved, group);
+            ObservableEvent event = new ObservableEvent(ContactServiceEvent.GroupDismissed, group);
             notifyObservers(event);
         } catch (JSONException e) {
-            LogUtils.w(TAG, "#triggerDissolveGroup", e);
+            LogUtils.w(TAG, "#triggerDismissGroup", e);
         }
     }
 

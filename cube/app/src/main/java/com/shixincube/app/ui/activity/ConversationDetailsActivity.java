@@ -63,6 +63,7 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
     private final static String TAG = ConversationDetailsActivity.class.getSimpleName();
 
     public final static int REQUEST_CREATE_OR_UPDATE_GROUP = 1000;
+    public final static int REQUEST_SET_GROUP_NAME = 1001;
 
     @BindView(R.id.tvToolbarTitle)
     TextView toolbarTitleTextView;
@@ -226,6 +227,21 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
                 }
             }
         });
+
+        // 群组名称
+        this.groupNameItemView.setOnClickListener((view) -> {
+            Intent intent = new Intent(this, SimpleContentInputActivity.class);
+            intent.putExtra("title", UIUtils.getString(R.string.modify_group_name));
+            intent.putExtra("tip", UIUtils.getString(R.string.modify_group_name_tip_notify_all));
+            intent.putExtra("content", this.conversation.getDisplayName());
+            intent.putExtra("groupId", this.conversation.getGroup().getId());
+            startActivityForResult(intent, REQUEST_SET_GROUP_NAME);
+        });
+
+        // 删除并退出按钮事件
+        this.quitGroupButton.setOnClickListener((view) -> {
+            presenter.quitGroup();
+        });
     }
 
     @Override
@@ -236,6 +252,13 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
             if (resultCode == RESULT_OK) {
                 // 创建群聊成功，结束当前界面
                 finish();
+            }
+        }
+        else if (requestCode == REQUEST_SET_GROUP_NAME) {
+            if (resultCode == RESULT_OK) {
+                String content = data.getStringExtra("content");
+                // 修改群聊名称
+                
             }
         }
     }

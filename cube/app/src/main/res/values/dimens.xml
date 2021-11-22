@@ -14,6 +14,7 @@
 
     <!-- 选项间距 -->
     <dimen name="option_item_margin_top">22dp</dimen>
+    <dimen name="option_item_margin_bottom">22dp</dimen>
     <dimen name="option_item_margin_start">20dp</dimen>
     <dimen name="option_item_margin_end">20dp</dimen>
     <dimen name="option_item_margin_left">20dp</dimen>

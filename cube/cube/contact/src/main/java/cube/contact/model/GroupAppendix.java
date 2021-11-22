@@ -43,7 +43,7 @@ public class GroupAppendix implements JSONable {
 
     private ContactService service;
 
-    private Group owner;
+    private Group group;
 
     /**
      * 群组通告。
@@ -77,9 +77,9 @@ public class GroupAppendix implements JSONable {
 
     private Long commId;
 
-    public GroupAppendix(ContactService service, Group owner, JSONObject json) throws JSONException {
+    public GroupAppendix(ContactService service, Group group, JSONObject json) throws JSONException {
         this.service = service;
-        this.owner = owner;
+        this.group = group;
         this.notice = json.getString("notice");
 
         this.memberRemarks = new HashMap<>();
@@ -103,7 +103,7 @@ public class GroupAppendix implements JSONable {
     }
 
     public Group getOwner() {
-        return this.owner;
+        return this.group;
     }
 
     /**
@@ -136,7 +136,7 @@ public class GroupAppendix implements JSONable {
     public JSONObject toJSON() {
         JSONObject json = new JSONObject();
         try {
-            json.put("ownerId", this.owner.getId());
+            json.put("ownerId", this.group.getId());
             json.put("notice", this.notice);
 
             JSONArray array = new JSONArray();

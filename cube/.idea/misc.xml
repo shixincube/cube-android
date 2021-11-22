@@ -91,6 +91,7 @@
         <entry key="app/src/main/res/layout/activity_message_panel.xml" value="0.17144808743169399" />
         <entry key="app/src/main/res/layout/activity_profile_info.xml" value="0.16120218579234974" />
         <entry key="app/src/main/res/layout/activity_register.xml" value="0.125" />
+        <entry key="app/src/main/res/layout/activity_simple_content_input.xml" value="0.18032786885245902" />
         <entry key="app/src/main/res/layout/activity_splash.xml" value="0.1" />
         <entry key="app/src/main/res/layout/activity_take_photo.xml" value="0.1676912568306011" />
         <entry key="app/src/main/res/layout/dialog_waiting.xml" value="0.17827868852459017" />
@@ -113,6 +114,7 @@
         <entry key="app/src/main/res/layout/item_message_image_send.xml" value="0.5" />
         <entry key="app/src/main/res/layout/item_message_item_receive.xml" value="0.5" />
         <entry key="app/src/main/res/layout/item_message_item_send.xml" value="0.5" />
+        <entry key="app/src/main/res/layout/item_message_no_support.xml" value="0.18032786885245902" />
         <entry key="app/src/main/res/layout/item_message_notification.xml" value="0.1840846994535519" />
         <entry key="app/src/main/res/layout/item_message_sticker_receive.xml" value="0.5" />
         <entry key="app/src/main/res/layout/item_message_sticker_send.xml" value="0.5" />

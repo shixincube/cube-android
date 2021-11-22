@@ -29,6 +29,7 @@ package com.shixincube.app.util;
 import android.content.Context;
 import android.widget.ImageView;
 
+import com.bumptech.glide.Glide;
 import com.shixincube.app.R;
 import com.shixincube.app.model.Account;
 import com.shixincube.app.widget.complexbitmap.ComplexBitmap;
@@ -67,6 +68,10 @@ public class AvatarUtils {
     public static int getAvatarResource(Contact contact) {
         String name = Account.getAvatar(contact.getContext());
         return explainAvatarForResource(name);
+    }
+
+    public static void fillContactAvatar(Context context, Contact contact, ImageView imageView) {
+        Glide.with(context).load(getAvatarResource(contact)).centerCrop().into(imageView);
     }
 
     private static int explainAvatarForResource(String avatarName) {

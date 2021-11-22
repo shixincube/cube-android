@@ -63,6 +63,7 @@ import cube.messaging.handler.DefaultMessageListResultHandler;
 import cube.messaging.handler.DefaultSendHandler;
 import cube.messaging.handler.SimpleSendHandler;
 import cube.messaging.model.Conversation;
+import cube.messaging.model.ConversationType;
 import cube.messaging.model.Message;
 import cube.util.LogUtils;
 
@@ -123,22 +124,32 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
 
         if (this.messageList.isEmpty()) {
             // 提示
-            String tip = UIUtils.getString(R.string.tip_new_contact_first, this.conversation.getContact().getPriorityName());
-            NotificationMessage tipMessage = new NotificationMessage(tip);
-            CubeEngine.getInstance().getMessagingService().sendMessage(this.conversation, tipMessage,
-                    new SimpleSendHandler<Conversation, NotificationMessage>(false) {
-                @Override
-                public void handleSending(Conversation destination, NotificationMessage message) {
-                    // Nothing
-                }
+            String tip = null;
+            if (this.conversation.getType() == ConversationType.Contact) {
+                tip = UIUtils.getString(R.string.tip_new_contact_first, this.conversation.getDisplayName());
+            }
+            else if (this.conversation.getType() == ConversationType.Group) {
+                tip = UIUtils.getString(R.string.tip_you_can_chat_in_this_group, this.conversation.getDisplayName());
+            }
 
-                @Override
-                public void handleSent(Conversation destination, NotificationMessage message) {
-                    activity.runOnUiThread(() -> {
-                        loadMessages();
-                    });
-                }
-            });
+            if (null != tip) {
+                NotificationMessage tipMessage = new NotificationMessage(tip);
+
+                CubeEngine.getInstance().getMessagingService().sendMessage(this.conversation, tipMessage,
+                        new SimpleSendHandler<Conversation, NotificationMessage>(false) {
+                            @Override
+                            public void handleSending(Conversation destination, NotificationMessage message) {
+                                // Nothing
+                            }
+
+                            @Override
+                            public void handleSent(Conversation destination, NotificationMessage message) {
+                                activity.runOnUiThread(() -> {
+                                    loadMessages();
+                                });
+                            }
+                        });
+            }
         }
     }
 

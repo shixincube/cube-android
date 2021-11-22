@@ -387,6 +387,10 @@ public class Conversation extends Entity {
 
     @Override
     public JSONObject toCompactJSON() {
-        return this.toJSON();
+        JSONObject json = this.toJSON();
+        if (json.has("recentMessage")) {
+            json.remove("recentMessage");
+        }
+        return json;
     }
 }

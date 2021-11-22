@@ -50,6 +50,9 @@ import com.shixincube.app.widget.CustomDialog;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import dev.shreyaspatil.MaterialDialog.AbstractDialog;
+import dev.shreyaspatil.MaterialDialog.MaterialDialog;
+import dev.shreyaspatil.MaterialDialog.interfaces.DialogInterface;
 
 public abstract class BaseActivity<V, T extends BasePresenter<V>> extends AppCompatActivity {
 
@@ -76,6 +79,8 @@ public abstract class BaseActivity<V, T extends BasePresenter<V>> extends AppCom
 
     @BindView(R.id.ibToolbarMore)
     protected ImageButton toolbarMore;
+
+    private MaterialDialog materialDialog;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -135,6 +140,52 @@ public abstract class BaseActivity<V, T extends BasePresenter<V>> extends AppCom
         if (null != this.dialogForWaiting) {
             this.dialogForWaiting.dismiss();
             this.dialogForWaiting = null;
+        }
+    }
+
+    public void showMaterialDialog(String title, String message, String positiveText, String negativeText,
+                                             View.OnClickListener positiveButtonClickListener,
+                                             View.OnClickListener negativeButtonClickListener) {
+        hideMaterialDialog();
+
+        MaterialDialog.Builder builder = new MaterialDialog.Builder(this);
+        if (!TextUtils.isEmpty(title)) {
+            builder.setTitle(title);
+        }
+        else {
+            builder.setTitle(UIUtils.getString(R.string.prompt));
+        }
+
+        if (!TextUtils.isEmpty(message)) {
+            builder.setMessage(message);
+        }
+
+        if (!TextUtils.isEmpty(positiveText)) {
+            builder.setPositiveButton(positiveText, new AbstractDialog.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int which) {
+                    positiveButtonClickListener.onClick(null);
+                }
+            });
+        }
+
+        if (!TextUtils.isEmpty(negativeText)) {
+            builder.setNegativeButton(negativeText, new AbstractDialog.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int which) {
+                    negativeButtonClickListener.onClick(null);
+                }
+            });
+        }
+
+        this.materialDialog = builder.build();
+        this.materialDialog.show();
+    }
+
+    public void hideMaterialDialog() {
+        if (null != this.materialDialog) {
+            this.materialDialog.dismiss();
+            this.materialDialog = null;
         }
     }
 

@@ -13,6 +13,7 @@
     <string name="complete">完成</string>
     <string name="complete_with_count">完成(%1$d)</string>
     <string name="confirm">确认</string>
+    <string name="cancel">取消</string>
     <string name="send">发送</string>
 
     <!-- 开屏页 -->
@@ -57,6 +58,7 @@
     <string name="fun_video_comm">视频通话</string>
     <string name="no_support_file_type">不支持的文件类型</string>
     <string name="tip_new_contact_first">您已添加了%1$s，现在可以开始聊天了。</string>
+    <string name="tip_you_can_chat_in_this_group">您现在可以开始在群组“%1$s”里聊天了。</string>
 
     <!-- 联系人界面 -->
     <string name="new_contact">新的联系人</string>
@@ -96,6 +98,11 @@
     <string name="delete_and_quit">删除并退出</string>
     <string name="create_group_success">创建群聊成功</string>
     <string name="create_group_failure">创建群聊失败，请稍候再试</string>
+    <string name="are_you_sure_to_dismiss_this_group">你确定要解散该群吗?</string>
+    <string name="you_will_never_receive_any_message_after_quit">删除并退出后，将不再接收此群聊信息</string>
+    <string name="quit_group_fail">退出群聊失败</string>
+    <string name="modify_group_name">修改群聊名称</string>
+    <string name="modify_group_name_tip_notify_all">修改群聊名称后，将在群内通知其他成员。</string>
 
     <!-- 会话信息 -->
     <string name="draft">[草稿]</string>
@@ -107,6 +114,7 @@
     <string name="conv_top_cancel">取消置顶</string>
 
     <!-- 常用 -->
+    <string name="prompt">提示</string>
     <string name="remark">备注</string>
     <string name="untitled">未命名</string>
     <string name="no_setting">未设置</string>

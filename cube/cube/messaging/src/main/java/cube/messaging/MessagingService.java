@@ -130,16 +130,16 @@ public class MessagingService extends Module {
 
     private Map<Long, List<MessageEventListener>> conversationMessageListeners;
 
-    private AtomicBoolean preparing;
+    protected AtomicBoolean preparing;
 
-    private boolean ready;
+    protected boolean ready;
 
     private long lastMessageTime;
 
     private Timer pullTimer;
     private CompletionHandler pullCompletionHandler;
 
-    private List<Conversation> conversations;
+    protected List<Conversation> conversations;
 
     /**
      * 预载的最近会话数量。
@@ -154,7 +154,7 @@ public class MessagingService extends Module {
     /**
      * 会话对应的消息列表。
      */
-    private Map<Long, MessageList> conversationMessageListMap;
+    protected Map<Long, MessageList> conversationMessageListMap;
 
     /**
      * 更新对应附录里的文件数据时记录的信息。
@@ -174,6 +174,7 @@ public class MessagingService extends Module {
         this.preparing = new AtomicBoolean(false);
         this.ready = false;
         this.lastMessageTime = 0;
+        this.conversations = new Vector<>();
         this.conversationMessageListMap = new ConcurrentHashMap<>();
         this.sendingList = new ConcurrentLinkedQueue<>();
         this.preloadConversationRecentNum = 5;
@@ -209,7 +210,7 @@ public class MessagingService extends Module {
         this.contactService.attachWithName(ContactServiceEvent.SelfReady, this.observer);
         this.contactService.attachWithName(ContactServiceEvent.SignIn, this.observer);
         this.contactService.attachWithName(ContactServiceEvent.SignOut, this.observer);
-        this.contactService.attachWithName(ContactServiceEvent.GroupDissolved, this.observer);
+        this.contactService.attachWithName(ContactServiceEvent.GroupDismissed, this.observer);
 
         synchronized (this) {
             if (null != this.contactService.getSelf() && !this.ready && !this.preparing.get()) {
@@ -244,7 +245,7 @@ public class MessagingService extends Module {
         this.contactService.detachWithName(ContactServiceEvent.SelfReady, this.observer);
         this.contactService.detachWithName(ContactServiceEvent.SignIn, this.observer);
         this.contactService.detachWithName(ContactServiceEvent.SignOut, this.observer);
-        this.contactService.detachWithName(ContactServiceEvent.GroupDissolved, this.observer);
+        this.contactService.detachWithName(ContactServiceEvent.GroupDismissed, this.observer);
 
         this.pipeline.removeListener(MessagingService.NAME, this.pipelineListener);
 
@@ -403,7 +404,7 @@ public class MessagingService extends Module {
         }
 
         synchronized (this) {
-            if (null == this.conversations || this.conversations.isEmpty()) {
+            if (this.conversations.isEmpty()) {
                 List<Conversation> list = this.storage.queryRecentConversations(maxNum);
 
                 // 检查列表里的会话群组有没有已失效的
@@ -421,13 +422,7 @@ public class MessagingService extends Module {
                     }
                 }
 
-                if (null == this.conversations) {
-                    this.conversations = new Vector<>(list);
-                }
-                else {
-                    this.conversations.clear();
-                    this.conversations.addAll(list);
-                }
+                this.conversations.addAll(list);
 
                 this.sortConversationList(this.conversations);
 
@@ -488,8 +483,60 @@ public class MessagingService extends Module {
         });
     }
 
+    /**
+     * 删除指定会话。
+     *
+     * <b>该操作不可逆。</b>
+     *
+     * @param conversation 指定会话。
+     * @param successHandler 指定操作成功回调句柄。
+     * @param failureHandler 指定操作失败回调句柄。
+     */
     public void deleteConversation(Conversation conversation, ConversationHandler successHandler, FailureHandler failureHandler) {
+        if (conversation.getType() == ConversationType.Contact) {
+            // 设置删除状态
+            conversation.setState(ConversationState.Deleted);
 
+            // 更新会话
+            updateConversation(conversation, successHandler, failureHandler);
+        }
+        else if (conversation.getType() == ConversationType.Group) {
+            // 退出或解散群组
+            this.contactService.quitGroup(conversation.getGroup(), new StableGroupHandler() {
+                @Override
+                public void handleGroup(Group group) {
+                    // 已退出或解散群组
+                    // 设置删除状态
+                    conversation.setState(ConversationState.Deleted);
+
+                    // 从最近列表删除
+                    synchronized (MessagingService.this) {
+                        conversationMessageListMap.remove(conversation.id);
+                        conversations.remove(conversation);
+                    }
+
+                    // 更新会话
+                    updateConversation(conversation, successHandler, failureHandler);
+                }
+            }, new StableFailureHandler() {
+                @Override
+                public void handleFailure(Module module, ModuleError error) {
+                    ModuleError currentError = new ModuleError(NAME, MessagingServiceState.Forbidden.code);
+                    currentError.data = conversation;
+                    if (failureHandler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            failureHandler.handleFailure(MessagingService.this, currentError);
+                        });
+                    }
+                    else {
+                        failureHandler.handleFailure(MessagingService.this, currentError);
+                    }
+                }
+            });
+        }
+        else {
+            LogUtils.w(TAG, "Not support conversation type: " + conversation.getType().toString());
+        }
     }
 
     /**
@@ -938,7 +985,7 @@ public class MessagingService extends Module {
      * @param failureHandler
      * @return 如果操作被执行返回 {@code true} 。
      */
-    private boolean updateConversation(Conversation conversation, ConversationHandler conversationHandler, FailureHandler failureHandler) {
+    protected boolean updateConversation(Conversation conversation, ConversationHandler conversationHandler, FailureHandler failureHandler) {
         if (!this.pipeline.isReady()) {
             ModuleError error = new ModuleError(MessagingService.NAME, MessagingServiceState.PipelineFault.code);
             error.data = conversation;
@@ -956,7 +1003,7 @@ public class MessagingService extends Module {
             return false;
         }
 
-        Packet requestPacket = new Packet(MessagingAction.UpdateConversation, conversation.toJSON());
+        Packet requestPacket = new Packet(MessagingAction.UpdateConversation, conversation.toCompactJSON());
         this.pipeline.send(MessagingService.NAME, requestPacket, new PipelineHandler() {
             @Override
             public void handleResponse(Packet packet) {
@@ -1987,7 +2034,7 @@ public class MessagingService extends Module {
         }
     }
 
-    private void prepare(StableCompletionHandler handler) {
+    protected void prepare(StableCompletionHandler handler) {
         this.preparing.set(true);
 
         Self self = this.contactService.getSelf();
@@ -2302,30 +2349,6 @@ public class MessagingService extends Module {
 
             // 更新会话数据库
             this.storage.updateRecentMessage(conversation);
-        }
-    }
-
-    protected void fireContactEvent(ObservableEvent event) {
-        if (ContactServiceEvent.SelfReady.equals(event.name)) {
-            synchronized (this) {
-                if (!this.ready && !this.preparing.get()) {
-                    // 准备数据
-                    this.prepare(new StableCompletionHandler() {
-                        @Override
-                        public void handleCompletion(Module module) {
-                            ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Ready, MessagingService.this);
-                            notifyObservers(event);
-                        }
-                    });
-                }
-            }
-        }
-        else if (ContactServiceEvent.GroupDissolved.equals(event.name)) {
-            // TODO
-        }
-        else if (ContactServiceEvent.SignOut.equals(event.name)) {
-            this.conversations.clear();
-            this.conversationMessageListMap.clear();
         }
     }
 

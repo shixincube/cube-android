@@ -27,7 +27,16 @@
 package cube.messaging;
 
 import cube.contact.ContactService;
+import cube.contact.ContactServiceEvent;
+import cube.contact.model.Group;
 import cube.core.Module;
+import cube.core.ModuleError;
+import cube.core.handler.StableCompletionHandler;
+import cube.core.handler.StableFailureHandler;
+import cube.messaging.handler.DefaultConversationHandler;
+import cube.messaging.model.Conversation;
+import cube.messaging.model.ConversationState;
+import cube.util.LogUtils;
 import cube.util.ObservableEvent;
 import cube.util.Observer;
 
@@ -35,6 +44,8 @@ import cube.util.Observer;
  * 消息模块用于监听其他模块事件的观察者。
  */
 public class MessagingObserver implements Observer {
+
+    private final static String TAG = "MessagingObserver";
 
     private MessagingService service;
 
@@ -46,7 +57,68 @@ public class MessagingObserver implements Observer {
     public void update(ObservableEvent event) {
         Module module = (Module) event.getSubject();
         if (ContactService.NAME.equals(module.name)) {
-            this.service.fireContactEvent(event);
+            this.fireContactEvent(event);
+        }
+    }
+
+    private void fireContactEvent(ObservableEvent event) {
+        if (ContactServiceEvent.SelfReady.equals(event.name)) {
+            synchronized (this) {
+                if (!this.service.ready && !this.service.preparing.get()) {
+                    // 准备数据
+                    this.service.prepare(new StableCompletionHandler() {
+                        @Override
+                        public void handleCompletion(Module module) {
+                            ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Ready, service);
+                            service.notifyObservers(event);
+                        }
+                    });
+                }
+            }
+        }
+        else if (ContactServiceEvent.GroupDismissed.equals(event.name)) {
+            Group group = (Group) event.getData();
+            Conversation conversation = null;
+            synchronized (this.service) {
+                for (Conversation conv : this.service.conversations) {
+                    Group cg = conv.getGroup();
+                    if (null == cg) {
+                        continue;
+                    }
+
+                    if (cg.id.equals(group.id)) {
+                        conversation = conv;
+                        break;
+                    }
+                }
+            }
+
+            if (null != conversation) {
+                if (conversation.getState() != ConversationState.Deleted) {
+                    conversation.setState(ConversationState.Deleted);
+                    this.service.updateConversation(conversation, new DefaultConversationHandler(false) {
+                        @Override
+                        public void handleConversation(Conversation conversation) {
+                            // 从列表里删除
+                            synchronized (service) {
+                                service.conversations.remove(conversation);
+                                service.conversationMessageListMap.remove(conversation.id);
+                            }
+                        }
+                    }, new StableFailureHandler() {
+                        @Override
+                        public void handleFailure(Module module, ModuleError error) {
+                            LogUtils.w(TAG, "GroupDissolved: " + error.code);
+                        }
+                    });
+                }
+            }
+        }
+        else if (ContactServiceEvent.SignOut.equals(event.name)) {
+            synchronized (this.service) {
+                this.service.conversations.clear();
+                this.service.conversationMessageListMap.clear();
+            }
         }
     }
 }

@@ -69,7 +69,7 @@ public final class ContactServiceEvent {
     /**
      * 群组已解散。
      */
-    public final static String GroupDissolved = "GroupDissolved";
+    public final static String GroupDismissed = "GroupDismissed";
 
     /**
      * 已退出群组。

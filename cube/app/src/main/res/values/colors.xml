@@ -23,6 +23,7 @@
     <color name="theme_blue_dark">#0854E6</color>
     <color name="theme_blue_light">#368CF2</color>
 
+    <color name="main_bg">#FFFFFF</color>
     <color name="theme_bg">#EBEBEB</color>
     <color name="theme_dark_bg">#191919</color>
 

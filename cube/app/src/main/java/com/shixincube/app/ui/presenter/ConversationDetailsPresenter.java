@@ -47,10 +47,16 @@ import java.util.List;
 
 import cube.contact.model.Contact;
 import cube.contact.model.DummyContact;
+import cube.contact.model.Group;
+import cube.core.Module;
+import cube.core.ModuleError;
+import cube.core.handler.DefaultFailureHandler;
+import cube.engine.CubeEngine;
 import cube.engine.util.Future;
 import cube.engine.util.Promise;
 import cube.engine.util.PromiseFuture;
 import cube.engine.util.PromiseHandler;
+import cube.messaging.handler.DefaultConversationHandler;
 import cube.messaging.model.Conversation;
 import cube.messaging.model.ConversationReminded;
 import cube.messaging.model.ConversationType;
@@ -92,8 +98,40 @@ public class ConversationDetailsPresenter extends BasePresenter<ConversationDeta
         }).launch();
     }
 
-    public void createGroup() {
-        activity.showWaitingDialog(UIUtils.getString(R.string.please_wait_a_moment));
+    public void quitGroup() {
+        String tip = null;
+        Group group = conversation.getGroup();
+        if (group.isOwner()) {
+            tip = UIUtils.getString(R.string.are_you_sure_to_dismiss_this_group);
+        }
+        else {
+            tip = UIUtils.getString(R.string.you_will_never_receive_any_message_after_quit);
+        }
+
+        this.activity.showMaterialDialog(null, tip, UIUtils.getString(R.string.confirm),
+            UIUtils.getString(R.string.cancel), (view) -> {
+                // 隐藏对话框
+                activity.hideMaterialDialog();
+
+                activity.showWaitingDialog(UIUtils.getString(R.string.please_wait_a_moment));
+
+                // 删除会话
+                CubeEngine.getInstance().getMessagingService().deleteConversation(conversation, new DefaultConversationHandler(true) {
+                    @Override
+                    public void handleConversation(Conversation conversation) {
+                        activity.hideWaitingDialog();
+                        activity.finish();
+                    }
+                }, new DefaultFailureHandler(true) {
+                    @Override
+                    public void handleFailure(Module module, ModuleError error) {
+                        activity.hideWaitingDialog();
+                        UIUtils.showToast(UIUtils.getString(R.string.quit_group_fail));
+                    }
+                });
+            }, (view) -> {
+                activity.hideMaterialDialog();
+            });
     }
 
     private void loadMembers() {

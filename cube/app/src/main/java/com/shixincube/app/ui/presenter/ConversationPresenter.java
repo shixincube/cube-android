@@ -79,7 +79,7 @@ public class ConversationPresenter extends BasePresenter<ConversationView> imple
         reloadData();
     }
 
-    private void setAdapter() {
+    private synchronized void setAdapter() {
         if (null == this.adapter) {
             this.adapter = new AdapterForRecyclerView<MessageConversation>(this.activity, this.messageConversations, R.layout.item_conversation) {
                 @Override
@@ -166,10 +166,12 @@ public class ConversationPresenter extends BasePresenter<ConversationView> imple
                 // 从引擎获取最近会话列表
                 List<Conversation> list = messaging.getRecentConversations();
                 if (!list.isEmpty()) {
-                    messageConversations.clear();
+                    synchronized (messageConversations) {
+                        messageConversations.clear();
 
-                    for (Conversation conversation : list) {
-                        messageConversations.add(new MessageConversation(conversation));
+                        for (Conversation conversation : list) {
+                            messageConversations.add(new MessageConversation(conversation));
+                        }
                     }
                 }
                 else {
@@ -198,9 +200,11 @@ public class ConversationPresenter extends BasePresenter<ConversationView> imple
 
     @Override
     public void onConversationListUpdated(List<Conversation> conversationList, MessagingService service) {
-        this.messageConversations.clear();
-        for (Conversation conversation : conversationList) {
-            this.messageConversations.add(new MessageConversation(conversation));
+        synchronized (this.messageConversations) {
+            this.messageConversations.clear();
+            for (Conversation conversation : conversationList) {
+                this.messageConversations.add(new MessageConversation(conversation));
+            }
         }
 
         activity.runOnUiThread(new Runnable() {

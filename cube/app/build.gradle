@@ -45,6 +45,8 @@ dependencies {
     implementation 'com.jakewharton:disklrucache:2.0.2'
     implementation 'com.belerweb:pinyin4j:2.5.1'
     implementation 'com.lovedise:permissiongen:0.1.1'
+    implementation 'dev.shreyaspatil.MaterialDialog:MaterialDialog:2.2.2'
+    implementation 'com.airbnb.android:lottie:3.3.6'
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
     implementation 'com.squareup.retrofit2:adapter-rxjava3:2.9.0'

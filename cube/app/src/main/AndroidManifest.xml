@@ -97,6 +97,10 @@
             android:screenOrientation="portrait">
         </activity>
         <activity
+            android:name=".ui.activity.SimpleContentInputActivity"
+            android:screenOrientation="portrait">
+        </activity>
+        <activity
             android:name=".ui.activity.TakePhotoActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Fullscreen">

@@ -19,7 +19,7 @@
         android:paddingRight="5dp"
         android:paddingTop="2dp"
         android:text=""
-        android:textColor="@color/text_secondary"
+        android:textColor="@color/text_accent"
         android:textSize="12sp"/>
 
     <LinearLayout

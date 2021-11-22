@@ -46,6 +46,8 @@ public class Group extends AbstractContact implements Comparator<Group> {
 
     private Long ownerId;
 
+    private boolean isOwner;
+
     private long creation;
 
     private long lastActive;
@@ -127,6 +129,10 @@ public class Group extends AbstractContact implements Comparator<Group> {
 
     public Long getOwnerId() {
         return this.ownerId;
+    }
+
+    public boolean isOwner() {
+        return this.isOwner;
     }
 
     public String getTag() {
@@ -223,6 +229,10 @@ public class Group extends AbstractContact implements Comparator<Group> {
 
     public void setLastActive(long time) {
         this.lastActive = time;
+    }
+
+    public void setIsOwner(boolean value) {
+        this.isOwner = value;
     }
 
     public void updateMember(Contact contact) {

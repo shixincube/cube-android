@@ -124,7 +124,7 @@ public final class ContactServiceAction {
     /**
      * 解散群组。
      */
-    public final static String DissolveGroup = "dissolveGroup";
+    public final static String DismissGroup = "dismissGroup";
 
     /**
      * 向群组添加成员。

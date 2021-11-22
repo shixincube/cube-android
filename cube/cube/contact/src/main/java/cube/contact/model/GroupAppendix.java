@@ -34,6 +34,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import cube.contact.ContactService;
+import cube.contact.handler.GroupHandler;
+import cube.core.handler.FailureHandler;
 import cube.util.JSONable;
 
 /**
@@ -102,34 +104,70 @@ public class GroupAppendix implements JSONable {
         this.commId = json.getLong("commId");
     }
 
-    public Group getOwner() {
+    /**
+     * 获取附录对应的群组。
+     *
+     * @return 返回附录对应的群组。
+     */
+    public Group getGroup() {
         return this.group;
     }
 
     /**
-     * 是否有通知。
+     * 是否有公告。
      *
-     * @return
+     * @return 如果有公告返回 {@code true} 。
      */
     public boolean hasNotice() {
         return this.notice.length() > 0;
     }
 
     /**
-     * 获取通知文本。
+     * 获取公告文本。
      *
-     * @return 返回通知文本。
+     * @return 返回公告文本。
      */
     public String getNotice() {
         return this.notice;
     }
 
+    /**
+     * 是否有备注。
+     *
+     * @return 如果有备注信息返回 {@code true} 。
+     */
+    public boolean hasRemark() {
+        return (null != this.remark && this.remark.length() > 0);
+    }
+
+    /**
+     * 获取备注信息。
+     *
+     * @return 返回备注信息。
+     */
     public String getRemark() {
         return this.remark;
     }
 
-    public boolean hasRemark() {
-        return (null != this.remark && this.remark.length() > 0);
+    /**
+     * 更新群组公告。
+     *
+     * @param notice
+     * @param successHandler
+     * @param failureHandler
+     */
+    public void modifyNotice(String notice, GroupHandler successHandler, FailureHandler failureHandler) {
+        // 修改公告
+        this.notice = notice;
+
+        JSONObject params = new JSONObject();
+        try {
+            params.put("notice", notice);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        // 更新附录
+        this.service.updateAppendix(this, params, successHandler, failureHandler);
     }
 
     @Override

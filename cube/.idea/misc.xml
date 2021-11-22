@@ -60,7 +60,11 @@
         <entry key="app/src/main/res/drawable/selector_theme_btn.xml" value="0.3203125" />
         <entry key="app/src/main/res/drawable/selector_view_pager_indicator.xml" value="0.13515625" />
         <entry key="app/src/main/res/drawable/shape_badge.xml" value="0.240234375" />
+        <entry key="app/src/main/res/drawable/shape_bottom_gray.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/shape_bottom_theme.xml" value="0.3203125" />
+        <entry key="app/src/main/res/drawable/shape_button_danger.xml" value="0.240234375" />
+        <entry key="app/src/main/res/drawable/shape_button_primary.xml" value="0.240234375" />
+        <entry key="app/src/main/res/drawable/shape_button_secondary.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/shape_corner_rect_solid_gray.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/shape_corner_rect_solid_white.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/shape_file_tab_normal.xml" value="0.240234375" />
@@ -94,6 +98,7 @@
         <entry key="app/src/main/res/layout/activity_simple_content_input.xml" value="0.18032786885245902" />
         <entry key="app/src/main/res/layout/activity_splash.xml" value="0.1" />
         <entry key="app/src/main/res/layout/activity_take_photo.xml" value="0.1676912568306011" />
+        <entry key="app/src/main/res/layout/activity_text_input.xml" value="0.5" />
         <entry key="app/src/main/res/layout/dialog_waiting.xml" value="0.17827868852459017" />
         <entry key="app/src/main/res/layout/emotion_layout.xml" value="0.18886612021857924" />
         <entry key="app/src/main/res/layout/emotion_tab.xml" value="0.18886612021857924" />

@@ -229,6 +229,7 @@ public class Group extends AbstractContact implements Comparator<Group> {
 
     public void setLastActive(long time) {
         this.lastActive = time;
+        this.resetLast(time);
     }
 
     public void setIsOwner(boolean value) {

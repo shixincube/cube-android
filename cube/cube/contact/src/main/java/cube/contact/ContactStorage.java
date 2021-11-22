@@ -467,7 +467,7 @@ public class ContactStorage extends AbstractStorage {
         SQLiteDatabase db = this.getWritableDatabase();
 
         Cursor cursor = db.query("appendix", new String[] { "id" },
-                "id=?", new String[] { appendix.getOwner().id.toString() }, null, null, null);
+                "id=?", new String[] { appendix.getGroup().id.toString() }, null, null, null);
         if (cursor.moveToFirst()) {
             cursor.close();
 
@@ -475,14 +475,14 @@ public class ContactStorage extends AbstractStorage {
             ContentValues values = new ContentValues();
             values.put("timestamp", System.currentTimeMillis());
             values.put("data", appendix.toJSON().toString());
-            db.update("appendix", values, "id=?", new String[] { appendix.getOwner().id.toString() });
+            db.update("appendix", values, "id=?", new String[] { appendix.getGroup().id.toString() });
         }
         else {
             cursor.close();
 
             // 插入
             ContentValues values = new ContentValues();
-            values.put("id", appendix.getOwner().id);
+            values.put("id", appendix.getGroup().id);
             values.put("timestamp", System.currentTimeMillis());
             values.put("data", appendix.toJSON().toString());
             db.insert("appendix", null, values);

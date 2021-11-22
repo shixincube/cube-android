@@ -1280,6 +1280,9 @@ public class ContactService extends Module {
      * @param failureHandler
      */
     private void modifyGroup(Group group, GroupHandler successHandler, FailureHandler failureHandler) {
+        // 更新缓存时间
+        group.entityLifeExpiry += LIFESPAN;
+
         Packet requestPacket = new Packet(ContactServiceAction.ModifyGroup, group.toCompactJSON());
         this.pipeline.send(ContactService.NAME, requestPacket, new PipelineHandler() {
             @Override
@@ -1319,6 +1322,7 @@ public class ContactService extends Module {
 
                 try {
                     Group responseGroup = new Group(packet.extractServiceData());
+                    group.resetLast(System.currentTimeMillis());
                     // 重置名称，因为服务器会对名字进行安全评估，新名称可能被服务器修改
                     group.update(responseGroup);
 
@@ -1591,6 +1595,110 @@ public class ContactService extends Module {
                     });
                 } catch (JSONException e) {
                     LogUtils.w(TAG, e);
+                }
+            }
+        });
+    }
+
+    /**
+     * 更新指定参数的群组附录。
+     *
+     * @param appendix
+     * @param params
+     * @param successHandler
+     * @param failureHandler
+     */
+    public void updateAppendix(GroupAppendix appendix, JSONObject params, GroupHandler successHandler, FailureHandler failureHandler) {
+        if (!this.pipeline.isReady()) {
+            ModuleError error = new ModuleError(NAME, ContactServiceState.NoNetwork.code);
+            error.data = appendix.getGroup();
+            if (failureHandler.isInMainThread()) {
+                executeOnMainThread(() -> {
+                    failureHandler.handleFailure(ContactService.this, error);
+                });
+            }
+            else {
+                execute(() -> {
+                    failureHandler.handleFailure(ContactService.this, error);
+                });
+            }
+            return;
+        }
+
+        try {
+            params.put("groupId", appendix.getGroup().getId());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        Packet requestPacket = new Packet(ContactServiceAction.UpdateAppendix, params);
+        this.pipeline.send(ContactService.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    ModuleError error = new ModuleError(NAME, packet.state.code);
+                    error.data = appendix.getGroup();
+                    if (failureHandler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            failureHandler.handleFailure(ContactService.this, error);
+                        });
+                    }
+                    else {
+                        execute(() -> {
+                            failureHandler.handleFailure(ContactService.this, error);
+                        });
+                    }
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != ContactServiceState.Ok.code) {
+                    ModuleError error = new ModuleError(NAME, stateCode);
+                    error.data = appendix.getGroup();
+                    if (failureHandler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            failureHandler.handleFailure(ContactService.this, error);
+                        });
+                    }
+                    else {
+                        execute(() -> {
+                            failureHandler.handleFailure(ContactService.this, error);
+                        });
+                    }
+                    return;
+                }
+
+                try {
+                    // 更新缓存时间
+                    appendix.getGroup().entityLifeExpiry += LIFESPAN;
+
+                    GroupAppendix response = new GroupAppendix(ContactService.this, appendix.getGroup(), packet.extractServiceData());
+                    appendix.getGroup().setAppendix(response);
+
+                    // 更新群组时间戳
+                    appendix.getGroup().setLastActive(System.currentTimeMillis());
+
+                    // 更新数据库
+                    storage.updateGroupProperty(appendix.getGroup());
+                    storage.writeAppendix(response);
+
+                    if (successHandler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            successHandler.handleGroup(appendix.getGroup());
+                        });
+                    }
+                    else {
+                        execute(() -> {
+                            successHandler.handleGroup(appendix.getGroup());
+                        });
+                    }
+
+                    execute(() -> {
+                        ObservableEvent event = new ObservableEvent(ContactServiceEvent.GroupAppendixUpdated, response);
+                        notifyObservers(event);
+                    });
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
             }
         });

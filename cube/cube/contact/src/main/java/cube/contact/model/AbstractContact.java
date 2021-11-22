@@ -97,7 +97,7 @@ public class AbstractContact extends Entity {
     /**
      * 获取名称。
      *
-     * @return
+     * @return 返回名称。
      */
     public String getName() {
         return this.name;
@@ -106,7 +106,7 @@ public class AbstractContact extends Entity {
     /**
      * 设置名称。
      *
-     * @param name
+     * @param name 指定名称。
      */
     public void setName(String name) {
         this.name = name;

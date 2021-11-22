@@ -45,11 +45,15 @@ import com.shixincube.app.widget.recyclerview.RecyclerView;
 import butterknife.BindView;
 import cube.contact.model.Group;
 import cube.contact.model.GroupAppendix;
+import cube.core.Module;
+import cube.core.ModuleError;
+import cube.core.handler.DefaultFailureHandler;
 import cube.engine.CubeEngine;
 import cube.engine.util.Future;
 import cube.engine.util.Promise;
 import cube.engine.util.PromiseFuture;
 import cube.engine.util.PromiseHandler;
+import cube.messaging.handler.DefaultConversationHandler;
 import cube.messaging.model.Conversation;
 import cube.messaging.model.ConversationReminded;
 import cube.messaging.model.ConversationType;
@@ -256,9 +260,21 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
         }
         else if (requestCode == REQUEST_SET_GROUP_NAME) {
             if (resultCode == RESULT_OK) {
+                UIUtils.showToast(UIUtils.getString(R.string.change_group_name));
                 String content = data.getStringExtra("content");
                 // 修改群聊名称
-                
+                CubeEngine.getInstance().getMessagingService().changeConversationName(conversation,
+                        content, new DefaultConversationHandler(true) {
+                            @Override
+                            public void handleConversation(Conversation conversation) {
+                                groupNameItemView.setEndText(conversation.getDisplayName());
+                            }
+                        }, new DefaultFailureHandler(true) {
+                            @Override
+                            public void handleFailure(Module module, ModuleError error) {
+                                UIUtils.showToast(UIUtils.getString(R.string.please_try_again_later));
+                            }
+                        });
             }
         }
     }

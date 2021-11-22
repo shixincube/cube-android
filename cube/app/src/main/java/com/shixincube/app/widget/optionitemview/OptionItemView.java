@@ -238,7 +238,6 @@ public class OptionItemView extends View {
             rect.bottom -= textBound.height();
         }
 
-
         if (startImage != null && isShowStartImg) {
             // 计算左图范围
             rect.left = startImageMarginLeft >= 0 ? startImageMarginLeft : width / 32;
@@ -349,7 +348,7 @@ public class OptionItemView extends View {
         invalidate();
     }
 
-    public void setLeftText(int stringId) {
+    public void setStartText(int stringId) {
         startText = context.getString(stringId);
         invalidate();
     }
@@ -394,7 +393,7 @@ public class OptionItemView extends View {
         invalidate();
     }
 
-    public void setRightText(int stringId) {
+    public void setEndText(int stringId) {
         endText = context.getString(stringId);
         invalidate();
     }
@@ -424,32 +423,32 @@ public class OptionItemView extends View {
         invalidate();
     }
 
-    public void showLeftImg(boolean flag) {
+    public void showStartImage(boolean flag) {
         isShowStartImg = flag;
         invalidate();
     }
 
-    public void showLeftText(boolean flag) {
+    public void showStartText(boolean flag) {
         isShowStartText = flag;
         invalidate();
     }
 
-    public void showRightImg(boolean flag) {
+    public void showEndImage(boolean flag) {
         isShowEndImg = flag;
         invalidate();
     }
 
-    public void showRightText(boolean flag) {
+    public void showEndText(boolean flag) {
         isShowEndText = flag;
         invalidate();
     }
 
-    public void setSpliteMode(boolean spliteMode) {
-        splitMode = spliteMode;
+    public void setSplitMode(boolean splitMode) {
+        this.splitMode = splitMode;
     }
 
-    public boolean getSpliteMode() {
-        return splitMode;
+    public boolean getSplitMode() {
+        return this.splitMode;
     }
 
     private OnOptionItemClickListener listener;

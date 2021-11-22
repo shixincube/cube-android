@@ -1245,6 +1245,104 @@ public class ContactService extends Module {
     }
 
     /**
+     * 修改群组名称。
+     *
+     * @param group 指定群组。
+     * @param groupName 指定新的群组名。
+     * @param successHandler 指定操作成功回调句柄。
+     * @param failureHandler 指定操作故障回调句柄。
+     */
+    public void modifyGroupName(Group group, String groupName, GroupHandler successHandler, FailureHandler failureHandler) {
+        String name = group.getName();
+        if (name.equals(groupName)) {
+            if (successHandler.isInMainThread()) {
+                executeOnMainThread(() -> {
+                    successHandler.handleGroup(group);
+                });
+            }
+            else {
+                execute(() -> {
+                    successHandler.handleGroup(group);
+                });
+            }
+            return;
+        }
+
+        group.setName(groupName);
+        this.modifyGroup(group, successHandler, failureHandler);
+    }
+
+    /**
+     * 修改群组信息。
+     *
+     * @param group
+     * @param successHandler
+     * @param failureHandler
+     */
+    private void modifyGroup(Group group, GroupHandler successHandler, FailureHandler failureHandler) {
+        Packet requestPacket = new Packet(ContactServiceAction.ModifyGroup, group.toCompactJSON());
+        this.pipeline.send(ContactService.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    ModuleError error = new ModuleError(NAME, packet.state.code);
+                    error.data = group;
+                    if (failureHandler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            failureHandler.handleFailure(ContactService.this, error);
+                        });
+                    }
+                    else {
+                        execute(() -> {
+                            failureHandler.handleFailure(ContactService.this, error);
+                        });
+                    }
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != ContactServiceState.Ok.code) {
+                    ModuleError error = new ModuleError(NAME, stateCode);
+                    error.data = group;
+                    if (failureHandler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            failureHandler.handleFailure(ContactService.this, error);
+                        });
+                    }
+                    else {
+                        execute(() -> {
+                            failureHandler.handleFailure(ContactService.this, error);
+                        });
+                    }
+                    return;
+                }
+
+                try {
+                    Group responseGroup = new Group(packet.extractServiceData());
+                    // 重置名称，因为服务器会对名字进行安全评估，新名称可能被服务器修改
+                    group.update(responseGroup);
+
+                    // 更新数据库
+                    storage.updateGroupProperty(group);
+
+                    if (successHandler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            successHandler.handleGroup(group);
+                        });
+                    }
+                    else {
+                        execute(() -> {
+                            successHandler.handleGroup(group);
+                        });
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    /**
      * 获取指定群组。
      *
      * @param groupId 指定群组 ID 。

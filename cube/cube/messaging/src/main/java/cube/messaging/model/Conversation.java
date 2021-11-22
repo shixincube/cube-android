@@ -269,7 +269,7 @@ public class Conversation extends Entity {
             return this.contact.getPriorityName();
         }
         else if (null != this.group) {
-            return this.group.getPriorityName();
+            return this.group.getName();
         }
         else {
             return "";

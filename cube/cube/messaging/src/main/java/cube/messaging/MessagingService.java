@@ -540,6 +540,63 @@ public class MessagingService extends Module {
     }
 
     /**
+     * 修改会话名称。该方法仅对基于群组的会话有效。
+     *
+     * @param conversation 指定会话。
+     * @param newName 指定会话新名称。
+     * @param successHandler 指定操作成功回调句柄。
+     * @param failureHandler 指定操作失败回调句柄。
+     */
+    public void changeConversationName(Conversation conversation, String newName, ConversationHandler successHandler,
+                                       FailureHandler failureHandler) {
+        if (conversation.getType() == ConversationType.Contact) {
+            // 联系人类型的会话不能修改名称
+            ModuleError error = new ModuleError(NAME, MessagingServiceState.Forbidden.code);
+            error.data = conversation;
+
+            if (failureHandler.isInMainThread()) {
+                executeOnMainThread(() -> {
+                    failureHandler.handleFailure(MessagingService.this, error);
+                });
+            }
+            else {
+                execute(() -> {
+                    failureHandler.handleFailure(MessagingService.this, error);
+                });
+            }
+            return;
+        }
+
+        this.contactService.modifyGroupName(conversation.getGroup(), newName, new StableGroupHandler() {
+            @Override
+            public void handleGroup(Group group) {
+                if (successHandler.isInMainThread()) {
+                    executeOnMainThread(() -> {
+                        successHandler.handleConversation(conversation);
+                    });
+                }
+                else {
+                    successHandler.handleConversation(conversation);
+                }
+            }
+        }, new StableFailureHandler() {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                ModuleError current = new ModuleError(NAME, error.code);
+                current.data = conversation;
+                if (failureHandler.isInMainThread()) {
+                    executeOnMainThread(() -> {
+                        failureHandler.handleFailure(MessagingService.this, current);
+                    });
+                }
+                else {
+                    failureHandler.handleFailure(MessagingService.this, current);
+                }
+            }
+        });
+    }
+
+    /**
      * 获取指定 ID 的会话。
      *
      * @param id 指定会话 ID 。

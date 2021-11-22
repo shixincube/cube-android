@@ -133,8 +133,6 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
 
     @Override
     public void initView() {
-        setToolbarTitle(this.conversation.getDisplayName());
-
         this.toolbarMore.setImageResource(R.mipmap.ic_more_black);
         this.toolbarMore.setVisibility(View.VISIBLE);
 
@@ -323,6 +321,13 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
         else {
             super.onBackPressed();
         }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        setToolbarTitle(this.conversation.getDisplayName());
     }
 
     @Override

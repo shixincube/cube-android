@@ -103,6 +103,7 @@
     <string name="quit_group_fail">退出群聊失败</string>
     <string name="modify_group_name">修改群聊名称</string>
     <string name="modify_group_name_tip_notify_all">修改群聊名称后，将在群内通知其他成员。</string>
+    <string name="change_group_name">已修改群聊名称</string>
 
     <!-- 会话信息 -->
     <string name="draft">[草稿]</string>

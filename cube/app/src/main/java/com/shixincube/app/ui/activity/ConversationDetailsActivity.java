@@ -71,9 +71,6 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
     public final static int REQUEST_SET_GROUP_NAME = 1001;
     public final static int REQUEST_SET_GROUP_NOTICE = 1002;
 
-    @BindView(R.id.tvToolbarTitle)
-    TextView toolbarTitleTextView;
-
     @BindView(R.id.rvMembers)
     RecyclerView membersRecyclerView;
 
@@ -93,6 +90,9 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
 
     @BindView(R.id.oivRemarkGroup)
     OptionItemView groupRemarkItemView;
+
+    @BindView(R.id.oivSearchContent)
+    OptionItemView searchContent;
 
     @BindView(R.id.sbCloseRemind)
     SwitchButton closeRemindSwitch;
@@ -127,7 +127,7 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
 
     @Override
     public void initView() {
-        this.toolbarTitleTextView.setText(UIUtils.getString(R.string.conv_title));
+        this.setToolbarTitle(UIUtils.getString(R.string.conv_title));
 
         if (this.conversation.getType() == ConversationType.Contact) {
             this.groupDetailsLayout.setVisibility(View.GONE);
@@ -138,17 +138,29 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
             this.groupNameItemView.setEndText(this.conversation.getDisplayName());
             Group group = this.conversation.getGroup();
             GroupAppendix appendix = group.getAppendix();
+
+            // 公告
             if (appendix.hasNotice()) {
                 this.groupNoticeView.setText(appendix.getNotice());
             }
             else {
                 this.groupNoticeView.setVisibility(View.GONE);
             }
+
+            // 备注
+            if (appendix.hasRemark()) {
+                this.groupRemarkItemView.setEndText(appendix.getRemark());
+            }
         }
     }
 
     @Override
     public void initListener() {
+        // 查找消息内容
+        this.searchContent.setOnClickListener((view) -> {
+            UIUtils.showToast(UIUtils.getString(R.string.developing));
+        });
+
         // 关闭消息提醒按钮事件
         this.closeRemindSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -266,6 +278,11 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
                     UIUtils.showToast(UIUtils.getString(R.string.no_group_notice));
                 }
             }
+        });
+
+        // 群组备注
+        this.groupRemarkItemView.setOnClickListener((view) -> {
+            UIUtils.showToast(UIUtils.getString(R.string.developing));
         });
 
         // 删除并退出按钮事件

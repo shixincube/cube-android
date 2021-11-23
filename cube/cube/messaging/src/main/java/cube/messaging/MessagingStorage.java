@@ -306,6 +306,7 @@ public class MessagingStorage extends AbstractStorage {
         values.put("remind", conversation.getReminded().code);
         values.put("recent_message", conversation.getRecentMessage().toJSON().toString());
         values.put("unread", conversation.getUnreadCount());
+        // update
         db.update("conversation", values, "id=?", new String[]{ conversation.id.toString() });
 
         this.closeWritableDatabase(db);
@@ -460,7 +461,7 @@ public class MessagingStorage extends AbstractStorage {
 
             ContentValues values = new ContentValues();
             values.put("state", newState.code);
-            db.update("message", values, "source=0 AND scope=0 AND state=? AND `from`=?",
+            db.update("message", values, "`source`=0 AND scope=0 AND state=? AND `from`=?",
                     new String[] {
                             currentState.toString(),
                             conversation.getPivotalId().toString()});

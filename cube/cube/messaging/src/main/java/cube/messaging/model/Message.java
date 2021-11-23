@@ -279,6 +279,7 @@ public class Message extends Entity {
     }
 
     public Group getSourceGroup() {
+        this.sourceGroup.entityLifeExpiry += 10000;
         return this.sourceGroup;
     }
 

@@ -1101,12 +1101,17 @@ public class MessagingService extends Module {
                     Conversation responseConversation = new Conversation(packet.extractServiceData());
                     conversation.setState(responseConversation.getState());
                     conversation.setReminded(responseConversation.getReminded());
+                    conversation.setTimestamp(responseConversation.getTimestamp());
                 } catch (JSONException e) {
                     LogUtils.w(TAG, "#updateConverstion", e);
                 }
 
                 // 更新数据库
                 storage.updateConversation(conversation);
+
+                synchronized (MessagingService.this) {
+                    sortConversationList(conversations);
+                }
 
                 if (conversationHandler.isInMainThread()) {
                     executeOnMainThread(() -> {

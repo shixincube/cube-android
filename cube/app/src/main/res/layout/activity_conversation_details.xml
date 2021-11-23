@@ -71,7 +71,7 @@
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="60dp"
+                        android:layout_height="58dp"
                         android:orientation="horizontal"
                         android:gravity="center_vertical">
 
@@ -179,7 +179,7 @@
                 <!-- 消息免打扰 -->
                 <com.zhy.autolayout.AutoLinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="48dp"
+                    android:layout_height="50dp"
                     android:gravity="center_vertical">
                     <TextView
                         android:layout_width="0dp"
@@ -209,7 +209,7 @@
                 <!-- 会话置顶 -->
                 <com.zhy.autolayout.AutoLinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="48dp"
+                    android:layout_height="50dp"
                     android:gravity="center_vertical">
                     <TextView
                         android:layout_width="0dp"
@@ -264,7 +264,7 @@
                 <com.zhy.autolayout.AutoLinearLayout
                     android:id="@+id/llShowNickName"
                     android:layout_width="match_parent"
-                    android:layout_height="48dp"
+                    android:layout_height="50dp"
                     android:background="@drawable/selector_option_item"
                     android:gravity="center_vertical"
                     android:visibility="visible">
@@ -291,14 +291,27 @@
             </com.zhy.autolayout.AutoLinearLayout>
 
             <Button
+                android:id="@+id/btnClearRecords"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
+                android:layout_marginTop="@dimen/option_item_margin_top"
+                android:layout_marginStart="@dimen/option_item_margin_start"
+                android:layout_marginEnd="@dimen/option_item_margin_end"
+                android:background="@drawable/shape_button_danger"
+                android:text="@string/conv_clear_records"
+                android:textColor="@color/color_danger_text"
+                android:textSize="16sp"/>
+
+            <Button
                 android:id="@+id/btnQuitGroup"
                 style="?android:attr/borderlessButtonStyle"
                 android:layout_width="match_parent"
                 android:layout_height="45dp"
-                android:layout_marginBottom="20dp"
+                android:layout_marginTop="@dimen/option_item_margin_top"
+                android:layout_marginBottom="@dimen/option_item_margin_bottom"
                 android:layout_marginStart="@dimen/option_item_margin_start"
                 android:layout_marginEnd="@dimen/option_item_margin_end"
-                android:layout_marginTop="@dimen/option_item_margin_top"
                 android:background="@drawable/shape_button_danger"
                 android:text="@string/delete_and_quit"
                 android:textColor="@color/color_danger_text"

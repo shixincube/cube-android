@@ -194,11 +194,20 @@ public class GroupAppendix implements JSONable {
     }
 
     /**
-     * 更新群组公告。
+     * 是否显示群组成员名。
      *
-     * @param notice
-     * @param successHandler
-     * @param failureHandler
+     * @return 如果显示成员名称返回 {@code true} ，否则返回 {@code false} 。
+     */
+    public boolean isDisplayMemberName() {
+        return this.memberNameDisplayed;
+    }
+
+    /**
+     * 修改群组公告。
+     *
+     * @param notice 指定新公告内容。
+     * @param successHandler 指定操作成功回调句柄。
+     * @param failureHandler 指定操作失败回调句柄。
      */
     public void modifyNotice(String notice, GroupHandler successHandler, FailureHandler failureHandler) {
         if (!this.group.isOwner()) {
@@ -213,6 +222,26 @@ public class GroupAppendix implements JSONable {
         JSONObject params = new JSONObject();
         try {
             params.put("notice", notice);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        // 更新附录
+        this.service.updateAppendix(this, params, successHandler, failureHandler);
+    }
+
+    /**
+     * 修改群组的备注。
+     *
+     * @param remark 指定对该群组的备注。
+     * @param successHandler 指定操作成功回调句柄。
+     * @param failureHandler 指定操作失败回调句柄。
+     */
+    public void modifyRemark(String remark, GroupHandler successHandler, FailureHandler failureHandler) {
+        this.remark = remark;
+
+        JSONObject params = new JSONObject();
+        try {
+            params.put("remark", remark);
         } catch (JSONException e) {
             e.printStackTrace();
         }

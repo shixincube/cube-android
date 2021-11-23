@@ -132,11 +132,16 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
         }
 
         if (item.isFromGroup()) {
-            textView.setText(item.getSender().getPriorityName());
-            helper.setViewVisibility(R.id.tvName, View.VISIBLE);
+            if (item.getSourceGroup().getAppendix().isDisplayMemberName()) {
+                textView.setText(item.getSender().getPriorityName());
+                textView.setVisibility(View.VISIBLE);
+            }
+            else {
+                textView.setVisibility(View.GONE);
+            }
         }
         else {
-            helper.setViewVisibility(R.id.tvName, View.GONE);
+            textView.setVisibility(View.GONE);
         }
     }
 

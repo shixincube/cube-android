@@ -68,6 +68,7 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
 
     public final static int REQUEST_CREATE_OR_UPDATE_GROUP = 1000;
     public final static int REQUEST_SET_GROUP_NAME = 1001;
+    public final static int REQUEST_SET_GROUP_NOTICE = 1002;
 
     @BindView(R.id.tvToolbarTitle)
     TextView toolbarTitleTextView;
@@ -84,6 +85,8 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
     @BindView(R.id.oivGroupName)
     OptionItemView groupNameItemView;
 
+    @BindView(R.id.llGroupNotice)
+    LinearLayout groupNoticeLayout;
     @BindView(R.id.tvGroupNotice)
     TextView groupNoticeView;
 
@@ -234,12 +237,27 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
 
         // 群组名称
         this.groupNameItemView.setOnClickListener((view) -> {
-            Intent intent = new Intent(this, SimpleContentInputActivity.class);
+            Intent intent = new Intent(ConversationDetailsActivity.this, SimpleContentInputActivity.class);
             intent.putExtra("title", UIUtils.getString(R.string.modify_group_name));
             intent.putExtra("tip", UIUtils.getString(R.string.modify_group_name_tip_notify_all));
-            intent.putExtra("content", this.conversation.getDisplayName());
-            intent.putExtra("groupId", this.conversation.getGroup().getId());
+            intent.putExtra("content", conversation.getDisplayName());
+            intent.putExtra("groupId", conversation.getGroup().getId());
             startActivityForResult(intent, REQUEST_SET_GROUP_NAME);
+        });
+
+        // 群组公告
+        this.groupNoticeLayout.setOnClickListener((view) -> {
+            if (conversation.getGroup().isOwner()) {
+                Intent intent = new Intent(ConversationDetailsActivity.this, TextInputActivity.class);
+                intent.putExtra("title", UIUtils.getString(R.string.modify_group_notice));
+                if (conversation.getGroup().getAppendix().hasNotice()) {
+                    intent.putExtra("content", conversation.getGroup().getAppendix().getNotice());
+                }
+                startActivityForResult(intent, REQUEST_SET_GROUP_NOTICE);
+            }
+            else {
+
+            }
         });
 
         // 删除并退出按钮事件
@@ -275,6 +293,11 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
                                 UIUtils.showToast(UIUtils.getString(R.string.please_try_again_later));
                             }
                         });
+            }
+        }
+        else if (requestCode == REQUEST_SET_GROUP_NOTICE) {
+            if (resultCode == RESULT_OK) {
+
             }
         }
     }

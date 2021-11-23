@@ -309,9 +309,9 @@ public class OptionItemView extends View {
             case MotionEvent.ACTION_UP:
                 int x = (int) event.getX();
                 if (startBeginTouchDown && x < width / 8 && listener != null) {
-                    listener.leftOnClick();
+                    listener.startOnClick();
                 } else if (endBeginTouchDown && x > width * 7 / 8 && listener != null) {
-                    listener.rightOnClick();
+                    listener.endOnClick();
                 } else if (centerBeginTouchDown && listener != null) {
                     listener.centerOnClick();
                 }
@@ -454,11 +454,11 @@ public class OptionItemView extends View {
     private OnOptionItemClickListener listener;
 
     public interface OnOptionItemClickListener {
-        void leftOnClick();
+        void startOnClick();
 
         void centerOnClick();
 
-        void rightOnClick();
+        void endOnClick();
     }
 
     public void setOnOptionItemClickListener(OnOptionItemClickListener listener) {

@@ -383,6 +383,8 @@ public class ContactService extends Module {
 
                     handler.handleSuccess(ContactService.this, self);
                     self = null;
+                    // 清空缓存
+                    cache.clear();
                 });
             }
             else {
@@ -392,6 +394,8 @@ public class ContactService extends Module {
 
                     handler.handleSuccess(ContactService.this, self);
                     self = null;
+                    // 清空缓存
+                    cache.clear();
                 });
             }
 
@@ -439,9 +443,6 @@ public class ContactService extends Module {
 
                 signInReady.set(false);
 
-                // 关闭存储器
-                storage.close();
-
                 final Self current = self;
                 if (handler.isInMainThread()) {
                     executeOnMainThread(() -> {
@@ -453,6 +454,19 @@ public class ContactService extends Module {
                         handler.handleSuccess(ContactService.this, current);
                     });
                 }
+
+                execute(() -> {
+                    ObservableEvent event = new ObservableEvent(ContactServiceEvent.SignOut, self);
+                    notifyObservers(event);
+
+                    self = null;
+
+                    // 清空缓存
+                    cache.clear();
+
+                    // 关闭存储器
+                    storage.close();
+                });
             }
         });
 
@@ -2164,14 +2178,6 @@ public class ContactService extends Module {
         });
     }
 
-    protected void triggerSignOut() {
-        ObservableEvent event = new ObservableEvent(ContactServiceEvent.SignOut, this.self);
-        this.notifyObservers(event);
-
-        this.self = null;
-        this.cache.clear();
-    }
-
     protected void triggerListGroups(JSONObject data) {
         try {
             int total = data.getInt("total");
@@ -2219,10 +2225,6 @@ public class ContactService extends Module {
     }
 
     protected void triggerCreateGroup(Packet packet) {
-        if (packet.response) {
-            return;
-        }
-
         try {
             Group group = new Group(packet.extractServiceData());
             // 写入数据库
@@ -2256,10 +2258,6 @@ public class ContactService extends Module {
     }
 
     protected void triggerDismissGroup(Packet packet) {
-        if (packet.response) {
-            return;
-        }
-
         try {
             Group group = new Group(packet.extractServiceData());
 
@@ -2273,6 +2271,10 @@ public class ContactService extends Module {
             // 更新
             this.storage.updateGroupProperty(group);
 
+            if (!group.isFilled()) {
+                fillGroup(group);
+            }
+
             ObservableEvent event = new ObservableEvent(ContactServiceEvent.GroupDismissed, group);
             notifyObservers(event);
         } catch (JSONException e) {
@@ -2281,10 +2283,6 @@ public class ContactService extends Module {
     }
 
     protected void triggerRemoveGroupMember(Packet packet) {
-        if (packet.response) {
-            return;
-        }
-
         GroupBundle bundle = new GroupBundle(packet.extractServiceData());
         Group group = bundle.group;
 

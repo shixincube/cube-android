@@ -66,9 +66,6 @@ public class ContactPipelineListener implements PipelineListener {
         else if (ContactServiceAction.DismissGroup.equals(packet.name)) {
             this.service.triggerDismissGroup(packet);
         }
-        else if (ContactServiceAction.SignOut.equals(packet.name)) {
-            this.service.triggerSignOut();
-        }
     }
 
     @Override

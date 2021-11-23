@@ -413,7 +413,7 @@ public class MessagingService extends Module {
                     Conversation conversation = iter.next();
                     if (conversation.getType() == ConversationType.Group) {
                         Group group = conversation.getGroup();
-                        if (group.getState() != GroupState.Normal) {
+                        if (null != group && group.getState() != GroupState.Normal) {
                             // 将已经失效的群组对应的会话删除
                             conversation.setState(ConversationState.Deleted);
                             this.storage.updateConversation(conversation);

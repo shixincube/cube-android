@@ -31,7 +31,7 @@
     <color name="theme_bg">#EBEBEB</color>
     <color name="theme_dark_bg">#191919</color>
 
-    <color name="text">#101010</color>
+    <color name="text">#050505</color>
     <color name="text_accent">#7E7E7E</color>
     <color name="text_secondary">#969696</color>
     <color name="text_danger">#E64340</color>

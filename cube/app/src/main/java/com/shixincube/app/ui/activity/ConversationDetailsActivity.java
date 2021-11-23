@@ -257,7 +257,14 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
                 startActivityForResult(intent, REQUEST_SET_GROUP_NOTICE);
             }
             else {
-
+                if (conversation.getGroup().getAppendix().hasNotice()) {
+                    Intent intent = new Intent(ConversationDetailsActivity.this, GroupNoticeActivity.class);
+                    intent.putExtra("groupId", conversation.getGroup().getId());
+                    startActivity(intent);
+                }
+                else {
+                    UIUtils.showToast(UIUtils.getString(R.string.no_group_notice));
+                }
             }
         });
 

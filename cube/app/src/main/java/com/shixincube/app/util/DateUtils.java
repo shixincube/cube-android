@@ -38,6 +38,19 @@ public class DateUtils {
     private DateUtils() {
     }
 
+    public static String formatYMDHM(long timestamp) {
+        Calendar date = Calendar.getInstance();
+        date.setTimeInMillis(timestamp);
+
+        StringBuilder buf = new StringBuilder();
+        buf.append(date.get(Calendar.YEAR)).append(".");
+        buf.append(date.get(Calendar.MONTH) + 1).append(".");
+        buf.append(date.get(Calendar.DATE)).append(" ");
+        buf.append(String.format(Locale.ROOT, "%02d", date.get(Calendar.HOUR_OF_DAY))).append(":");
+        buf.append(String.format(Locale.ROOT, "%02d", date.get(Calendar.MINUTE)));
+        return buf.toString();
+    }
+
     public static String formatConversationTime(long timestamp) {
         return DateUtils.formatConversationTime(new Date(timestamp));
     }

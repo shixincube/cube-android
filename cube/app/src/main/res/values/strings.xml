@@ -104,6 +104,7 @@
     <string name="modify_group_name">修改群聊名称</string>
     <string name="modify_group_name_tip_notify_all">修改群聊名称后，将在群内通知其他成员。</string>
     <string name="change_group_name">已修改群聊名称</string>
+    <string name="no_group_notice">未设置群公告，只有群主才能设置公告</string>
     <string name="modify_group_notice">群公告</string>
     <string name="modify_group_notice_failure">修改群公告失败，请稍候再试</string>
 

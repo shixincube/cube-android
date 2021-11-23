@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.zhy.autolayout.AutoLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:auto="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/tabbar_bg"
+    android:orientation="vertical">
+
+    <include layout="@layout/include_toolbar"/>
+
+    <com.zhy.autolayout.AutoLinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/activity_vertical_margin"
+        android:layout_marginBottom="@dimen/activity_vertical_margin"
+        android:layout_marginStart="@dimen/option_item_margin_start"
+        android:layout_marginEnd="@dimen/option_item_margin_end"
+        android:orientation="horizontal">
+
+        <com.shixincube.app.widget.AdvancedImageView
+            android:id="@+id/ivAvatar"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@mipmap/avatar_default"
+            auto:corner_radius="4dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="4dp"
+            android:layout_marginStart="@dimen/item_margin_start_and_end"
+            android:layout_marginEnd="@dimen/item_margin_start_and_end"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:textSize="14sp"
+                android:textColor="@color/text"
+                android:text="@string/untitled"/>
+
+            <TextView
+                android:id="@+id/tvDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary"
+                android:text="@string/untitled"/>
+
+        </LinearLayout>
+
+    </com.zhy.autolayout.AutoLinearLayout>
+
+    <View
+        style="@style/Line"
+        android:layout_marginStart="@dimen/option_item_margin_start"
+        android:layout_marginEnd="@dimen/option_item_margin_end"/>
+
+    <com.zhy.autolayout.AutoLinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="@dimen/activity_vertical_margin"
+        android:layout_marginBottom="@dimen/activity_vertical_margin"
+        android:layout_marginStart="@dimen/option_item_margin_start"
+        android:layout_marginEnd="@dimen/option_item_margin_end"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvNotice"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:textColor="@color/text"
+            android:textSize="18sp"/>
+
+    </com.zhy.autolayout.AutoLinearLayout>
+
+</com.zhy.autolayout.AutoLinearLayout>

@@ -272,7 +272,8 @@ public class Group extends AbstractContact implements Comparator<Group> {
      * @return
      */
     public boolean isFilled() {
-        return (null != this.memberList && this.memberList.size() == this.memberIdList.size());
+        return (null != this.memberList && this.memberList.size() == this.memberIdList.size()
+            && (this.appendix.hasNotice() && null != this.appendix.getNoticeOperator()));
     }
 
     public void update(Group source) {

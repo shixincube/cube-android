@@ -221,7 +221,7 @@ public class GroupAppendix implements JSONable {
     }
 
     public void setNoticeOperator(Contact contact) {
-        this.noticeOperator = noticeOperator;
+        this.noticeOperator = contact;
     }
 
     @Override

@@ -71,6 +71,9 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
     public final static int REQUEST_SET_GROUP_NAME = 1001;
     public final static int REQUEST_SET_GROUP_NOTICE = 1002;
 
+    public final static int RESULT_INVALIDATE = 2000;
+    public final static int RESULT_DESTROY = 3000;
+
     @BindView(R.id.rvMembers)
     RecyclerView membersRecyclerView;
 
@@ -99,6 +102,15 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
 
     @BindView(R.id.sbTopConversation)
     SwitchButton topConversationSwitch;
+
+    @BindView(R.id.oivNameInGroup)
+    OptionItemView nameInGroupItemView;
+
+    @BindView(R.id.sbDisplayMemberName)
+    SwitchButton displayMemberNameSwitch;
+
+    @BindView(R.id.btnClearRecords)
+    Button clearRecordsButton;
 
     @BindView(R.id.btnQuitGroup)
     Button quitGroupButton;
@@ -285,6 +297,42 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
             UIUtils.showToast(UIUtils.getString(R.string.developing));
         });
 
+        // 在本群里的昵称
+        this.nameInGroupItemView.setOnClickListener((view) -> {
+            UIUtils.showToast(UIUtils.getString(R.string.developing));
+        });
+
+        // 显示群成员名称
+        this.displayMemberNameSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean checked) {
+                Group group = conversation.getGroup();
+                if (group.getAppendix().isDisplayMemberName() == checked) {
+                    return;
+                }
+
+                group.getAppendix().modifyDisplayNameFlag(checked, new DefaultGroupHandler(true) {
+                    @Override
+                    public void handleGroup(Group group) {
+                        UIUtils.showToast(UIUtils.getString(R.string.set_success));
+
+                        // 需要设置结果，以便消息面板更新消息的 ITEM 显示
+                        setResult(RESULT_INVALIDATE);
+                    }
+                }, new DefaultFailureHandler(true) {
+                    @Override
+                    public void handleFailure(Module module, ModuleError error) {
+                        UIUtils.showToast(UIUtils.getString(R.string.set_failure));
+                    }
+                });
+            }
+        });
+
+        // 清空消息记录按钮事件
+        this.clearRecordsButton.setOnClickListener((view) -> {
+            presenter.clearAllMessages();
+        });
+
         // 删除并退出按钮事件
         this.quitGroupButton.setOnClickListener((view) -> {
             presenter.quitGroup();
@@ -355,11 +403,6 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
     }
 
     @Override
-    public OptionItemView getGroupNameItemView() {
-        return this.groupNameItemView;
-    }
-
-    @Override
     public SwitchButton getCloseRemindSwitchButton() {
         return this.closeRemindSwitch;
     }
@@ -367,5 +410,10 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
     @Override
     public SwitchButton getTopConversationSwitchButton() {
         return this.topConversationSwitch;
+    }
+
+    @Override
+    public SwitchButton getDisplayMemberNameSwitchButton() {
+        return this.displayMemberNameSwitch;
     }
 }

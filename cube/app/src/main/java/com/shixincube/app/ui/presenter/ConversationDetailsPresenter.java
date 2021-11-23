@@ -93,9 +93,17 @@ public class ConversationDetailsPresenter extends BasePresenter<ConversationDeta
                 getView().getCloseRemindSwitchButton().setChecked(!(conversation.getReminded() == ConversationReminded.Normal));
                 getView().getTopConversationSwitchButton().setChecked(conversation.focused());
 
+                if (conversation.getType() == ConversationType.Group) {
+                    getView().getDisplayMemberNameSwitchButton().setChecked(conversation.getGroup().getAppendix().isDisplayMemberName());
+                }
+
                 adapter.notifyDataSetChangedWrapper();
             }
         }).launch();
+    }
+
+    public void clearAllMessages() {
+        UIUtils.showToast(UIUtils.getString(R.string.developing));
     }
 
     public void quitGroup() {
@@ -120,6 +128,7 @@ public class ConversationDetailsPresenter extends BasePresenter<ConversationDeta
                     @Override
                     public void handleConversation(Conversation conversation) {
                         activity.hideWaitingDialog();
+                        activity.setResult(ConversationDetailsActivity.RESULT_DESTROY);
                         activity.finish();
                     }
                 }, new DefaultFailureHandler(true) {

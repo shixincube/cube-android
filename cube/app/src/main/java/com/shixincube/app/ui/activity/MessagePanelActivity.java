@@ -67,6 +67,7 @@ import cn.bingoogolapple.refreshlayout.BGANormalRefreshViewHolder;
 import cn.bingoogolapple.refreshlayout.BGARefreshLayout;
 import cube.engine.CubeEngine;
 import cube.messaging.model.Conversation;
+import cube.messaging.model.ConversationState;
 
 /**
  * 消息面板。
@@ -75,7 +76,9 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
 
     public final static int REQUEST_IMAGE_PICKER = 1000;
     public final static int REQUEST_TAKE_PHOTO = 2000;
-    public final static int REQUEST_FILE_PICKER = 8000;
+    public final static int REQUEST_FILE_PICKER = 6000;
+
+    public final static int REQUEST_DETAILS = 9000;
 
     @BindView(R.id.llMessagePanel)
     LinearLayout messagePanelLayout;
@@ -162,9 +165,13 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
     public void initListener() {
         // 更多按钮事件
         this.toolbarMore.setOnClickListener((view) -> {
+            if (conversation.getState() == ConversationState.Deleted) {
+                return;
+            }
+
             Intent intent = new Intent(MessagePanelActivity.this, ConversationDetailsActivity.class);
             intent.putExtra("conversationId", this.conversation.getId());
-            jumpToActivity(intent);
+            startActivityForResult(intent, REQUEST_DETAILS);
         });
 
         // 消息面板事件
@@ -378,6 +385,17 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
                 if (resultCode == RESULT_OK) {
                     ArrayList<NormalFile> list = data.getParcelableArrayListExtra(Constant.RESULT_PICK_FILE);
 
+                }
+                break;
+            case REQUEST_DETAILS:
+                if (resultCode == ConversationDetailsActivity.RESULT_INVALIDATE) {
+                    // 需要更新消息界面
+                    presenter.loadMessages();
+                }
+                else if (resultCode == ConversationDetailsActivity.RESULT_DESTROY) {
+                    // 会话已经被删除
+                    // 提示当前会话已失效
+                    presenter.appendLocalMessage(UIUtils.getString(R.string.tip_conversation_invalid));
                 }
                 break;
             default:

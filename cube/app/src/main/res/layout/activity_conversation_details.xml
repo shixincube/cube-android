@@ -251,10 +251,12 @@
                     auto:start_text_color="@color/text"
                     auto:start_text_margin_left="@dimen/option_item_margin_start"
                     auto:start_text_size="16sp"
-                    auto:end_text=""
+                    auto:end_text="@string/no_setting"
                     auto:end_text_color="@color/text_secondary"
-                    auto:end_text_margin_right="@dimen/option_item_margin_end"
-                    auto:end_text_size="14sp"/>
+                    auto:end_text_size="16sp"
+                    auto:end_image_margin_left="0dp"
+                    auto:end_image_margin_right="10dp"
+                    auto:end_src="@mipmap/indicator"/>
 
                 <View
                     style="@style/Line"

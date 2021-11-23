@@ -51,6 +51,10 @@ import cube.core.Module;
 import cube.core.ModuleError;
 import cube.core.handler.DefaultFailureHandler;
 import cube.engine.CubeEngine;
+import cube.engine.util.Future;
+import cube.engine.util.Promise;
+import cube.engine.util.PromiseFuture;
+import cube.engine.util.PromiseHandler;
 import cube.messaging.MessageEventListener;
 import cube.messaging.MessageListResult;
 import cube.messaging.MessagingService;
@@ -63,6 +67,7 @@ import cube.messaging.handler.DefaultMessageListResultHandler;
 import cube.messaging.handler.DefaultSendHandler;
 import cube.messaging.handler.SimpleSendHandler;
 import cube.messaging.model.Conversation;
+import cube.messaging.model.ConversationState;
 import cube.messaging.model.ConversationType;
 import cube.messaging.model.Message;
 import cube.util.LogUtils;
@@ -194,13 +199,54 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
                 });
     }
 
+    private boolean checkState() {
+        if (this.conversation.getState() == ConversationState.Deleted) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * 向本地追加消息。
+     *
+     * @param text 通知消息文本。
+     */
+    public void appendLocalMessage(String text) {
+        Promise.create(new PromiseHandler<NotificationMessage>() {
+            @Override
+            public void emit(PromiseFuture<NotificationMessage> promise) {
+                NotificationMessage notificationMessage = new NotificationMessage(text);
+                CubeEngine.getInstance().getMessagingService().appendMessage(conversation,
+                        notificationMessage);
+                promise.resolve(notificationMessage);
+            }
+        }).thenOnMainThread(new Future<NotificationMessage>() {
+            @Override
+            public void come(NotificationMessage data) {
+                adapter.addLastItem(data);
+                moveToBottom();
+            }
+        }).launch();
+    }
+
     public void sendTextMessage() {
+        if (!this.checkState()) {
+            UIUtils.showToast(UIUtils.getString(R.string.tip_conversation_invalid));
+            return;
+        }
+
         String text = getView().getInputContentView().getText().toString().trim();
         this.sendTextMessage(text);
         getView().getInputContentView().setText("");
     }
 
     public void sendTextMessage(String text) {
+        if (!this.checkState()) {
+            UIUtils.showToast(UIUtils.getString(R.string.tip_conversation_invalid));
+            return;
+        }
+
         HyperTextMessage textMessage = new HyperTextMessage(text);
         CubeEngine.getInstance().getMessagingService().sendMessage(conversation, textMessage,
                 new SimpleSendHandler<Conversation, HyperTextMessage>() {
@@ -225,6 +271,11 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
     }
 
     public void sendFileMessage(File file) {
+        if (!this.checkState()) {
+            UIUtils.showToast(UIUtils.getString(R.string.tip_conversation_invalid));
+            return;
+        }
+
         FileMessage fileMessage = new FileMessage(file);
         CubeEngine.getInstance().getMessagingService().sendMessage(conversation, fileMessage,
                 new DefaultSendHandler<Conversation, FileMessage>(true) {
@@ -274,6 +325,11 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
      * @param useRawImage 是否使用原图。
      */
     public void sendImageMessage(File file, boolean useRawImage) {
+        if (!this.checkState()) {
+            UIUtils.showToast(UIUtils.getString(R.string.tip_conversation_invalid));
+            return;
+        }
+
         // 创建消息
         ImageMessage imageMessage = new ImageMessage(file, !useRawImage);
 

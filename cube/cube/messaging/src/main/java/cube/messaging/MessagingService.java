@@ -1420,6 +1420,24 @@ public class MessagingService extends Module {
      */
     public <T extends Message> void sendMessage(final Conversation conversation, final T message,
                             SendHandler<Conversation, T> sendHandler, FailureHandler failureHandler) {
+        // 检查会话状态
+        if (conversation.getState() != ConversationState.Normal
+                || conversation.getState() != ConversationState.Important) {
+            ModuleError error = new ModuleError(NAME, MessagingServiceState.IllegalOperation.code);
+            error.data = conversation;
+            if (failureHandler.isInMainThread()) {
+                executeOnMainThread(() -> {
+                    failureHandler.handleFailure(MessagingService.this, error);
+                });
+            }
+            else {
+                execute(() -> {
+                    failureHandler.handleFailure(MessagingService.this, error);
+                });
+            }
+            return;
+        }
+
         if (ConversationType.Contact == conversation.getType()) {
             this.sendMessage(conversation.getContact(), message, new SendHandler<Contact, T>() {
                 @Override
@@ -1512,6 +1530,50 @@ public class MessagingService extends Module {
      */
     public <T extends Message> void sendMessage(Group group, T message, SendHandler<Group, T> sendHandler, FailureHandler failureHandler) {
         this.sendMessage((AbstractContact) group, message, sendHandler, failureHandler);
+    }
+
+    /**
+     * 添加消息到本地记录。
+     *
+     * @param conversation 指定会话。
+     * @param message 指定消息。
+     */
+    public void appendMessage(Conversation conversation, Message message) {
+        if (conversation.getType() == ConversationType.Contact) {
+            this.appendMessage(conversation.getContact(), message);
+            this.appendMessageToConversation(conversation.id, message);
+        }
+        else if (conversation.getType() == ConversationType.Group) {
+            this.appendMessage(conversation.getGroup(), message);
+            this.appendMessageToConversation(conversation.id, message);
+        }
+    }
+
+    /**
+     * 添加消息到本地记录。
+     *
+     * @param abstractContact 指定联系人。
+     * @param message 指定消息。
+     */
+    private void appendMessage(AbstractContact abstractContact, Message message) {
+        // 消息数据赋值
+        if (abstractContact instanceof Contact) {
+            message.assign(this.contactService.getSelf().id, abstractContact.id, 0);
+        }
+        else if (abstractContact instanceof Group) {
+            message.assign(this.contactService.getSelf().id, 0, abstractContact.id);
+        }
+
+        // 填写数据，不能异步填充，必须先填充，再异步发送
+        this.fillMessage(message);
+
+        // 修改状态
+        message.setState(MessageState.Read);
+        // 修改远程时间戳
+        message.setRemoteTS(System.currentTimeMillis());
+
+        // 更新数据库
+        this.storage.updateMessage(message);
     }
 
     /**

@@ -501,7 +501,8 @@ public class MessagingStorage extends AbstractStorage {
         long time = 0;
 
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT `rts` FROM `message` WHERE `scope`=0 ORDER BY `rts` DESC LIMIT 1", new String[] {});
+        Cursor cursor = db.rawQuery("SELECT `rts` FROM `message` WHERE `scope`=? ORDER BY `rts` DESC LIMIT 1",
+                new String[]{ Integer.toString(MessageScope.Unlimited) });
         if (cursor.moveToFirst()) {
             time = cursor.getLong(0);
         }

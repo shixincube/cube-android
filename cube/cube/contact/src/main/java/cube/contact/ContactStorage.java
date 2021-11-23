@@ -706,7 +706,7 @@ public class ContactStorage extends AbstractStorage {
         database.execSQL("CREATE TABLE IF NOT EXISTS `contact_zone` (`id` BIGINT PRIMARY KEY, `name` TEXT, `display_name` TEXT, `state` INTEGER, `timestamp` BIGINT, `last` BIGINT DEFAULT 0, `expiry` BIGINT DEFAULT 0, `context` TEXT DEFAULT NULL)");
 
         // 联系人分区参与者
-        database.execSQL("CREATE TABLE IF NOT EXISTS `contact_zone_participant` (`sn` INTEGER PRIMARY KEY AUTOINCREMENT, `contact_zone_id` BIGINT, `contact_id` BIGINT, `state` INTEGER, `timestamp` BIGINT, `postscript` TEXT, `context` TEXT DEFAULT NULL)");
+        database.execSQL("CREATE TABLE IF NOT EXISTS `contact_zone_participant` (`sn` INTEGER PRIMARY KEY AUTOINCREMENT, `contact_zone_id` BIGINT, `id` BIGINT, `type` INTEGER, `state` INTEGER, `timestamp` BIGINT, `postscript` TEXT, `context` TEXT DEFAULT NULL)");
     }
 
     @Override

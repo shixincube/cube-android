@@ -249,6 +249,26 @@ public class GroupAppendix implements JSONable {
         this.service.updateAppendix(this, params, successHandler, failureHandler);
     }
 
+    /**
+     * 修改是否显示群成员昵称标志位。
+     *
+     * @param display 指定是否显示成员名称。
+     * @param successHandler 指定操作成功回调句柄。
+     * @param failureHandler 指定操作失败回调句柄。
+     */
+    public void modifyDisplayNameFlag(boolean display, GroupHandler successHandler, FailureHandler failureHandler) {
+        this.memberNameDisplayed = display;
+
+        JSONObject params = new JSONObject();
+        try {
+            params.put("memberNameDisplayed", display);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        // 更新附录
+        this.service.updateAppendix(this, params, successHandler, failureHandler);
+    }
+
     public void setNoticeOperator(Contact contact) {
         this.noticeOperator = contact;
     }

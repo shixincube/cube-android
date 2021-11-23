@@ -38,11 +38,11 @@ public class ContactZoneParticipant extends Entity {
 
     private Long contactId;
 
+    private Contact contact;
+
     private ContactZoneParticipantState state;
 
     private String postscript;
-
-    private Contact contact;
 
     public ContactZoneParticipant(Long contactId, long timestamp, ContactZoneParticipantState state, String postscript) {
         super(contactId, timestamp);

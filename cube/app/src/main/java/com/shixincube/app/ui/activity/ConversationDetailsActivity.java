@@ -43,6 +43,7 @@ import com.shixincube.app.widget.optionitemview.OptionItemView;
 import com.shixincube.app.widget.recyclerview.RecyclerView;
 
 import butterknife.BindView;
+import cube.contact.handler.DefaultGroupHandler;
 import cube.contact.model.Group;
 import cube.contact.model.GroupAppendix;
 import cube.core.Module;
@@ -297,7 +298,19 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
         }
         else if (requestCode == REQUEST_SET_GROUP_NOTICE) {
             if (resultCode == RESULT_OK) {
-
+                String content = data.getStringExtra("content");
+                this.conversation.getGroup().getAppendix().modifyNotice(content, new DefaultGroupHandler(true) {
+                    @Override
+                    public void handleGroup(Group group) {
+                        groupNoticeView.setText(group.getAppendix().getNotice());
+                        groupNoticeView.setVisibility(View.VISIBLE);
+                    }
+                }, new DefaultFailureHandler(true) {
+                    @Override
+                    public void handleFailure(Module module, ModuleError error) {
+                        UIUtils.showToast(UIUtils.getString(R.string.modify_group_notice_failure));
+                    }
+                });
             }
         }
     }

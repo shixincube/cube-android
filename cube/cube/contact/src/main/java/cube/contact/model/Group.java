@@ -219,6 +219,20 @@ public class Group extends AbstractContact implements Comparator<Group> {
         return list;
     }
 
+    public Contact getMember(Long contactId) {
+        if (null == this.memberList) {
+            return null;
+        }
+
+        for (Contact contact : this.memberList) {
+            if (contact.id.equals(contactId)) {
+                return contact;
+            }
+        }
+
+        return null;
+    }
+
     public void setAppendix(GroupAppendix appendix) {
         this.appendix = appendix;
     }

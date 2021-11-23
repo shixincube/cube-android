@@ -39,21 +39,21 @@ public class ContactAppendix implements JSONable {
 
     private ContactService service;
 
-    private Contact owner;
+    private Contact contact;
 
     private String remarkName;
 
-    public ContactAppendix(ContactService service, Contact owner, JSONObject json) throws JSONException {
+    public ContactAppendix(ContactService service, Contact contact, JSONObject json) throws JSONException {
         this.service = service;
-        this.owner = owner;
+        this.contact = contact;
 
         if (json.has("remarkName")) {
             this.remarkName = json.getString("remarkName");
         }
     }
 
-    public Contact getOwner() {
-        return this.owner;
+    public Contact getContact() {
+        return this.contact;
     }
 
     /**
@@ -87,7 +87,7 @@ public class ContactAppendix implements JSONable {
     public JSONObject toJSON() {
         JSONObject json = new JSONObject();
         try {
-            json.put("owner", this.owner.toCompactJSON());
+            json.put("contact", this.contact.toCompactJSON());
 
             if (this.hasRemarkName()) {
                 json.put("remarkName", this.remarkName);

@@ -730,7 +730,7 @@ public class MessagingStorage extends AbstractStorage {
                 break;
             }
 
-            Message message = readMessage(cursor);
+            Message message = this.readMessage(cursor);
 
             // 填充
             message = this.service.fillMessage(message);

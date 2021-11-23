@@ -66,21 +66,19 @@
                     android:id="@+id/llGroupNotice"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:layout_marginBottom="4dp"
                     android:background="@drawable/selector_option_item"
                     android:orientation="vertical">
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="40dp"
+                        android:layout_height="60dp"
                         android:orientation="horizontal"
                         android:gravity="center_vertical">
 
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="@dimen/option_item_margin_left"
+                            android:layout_marginStart="@dimen/option_item_margin_start"
                             android:layout_weight="1"
                             android:text="@string/group_notice"
                             android:textColor="@color/text"
@@ -91,12 +89,14 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="0.5"
                             android:layout_gravity="end"
+                            android:layout_marginEnd="@dimen/item_margin_start_and_end"
                             android:gravity="end"
-                            android:paddingTop="4dp"
-                            android:layout_marginEnd="@dimen/item_margin_start_and_end">
+                            android:orientation="vertical"
+                            android:paddingTop="12dp"
+                            android:visibility="visible">
                             <ImageView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
+                                android:layout_width="33dp"
+                                android:layout_height="33dp"
                                 android:layout_gravity="end"
                                 android:layout_marginEnd="-6dp"
                                 android:src="@mipmap/indicator"/>
@@ -109,9 +109,11 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="10dp"
-                        android:layout_marginLeft="25dp"
-                        android:layout_marginRight="25dp"
-                        android:layout_marginTop="5dp"
+                        android:layout_marginStart="@dimen/option_item_margin_start"
+                        android:layout_marginEnd="@dimen/option_item_margin_end"
+                        android:layout_marginTop="-5dp"
+                        android:maxLines="5"
+                        android:ellipsize="end"
                         android:text="@string/no_setting"
                         android:textColor="@color/text_secondary"
                         android:textSize="14sp"/>

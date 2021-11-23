@@ -72,10 +72,16 @@ public class TextInputActivity extends BaseActivity {
             this.titleText.setText(title);
         }
 
+        String content = getIntent().getStringExtra("content");
+        if (TextUtils.isEmpty(content)) {
+            this.contentEditText.setText("");
+        }
+        else {
+            this.contentEditText.setText(content);
+        }
+
         this.submitButton.setEnabled(false);
-
         this.contentEditText.requestFocus();
-
         CubeApp.getMainThreadHandler().postDelayed(() -> {
             contentEditText.requestFocus();
         }, 1000);

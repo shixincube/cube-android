@@ -111,10 +111,10 @@ public class Conversation extends Entity {
         }
         else {
             if (this.type == ConversationType.Contact) {
-                this.recentMessage = new NullMessage(this.pivotalId, this.pivotalId, 0L);
+                this.recentMessage = new NullMessage(0L, this.pivotalId, 0L);
             }
             else {
-                this.recentMessage = new NullMessage(this.pivotalId, 0L, this.pivotalId);
+                this.recentMessage = new NullMessage(0L, 0L, this.pivotalId);
             }
         }
 

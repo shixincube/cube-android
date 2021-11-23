@@ -527,7 +527,7 @@ public class ContactService extends Module {
      * @param contactId 指定联系人 ID 。
      * @return 返回联系人实例。如果没有获取到数据返回 {@code null} 值。
      */
-    public Contact getContact(Long contactId) {
+    public synchronized Contact getContact(Long contactId) {
         if (null == this.self) {
             return null;
         }
@@ -1410,7 +1410,7 @@ public class ContactService extends Module {
 
         synchronized (mutableGroup) {
             try {
-                mutableGroup.wait(this.blockingTimeout);
+                mutableGroup.wait(this.blockingTimeout * this.blockingTimeout);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -1718,6 +1718,24 @@ public class ContactService extends Module {
         });
     }
 
+    public void execute(FailureHandler failureHandler) {
+        ModuleError error = new ModuleError(NAME, ContactServiceState.IllegalOperation.code);
+        this.execute(failureHandler, error);
+    }
+
+    public void execute(FailureHandler failureHandler, ModuleError error) {
+        if (failureHandler.isInMainThread()) {
+            executeOnMainThread(() -> {
+                failureHandler.handleFailure(ContactService.this, error);
+            });
+        }
+        else {
+            execute(() -> {
+                failureHandler.handleFailure(ContactService.this, error);
+            });
+        }
+    }
+
     private void getAppendix(Contact contact, StableContactAppendixHandler successHandler, StableFailureHandler failureHandler) {
         JSONObject data = new JSONObject();
         try {
@@ -1840,13 +1858,19 @@ public class ContactService extends Module {
 
     private void fillGroup(final Group group) {
         for (Long memberId : group.getMemberIdList()) {
-            Contact contact = this.getContact(memberId);
-            if (null != contact) {
-                group.updateMember(contact);
+            if (null == group.getMember(memberId)) {
+                Contact contact = this.getContact(memberId);
+                if (null != contact) {
+                    group.updateMember(contact);
+                }
             }
         }
 
         group.setIsOwner(group.getOwnerId().equals(this.self.id));
+
+        if (group.getAppendix().hasNotice()) {
+            group.getAppendix().setNoticeOperator(this.getContact(group.getAppendix().getNoticeOperatorId()));
+        }
     }
 
     /**

@@ -48,9 +48,24 @@ public class GroupAppendix implements JSONable {
     private Group group;
 
     /**
-     * 群组通告。
+     * 群组公告。
      */
     private String notice;
+
+    /**
+     * 公告操作员 ID 。
+     */
+    private Long noticeOperatorId;
+
+    /**
+     * 公告操作员。
+     */
+    private Contact noticeOperator;
+
+    /**
+     * 公告时间。
+     */
+    private long noticeTime;
 
     /**
      * 成员对应的备注。
@@ -83,6 +98,8 @@ public class GroupAppendix implements JSONable {
         this.service = service;
         this.group = group;
         this.notice = json.getString("notice");
+        this.noticeOperatorId = json.getLong("noticeOperatorId");
+        this.noticeTime = json.getLong("noticeTime");
 
         this.memberRemarks = new HashMap<>();
         JSONArray array = json.getJSONArray("memberRemarks");
@@ -132,6 +149,33 @@ public class GroupAppendix implements JSONable {
     }
 
     /**
+     * 获取公告操作员 ID 。
+     *
+     * @return 返回公告操作员 ID 。
+     */
+    public Long getNoticeOperatorId() {
+        return this.noticeOperatorId;
+    }
+
+    /**
+     * 获取公告操作员。
+     *
+     * @return 返回公告操作员。
+     */
+    public Contact getNoticeOperator() {
+        return this.noticeOperator;
+    }
+
+    /**
+     * 获取公告的更新时间。
+     *
+     * @return 返回公告的更新时间戳。
+     */
+    public long getNoticeTime() {
+        return this.noticeTime;
+    }
+
+    /**
      * 是否有备注。
      *
      * @return 如果有备注信息返回 {@code true} 。
@@ -157,6 +201,12 @@ public class GroupAppendix implements JSONable {
      * @param failureHandler
      */
     public void modifyNotice(String notice, GroupHandler successHandler, FailureHandler failureHandler) {
+        if (!this.group.isOwner()) {
+            // 不是群主，不允许修改公告
+            this.service.execute(failureHandler);
+            return;
+        }
+
         // 修改公告
         this.notice = notice;
 
@@ -170,12 +220,18 @@ public class GroupAppendix implements JSONable {
         this.service.updateAppendix(this, params, successHandler, failureHandler);
     }
 
+    public void setNoticeOperator(Contact contact) {
+        this.noticeOperator = noticeOperator;
+    }
+
     @Override
     public JSONObject toJSON() {
         JSONObject json = new JSONObject();
         try {
-            json.put("ownerId", this.group.getId());
+            json.put("groupId", this.group.getId());
             json.put("notice", this.notice);
+            json.put("noticeOperatorId", this.noticeOperatorId.longValue());
+            json.put("noticeTime", this.noticeTime);
 
             JSONArray array = new JSONArray();
             for (Map.Entry<Long, String> entry : this.memberRemarks.entrySet()) {

@@ -92,19 +92,19 @@ public final class ContactServiceAction {
     public final static String DeleteContactZone = "deleteContactZone";
 
     /**
-     * 指定分区是否包含指定联系人。
+     * 指定分区是否包含指定参与人。
      */
-    public final static String ContainsContactInZone = "containsContactInZone";
+    public final static String ContainsParticipantInZone = "containsParticipantInZone";
 
     /**
-     * 添加联系人到分区。
+     * 添加参与人到分区。
      */
-    public final static String AddContactToZone = "addContactToZone";
+    public final static String AddParticipantToZone = "addParticipantToZone";
 
     /**
-     * 从分区移除联系人。
+     * 从分区移除参与人。
      */
-    public final static String RemoveContactFromZone = "removeContactFromZone";
+    public final static String RemoveParticipantFromZone = "removeParticipantFromZone";
 
     /**
      * 获取群组信息。

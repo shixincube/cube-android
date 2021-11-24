@@ -135,7 +135,7 @@ public class ContactZone extends Entity {
      */
     public boolean contains(Contact contact) {
         for (ContactZoneParticipant participant : this.participants) {
-            if (participant.getContactId().equals(contact.id)) {
+            if (participant.getId().equals(contact.id)) {
                 return true;
             }
         }
@@ -150,7 +150,7 @@ public class ContactZone extends Entity {
     public synchronized void matchContact(Contact contact) {
         long id = contact.id;
         for (ContactZoneParticipant participant : this.participants) {
-            if (participant.getContactId().longValue() == id) {
+            if (participant.getId().longValue() == id) {
                 participant.setContact(contact);
                 break;
             }
@@ -170,6 +170,10 @@ public class ContactZone extends Entity {
             if (null != participant1.getContact() && null != participant2.getContact()) {
                 return this.collator.compare(participant1.getContact().getPriorityName(),
                         participant2.getContact().getPriorityName());
+            }
+            else if (null != participant1.getGroup() && null != participant2.getGroup()) {
+                return this.collator.compare(participant1.getGroup().getName(),
+                        participant2.getGroup().getName());
             }
             else {
                 return 0;

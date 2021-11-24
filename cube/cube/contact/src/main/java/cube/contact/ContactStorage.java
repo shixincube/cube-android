@@ -39,6 +39,7 @@ import cube.contact.model.ContactAppendix;
 import cube.contact.model.ContactZone;
 import cube.contact.model.ContactZoneParticipant;
 import cube.contact.model.ContactZoneParticipantState;
+import cube.contact.model.ContactZoneParticipantType;
 import cube.contact.model.ContactZoneState;
 import cube.contact.model.Group;
 import cube.contact.model.GroupAppendix;
@@ -556,13 +557,14 @@ public class ContactStorage extends AbstractStorage {
 
         // 读取参与人
         cursor = db.query("contact_zone_participant", new String[]{
-                    "contact_id", "state", "timestamp", "postscript", "context" },
+                    "id", "type", "state", "timestamp", "postscript", "context" },
                 "contact_zone_id=?", new String[]{ zone.id.toString() },
                 null, null, null);
         while (cursor.moveToNext()) {
             ContactZoneParticipant participant = new ContactZoneParticipant(
-                    cursor.getLong(cursor.getColumnIndex("contact_id")),
+                    cursor.getLong(cursor.getColumnIndex("id")),
                     cursor.getLong(cursor.getColumnIndex("timestamp")),
+                    ContactZoneParticipantType.parse(cursor.getInt(cursor.getColumnIndex("type"))),
                     ContactZoneParticipantState.parse(cursor.getInt(cursor.getColumnIndex("state"))),
                     cursor.getString(cursor.getColumnIndex("postscript")));
 
@@ -644,7 +646,8 @@ public class ContactStorage extends AbstractStorage {
         for (ContactZoneParticipant participant : zone.getParticipants()) {
             ContentValues values = new ContentValues();
             values.put("contact_zone_id", zone.id);
-            values.put("contact_id", participant.getContactId());
+            values.put("id", participant.getId());
+            values.put("type", participant.getType().code);
             values.put("state", participant.getState().code);
             values.put("timestamp", participant.getTimestamp());
             values.put("postscript", participant.getPostscript());

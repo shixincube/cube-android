@@ -122,6 +122,8 @@ public class CubeEngine implements Observer {
             }
         });
 
+        this.getContactService().attachWithName(ContactServiceEvent.SignIn, this);
+
         return this.started;
     }
 
@@ -129,6 +131,8 @@ public class CubeEngine implements Observer {
         this.kernel.shutdown();
 
         Promise.getExecutor().shutdown();
+
+        this.getContactService().detachWithName(ContactServiceEvent.SignIn, this);
     }
 
     public void suspend() {
@@ -140,8 +144,6 @@ public class CubeEngine implements Observer {
     }
 
     public void warmup() {
-        this.getContactService().attachWithName(ContactServiceEvent.SignIn, this);
-
         // 让最近的最前面的会话预加载数据
         // 预加载最近 10 个会话的消息，每个会话预加载 10 条
         this.getMessagingService().setPreloadConversationMessageNum(10, 10);
@@ -231,7 +233,9 @@ public class CubeEngine implements Observer {
     public void update(ObservableEvent event) {
         if (ContactServiceEvent.SignIn.equals(event.getName())) {
             // 加载默认联系人分区
-            this.getContactService().getDefaultContactZone();
+            (new Thread(() -> {
+                getContactService().getDefaultContactZone();
+            })).start();
         }
     }
 }

@@ -58,6 +58,7 @@ import cube.contact.model.Contact;
 import cube.contact.model.ContactAppendix;
 import cube.contact.model.ContactZone;
 import cube.contact.model.ContactZoneParticipant;
+import cube.contact.model.ContactZoneParticipantType;
 import cube.contact.model.ContactZoneState;
 import cube.contact.model.Group;
 import cube.contact.model.GroupAppendix;
@@ -839,7 +840,7 @@ public class ContactService extends Module {
 
         synchronized (zone) {
             try {
-                zone.wait(this.blockingTimeout);
+                zone.wait(this.blockingTimeout + this.blockingTimeout);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -1846,12 +1847,20 @@ public class ContactService extends Module {
 
     private void fillContactZone(final ContactZone zone) {
         for (ContactZoneParticipant participant : zone.getParticipants()) {
-            if (null == participant.getContact()) {
-                Contact contact = this.getContact(participant.getContactId());
-                if (null == contact) {
-                    contact = new Contact(participant.id, "");
+            if (participant.getType() == ContactZoneParticipantType.Contact) {
+                if (null == participant.getContact()) {
+                    Contact contact = this.getContact(participant.getId());
+                    if (null == contact) {
+                        contact = new Contact(participant.id, "");
+                    }
+                    participant.setContact(contact);
                 }
-                participant.setContact(contact);
+            }
+            else if (participant.getType() == ContactZoneParticipantType.Group) {
+                if (null == participant.getGroup()) {
+                    Group group = this.getGroup(participant.getId());
+                    participant.setGroup(group);
+                }
             }
         }
     }
@@ -1908,13 +1917,13 @@ public class ContactService extends Module {
         } catch (JSONException e) {
             // Nothing
         }
+
         Packet requestPacket = new Packet(ContactServiceAction.GetContactZone, data);
         this.pipeline.send(ContactService.NAME, requestPacket, new PipelineHandler() {
             @Override
             public void handleResponse(Packet packet) {
                 if (packet.state.code != PipelineState.Ok.code) {
-                    LogUtils.w(ContactService.class.getSimpleName(),
-                            "#refreshContactZone - error : " + packet.state.code);
+                    LogUtils.w(TAG, "#refreshContactZone - error : " + packet.state.code);
                     if (null != failureHandler) {
                         failureHandler.handleFailure(ContactService.this,
                                 new ModuleError(ContactService.NAME, packet.state.code));
@@ -1924,8 +1933,7 @@ public class ContactService extends Module {
 
                 int stateCode = packet.extractServiceStateCode();
                 if (stateCode != ContactServiceState.Ok.code) {
-                    LogUtils.w(ContactService.class.getSimpleName(),
-                            "#refreshContactZone - error : " + stateCode);
+                    LogUtils.w(TAG, "#refreshContactZone - error : " + stateCode);
                     if (null != failureHandler) {
                         failureHandler.handleFailure(ContactService.this,
                                 new ModuleError(ContactService.NAME, stateCode));
@@ -2059,21 +2067,18 @@ public class ContactService extends Module {
         if (null != this.contactZoneListenerList && !this.contactZoneListenerList.isEmpty()) {
             if (ContactServiceEvent.ContactZoneUpdated.equals(event.getName())) {
                 // 联系人分区已更新
-                this.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        ContactZone contactZone = (ContactZone) event.getData();
-                        fillContactZone(contactZone);
+                this.execute(() -> {
+                    ContactZone contactZone = (ContactZone) event.getData();
+                    fillContactZone(contactZone);
 
-                        executeOnMainThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                for (ContactZoneListener listener : contactZoneListenerList) {
-                                    listener.onContactZoneUpdated(contactZone, ContactService.this);
-                                }
+                    executeOnMainThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            for (ContactZoneListener listener : contactZoneListenerList) {
+                                listener.onContactZoneUpdated(contactZone, ContactService.this);
                             }
-                        });
-                    }
+                        }
+                    });
                 });
             }
         }

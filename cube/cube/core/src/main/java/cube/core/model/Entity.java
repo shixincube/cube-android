@@ -227,6 +227,20 @@ public class Entity implements TimeSortable, JSONable {
         return this.context;
     }
 
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+
+        if (null != object && object instanceof Entity) {
+            Entity other = (Entity) object;
+            return other.id.equals(this.id);
+        }
+
+        return false;
+    }
+
     /**
      * {@inheritDoc}
      */

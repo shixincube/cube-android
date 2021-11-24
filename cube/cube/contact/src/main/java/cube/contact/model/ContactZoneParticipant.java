@@ -36,30 +36,40 @@ import cube.core.model.Entity;
  */
 public class ContactZoneParticipant extends Entity {
 
-    private Long contactId;
-
-    private Contact contact;
+    private ContactZoneParticipantType type;
 
     private ContactZoneParticipantState state;
 
     private String postscript;
 
-    public ContactZoneParticipant(Long contactId, long timestamp, ContactZoneParticipantState state, String postscript) {
-        super(contactId, timestamp);
-        this.contactId = contactId;
+    private Contact contact;
+
+    private Group group;
+
+    public ContactZoneParticipant(Long id, long timestamp, ContactZoneParticipantType type, ContactZoneParticipantState state, String postscript) {
+        super(id, timestamp);
+        this.type = type;
         this.state = state;
         this.postscript = postscript;
     }
 
     public ContactZoneParticipant(JSONObject json) throws JSONException {
         super(json);
-        this.contactId = json.getLong("id");
+        this.type = ContactZoneParticipantType.parse(json.getInt("type"));
         this.state = ContactZoneParticipantState.parse(json.getInt("state"));
         this.postscript = json.getString("postscript");
     }
 
-    public Long getContactId() {
-        return this.contactId;
+    public Contact getContact() {
+        return this.contact;
+    }
+
+    public Group getGroup() {
+        return this.group;
+    }
+
+    public ContactZoneParticipantType getType() {
+        return this.type;
     }
 
     public ContactZoneParticipantState getState() {
@@ -70,23 +80,21 @@ public class ContactZoneParticipant extends Entity {
         return this.postscript;
     }
 
-    public Contact getContact() {
-        synchronized (this) {
-            return this.contact;
-        }
+    public void setContact(Contact contact) {
+        this.contact = contact;
     }
 
-    public void setContact(Contact contact) {
-        synchronized (this) {
-            this.contact = contact;
-        }
+    public void setGroup(Group group) {
+        this.group = group;
     }
 
     @Override
     public JSONObject toJSON() {
-        JSONObject json = super.toJSON();
+        JSONObject json = super.toCompactJSON();
         try {
+            json.put("type", this.type.code);
             json.put("state", this.state.code);
+            json.put("postscript", this.postscript);
         } catch (JSONException e) {
             e.printStackTrace();
         }

@@ -63,8 +63,9 @@ public class ContactsFragment extends BaseFragment<ContactsView, ContactsPresent
     TextView letterView;
 
     private View headerView;
-
     private TextView footerView;
+
+    private TextView newContactUnreadTextView;
 
     public ContactsFragment() {
         super();
@@ -73,6 +74,7 @@ public class ContactsFragment extends BaseFragment<ContactsView, ContactsPresent
     @Override
     public void initView(View rootView) {
         this.headerView = View.inflate(getActivity(), R.layout.header_contacts, null);
+        this.newContactUnreadTextView = this.headerView.findViewById(R.id.tvNewContactUnread);
         this.footerView = new TextView(getContext());
         ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 UIUtils.dp2px(50));
@@ -87,7 +89,9 @@ public class ContactsFragment extends BaseFragment<ContactsView, ContactsPresent
 
     @Override
     public void initListener() {
-//        this.headerView.findViewById()
+        this.headerView.findViewById(R.id.llNewContact).setOnClickListener((view) -> {
+            newContactUnreadTextView.setVisibility(View.GONE);
+        });
 
         this.indexBar.setListener(new QuickIndexBar.LetterUpdateListener() {
             @Override

@@ -628,7 +628,7 @@ public class ContactStorage extends AbstractStorage {
             values.put("expiry", zone.getExpiry());
             values.put("context", contextString);
             // update
-            db.update("contact_zone", values, "id=?", new String[]{ zone.id.toString() });
+            db.update("contact_zone", values, "id=?", new String[]{ zoneId.toString() });
         }
         else {
             exists = false;

@@ -99,7 +99,7 @@ public class ContactZone extends Entity {
     public List<ContactZoneParticipant> getOrderedParticipants() {
         if (!this.ordered) {
             this.ordered = true;
-            Collections.sort(this.participants, new PinYinComparator());
+            Collections.sort(this.participants, new NameComparator());
         }
 
         return this.participants;
@@ -115,11 +115,47 @@ public class ContactZone extends Entity {
      * @return 返回参与人的联系人列表。
      */
     public List<Contact> getParticipantContacts() {
-        List<ContactZoneParticipant> czpList = this.getOrderedParticipants();
+        List<ContactZoneParticipant> participantList = this.getOrderedParticipants();
         ArrayList<Contact> list = new ArrayList<>();
-        for (ContactZoneParticipant czp : czpList) {
-            list.add(czp.getContact());
+        for (ContactZoneParticipant participant : participantList) {
+            list.add(participant.getContact());
         }
+        return list;
+    }
+
+    /**
+     * 获取参与人的联系人列表。
+     *
+     * @param allowedState 指定参与人状态。
+     * @return 返回包含指定状态的参与人对应的联系人列表。
+     */
+    public List<Contact> getParticipantContacts(ContactZoneParticipantState allowedState) {
+        List<ContactZoneParticipant> participantList = this.getOrderedParticipants();
+        ArrayList<Contact> list = new ArrayList<>();
+        for (ContactZoneParticipant participant : participantList) {
+            if (participant.getState() == allowedState) {
+                list.add(participant.getContact());
+            }
+        }
+        return list;
+    }
+
+    public List<Contact> getParticipantContactsByExcluding(ContactZoneParticipantState excludedState) {
+        ArrayList<Contact> list = new ArrayList<>();
+        for (ContactZoneParticipant participant : this.participants) {
+            if (participant.getState() != excludedState) {
+                list.add(participant.getContact());
+            }
+        }
+
+        // 时间倒序
+        Collections.sort(list, new Comparator<Contact>() {
+            @Override
+            public int compare(Contact contact1, Contact contact2) {
+                return (int) (contact2.getTimestamp() - contact1.getTimestamp());
+            }
+        });
+
         return list;
     }
 
@@ -152,11 +188,14 @@ public class ContactZone extends Entity {
         return false;
     }
 
-    protected class PinYinComparator implements Comparator<ContactZoneParticipant> {
+    /**
+     * 名称拼写比较器。
+     */
+    protected class NameComparator implements Comparator<ContactZoneParticipant> {
 
         private Collator collator;
 
-        public PinYinComparator() {
+        public NameComparator() {
             this.collator = Collator.getInstance(Locale.CHINESE);
         }
 

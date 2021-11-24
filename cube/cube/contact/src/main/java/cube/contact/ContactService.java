@@ -897,11 +897,28 @@ public class ContactService extends Module {
                 if (error.code == ContactServiceState.NotFindContactZone.code) {
                     // 没有找到该分区
                     // 创建分区
+                    createContactZone(defaultGroupZoneName, false, new StableContactZoneHandler() {
+                        @Override
+                        public void handleContactZone(ContactZone contactZone) {
+                            zone.contactZone = contactZone;
 
+                            synchronized (zone) {
+                                zone.notify();
+                            }
+                        }
+                    }, new StableFailureHandler() {
+                        @Override
+                        public void handleFailure(Module module, ModuleError error) {
+                            synchronized (zone) {
+                                zone.notify();
+                            }
+                        }
+                    });
                 }
-
-                synchronized (zone) {
-                    zone.notify();
+                else {
+                    synchronized (zone) {
+                        zone.notify();
+                    }
                 }
             }
         });
@@ -991,10 +1008,12 @@ public class ContactService extends Module {
      * 创建指定名称的联系人分区。
      *
      * @param zoneName 指定分区名称。
+     * @param peerMode 指定对等模式。
      * @param successHandler 指定操作成功回调句柄。
      * @param failureHandler 指定操作失败回调句柄。
      */
-    public void createContactZone(String zoneName, ContactZoneHandler successHandler, FailureHandler failureHandler) {
+    public void createContactZone(String zoneName, boolean peerMode,
+                                  ContactZoneHandler successHandler, FailureHandler failureHandler) {
         ContactZone zone = this.storage.readContactZone(zoneName);
         if (null != zone) {
             ModuleError error = new ModuleError(NAME, ContactServiceState.AlreadyExists.code);
@@ -1015,21 +1034,60 @@ public class ContactService extends Module {
         try {
             payload.put("name", zoneName);
             payload.put("displayName", zoneName);
+            payload.put("peerMode", peerMode);
         } catch (JSONException e) {
             e.printStackTrace();
         }
         Packet requestPacket = new Packet(ContactServiceAction.CreateContactZone, payload);
         this.pipeline.send(ContactService.NAME, requestPacket, (packet) -> {
             if (packet.state.code != PipelineState.Ok.code) {
+                ModuleError error = new ModuleError(NAME, packet.state.code);
+                if (failureHandler.isInMainThread()) {
+                    executeOnMainThread(() -> {
+                        failureHandler.handleFailure(ContactService.this, error);
+                    });
+                }
+                else {
+                    execute(() -> {
+                        failureHandler.handleFailure(ContactService.this, error);
+                    });
+                }
                 return;
             }
 
             int stateCode = packet.extractServiceStateCode();
             if (stateCode != ContactServiceState.Ok.code) {
+                ModuleError error = new ModuleError(NAME, stateCode);
+                if (failureHandler.isInMainThread()) {
+                    executeOnMainThread(() -> {
+                        failureHandler.handleFailure(ContactService.this, error);
+                    });
+                }
+                else {
+                    execute(() -> {
+                        failureHandler.handleFailure(ContactService.this, error);
+                    });
+                }
                 return;
             }
 
+            try {
+                ContactZone responseZone = new ContactZone(packet.extractServiceData());
+                storage.writeContactZone(responseZone);
 
+                if (successHandler.isInMainThread()) {
+                    executeOnMainThread(() -> {
+                        successHandler.handleContactZone(responseZone);
+                    });
+                }
+                else {
+                    execute(() -> {
+                        successHandler.handleContactZone(responseZone);
+                    });
+                }
+            } catch (JSONException e) {
+                LogUtils.w(TAG, "#createContactZone", e);
+            }
         });
     }
 
@@ -2188,12 +2246,9 @@ public class ContactService extends Module {
                     ContactZone contactZone = (ContactZone) event.getData();
                     fillContactZone(contactZone);
 
-                    executeOnMainThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            for (ContactZoneListener listener : contactZoneListenerList) {
-                                listener.onContactZoneUpdated(contactZone, ContactService.this);
-                            }
+                    executeOnMainThread(() -> {
+                        for (ContactZoneListener listener : contactZoneListenerList) {
+                            listener.onContactZoneUpdated(contactZone, ContactService.this);
                         }
                     });
                 });

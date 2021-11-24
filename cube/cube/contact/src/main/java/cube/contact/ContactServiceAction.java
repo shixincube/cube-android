@@ -112,6 +112,11 @@ public final class ContactServiceAction {
     public final static String ModifyZoneParticipant = "modifyZoneParticipant";
 
     /**
+     * 修改分区信息，有参与人加入或移除。
+     */
+    public final static String ModifyZone = "modifyZone";
+
+    /**
      * 获取群组信息。
      */
     public final static String GetGroup = "getGroup";

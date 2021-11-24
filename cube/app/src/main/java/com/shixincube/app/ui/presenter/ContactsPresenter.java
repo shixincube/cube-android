@@ -54,7 +54,6 @@ import cube.contact.ContactService;
 import cube.contact.ContactZoneListener;
 import cube.contact.model.Contact;
 import cube.contact.model.ContactZone;
-import cube.contact.model.ContactZoneParticipant;
 import cube.contact.model.ContactZoneParticipantState;
 import cube.engine.CubeEngine;
 import cube.engine.util.Future;
@@ -67,13 +66,22 @@ import cube.engine.util.PromiseHandler;
  */
 public class ContactsPresenter extends BasePresenter<ContactsView> implements ContactZoneListener {
 
+    /**
+     * 正常状态的联系人列表。
+     */
     private List<Contact> contacts;
+
+    /**
+     * 待处理的联系人列表。
+     */
+    private List<Contact> pendingContacts;
 
     private HeaderAndFooterAdapter adapter;
 
     public ContactsPresenter(BaseActivity activity) {
         super(activity);
         this.contacts = new ArrayList<>();
+        this.pendingContacts = new ArrayList<>();
     }
 
     public void loadContacts() {
@@ -87,7 +95,17 @@ public class ContactsPresenter extends BasePresenter<ContactsView> implements Co
 
                 if (null != contactZone) {
                     // 排序
-                    contactZone.getOrderedParticipants();
+                    contacts.clear();
+                    pendingContacts.clear();
+
+                    List<Contact> contactList = contactZone.getParticipantContacts(ContactZoneParticipantState.Normal);
+                    for (Contact contact : contactList) {
+                        Account.setNameSpelling(contact);
+                        contacts.add(contact);
+                    }
+
+                    pendingContacts.addAll(contactZone.getParticipantContactsByExcluding(ContactZoneParticipantState.Normal));
+
                     promise.resolve(contactZone);
                 }
                 else {
@@ -97,16 +115,6 @@ public class ContactsPresenter extends BasePresenter<ContactsView> implements Co
         }).thenOnMainThread(new Future<ContactZone>() {
             @Override
             public void come(ContactZone data) {
-                contacts.clear();
-
-                List<ContactZoneParticipant> participants = data.getOrderedParticipants();
-                for (ContactZoneParticipant participant : participants) {
-                    if (participant.getState() == ContactZoneParticipantState.Normal) {
-                        contacts.add(participant.getContact());
-                        Account.setNameSpelling(participant.getContact());
-                    }
-                }
-
                 getView().getFooterView().setText(UIUtils.getString(R.string.count_of_contacts, contacts.size()));
 
                 if (null != adapter) {

@@ -525,13 +525,15 @@ public class ContactStorage extends AbstractStorage {
         SQLiteDatabase db = this.getReadableDatabase();
 
         Cursor cursor = db.query("contact_zone", new String[] {
-                    "id", "display_name", "state", "timestamp", "last", "expiry", "context" },
+                    "id", "display_name", "peer_mode", "state", "timestamp", "last", "expiry", "context" },
                 "name=?", new String[]{ zoneName },
                 null, null, null);
 
         if (cursor.moveToFirst()) {
-            zone = new ContactZone(cursor.getLong(cursor.getColumnIndex("id")), zoneName,
+            zone = new ContactZone(cursor.getLong(cursor.getColumnIndex("id")),
+                    zoneName,
                     cursor.getString(cursor.getColumnIndex("display_name")),
+                    cursor.getInt(cursor.getColumnIndex("peer_mode")) == 1,
                     cursor.getLong(cursor.getColumnIndex("timestamp")),
                     ContactZoneState.parse(cursor.getInt(cursor.getColumnIndex("state"))));
             // 重置内存管理使用的时间戳
@@ -557,7 +559,7 @@ public class ContactStorage extends AbstractStorage {
 
         // 读取参与人
         cursor = db.query("contact_zone_participant", new String[]{
-                    "id", "type", "state", "timestamp", "postscript", "context" },
+                    "id", "type", "state", "timestamp", "inviter_id", "postscript", "context" },
                 "contact_zone_id=?", new String[]{ zone.id.toString() },
                 null, null, null);
         while (cursor.moveToNext()) {
@@ -566,6 +568,7 @@ public class ContactStorage extends AbstractStorage {
                     cursor.getLong(cursor.getColumnIndex("timestamp")),
                     ContactZoneParticipantType.parse(cursor.getInt(cursor.getColumnIndex("type"))),
                     ContactZoneParticipantState.parse(cursor.getInt(cursor.getColumnIndex("state"))),
+                    cursor.getLong(cursor.getColumnIndex("inviter_id")),
                     cursor.getString(cursor.getColumnIndex("postscript")));
 
             // 上下文数据
@@ -605,17 +608,20 @@ public class ContactStorage extends AbstractStorage {
 
         if (cursor.moveToFirst()) {
             exists = true;
+            Long zoneId = cursor.getLong(0);
             cursor.close();
 
             // 已存在，重置参与人数据，删除已存在数据
             if (zone.getParticipants().size() > 0) {
                 db.delete("contact_zone_participant", "contact_zone_id=?",
-                        new String[]{ zone.id.toString() });
+                        new String[]{ zoneId.toString() });
             }
 
             // 更新数据
             ContentValues values = new ContentValues();
+            values.put("id", zone.id);
             values.put("display_name", zone.getDisplayName());
+            values.put("peer_mode", zone.isPeerMode() ? 1 : 0);
             values.put("state", zone.getState().code);
             values.put("timestamp", zone.getTimestamp());
             values.put("last", zone.getLast());
@@ -633,6 +639,7 @@ public class ContactStorage extends AbstractStorage {
             values.put("id", zone.id);
             values.put("name", zone.name);
             values.put("display_name", zone.getDisplayName());
+            values.put("peer_mode", zone.isPeerMode() ? 1 : 0);
             values.put("state", zone.getState().code);
             values.put("timestamp", zone.getTimestamp());
             values.put("last", zone.getLast());
@@ -650,6 +657,7 @@ public class ContactStorage extends AbstractStorage {
             values.put("type", participant.getType().code);
             values.put("state", participant.getState().code);
             values.put("timestamp", participant.getTimestamp());
+            values.put("inviter_id", participant.getInviterId());
             values.put("postscript", participant.getPostscript());
             values.put("context", (null != participant.getContext()) ? participant.getContext().toString() : "");
             // insert
@@ -706,10 +714,10 @@ public class ContactStorage extends AbstractStorage {
         database.execSQL("CREATE TABLE IF NOT EXISTS `appendix` (`id` BIGINT PRIMARY KEY, `timestamp` BIGINT, `data` TEXT)");
 
         // 联系人分区
-        database.execSQL("CREATE TABLE IF NOT EXISTS `contact_zone` (`id` BIGINT PRIMARY KEY, `name` TEXT, `display_name` TEXT, `state` INTEGER, `timestamp` BIGINT, `last` BIGINT DEFAULT 0, `expiry` BIGINT DEFAULT 0, `context` TEXT DEFAULT NULL)");
+        database.execSQL("CREATE TABLE IF NOT EXISTS `contact_zone` (`id` BIGINT PRIMARY KEY, `name` TEXT, `display_name` TEXT, `peer_mode` INTEGER, `state` INTEGER, `timestamp` BIGINT, `last` BIGINT DEFAULT 0, `expiry` BIGINT DEFAULT 0, `context` TEXT DEFAULT NULL)");
 
         // 联系人分区参与者
-        database.execSQL("CREATE TABLE IF NOT EXISTS `contact_zone_participant` (`sn` INTEGER PRIMARY KEY AUTOINCREMENT, `contact_zone_id` BIGINT, `id` BIGINT, `type` INTEGER, `state` INTEGER, `timestamp` BIGINT, `postscript` TEXT, `context` TEXT DEFAULT NULL)");
+        database.execSQL("CREATE TABLE IF NOT EXISTS `contact_zone_participant` (`sn` INTEGER PRIMARY KEY AUTOINCREMENT, `contact_zone_id` BIGINT, `id` BIGINT, `type` INTEGER, `state` INTEGER, `timestamp` BIGINT, `inviter_id` BIGINT, `postscript` TEXT, `context` TEXT DEFAULT NULL)");
     }
 
     @Override

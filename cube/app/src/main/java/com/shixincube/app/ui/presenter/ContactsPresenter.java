@@ -50,9 +50,12 @@ import com.shixincube.app.widget.adapter.ViewHolderForRecyclerView;
 import java.util.ArrayList;
 import java.util.List;
 
+import cube.contact.ContactService;
+import cube.contact.ContactZoneListener;
 import cube.contact.model.Contact;
 import cube.contact.model.ContactZone;
 import cube.contact.model.ContactZoneParticipant;
+import cube.contact.model.ContactZoneParticipantState;
 import cube.engine.CubeEngine;
 import cube.engine.util.Future;
 import cube.engine.util.Promise;
@@ -62,7 +65,7 @@ import cube.engine.util.PromiseHandler;
 /**
  * 联系人清单。
  */
-public class ContactsPresenter extends BasePresenter<ContactsView> {
+public class ContactsPresenter extends BasePresenter<ContactsView> implements ContactZoneListener {
 
     private List<Contact> contacts;
 
@@ -98,8 +101,10 @@ public class ContactsPresenter extends BasePresenter<ContactsView> {
 
                 List<ContactZoneParticipant> participants = data.getOrderedParticipants();
                 for (ContactZoneParticipant participant : participants) {
-                    contacts.add(participant.getContact());
-                    Account.setNameSpelling(participant.getContact());
+                    if (participant.getState() == ContactZoneParticipantState.Normal) {
+                        contacts.add(participant.getContact());
+                        Account.setNameSpelling(participant.getContact());
+                    }
                 }
 
                 getView().getFooterView().setText(UIUtils.getString(R.string.count_of_contacts, contacts.size()));
@@ -116,7 +121,7 @@ public class ContactsPresenter extends BasePresenter<ContactsView> {
         }).launch();
     }
 
-    private void setAdapter() {
+    private synchronized void setAdapter() {
         if (null == this.adapter) {
             AdapterForRecyclerView adapter = new AdapterForRecyclerView<Contact>(activity, this.contacts, R.layout.item_contact) {
                 @Override
@@ -187,6 +192,9 @@ public class ContactsPresenter extends BasePresenter<ContactsView> {
                     jumpToContactDetails(helper, parent, itemView, position);
                 }
             });
+
+            // 监听引擎层的更新分区事件
+            CubeEngine.getInstance().getContactService().addContactZoneListener(this);
         }
     }
 
@@ -196,5 +204,10 @@ public class ContactsPresenter extends BasePresenter<ContactsView> {
         Contact contact = contacts.get(position - 1);
         intent.putExtra("contactId", contact.getId());
         activity.jumpToActivity(intent);
+    }
+
+    @Override
+    public void onContactZoneUpdated(ContactZone contactZone, ContactService service) {
+        this.loadContacts();
     }
 }

@@ -102,6 +102,11 @@ public enum ContactServiceState {
     NoNetwork(103),
 
     /**
+     * 数据已存在。
+     */
+    AlreadyExists(104),
+
+    /**
      * 未知的状态。
      */
     Unknown(99);

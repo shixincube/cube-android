@@ -40,16 +40,21 @@ public class ContactZoneParticipant extends Entity {
 
     private ContactZoneParticipantState state;
 
+    private Long inviterId;
+
     private String postscript;
+
+    private Contact inviter;
 
     private Contact contact;
 
     private Group group;
 
-    public ContactZoneParticipant(Long id, long timestamp, ContactZoneParticipantType type, ContactZoneParticipantState state, String postscript) {
+    public ContactZoneParticipant(Long id, long timestamp, ContactZoneParticipantType type, ContactZoneParticipantState state, Long inviterId, String postscript) {
         super(id, timestamp);
         this.type = type;
         this.state = state;
+        this.inviterId = inviterId;
         this.postscript = postscript;
     }
 
@@ -57,6 +62,7 @@ public class ContactZoneParticipant extends Entity {
         super(json);
         this.type = ContactZoneParticipantType.parse(json.getInt("type"));
         this.state = ContactZoneParticipantState.parse(json.getInt("state"));
+        this.inviterId = json.getLong("inviterId");
         this.postscript = json.getString("postscript");
     }
 
@@ -76,6 +82,10 @@ public class ContactZoneParticipant extends Entity {
         return this.state;
     }
 
+    public Long getInviterId() {
+        return this.inviterId;
+    }
+
     public String getPostscript() {
         return this.postscript;
     }
@@ -88,12 +98,17 @@ public class ContactZoneParticipant extends Entity {
         this.group = group;
     }
 
+    public void setInviter(Contact inviter) {
+        this.inviter = inviter;
+    }
+
     @Override
     public JSONObject toJSON() {
         JSONObject json = super.toCompactJSON();
         try {
             json.put("type", this.type.code);
             json.put("state", this.state.code);
+            json.put("inviterId", this.inviterId.longValue());
             json.put("postscript", this.postscript);
         } catch (JSONException e) {
             e.printStackTrace();

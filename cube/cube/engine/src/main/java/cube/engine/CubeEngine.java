@@ -232,10 +232,7 @@ public class CubeEngine implements Observer {
     @Override
     public void update(ObservableEvent event) {
         if (ContactServiceEvent.SignIn.equals(event.getName())) {
-            // 加载默认联系人分区
-            (new Thread(() -> {
-                getContactService().getDefaultContactZone();
-            })).start();
+            // 账号签入成功，可进行一些数据更新操作，默认不需要，各模块会自动完成更新
         }
     }
 }

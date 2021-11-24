@@ -107,6 +107,11 @@ public final class ContactServiceAction {
     public final static String RemoveParticipantFromZone = "removeParticipantFromZone";
 
     /**
+     * 修改分区参与人信息。
+     */
+    public final static String ModifyZoneParticipant = "modifyZoneParticipant";
+
+    /**
      * 获取群组信息。
      */
     public final static String GetGroup = "getGroup";
@@ -140,11 +145,6 @@ public final class ContactServiceAction {
      * 修改群组信息。
      */
     public final static String ModifyGroup = "modifyGroup";
-
-    /**
-     * 修改群组成员。
-     */
-    public final static String ModifyGroupMember = "modifyGroupMember";
 
     /**
      * 获取指定的附录。

@@ -50,14 +50,18 @@ public class ContactZone extends Entity {
 
     private ContactZoneState state;
 
+    private boolean peerMode = false;
+
     private List<ContactZoneParticipant> participants;
 
     private boolean ordered = false;
 
-    public ContactZone(Long id, String name, String displayName, long timestamp, ContactZoneState state) {
+    public ContactZone(Long id, String name, String displayName, boolean peerMode,
+                       long timestamp, ContactZoneState state) {
         super(id, timestamp);
         this.name = name;
         this.displayName = displayName;
+        this.peerMode = peerMode;
         this.state = state;
         this.participants = new ArrayList<>();
     }
@@ -67,6 +71,7 @@ public class ContactZone extends Entity {
         this.name = json.getString("name");
         this.displayName = json.getString("displayName");
         this.state = ContactZoneState.parse(json.getInt("state"));
+        this.peerMode = json.getBoolean("peerMode");
         this.participants = new ArrayList<>();
 
         if (json.has("participants")) {
@@ -118,6 +123,10 @@ public class ContactZone extends Entity {
         return list;
     }
 
+    public boolean isPeerMode() {
+        return this.peerMode;
+    }
+
     public void addParticipant(ContactZoneParticipant participant) {
         this.participants.add(participant);
         this.ordered = false;
@@ -141,20 +150,6 @@ public class ContactZone extends Entity {
         }
 
         return false;
-    }
-
-    /**
-     * @private
-     * @param contact
-     */
-    public synchronized void matchContact(Contact contact) {
-        long id = contact.id;
-        for (ContactZoneParticipant participant : this.participants) {
-            if (participant.getId().longValue() == id) {
-                participant.setContact(contact);
-                break;
-            }
-        }
     }
 
     protected class PinYinComparator implements Comparator<ContactZoneParticipant> {

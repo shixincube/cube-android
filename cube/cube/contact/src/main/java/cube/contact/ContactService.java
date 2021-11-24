@@ -100,6 +100,9 @@ public class ContactService extends Module {
     /** 默认提供的联系人分区名称，签入时会自动加载该分区。 */
     private final String defaultContactZoneName = "contacts";
 
+    /** 默认提供的群组分区名称，签入时会自动加载该分区。 */
+    private final String defaultGroupZoneName = "groups";
+
     private long retrospectDuration = 30L * 24L * 60L * 60000L;
 
     private ContactStorage storage;
@@ -113,6 +116,8 @@ public class ContactService extends Module {
     protected Self self;
 
     private ContactZone defaultContactZone;
+
+    private ContactZone defaultGroupZone;
 
     private ContactDataProvider contactDataProvider;
 
@@ -862,6 +867,59 @@ public class ContactService extends Module {
     }
 
     /**
+     * 获取默认的存储了群组的联系人分区。
+     *
+     * @return 返回默认的存储了群组的联系人分区。
+     */
+    public ContactZone getDefaultGroupZone() {
+        if (null == this.self) {
+            return null;
+        }
+
+        if (null != this.defaultGroupZone) {
+            return this.defaultGroupZone;
+        }
+
+        final MutableContactZone zone = new MutableContactZone();
+
+        this.getContactZone(this.defaultGroupZoneName, new DefaultContactZoneHandler(false) {
+            @Override
+            public void handleContactZone(ContactZone contactZone) {
+                zone.contactZone = contactZone;
+
+                synchronized (zone) {
+                    zone.notify();
+                }
+            }
+        }, new DefaultFailureHandler(false) {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                if (error.code == ContactServiceState.NotFindContactZone.code) {
+                    // 没有找到该分区
+                    // 创建分区
+
+                }
+
+                synchronized (zone) {
+                    zone.notify();
+                }
+            }
+        });
+
+        synchronized (zone) {
+            try {
+                zone.wait(this.blockingTimeout + this.blockingTimeout);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        this.defaultGroupZone = zone.contactZone;
+
+        return this.defaultGroupZone;
+    }
+
+    /**
      * 获取指定的联系人分区。
      *
      * @param zoneName
@@ -892,7 +950,8 @@ public class ContactService extends Module {
         }
 
         // 数据库没有数据或已经过期，从服务器获取
-        ContactZone dummyZone = new ContactZone(0L, zoneName, zoneName, 0, ContactZoneState.Normal);
+        ContactZone dummyZone = new ContactZone(0L, zoneName, zoneName,
+                false, 0, ContactZoneState.Normal);
         // 从服务器获取
         this.refreshContactZone(dummyZone, false, new StableContactZoneHandler() {
             @Override
@@ -925,6 +984,52 @@ public class ContactService extends Module {
                     });
                 }
             }
+        });
+    }
+
+    /**
+     * 创建指定名称的联系人分区。
+     *
+     * @param zoneName 指定分区名称。
+     * @param successHandler 指定操作成功回调句柄。
+     * @param failureHandler 指定操作失败回调句柄。
+     */
+    public void createContactZone(String zoneName, ContactZoneHandler successHandler, FailureHandler failureHandler) {
+        ContactZone zone = this.storage.readContactZone(zoneName);
+        if (null != zone) {
+            ModuleError error = new ModuleError(NAME, ContactServiceState.AlreadyExists.code);
+            if (failureHandler.isInMainThread()) {
+                executeOnMainThread(() -> {
+                    failureHandler.handleFailure(ContactService.this, error);
+                });
+            }
+            else {
+                execute(() -> {
+                    failureHandler.handleFailure(ContactService.this, error);
+                });
+            }
+            return;
+        }
+
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("name", zoneName);
+            payload.put("displayName", zoneName);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        Packet requestPacket = new Packet(ContactServiceAction.CreateContactZone, payload);
+        this.pipeline.send(ContactService.NAME, requestPacket, (packet) -> {
+            if (packet.state.code != PipelineState.Ok.code) {
+                return;
+            }
+
+            int stateCode = packet.extractServiceStateCode();
+            if (stateCode != ContactServiceState.Ok.code) {
+                return;
+            }
+
+
         });
     }
 
@@ -1845,7 +1950,7 @@ public class ContactService extends Module {
         });
     }
 
-    private void fillContactZone(final ContactZone zone) {
+    private synchronized void fillContactZone(final ContactZone zone) {
         for (ContactZoneParticipant participant : zone.getParticipants()) {
             if (participant.getType() == ContactZoneParticipantType.Contact) {
                 if (null == participant.getContact()) {
@@ -1861,6 +1966,12 @@ public class ContactService extends Module {
                     Group group = this.getGroup(participant.getId());
                     participant.setGroup(group);
                 }
+            }
+
+            // 邀请人
+            Long inviterId = participant.getInviterId();
+            if (inviterId.longValue() > 0) {
+                participant.setInviter(this.getContact(inviterId));
             }
         }
     }
@@ -1948,7 +2059,7 @@ public class ContactService extends Module {
                         if (newZone.getTimestamp() != zone.getTimestamp()) {
                             // 时间戳不一致，更新数据
                             execute(() -> {
-                                refreshContactZone(zone, false, successHandler, failureHandler);
+                                refreshContactZone(newZone, false, successHandler, failureHandler);
                             });
                         }
                         else {
@@ -1961,6 +2072,9 @@ public class ContactService extends Module {
                         // 更新数据
                         newZone.resetLast(System.currentTimeMillis());
                         storage.writeContactZone(newZone);
+
+                        // 填充数据
+                        fillContactZone(newZone);
 
                         if (null != successHandler) {
                             successHandler.handleContactZone(newZone);
@@ -2014,6 +2128,9 @@ public class ContactService extends Module {
                         boolean exists = storage.writeContactZone(zone);
                         if (!exists) {
                             // 对于不存在数据直接调用更新
+                            // 填充数据
+                            fillContactZone(zone);
+
                             ObservableEvent event = new ObservableEvent(ContactServiceEvent.ContactZoneUpdated, zone);
                             notifyObservers(event);
                         }
@@ -2114,6 +2231,12 @@ public class ContactService extends Module {
                 });
             }
         }
+
+        (new Thread(() -> {
+            // 获取默认联系人分区
+            getDefaultContactZone();
+            getDefaultGroupZone();
+        })).start();
     }
 
     protected void triggerSignIn(int stateCode, JSONObject payload) {

@@ -38,6 +38,7 @@ import com.shixincube.app.model.Account;
 import com.shixincube.app.ui.activity.ContactDetailsActivity;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
+import com.shixincube.app.ui.fragment.ContactsFragment;
 import com.shixincube.app.ui.view.ContactsView;
 import com.shixincube.app.util.AvatarUtils;
 import com.shixincube.app.util.UIUtils;
@@ -211,7 +212,7 @@ public class ContactsPresenter extends BasePresenter<ContactsView> implements Co
         // position 需要 -1 ，0 位置是 Header View
         Contact contact = contacts.get(position - 1);
         intent.putExtra("contactId", contact.getId());
-        activity.jumpToActivity(intent);
+        activity.startActivityForResult(intent, ContactsFragment.REQUEST_CONTACT_DETAILS);
     }
 
     @Override

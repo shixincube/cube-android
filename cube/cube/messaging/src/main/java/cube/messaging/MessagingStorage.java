@@ -292,6 +292,35 @@ public class MessagingStorage extends AbstractStorage {
     }
 
     /**
+     * 删除会话以及相关的所有消息记录。
+     *
+     * @param conversation
+     */
+    public void deleteConversationAndMessages(Conversation conversation) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        // 删除会话
+        db.delete("conversation", "id=?", new String[]{ conversation.id.toString() });
+
+        // 删除消息
+        if (conversation.getType() == ConversationType.Contact) {
+            db.delete("message", "`source`=0 AND (`from`=? OR `to`=?)",
+                    new String[]{
+                            conversation.getPivotalId().toString(),
+                            conversation.getPivotalId().toString()
+                    });
+        }
+        else if (conversation.getType() == ConversationType.Group) {
+            db.delete("message", "`source`=?",
+                    new String[]{
+                            conversation.getPivotalId().toString()
+                    });
+        }
+
+        this.closeWritableDatabase(db);
+    }
+
+    /**
      * 更新会话。
      *
      * @param conversation

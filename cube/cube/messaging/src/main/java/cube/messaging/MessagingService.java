@@ -1147,9 +1147,12 @@ public class MessagingService extends Module {
                     if (conversation.getState() == ConversationState.Deleted) {
                         // 尝试删除已删除的会话
                         conversations.remove(conversation);
-                    }
 
-                    sortConversationList(conversations);
+                        execute(() -> {
+                            // 从数据库里删除所有消息相关数据
+                            storage.deleteConversationAndMessages(conversation);
+                        });
+                    }
                 }
 
                 if (conversationHandler.isInMainThread()) {

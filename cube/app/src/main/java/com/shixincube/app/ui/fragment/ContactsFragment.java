@@ -26,13 +26,17 @@
 
 package com.shixincube.app.ui.fragment;
 
+import android.content.Intent;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
+
 import com.shixincube.app.R;
 import com.shixincube.app.model.Account;
+import com.shixincube.app.ui.activity.ContactDetailsActivity;
 import com.shixincube.app.ui.activity.MainActivity;
 import com.shixincube.app.ui.base.BaseFragment;
 import com.shixincube.app.ui.presenter.ContactsPresenter;
@@ -52,6 +56,8 @@ import cube.contact.model.Contact;
  * 联系人清单。
  */
 public class ContactsFragment extends BaseFragment<ContactsView, ContactsPresenter> implements ContactsView {
+
+    public final static int REQUEST_CONTACT_DETAILS = 1000;
 
     @BindView(R.id.rvContacts)
     RecyclerView contactsView;
@@ -130,6 +136,18 @@ public class ContactsFragment extends BaseFragment<ContactsView, ContactsPresent
 
     private void hideLetter() {
         this.letterView.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_CONTACT_DETAILS) {
+            if (resultCode == ContactDetailsActivity.RESULT_REMOVE
+                || resultCode == ContactDetailsActivity.RESULT_ADD) {
+                // 成员删除或新增，刷新数据
+            }
+        }
     }
 
     @Override

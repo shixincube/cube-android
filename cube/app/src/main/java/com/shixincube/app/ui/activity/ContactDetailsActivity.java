@@ -39,24 +39,24 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.shixincube.app.R;
 import com.shixincube.app.ui.base.BaseActivity;
-import com.shixincube.app.ui.base.BasePresenter;
+import com.shixincube.app.ui.presenter.ContactDetailsPresenter;
+import com.shixincube.app.ui.view.ContactDetailsView;
 import com.shixincube.app.util.AvatarUtils;
 import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.optionitemview.OptionItemView;
 
 import butterknife.BindView;
-import cube.contact.handler.DefaultContactZoneHandler;
 import cube.contact.model.Contact;
-import cube.contact.model.ContactZone;
-import cube.core.Module;
-import cube.core.ModuleError;
-import cube.core.handler.DefaultFailureHandler;
 import cube.engine.CubeEngine;
 
 /**
  * 联系人详情界面。
  */
-public class ContactDetailsActivity extends BaseActivity {
+public class ContactDetailsActivity extends BaseActivity<ContactDetailsView, ContactDetailsPresenter> implements ContactDetailsView {
+
+    public final static int RESULT_NOTHING = 1000;
+    public final static int RESULT_REMOVE = 2000;
+    public final static int RESULT_ADD = 3000;
 
     @BindView(R.id.ivAvatar)
     ImageView avatarView;
@@ -120,24 +120,6 @@ public class ContactDetailsActivity extends BaseActivity {
 
         toolbarMore.setVisibility(View.VISIBLE);
 
-        if (this.isMyContact) {
-            this.toChatButton.setVisibility(View.VISIBLE);
-            this.addToContactsButton.setVisibility(View.GONE);
-        }
-        else {
-            this.toChatButton.setVisibility(View.GONE);
-            this.addToContactsButton.setVisibility(View.VISIBLE);
-        }
-    }
-
-    @Override
-    public void initData() {
-        Glide.with(this).load(AvatarUtils.getAvatarResource(this.contact)).centerCrop().into(avatarView);
-        this.nameView.setText(this.contact.getPriorityName());
-
-        this.cubeIdView.setText(UIUtils.getString(R.string.cube_id_colon, this.contact.getId().toString()));
-        this.nickNameView.setText(UIUtils.getString(R.string.nickname_colon, this.contact.getName()));
-
         // FIXME 暂时隐藏个性签名
         this.signatureText.setVisibility(View.GONE);
 
@@ -148,11 +130,14 @@ public class ContactDetailsActivity extends BaseActivity {
             this.remarkAndTagItem.setVisibility(View.GONE);
             this.countriesAndRegionsText.setVisibility(View.GONE);
             this.toChatButton.setVisibility(View.GONE);
+            this.toolbarMore.setVisibility(View.GONE);
         }
         else {
-            if (CubeEngine.getInstance().getContactService().getDefaultContactZone().contains(this.contact)) {
+            if (this.isMyContact) {
                 // 我的联系人
                 this.nickNameView.setVisibility(View.VISIBLE);
+                this.toChatButton.setVisibility(View.VISIBLE);
+                this.addToContactsButton.setVisibility(View.GONE);
             }
             else {
                 // 陌生人
@@ -161,6 +146,15 @@ public class ContactDetailsActivity extends BaseActivity {
                 this.addToContactsButton.setVisibility(View.VISIBLE);
             }
         }
+    }
+
+    @Override
+    public void initData() {
+        Glide.with(this).load(AvatarUtils.getAvatarResource(this.contact)).centerCrop().into(avatarView);
+        this.nameView.setText(this.contact.getPriorityName());
+
+        this.cubeIdView.setText(UIUtils.getString(R.string.cube_id_colon, this.contact.getId().toString()));
+        this.nickNameView.setText(UIUtils.getString(R.string.nickname_colon, this.contact.getName()));
     }
 
     @Override
@@ -181,20 +175,8 @@ public class ContactDetailsActivity extends BaseActivity {
                     UIUtils.getString(R.string.cancel),
                     (v) -> {
                         hideMaterialDialog();
-                        // 获取默认联系人分区，将联系人移除
-                        CubeEngine.getInstance().getContactService()
-                                .getDefaultContactZone()
-                                .removeParticipant(contact, new DefaultContactZoneHandler(true) {
-                                    @Override
-                                    public void handleContactZone(ContactZone contactZone) {
-                                        finish();
-                                    }
-                                }, new DefaultFailureHandler(true) {
-                                    @Override
-                                    public void handleFailure(Module module, ModuleError error) {
-                                        UIUtils.showToast(UIUtils.getString(R.string.set_failure));
-                                    }
-                                });
+                        // 删除联系人
+                        presenter.deleteContact();
                     },
                     (v) -> {
                         hideMaterialDialog();
@@ -210,8 +192,8 @@ public class ContactDetailsActivity extends BaseActivity {
     }
 
     @Override
-    protected BasePresenter createPresenter() {
-        return null;
+    protected ContactDetailsPresenter createPresenter() {
+        return new ContactDetailsPresenter(this, this.contact);
     }
 
     @Override
@@ -252,5 +234,15 @@ public class ContactDetailsActivity extends BaseActivity {
         });
         animation.setDuration(200);
         this.menuScrollView.startAnimation(animation);
+    }
+
+    @Override
+    public Button getAddToContactsButton() {
+        return this.addToContactsButton;
+    }
+
+    @Override
+    public OptionItemView getDeleteContactItem() {
+        return this.deleteItemView;
     }
 }

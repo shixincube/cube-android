@@ -24,40 +24,20 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app.util;
+package com.shixincube.app.ui.view;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 
 /**
- * 规则判断辅助函数库。
+ * 搜索联系人。
  */
-public final class RegularUtils {
+public interface SearchContactView {
 
-    private final static String MOBILE_PHONE_PATTERN = "^((13[0-9])|(15[0-9])|(18[0-9])|(14[7])|(17[0|6|7|8]))\\d{8}$";
+    EditText getSearchContentText();
 
-    private final static String EMAIL_PATTERN = "^([a-zA-Z0-9_\\-\\.]+)@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.)|(([a-zA-Z0-9\\-]+\\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\\]?)$";
+    RelativeLayout getNoResultLayout();
 
-    private final static String NUMERIC_PATTERN = "^\\d+$";
-
-    private RegularUtils() {
-    }
-
-    public static boolean isMobile(String phoneNumber) {
-        Pattern p = Pattern.compile(MOBILE_PHONE_PATTERN);
-        Matcher m = p.matcher(phoneNumber);
-        return m.matches();
-    }
-
-    public static boolean isEmail(String email) {
-        Pattern p = Pattern.compile(EMAIL_PATTERN);
-        Matcher m = p.matcher(email);
-        return m.matches();
-    }
-
-    public static boolean isNumeric(String number) {
-        Pattern p = Pattern.compile(NUMERIC_PATTERN);
-        Matcher m = p.matcher(number);
-        return m.matches();
-    }
+    LinearLayout getSearchLayout();
 }

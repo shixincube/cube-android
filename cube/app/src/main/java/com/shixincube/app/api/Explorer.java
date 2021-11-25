@@ -29,6 +29,7 @@ package com.shixincube.app.api;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.shixincube.app.CubeApp;
+import com.shixincube.app.manager.AccountHelper;
 import com.shixincube.app.model.request.CheckPhoneRequest;
 import com.shixincube.app.model.request.LoginRequest;
 import com.shixincube.app.model.request.RegisterRequest;
@@ -36,6 +37,7 @@ import com.shixincube.app.model.response.AccountInfoResponse;
 import com.shixincube.app.model.response.CheckPhoneResponse;
 import com.shixincube.app.model.response.LoginResponse;
 import com.shixincube.app.model.response.RegisterResponse;
+import com.shixincube.app.model.response.SearchAccountResultResponse;
 
 import java.io.File;
 import java.io.IOException;
@@ -157,6 +159,26 @@ public class Explorer {
      */
     public Observable<AccountInfoResponse> getAccountInfo(Long id, String token) {
         return this.api.getAccountInfo(id, token);
+    }
+
+    /**
+     * 搜索指定 ID 的账号。
+     *
+     * @param accountId
+     * @return
+     */
+    public Observable<SearchAccountResultResponse> searchAccountById(Long accountId) {
+        return this.api.searchAccountById(AccountHelper.getInstance().getTokenCode(), accountId);
+    }
+
+    /**
+     * 搜索指定手机号码的账号。
+     *
+     * @param phoneNumber
+     * @return
+     */
+    public Observable<SearchAccountResultResponse> searchAccount(String phoneNumber) {
+        return this.api.searchAccount(AccountHelper.getInstance().getTokenCode(), phoneNumber);
     }
 
     private RequestBody getRequestBody(Object object) {

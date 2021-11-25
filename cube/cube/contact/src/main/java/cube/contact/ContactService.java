@@ -527,6 +527,26 @@ public class ContactService extends Module {
     }
 
     /**
+     * 将指定联系人保存到本地。
+     *
+     * @param contact 指定联系人。
+     */
+    public void saveLocalContact(Contact contact) {
+        // 更新数据库
+        this.storage.writeContact(contact);
+
+        AbstractContact current = this.cache.get(contact.id);
+        if (null != current) {
+            current.entityLifeExpiry += LIFESPAN;
+
+            current.setName(contact.getName());
+            if (null != contact.getContext()) {
+                current.setContext(contact.getContext());
+            }
+        }
+    }
+
+    /**
      * 获取指定 ID 的联系人。
      *
      * <b>不建议在主线程里调用该方法。</b>

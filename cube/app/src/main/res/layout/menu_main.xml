@@ -7,7 +7,7 @@
     auto:cardElevation="5dp">
 
     <com.zhy.autolayout.AutoLinearLayout
-        android:layout_width="175dp"
+        android:layout_width="170dp"
         android:layout_height="wrap_content"
         android:background="@color/colorPrimaryDark"
         android:orientation="vertical"
@@ -16,7 +16,7 @@
         <TextView
             android:id="@+id/tvCreateGroup"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
+            android:layout_height="46dp"
             android:layout_margin="0.5dp"
             android:background="@color/colorPrimary"
             android:drawableStart="@mipmap/ic_create_group_chat"
@@ -25,12 +25,12 @@
             android:paddingStart="10dp"
             android:text="@string/create_group"
             android:textColor="@color/white"
-            android:textSize="15sp"/>
+            android:textSize="14sp"/>
 
         <TextView
             android:id="@+id/tvAddContact"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
+            android:layout_height="46dp"
             android:layout_margin="0.5dp"
             android:background="@color/colorPrimary"
             android:drawableStart="@mipmap/ic_add_contact"
@@ -39,7 +39,7 @@
             android:paddingStart="10dp"
             android:text="@string/add_contact"
             android:textColor="@color/white"
-            android:textSize="15sp"/>
+            android:textSize="14sp"/>
 
     </com.zhy.autolayout.AutoLinearLayout>
 

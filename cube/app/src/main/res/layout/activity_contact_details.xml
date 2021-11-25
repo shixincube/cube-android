@@ -175,8 +175,7 @@
             android:background="@drawable/shape_contact_details_add_to_contacts"
             android:text="@string/add_to_contacts"
             android:textColor="@color/white"
-            android:textSize="16sp"
-            android:visibility="gone"/>
+            android:textSize="16sp"/>
 
     </com.zhy.autolayout.AutoLinearLayout>
 
@@ -212,11 +211,12 @@
                     android:id="@+id/oivRemark"
                     style="@style/OptionItem"
                     android:background="@drawable/selector_option_item"
+                    android:visibility="gone"
                     auto:start_image_margin_left="20dp"
                     auto:start_image_margin_right="18dp"
                     auto:start_src="@mipmap/ic_contact_remark"
                     auto:start_text="@string/set_remark_and_tag"
-                    auto:start_text_color="@color/text"/>
+                    auto:start_text_color="@color/text" />
 
                 <com.shixincube.app.widget.optionitemview.OptionItemView
                     style="@style/OptionItem"

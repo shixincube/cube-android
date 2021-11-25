@@ -160,7 +160,7 @@ public class ConversationDetailsPresenter extends BasePresenter<ConversationDeta
     private void showContactDetails(Contact contact) {
         Intent intent = new Intent(activity, ContactDetailsActivity.class);
         intent.putExtra("contactId", contact.getId());
-        intent.putExtra("allowGoToChat", false);
+        intent.putExtra("isMyContact", true);
         activity.jumpToActivity(intent);
     }
 

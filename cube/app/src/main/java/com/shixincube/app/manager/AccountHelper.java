@@ -144,6 +144,16 @@ public class AccountHelper implements ContactDataProvider {
         this.editor.commit();
     }
 
+    /**
+     * 使用账号创建联系人。
+     *
+     * @param account
+     * @return
+     */
+    public Contact createContact(Account account) {
+        return new Contact(account.id, account.name, account.toJSON());
+    }
+
     @Override
     public JSONObject needContactContext(Contact contact) {
         LogUtils.d(this.getClass().getSimpleName(), "#needContactContext : " + contact.id);

@@ -95,6 +95,8 @@
     <string name="save_to_phone">保存到手机</string>
     <string name="add_to_block_list">添加到黑名单</string>
     <string name="send_contact_card">发送联系人名片</string>
+    <string name="not_find_contact">该用户不存在</string>
+    <string name="search_condition_error">请输入正确的搜索内容</string>
 
     <!-- 群组信息 -->
     <string name="group_name">群组名称</string>

@@ -30,6 +30,7 @@ import com.shixincube.app.model.response.CheckPhoneResponse;
 import com.shixincube.app.model.response.AccountInfoResponse;
 import com.shixincube.app.model.response.LoginResponse;
 import com.shixincube.app.model.response.RegisterResponse;
+import com.shixincube.app.model.response.SearchAccountResultResponse;
 
 import io.reactivex.rxjava3.core.Observable;
 import okhttp3.RequestBody;
@@ -90,6 +91,26 @@ public interface AppInterface {
      */
     @GET("/account/info/")
     Observable<AccountInfoResponse> getAccountInfo(@Query("id") Long id, @Query("token") String token);
+
+    /**
+     * 搜索指定 ID 的账号。
+     *
+     * @param token
+     * @param id
+     * @return
+     */
+    @GET("/account/search/")
+    Observable<SearchAccountResultResponse> searchAccountById(@Query("token") String token, @Query("id") Long id);
+
+    /**
+     * 搜索指定手机号码的账号。
+     *
+     * @param token
+     * @param phoneNumber
+     * @return
+     */
+    @GET("/account/search/")
+    Observable<SearchAccountResultResponse> searchAccount(@Query("token") String token, @Query("phone") String phoneNumber);
 
     /**
      * 下载文件。

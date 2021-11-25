@@ -26,6 +26,7 @@
 
 package com.shixincube.app.ui.activity;
 
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.shixincube.app.R;
@@ -42,6 +43,9 @@ import cube.engine.CubeEngine;
  */
 public class AddContactActivity extends BaseActivity<AddContactView, AddContactPresenter> implements AddContactView {
 
+    @BindView(R.id.llSearchContact)
+    LinearLayout searchContactLayout;
+
     @BindView(R.id.tvCubeId)
     TextView cubeIdTextView;
 
@@ -53,6 +57,13 @@ public class AddContactActivity extends BaseActivity<AddContactView, AddContactP
     public void initView() {
         setToolbarTitle(UIUtils.getString(R.string.add_contact));
         this.cubeIdTextView.setText(CubeEngine.getInstance().getContactService().getSelf().getId().toString());
+    }
+
+    @Override
+    public void initListener() {
+        this.searchContactLayout.setOnClickListener((view) -> {
+            jumpToActivity(SearchContactActivity.class);
+        });
     }
 
     @Override

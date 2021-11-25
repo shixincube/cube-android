@@ -90,12 +90,14 @@ public class ContactDetailsActivity extends BaseActivity {
     @BindView(R.id.svMenu)
     ScrollView menuScrollView;
 
+    @BindView(R.id.oivAddToBlockList)
+    OptionItemView addToBlockListItemView;
     @BindView(R.id.oivDelete)
     OptionItemView deleteItemView;
 
     private Contact contact;
 
-    private boolean allowGoToChat;
+    private boolean isMyContact;
 
     public ContactDetailsActivity() {
         super();
@@ -105,7 +107,7 @@ public class ContactDetailsActivity extends BaseActivity {
     public void init() {
         Intent intent = getIntent();
         Long contactId = intent.getExtras().getLong("contactId");
-        this.allowGoToChat = intent.getBooleanExtra("allowGoToChat", true);
+        this.isMyContact = intent.getBooleanExtra("isMyContact", true);
         this.contact = CubeEngine.getInstance().getContactService().getContact(contactId);
     }
 
@@ -118,11 +120,13 @@ public class ContactDetailsActivity extends BaseActivity {
 
         toolbarMore.setVisibility(View.VISIBLE);
 
-        if (this.allowGoToChat) {
+        if (this.isMyContact) {
             this.toChatButton.setVisibility(View.VISIBLE);
+            this.addToContactsButton.setVisibility(View.GONE);
         }
         else {
             this.toChatButton.setVisibility(View.GONE);
+            this.addToContactsButton.setVisibility(View.VISIBLE);
         }
     }
 
@@ -217,6 +221,8 @@ public class ContactDetailsActivity extends BaseActivity {
 
     private void showMenu() {
         this.menuLayout.setVisibility(View.VISIBLE);
+        this.deleteItemView.setVisibility(this.isMyContact ? View.VISIBLE : View.GONE);
+
         TranslateAnimation animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0,
                 Animation.RELATIVE_TO_SELF, 0,
                 Animation.RELATIVE_TO_SELF, 1,

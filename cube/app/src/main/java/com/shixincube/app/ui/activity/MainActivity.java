@@ -178,9 +178,13 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
                 Gravity.TOP | Gravity.END,
                 UIUtils.dp2px(5), appBar.getHeight() + 30);
         menuView.findViewById(R.id.tvCreateGroup).setOnClickListener((v) -> {
+            // 创建群聊
+            UIUtils.showToast(UIUtils.getString(R.string.developing));
             popupWindow.dismiss();
         });
         menuView.findViewById(R.id.tvAddContact).setOnClickListener((v) -> {
+            // 添加联系人
+            jumpToActivity(AddContactActivity.class);
             popupWindow.dismiss();
         });
     }

@@ -26,34 +26,16 @@
 
 package com.shixincube.app.ui.presenter;
 
-import com.shixincube.app.R;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
-import com.shixincube.app.ui.view.ProfileView;
-import com.shixincube.app.util.AvatarUtils;
-import com.shixincube.app.util.UIUtils;
-
-import cube.contact.model.Self;
-import cube.engine.CubeEngine;
+import com.shixincube.app.ui.view.AddContactView;
 
 /**
- * 个人与应用信息管理。
+ * 添加联系人。
  */
-public class ProfilePresenter extends BasePresenter<ProfileView> {
+public class AddContactPresenter extends BasePresenter<AddContactView> {
 
-    public ProfilePresenter(BaseActivity activity) {
+    public AddContactPresenter(BaseActivity activity) {
         super(activity);
-    }
-
-    public void loadAccountInfo() {
-        // 获取当前账号数据
-        Self self = CubeEngine.getInstance().getContactService().getSelf();
-        if (null == self) {
-            return;
-        }
-
-        getView().getAvatarImage().setImageResource(AvatarUtils.getAvatarResource(self));
-        getView().getNickNameText().setText(self.getPriorityName());
-        getView().getCubeIdText().setText(UIUtils.getString(R.string.cube_id_colon, self.getId().toString()));
     }
 }

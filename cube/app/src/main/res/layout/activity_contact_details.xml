@@ -63,7 +63,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:singleLine="true"
-                    android:text="@string/my_cube_id"
+                    android:text="@string/cube_id_colon"
                     android:textColor="@color/text_secondary"
                     android:textSize="12sp"/>
 

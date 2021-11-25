@@ -131,7 +131,7 @@ public class ContactDetailsActivity extends BaseActivity {
         Glide.with(this).load(AvatarUtils.getAvatarResource(this.contact)).centerCrop().into(avatarView);
         this.nameView.setText(this.contact.getPriorityName());
 
-        this.cubeIdView.setText(UIUtils.getString(R.string.my_cube_id, this.contact.getId().toString()));
+        this.cubeIdView.setText(UIUtils.getString(R.string.cube_id_colon, this.contact.getId().toString()));
         this.nickNameView.setText(UIUtils.getString(R.string.nickname_colon, this.contact.getName()));
 
         // FIXME 暂时隐藏个性签名

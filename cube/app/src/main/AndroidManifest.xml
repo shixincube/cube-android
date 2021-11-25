@@ -85,6 +85,10 @@
             android:screenOrientation="portrait">
         </activity>
         <activity
+            android:name=".ui.activity.AddContactActivity"
+            android:screenOrientation="portrait">
+        </activity>
+        <activity
             android:name=".ui.activity.ConversationDetailsActivity"
             android:screenOrientation="portrait">
         </activity>

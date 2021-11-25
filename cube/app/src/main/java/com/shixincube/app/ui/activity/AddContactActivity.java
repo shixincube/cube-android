@@ -24,36 +24,44 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app.ui.presenter;
+package com.shixincube.app.ui.activity;
+
+import android.widget.TextView;
 
 import com.shixincube.app.R;
 import com.shixincube.app.ui.base.BaseActivity;
-import com.shixincube.app.ui.base.BasePresenter;
-import com.shixincube.app.ui.view.ProfileView;
-import com.shixincube.app.util.AvatarUtils;
+import com.shixincube.app.ui.presenter.AddContactPresenter;
+import com.shixincube.app.ui.view.AddContactView;
 import com.shixincube.app.util.UIUtils;
 
-import cube.contact.model.Self;
+import butterknife.BindView;
 import cube.engine.CubeEngine;
 
 /**
- * 个人与应用信息管理。
+ * 添加联系人。
  */
-public class ProfilePresenter extends BasePresenter<ProfileView> {
+public class AddContactActivity extends BaseActivity<AddContactView, AddContactPresenter> implements AddContactView {
 
-    public ProfilePresenter(BaseActivity activity) {
-        super(activity);
+    @BindView(R.id.tvCubeId)
+    TextView cubeIdTextView;
+
+    public AddContactActivity() {
+        super();
     }
 
-    public void loadAccountInfo() {
-        // 获取当前账号数据
-        Self self = CubeEngine.getInstance().getContactService().getSelf();
-        if (null == self) {
-            return;
-        }
+    @Override
+    public void initView() {
+        setToolbarTitle(UIUtils.getString(R.string.add_contact));
+        this.cubeIdTextView.setText(CubeEngine.getInstance().getContactService().getSelf().getId().toString());
+    }
 
-        getView().getAvatarImage().setImageResource(AvatarUtils.getAvatarResource(self));
-        getView().getNickNameText().setText(self.getPriorityName());
-        getView().getCubeIdText().setText(UIUtils.getString(R.string.cube_id_colon, self.getId().toString()));
+    @Override
+    protected AddContactPresenter createPresenter() {
+        return new AddContactPresenter(this);
+    }
+
+    @Override
+    protected int provideContentViewId() {
+        return R.layout.activity_add_contact;
     }
 }

@@ -88,6 +88,17 @@ public class ConversationPresenter extends BasePresenter<ConversationView> imple
         reloadData();
     }
 
+    private boolean removeMessageConversation(Conversation conversation) {
+        for (int i = 0; i < this.messageConversations.size(); ++i) {
+            MessageConversation conv = this.messageConversations.get(i);
+            if (conv.conversation.id.longValue() == conversation.getId().longValue()) {
+                this.messageConversations.remove(i);
+                return true;
+            }
+        }
+        return false;
+    }
+
     private synchronized void setAdapter() {
         if (null == this.adapter) {
             this.adapter = new AdapterForRecyclerView<MessageConversation>(this.activity, this.messageConversations, R.layout.item_conversation) {
@@ -266,7 +277,11 @@ public class ConversationPresenter extends BasePresenter<ConversationView> imple
 
     @Override
     public void onConversationUpdated(Conversation conversation, MessagingService service) {
-
+        if (conversation.getState() == ConversationState.Deleted) {
+            if (removeMessageConversation(conversation)) {
+                this.adapter.notifyDataSetChangedWrapper();
+            }
+        }
     }
 
     @Override
@@ -278,12 +293,7 @@ public class ConversationPresenter extends BasePresenter<ConversationView> imple
             }
         }
 
-        activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                setAdapter();
-                adapter.notifyDataSetChangedWrapper();
-            }
-        });
+        setAdapter();
+        adapter.notifyDataSetChangedWrapper();
     }
 }

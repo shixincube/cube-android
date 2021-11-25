@@ -88,6 +88,9 @@ public enum MessagingServiceState {
     /** 没有找到会话。 */
     NoConversation(110),
 
+    /** 会话已经失效。 */
+    ConversationDisabled(111),
+
     /** 未知的状态。 */
     Unknown(99);
 

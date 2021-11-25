@@ -201,8 +201,8 @@ public class MessagingStorage extends AbstractStorage {
         Conversation conversation = null;
 
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM `conversation` WHERE `id`=?",
-                new String[] { conversationId.toString() });
+        Cursor cursor = db.rawQuery("SELECT * FROM `conversation` WHERE `id`=? AND `state`<>?",
+                new String[] { conversationId.toString(), ConversationState.Deleted.toString() });
         if (cursor.moveToFirst()) {
             try {
                 String messageString = cursor.getString(cursor.getColumnIndex("recent_message"));
@@ -366,6 +366,11 @@ public class MessagingStorage extends AbstractStorage {
         SQLiteDatabase db = this.getWritableDatabase();
 
         for (Conversation conversation : conversations) {
+            if (conversation.getState() == ConversationState.Deleted) {
+                // 跳过已删除的会话
+                continue;
+            }
+
             Cursor cursor = db.query("conversation", new String[]{ "id" },
                     "id=?", new String[]{ conversation.id.toString() }, null, null, null);
             if (cursor.moveToFirst()) {

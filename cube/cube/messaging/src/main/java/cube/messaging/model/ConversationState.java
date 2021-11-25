@@ -64,6 +64,6 @@ public enum ConversationState {
             }
         }
 
-        return Normal;
+        return Deleted;
     }
 }

@@ -420,6 +420,11 @@ public class MessagingService extends Module {
                             iter.remove();
                         }
                     }
+                    else if (conversation.getType() == ConversationType.Contact) {
+                        if (conversation.getState() == ConversationState.Deleted) {
+                            iter.remove();
+                        }
+                    }
                 }
 
                 this.conversations.addAll(list);
@@ -432,9 +437,11 @@ public class MessagingService extends Module {
                             "Preload conversation messages: " + preloadConversationRecentNum + " - " + preloadConversationMessageNum);
                     this.execute(() -> {
                         long now = System.currentTimeMillis();
-                        for (int i = 0, len = conversations.size(); i < len && i < preloadConversationRecentNum; ++i) {
-                            Conversation conv = conversations.get(i);
-                            getRecentMessages(conv, preloadConversationMessageNum);
+                        synchronized (MessagingService.this) {
+                            for (int i = 0, len = conversations.size(); i < len && i < preloadConversationRecentNum; ++i) {
+                                Conversation conv = conversations.get(i);
+                                getRecentMessages(conv, preloadConversationMessageNum);
+                            }
                         }
                         LogUtils.i(TAG,
                                 "Preload conversation messages elapsed: " + (System.currentTimeMillis() - now) + " ms");
@@ -1165,6 +1172,11 @@ public class MessagingService extends Module {
                         conversationHandler.handleConversation(conversation);
                     });
                 }
+
+                execute(() -> {
+                    ObservableEvent event = new ObservableEvent(MessagingServiceEvent.ConversationUpdated, conversation);
+                    notifyObservers(event);
+                });
             }
         });
 
@@ -1465,7 +1477,7 @@ public class MessagingService extends Module {
         // 检查会话状态
         if (conversation.getState() != ConversationState.Normal
                 || conversation.getState() != ConversationState.Important) {
-            ModuleError error = new ModuleError(NAME, MessagingServiceState.IllegalOperation.code);
+            ModuleError error = new ModuleError(NAME, MessagingServiceState.ConversationDisabled.code);
             error.data = conversation;
             if (failureHandler.isInMainThread()) {
                 executeOnMainThread(() -> {
@@ -2452,15 +2464,19 @@ public class MessagingService extends Module {
                     // 回调
                     completionHandler.handleCompletion(MessagingService.this);
 
-                    // 回调事件监听器
-                    if (changed && null != recentEventListener) {
+                    if (changed) {
                         synchronized (MessagingService.this) {
                             if (null != conversations) {
                                 conversations.clear();
                             }
                         }
 
-                        recentEventListener.onConversationListUpdated(getRecentConversations(), MessagingService.this);
+                        // 回调更新列表
+                        if (null != recentEventListener) {
+                            executeOnMainThread(() -> {
+                                recentEventListener.onConversationListUpdated(getRecentConversations(), MessagingService.this);
+                            });
+                        }
                     }
                 });
             }
@@ -2497,6 +2513,13 @@ public class MessagingService extends Module {
                 for (MessageEventListener listener : this.eventListeners) {
                     listener.onMessageProcessing(message, this);
                 }
+            }
+        }
+        else if (MessagingServiceEvent.ConversationUpdated.equals(eventName)) {
+            if (null != this.recentEventListener) {
+                executeOnMainThread(() -> {
+                    recentEventListener.onConversationUpdated((Conversation) event.getData(), this);
+                });
             }
         }
     }

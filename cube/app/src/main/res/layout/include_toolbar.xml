@@ -60,16 +60,16 @@
                     android:visibility="gone" />
             </com.zhy.autolayout.AutoLinearLayout>
 
-            <!-- 加号菜单 -->
+            <!-- 附加菜单 -->
             <ImageButton
-                android:id="@+id/ibAddMenu"
-                android:layout_width="23dp"
-                android:layout_height="23dp"
+                android:id="@+id/ibPopupMenu"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
                 android:layout_marginEnd="@dimen/item_margin_left_and_right"
                 android:background="@null"
-                android:src="@mipmap/ic_add"
+                android:src="@mipmap/ic_add_black"
                 android:visibility="gone" />
 
             <!-- 添加联系人 -->

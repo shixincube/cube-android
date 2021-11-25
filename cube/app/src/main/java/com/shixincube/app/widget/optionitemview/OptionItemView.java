@@ -194,6 +194,11 @@ public class OptionItemView extends View {
 
         rect = new Rect();
         paint = new Paint();
+        // 抗锯齿
+        paint.setAntiAlias(true);
+        paint.setDither(true);
+        paint.setFilterBitmap(true);
+
         textBound = new Rect();
         // 计算了描绘字体需要的范围
         paint.getTextBounds(title, 0, title.length(), textBound);
@@ -218,8 +223,6 @@ public class OptionItemView extends View {
         rect.top = getPaddingTop();
         rect.bottom = height - getPaddingBottom();
 
-        // 抗锯齿
-        paint.setAntiAlias(true);
         paint.setTextSize(titleTextSize > startTextSize ? titleTextSize > endTextSize ? titleTextSize : endTextSize : startTextSize > endTextSize ? startTextSize : endTextSize);
 //        mPaint.setTextSize(titleTextSize);
         paint.setStyle(Paint.Style.FILL);

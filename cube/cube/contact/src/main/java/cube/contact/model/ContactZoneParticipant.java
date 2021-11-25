@@ -82,6 +82,10 @@ public class ContactZoneParticipant extends Entity {
         return this.state;
     }
 
+    public Contact getInviter() {
+        return this.inviter;
+    }
+
     public Long getInviterId() {
         return this.inviterId;
     }
@@ -100,6 +104,20 @@ public class ContactZoneParticipant extends Entity {
 
     public void setInviter(Contact inviter) {
         this.inviter = inviter;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+
+        if (null != object && object instanceof ContactZoneParticipant) {
+            ContactZoneParticipant other = (ContactZoneParticipant) object;
+            return other.id.longValue() == this.id.longValue();
+        }
+
+        return false;
     }
 
     @Override

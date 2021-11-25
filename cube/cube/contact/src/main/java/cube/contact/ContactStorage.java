@@ -530,7 +530,7 @@ public class ContactStorage extends AbstractStorage {
                 null, null, null);
 
         if (cursor.moveToFirst()) {
-            zone = new ContactZone(cursor.getLong(cursor.getColumnIndex("id")),
+            zone = new ContactZone(this.service, cursor.getLong(cursor.getColumnIndex("id")),
                     zoneName,
                     cursor.getString(cursor.getColumnIndex("display_name")),
                     cursor.getInt(cursor.getColumnIndex("peer_mode")) == 1,
@@ -667,6 +667,30 @@ public class ContactStorage extends AbstractStorage {
         this.closeWritableDatabase(db);
 
         return exists;
+    }
+
+    /**
+     * 移除参与人。
+     *
+     * @param zone
+     * @param participant
+     */
+    public void removeParticipant(ContactZone zone, ContactZoneParticipant participant) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put("timestamp", zone.getTimestamp());
+        values.put("last", zone.getLast());
+        values.put("expiry", zone.getExpiry());
+        // update
+        db.update("contact_zone", values,
+                "id=?", new String[] { zone.id.toString() });
+
+        // delete
+        db.delete("contact_zone_participant", "contact_zone_id=? AND id=?",
+                new String[]{ zone.id.toString(), participant.id.toString() });
+
+        this.closeWritableDatabase(db);
     }
 
     private Group readGroup(Cursor cursor) {

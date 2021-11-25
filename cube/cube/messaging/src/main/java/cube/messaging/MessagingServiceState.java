@@ -85,6 +85,9 @@ public enum MessagingServiceState {
     /** 数据管道故障。 */
     PipelineFault(107),
 
+    /** 没有找到会话。 */
+    NoConversation(110),
+
     /** 未知的状态。 */
     Unknown(99);
 

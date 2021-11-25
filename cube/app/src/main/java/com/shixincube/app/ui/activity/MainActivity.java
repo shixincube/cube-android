@@ -26,8 +26,11 @@
 
 package com.shixincube.app.ui.activity;
 
+import android.view.Gravity;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 
 import androidx.viewpager.widget.ViewPager;
@@ -39,6 +42,8 @@ import com.shixincube.app.ui.base.BaseFragment;
 import com.shixincube.app.ui.fragment.FragmentFactory;
 import com.shixincube.app.ui.presenter.MainPresenter;
 import com.shixincube.app.ui.view.MainView;
+import com.shixincube.app.util.PopupWindowUtils;
+import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.MainTabBar;
 
 import java.util.ArrayList;
@@ -51,6 +56,9 @@ import butterknife.BindView;
 public class MainActivity extends BaseActivity<MainView, MainPresenter> implements ViewPager.OnPageChangeListener, MainView {
 
     private MainTabBar mainTabBar;
+
+    @BindView(R.id.ibPopupMenu)
+    ImageButton popupMenuButton;
 
     @BindView(R.id.vpContent)
     ViewPager contentViewPager;
@@ -120,6 +128,8 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
         this.mainTabBar = new MainTabBar(this.presenter.getView());
         this.mainTabBar.toggleToConversation();
 
+        this.popupMenuButton.setVisibility(View.VISIBLE);
+
         // 设置缓存
         this.contentViewPager.setOffscreenPageLimit(3);
 
@@ -133,6 +143,8 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
 
     @Override
     public void initListener() {
+        this.popupMenuButton.setOnClickListener(this::onPopupMenuButtonClick);
+
         this.conversationLayout.setOnClickListener(this::onBottomTabBarClick);
         this.filesLayout.setOnClickListener(this::onBottomTabBarClick);
         this.contactsLayout.setOnClickListener(this::onBottomTabBarClick);
@@ -158,6 +170,19 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
     @Override
     protected int provideContentViewId() {
         return R.layout.activity_main;
+    }
+
+    private void onPopupMenuButtonClick(View view) {
+        View menuView = View.inflate(this, R.layout.menu_main, null);
+        PopupWindow popupWindow = PopupWindowUtils.getPopupWindowAtLocation(menuView, getWindow().getDecorView(),
+                Gravity.TOP | Gravity.END,
+                UIUtils.dp2px(5), appBar.getHeight() + 30);
+        menuView.findViewById(R.id.tvCreateGroup).setOnClickListener((v) -> {
+            popupWindow.dismiss();
+        });
+        menuView.findViewById(R.id.tvAddContact).setOnClickListener((v) -> {
+            popupWindow.dismiss();
+        });
     }
 
     private void onBottomTabBarClick(View view) {

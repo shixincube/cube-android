@@ -92,6 +92,16 @@ public final class ContactServiceEvent {
     public final static String GroupAppendixUpdated = "GroupAppendixUpdated";
 
     /**
+     * 分区参与人已移除。
+     */
+    public final static String ZoneParticipantRemoved = "ZoneParticipantRemoved";
+
+    /**
+     * 分区参与人已添加。
+     */
+    public final static String ZoneParticipantAdded = "ZoneParticipantAdded";
+
+    /**
      * 遇到程序故障。
      */
     public final static String Fault = "Fault";

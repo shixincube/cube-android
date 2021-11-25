@@ -28,8 +28,12 @@ package com.shixincube.app.ui.activity;
 
 import android.content.Intent;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.TranslateAnimation;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
@@ -41,7 +45,12 @@ import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.optionitemview.OptionItemView;
 
 import butterknife.BindView;
+import cube.contact.handler.DefaultContactZoneHandler;
 import cube.contact.model.Contact;
+import cube.contact.model.ContactZone;
+import cube.core.Module;
+import cube.core.ModuleError;
+import cube.core.handler.DefaultFailureHandler;
 import cube.engine.CubeEngine;
 
 /**
@@ -75,6 +84,14 @@ public class ContactDetailsActivity extends BaseActivity {
 
     @BindView(R.id.btnAddToContacts)
     Button addToContactsButton;
+
+    @BindView(R.id.rlMenu)
+    RelativeLayout menuLayout;
+    @BindView(R.id.svMenu)
+    ScrollView menuScrollView;
+
+    @BindView(R.id.oivDelete)
+    OptionItemView deleteItemView;
 
     private Contact contact;
 
@@ -144,6 +161,42 @@ public class ContactDetailsActivity extends BaseActivity {
 
     @Override
     public void initListener() {
+        this.toolbarMore.setOnClickListener((view) -> {
+            showMenu();
+        });
+        this.menuLayout.setOnClickListener((view) -> {
+            hideMenu();
+        });
+
+        // 删除按钮
+        this.deleteItemView.setOnClickListener((view) -> {
+            hideMenu();
+            showMaterialDialog(UIUtils.getString(R.string.delete_from_contacts),
+                    UIUtils.getString(R.string.delete_contact_content, contact.getPriorityName()),
+                    UIUtils.getString(R.string.delete),
+                    UIUtils.getString(R.string.cancel),
+                    (v) -> {
+                        hideMaterialDialog();
+                        // 获取默认联系人分区，将联系人移除
+                        CubeEngine.getInstance().getContactService()
+                                .getDefaultContactZone()
+                                .removeParticipant(contact, new DefaultContactZoneHandler(true) {
+                                    @Override
+                                    public void handleContactZone(ContactZone contactZone) {
+                                        finish();
+                                    }
+                                }, new DefaultFailureHandler(true) {
+                                    @Override
+                                    public void handleFailure(Module module, ModuleError error) {
+                                        UIUtils.showToast(UIUtils.getString(R.string.set_failure));
+                                    }
+                                });
+                    },
+                    (v) -> {
+                        hideMaterialDialog();
+                    });
+        });
+
         this.toChatButton.setOnClickListener((view) -> {
             Intent intent = new Intent(ContactDetailsActivity.this, MessagePanelActivity.class);
             intent.putExtra("conversationId", contact.getId());
@@ -160,5 +213,38 @@ public class ContactDetailsActivity extends BaseActivity {
     @Override
     protected int provideContentViewId() {
         return R.layout.activity_contact_details;
+    }
+
+    private void showMenu() {
+        this.menuLayout.setVisibility(View.VISIBLE);
+        TranslateAnimation animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0,
+                Animation.RELATIVE_TO_SELF, 0,
+                Animation.RELATIVE_TO_SELF, 1,
+                Animation.RELATIVE_TO_SELF, 0);
+        animation.setDuration(200);
+        this.menuScrollView.startAnimation(animation);
+    }
+
+    private void hideMenu() {
+        TranslateAnimation animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0,
+                Animation.RELATIVE_TO_SELF, 0,
+                Animation.RELATIVE_TO_SELF, 0,
+                Animation.RELATIVE_TO_SELF, 1);
+        animation.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                menuLayout.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+            }
+        });
+        animation.setDuration(200);
+        this.menuScrollView.startAnimation(animation);
     }
 }

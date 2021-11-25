@@ -540,6 +540,40 @@ public class MessagingService extends Module {
     }
 
     /**
+     * 删除指定名称的会话。
+     *
+     * @param conversationId
+     * @param successHandler
+     * @param failureHandler
+     */
+    public void deleteConversation(Long conversationId, ConversationHandler successHandler, FailureHandler failureHandler) {
+        for (Conversation conversation : this.conversations) {
+            if (conversation.id.longValue() == conversationId.longValue()) {
+                deleteConversation(conversation, successHandler, failureHandler);
+                return;
+            }
+        }
+
+        Conversation conversation = this.storage.readConversation(conversationId);
+        if (null == conversation) {
+            ModuleError error = new ModuleError(NAME, MessagingServiceState.NoConversation.code);
+            if (failureHandler.isInMainThread()) {
+                executeOnMainThread(() -> {
+                    failureHandler.handleFailure(MessagingService.this, error);
+                });
+            }
+            else {
+                execute(() -> {
+                    failureHandler.handleFailure(MessagingService.this, error);
+                });
+            }
+            return;
+        }
+
+        deleteConversation(conversation, successHandler, failureHandler);
+    }
+
+    /**
      * 修改会话名称。该方法仅对基于群组的会话有效。
      *
      * @param conversation 指定会话。

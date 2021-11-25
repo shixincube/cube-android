@@ -29,6 +29,7 @@ package com.shixincube.app.util;
 import android.app.Activity;
 import android.graphics.drawable.BitmapDrawable;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.PopupWindow;
 
@@ -88,6 +89,20 @@ public final class PopupWindowUtils {
                 gravityType, xOff, yOff);
 
         return popupWindow;
+    }
+
+    /**
+     * 得到指定在某个视图内位置的 PopupWindow 并显示。
+     *
+     * @param contentView
+     * @param parentView
+     * @param gravityType
+     * @param xOff
+     * @param yOff
+     * @return
+     */
+    public static PopupWindow getPopupWindowAtLocation(View contentView, View parentView, int gravityType, int xOff, int yOff) {
+        return getPopupWindowAtLocation(contentView, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, parentView, gravityType, xOff, yOff);
     }
 
     /**

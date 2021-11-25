@@ -37,12 +37,21 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
+import cube.contact.ContactService;
+import cube.contact.handler.ContactZoneHandler;
+import cube.contact.handler.StableContactZoneHandler;
+import cube.core.Module;
+import cube.core.ModuleError;
+import cube.core.handler.FailureHandler;
+import cube.core.handler.StableFailureHandler;
 import cube.core.model.Entity;
 
 /**
  * 联系人分区。
  */
 public class ContactZone extends Entity {
+
+    private final ContactService service;
 
     public final String name;
 
@@ -56,9 +65,10 @@ public class ContactZone extends Entity {
 
     private boolean ordered = false;
 
-    public ContactZone(Long id, String name, String displayName, boolean peerMode,
-                       long timestamp, ContactZoneState state) {
+    public ContactZone(ContactService service, Long id, String name, String displayName,
+                       boolean peerMode, long timestamp, ContactZoneState state) {
         super(id, timestamp);
+        this.service = service;
         this.name = name;
         this.displayName = displayName;
         this.peerMode = peerMode;
@@ -66,8 +76,9 @@ public class ContactZone extends Entity {
         this.participants = new ArrayList<>();
     }
 
-    public ContactZone(JSONObject json) throws JSONException {
+    public ContactZone(ContactService service, JSONObject json) throws JSONException {
         super(json);
+        this.service = service;
         this.name = json.getString("name");
         this.displayName = json.getString("displayName");
         this.state = ContactZoneState.parse(json.getInt("state"));
@@ -84,18 +95,38 @@ public class ContactZone extends Entity {
         }
     }
 
+    /**
+     * 获取分区名称。
+     *
+     * @return 返回分区名称。
+     */
     public String getName() {
         return this.name;
     }
 
+    /**
+     * 获取分区显示名。
+     *
+     * @return 返回分区显示名。
+     */
     public String getDisplayName() {
         return this.displayName;
     }
 
+    /**
+     * 获取分区状态。
+     *
+     * @return 返回分区状态。
+     */
     public ContactZoneState getState() {
         return this.state;
     }
 
+    /**
+     * 返回已排序的参与人列表。
+     *
+     * @return 返回已排序的参与人列表。
+     */
     public List<ContactZoneParticipant> getOrderedParticipants() {
         if (!this.ordered) {
             this.ordered = true;
@@ -105,6 +136,11 @@ public class ContactZone extends Entity {
         return this.participants;
     }
 
+    /**
+     * 返回参与人列表。
+     *
+     * @return 返回参与人列表。
+     */
     public List<ContactZoneParticipant> getParticipants() {
         return this.participants;
     }
@@ -140,6 +176,12 @@ public class ContactZone extends Entity {
         return list;
     }
 
+    /**
+     * 获取参与人的联系人列表。
+     *
+     * @param excludedState 指定排除的参与人状态。
+     * @return 返回不包含排除状态的联系人列表。
+     */
     public List<Contact> getParticipantContactsByExcluding(ContactZoneParticipantState excludedState) {
         ArrayList<Contact> list = new ArrayList<>();
         for (ContactZoneParticipant participant : this.participants) {
@@ -159,17 +201,72 @@ public class ContactZone extends Entity {
         return list;
     }
 
+    /**
+     * 是否是对等模式。
+     *
+     * @return 如果是对等模式返回 {@code true} 。
+     */
     public boolean isPeerMode() {
         return this.peerMode;
     }
 
+    /**
+     * 非公开方法。
+     *
+     * @param participant
+     */
     public void addParticipant(ContactZoneParticipant participant) {
-        this.participants.add(participant);
-        this.ordered = false;
+        if (!this.participants.contains(participant)) {
+            this.participants.add(participant);
+            this.ordered = false;
+        }
     }
 
+    /**
+     * 非公开方法。
+     *
+     * @param participant
+     */
     public void removeParticipant(ContactZoneParticipant participant) {
         this.participants.remove(participant);
+    }
+
+    public void addParticipant(Contact contact, String postscript) {
+        if (this.contains(contact)) {
+            return;
+        }
+
+        ContactZoneParticipant participant = new ContactZoneParticipant(contact.id, System.currentTimeMillis(),
+                ContactZoneParticipantType.Contact, ContactZoneParticipantState.Pending,
+                this.service.getSelf().id, postscript);
+        this.service.addParticipantToZone(this, participant, new StableContactZoneHandler() {
+            @Override
+            public void handleContactZone(ContactZone contactZone) {
+
+            }
+        }, new StableFailureHandler() {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+
+            }
+        });
+    }
+
+    /**
+     * 移除参与人。
+     *
+     * @param contact
+     * @param successHandler
+     * @param failureHandler
+     */
+    public void removeParticipant(Contact contact, ContactZoneHandler successHandler, FailureHandler failureHandler) {
+        ContactZoneParticipant participant = this.getParticipant(contact);
+        if (null == participant) {
+            this.service.execute(failureHandler);
+            return;
+        }
+
+        this.service.removeParticipantFromZone(this, participant, successHandler, failureHandler);
     }
 
     /**
@@ -186,6 +283,16 @@ public class ContactZone extends Entity {
         }
 
         return false;
+    }
+
+    private ContactZoneParticipant getParticipant(Contact contact) {
+        for (ContactZoneParticipant participant : this.participants) {
+            if (participant.id.longValue() == contact.id.longValue()) {
+                return participant;
+            }
+        }
+
+        return null;
     }
 
     /**

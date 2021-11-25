@@ -58,6 +58,13 @@
     <color name="conversation_func_pressed">#D9D9D9</color>
     <color name="conversation_func_normal">#FEFEFE</color>
 
+    <!--遮盖层颜色-->
+    <color name="mask">#32000000</color>
+
+    <!--快速索引 Bar 颜色-->
+    <color name="side_bar">#919091</color>
+    <color name="side_bar_pressed">#BFBFBF</color>
+
     <color name="file_classify_button_normal">#FDFDFD</color>
     <color name="file_classify_button_pressed">#E1E1E1</color>
 
@@ -117,12 +124,4 @@
 
     <color name="yellow0">#FFC51B</color>
     <color name="yellow1">#E5A134</color>
-
-
-    <!--遮盖层颜色-->
-    <color name="mask">#32000000</color>
-
-    <!--快速索引 Bar 颜色-->
-    <color name="side_bar">#919091</color>
-    <color name="side_bar_pressed">#BFBFBF</color>
 </resources>

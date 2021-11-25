@@ -28,6 +28,7 @@ package cube.messaging;
 
 import cube.contact.ContactService;
 import cube.contact.ContactServiceEvent;
+import cube.contact.model.ContactZoneBundle;
 import cube.contact.model.Group;
 import cube.core.Module;
 import cube.core.ModuleError;
@@ -108,11 +109,25 @@ public class MessagingObserver implements Observer {
                     }, new StableFailureHandler() {
                         @Override
                         public void handleFailure(Module module, ModuleError error) {
-                            LogUtils.w(TAG, "GroupDissolved: " + error.code);
+                            LogUtils.w(TAG, "GroupDismissed: " + error.code);
                         }
                     });
                 }
             }
+        }
+        else if (ContactServiceEvent.ZoneParticipantRemoved.equals(event.name)) {
+            ContactZoneBundle bundle = (ContactZoneBundle) event.getData();
+            this.service.deleteConversation(bundle.participant.id, new DefaultConversationHandler(false) {
+                @Override
+                public void handleConversation(Conversation conversation) {
+                    LogUtils.d(TAG, "ZoneParticipantRemoved");
+                }
+            }, new StableFailureHandler() {
+                @Override
+                public void handleFailure(Module module, ModuleError error) {
+                    LogUtils.w(TAG, "ZoneParticipantRemoved: " + error.code);
+                }
+            });
         }
         else if (ContactServiceEvent.SignOut.equals(event.name)) {
             synchronized (this.service) {

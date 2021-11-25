@@ -57,6 +57,7 @@ import cube.contact.model.AbstractContact;
 import cube.contact.model.Contact;
 import cube.contact.model.ContactAppendix;
 import cube.contact.model.ContactZone;
+import cube.contact.model.ContactZoneBundle;
 import cube.contact.model.ContactZoneParticipant;
 import cube.contact.model.ContactZoneParticipantType;
 import cube.contact.model.ContactZoneState;
@@ -967,7 +968,7 @@ public class ContactService extends Module {
         }
 
         // 数据库没有数据或已经过期，从服务器获取
-        ContactZone dummyZone = new ContactZone(0L, zoneName, zoneName,
+        ContactZone dummyZone = new ContactZone(this, 0L, zoneName, zoneName,
                 false, 0, ContactZoneState.Normal);
         // 从服务器获取
         this.refreshContactZone(dummyZone, false, new StableContactZoneHandler() {
@@ -1072,7 +1073,8 @@ public class ContactService extends Module {
             }
 
             try {
-                ContactZone responseZone = new ContactZone(packet.extractServiceData());
+                ContactZone responseZone = new ContactZone(ContactService.this, packet.extractServiceData());
+                // 更新到数据库
                 storage.writeContactZone(responseZone);
 
                 if (successHandler.isInMainThread()) {
@@ -1088,6 +1090,117 @@ public class ContactService extends Module {
             } catch (JSONException e) {
                 LogUtils.w(TAG, "#createContactZone", e);
             }
+        });
+    }
+
+    public void addParticipantToZone(ContactZone zone, ContactZoneParticipant participant,
+                                     ContactZoneHandler successHandler, FailureHandler failureHandler) {
+
+    }
+
+    /**
+     * 从指定分区里移除参与人。
+     *
+     * @param zone
+     * @param participant
+     * @param successHandler
+     * @param failureHandler
+     */
+    public void removeParticipantFromZone(ContactZone zone, ContactZoneParticipant participant,
+                                          ContactZoneHandler successHandler, FailureHandler failureHandler) {
+        if (!this.pipeline.isReady()) {
+            ModuleError error = new ModuleError(NAME, ContactServiceState.NoNetwork.code);
+            error.data = zone;
+            if (failureHandler.isInMainThread()) {
+                executeOnMainThread(() -> {
+                    failureHandler.handleFailure(ContactService.this, error);
+                });
+            }
+            else {
+                execute(() -> {
+                    failureHandler.handleFailure(ContactService.this, error);
+                });
+            }
+            return;
+        }
+
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("name", zone.name);
+            payload.put("participant", participant.toJSON());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        Packet requestPacket = new Packet(ContactServiceAction.RemoveParticipantFromZone, payload);
+        this.pipeline.send(ContactService.NAME, requestPacket, (packet) -> {
+            if (packet.state.code != PipelineState.Ok.code) {
+                ModuleError error = new ModuleError(NAME, packet.state.code);
+                error.data = zone;
+                if (failureHandler.isInMainThread()) {
+                    executeOnMainThread(() -> {
+                        failureHandler.handleFailure(ContactService.this, error);
+                    });
+                }
+                else {
+                    execute(() -> {
+                        failureHandler.handleFailure(ContactService.this, error);
+                    });
+                }
+                return;
+            }
+
+            int stateCode = packet.extractServiceStateCode();
+            if (stateCode != ContactServiceState.Ok.code) {
+                ModuleError error = new ModuleError(NAME, stateCode);
+                error.data = zone;
+                if (failureHandler.isInMainThread()) {
+                    executeOnMainThread(() -> {
+                        failureHandler.handleFailure(ContactService.this, error);
+                    });
+                }
+                else {
+                    execute(() -> {
+                        failureHandler.handleFailure(ContactService.this, error);
+                    });
+                }
+                return;
+            }
+
+            JSONObject response = packet.extractServiceData();
+            long timestamp = 0;
+            try {
+                timestamp = response.getLong("timestamp");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            // 移除
+            zone.removeParticipant(participant);
+            zone.resetLast(timestamp);
+            zone.setTimestamp(timestamp);
+
+            // 更新数据库
+            storage.removeParticipant(zone, participant);
+
+            if (successHandler.isInMainThread()) {
+                executeOnMainThread(() -> {
+                    successHandler.handleContactZone(zone);
+                });
+            }
+            else {
+                execute(() -> {
+                    successHandler.handleContactZone(zone);
+                });
+            }
+
+            execute(() -> {
+                ContactZoneBundle bundle = new ContactZoneBundle(zone, participant);
+                ObservableEvent event = new ObservableEvent(ContactServiceEvent.ZoneParticipantRemoved, bundle);
+                notifyObservers(event);
+
+                event = new ObservableEvent(ContactServiceEvent.ContactZoneUpdated, zone);
+                notifyObservers(event);
+            });
         });
     }
 
@@ -1416,7 +1529,7 @@ public class ContactService extends Module {
                         notifyObservers(event);
                     });
                 } catch (JSONException e) {
-                    LogUtils.w(TAG, "dissolve group failed", e);
+                    LogUtils.w(TAG, "dismiss group failed", e);
                 }
             }
         });
@@ -2028,7 +2141,7 @@ public class ContactService extends Module {
 
             // 邀请人
             Long inviterId = participant.getInviterId();
-            if (inviterId.longValue() > 0) {
+            if (inviterId.longValue() > 0 && null == participant.getInviter()) {
                 participant.setInviter(this.getContact(inviterId));
             }
         }
@@ -2111,7 +2224,7 @@ public class ContactService extends Module {
                 }
 
                 try {
-                    ContactZone newZone = new ContactZone(packet.extractServiceData());
+                    ContactZone newZone = new ContactZone(ContactService.this, packet.extractServiceData());
                     if (compact) {
                         // 判断是否需要更新
                         if (newZone.getTimestamp() != zone.getTimestamp()) {
@@ -2138,8 +2251,10 @@ public class ContactService extends Module {
                             successHandler.handleContactZone(newZone);
                         }
 
-                        ObservableEvent event = new ObservableEvent(ContactServiceEvent.ContactZoneUpdated, newZone);
-                        notifyObservers(event);
+                        execute(() -> {
+                            ObservableEvent event = new ObservableEvent(ContactServiceEvent.ContactZoneUpdated, newZone);
+                            notifyObservers(event);
+                        });
                     }
                 } catch (JSONException e) {
                     LogUtils.w(TAG, e);
@@ -2180,7 +2295,7 @@ public class ContactService extends Module {
                     for (int i = 0; i < array.length(); ++i) {
                         JSONObject data = array.getJSONObject(i);
                         // 实例化
-                        ContactZone zone = new ContactZone(data);
+                        ContactZone zone = new ContactZone(ContactService.this, data);
 
                         // 写入数据库
                         boolean exists = storage.writeContactZone(zone);

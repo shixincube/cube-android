@@ -89,7 +89,11 @@
     <string name="signature">个性签名</string>
     <string name="send_message">发消息</string>
     <string name="add_to_contacts">添加到联系人</string>
+    <string name="delete_from_contacts">删除联系人</string>
+    <string name="delete_contact_content">将联系人%1$s删除，将同时删除与该联系人的聊天记录</string>
     <string name="save_to_phone">保存到手机</string>
+    <string name="add_to_block_list">添加到黑名单</string>
+    <string name="send_contact_card">发送联系人名片</string>
 
     <!-- 群组信息 -->
     <string name="group_name">群组名称</string>
@@ -97,6 +101,7 @@
     <string name="my_nickname_in_this_group">我在本群的昵称</string>
     <string name="display_member_name">显示群成员昵称</string>
     <string name="delete_and_quit">删除并退出</string>
+    <string name="create_group">创建群聊</string>
     <string name="create_group_success">创建群聊成功</string>
     <string name="create_group_failure">创建群聊失败，请稍候再试</string>
     <string name="are_you_sure_to_dismiss_this_group">你确定要解散该群吗?</string>
@@ -129,6 +134,7 @@
     <string name="please_wait_a_moment">请稍候</string>
     <string name="please_try_again_later">请稍候再试</string>
     <string name="save">保存</string>
+    <string name="delete">删除</string>
     <string name="save_success">保存成功</string>
     <string name="save_failure">保存失败</string>
     <string name="set_success">操作成功</string>

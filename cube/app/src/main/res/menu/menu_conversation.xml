@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/menu_set_top"
+        android:title="@string/conv_top"/>
+
+    <item
+        android:id="@+id/menu_cancel_top"
+        android:title="@string/conv_top_cancel"/>
+
+    <item
+        android:id="@+id/menu_delete_conversation"
+        android:title="@string/conv_delete"/>
+
+</menu>

@@ -113,11 +113,13 @@
     <string name="draft">[草稿]</string>
     <string name="conv_title">会话详情</string>
     <string name="conv_remind_close">消息免打扰</string>
-    <string name="conv_top">会话置顶</string>
+    <string name="conv_top">置顶聊天</string>
+    <string name="conv_delete">删除聊天</string>
     <string name="conv_search_content">查找聊天内容</string>
     <string name="conv_top_confirm">已置顶</string>
     <string name="conv_top_cancel">取消置顶</string>
     <string name="conv_clear_records">清空聊天记录</string>
+    <string name="tip_conv_deleted">聊天已删除</string>
 
     <!-- 常用 -->
     <string name="prompt">提示</string>

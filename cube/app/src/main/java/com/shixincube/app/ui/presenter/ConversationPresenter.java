@@ -27,9 +27,12 @@
 package com.shixincube.app.ui.presenter;
 
 import android.content.Intent;
+import android.view.Gravity;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.PopupMenu;
 
 import com.shixincube.app.R;
 import com.shixincube.app.model.MessageConversation;
@@ -39,6 +42,7 @@ import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.ConversationView;
 import com.shixincube.app.util.AvatarUtils;
 import com.shixincube.app.util.DateUtils;
+import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.adapter.AdapterForRecyclerView;
 import com.shixincube.app.widget.adapter.OnItemClickListener;
 import com.shixincube.app.widget.adapter.OnItemLongClickListener;
@@ -48,6 +52,9 @@ import com.shixincube.app.widget.adapter.ViewHolderForRecyclerView;
 import java.util.ArrayList;
 import java.util.List;
 
+import cube.core.Module;
+import cube.core.ModuleError;
+import cube.core.handler.DefaultFailureHandler;
 import cube.engine.CubeEngine;
 import cube.engine.util.Future;
 import cube.engine.util.Promise;
@@ -55,8 +62,10 @@ import cube.engine.util.PromiseFuture;
 import cube.engine.util.PromiseHandler;
 import cube.messaging.MessagingRecentEventListener;
 import cube.messaging.MessagingService;
+import cube.messaging.handler.DefaultConversationHandler;
 import cube.messaging.model.Conversation;
 import cube.messaging.model.ConversationReminded;
+import cube.messaging.model.ConversationState;
 import cube.messaging.model.ConversationType;
 import cube.util.LogUtils;
 
@@ -148,7 +157,69 @@ public class ConversationPresenter extends BasePresenter<ConversationView> imple
             this.adapter.setOnItemLongClickListener(new OnItemLongClickListener() {
                 @Override
                 public boolean onItemLongClick(ViewHolder helper, ViewGroup parent, View itemView, int position) {
-                    return false;
+                    MessageConversation item = messageConversations.get(position);
+                    // 将菜单显示在摘要内容下面
+                    PopupMenu menu = new PopupMenu(activity, itemView.findViewById(R.id.tvContent), Gravity.CENTER);
+                    menu.getMenuInflater().inflate(R.menu.menu_conversation, menu.getMenu());
+
+                    if (item.conversation.getState() == ConversationState.Important) {
+                        menu.getMenu().getItem(0).setVisible(false);
+                    }
+                    else {
+                        menu.getMenu().getItem(1).setVisible(false);
+                    }
+
+                    menu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                        @Override
+                        public boolean onMenuItemClick(MenuItem menuItem) {
+                            if (menuItem.getItemId() == R.id.menu_set_top) {
+                                CubeEngine.getInstance().getMessagingService().focusOnConversation(item.conversation, new DefaultConversationHandler(true) {
+                                    @Override
+                                    public void handleConversation(Conversation conversation) {
+                                        loadConversations();
+                                    }
+                                }, new DefaultFailureHandler(true) {
+                                    @Override
+                                    public void handleFailure(Module module, ModuleError error) {
+                                        UIUtils.showToast(UIUtils.getString(R.string.set_failure));
+                                    }
+                                });
+                            }
+                            else if (menuItem.getItemId() == R.id.menu_cancel_top) {
+                                CubeEngine.getInstance().getMessagingService().focusOutConversation(item.conversation, new DefaultConversationHandler(true) {
+                                    @Override
+                                    public void handleConversation(Conversation conversation) {
+                                        loadConversations();
+                                    }
+                                }, new DefaultFailureHandler(true) {
+                                    @Override
+                                    public void handleFailure(Module module, ModuleError error) {
+                                        UIUtils.showToast(UIUtils.getString(R.string.set_failure));
+                                    }
+                                });
+                            }
+                            else if (menuItem.getItemId() == R.id.menu_delete_conversation) {
+                                CubeEngine.getInstance().getMessagingService().deleteConversation(item.conversation, new DefaultConversationHandler(true) {
+                                    @Override
+                                    public void handleConversation(Conversation conversation) {
+                                        UIUtils.showToast(UIUtils.getString(R.string.tip_conv_deleted));
+                                        loadConversations();
+                                    }
+                                }, new DefaultFailureHandler(true) {
+                                    @Override
+                                    public void handleFailure(Module module, ModuleError error) {
+                                        UIUtils.showToast(UIUtils.getString(R.string.set_failure));
+                                    }
+                                });
+                            }
+
+                            return true;
+                        }
+                    });
+
+                    // 显示菜单
+                    menu.show();
+                    return true;
                 }
             });
 

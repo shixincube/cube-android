@@ -606,7 +606,7 @@ public class MessagingService extends Module {
         Conversation conversation = null;
 
         synchronized (this) {
-            if (null == this.conversations || this.conversations.isEmpty()) {
+            if (this.conversations.isEmpty()) {
                 conversation = this.storage.readConversation(id);
             }
             else {
@@ -639,7 +639,7 @@ public class MessagingService extends Module {
                 }
             }
 
-            if (null != conversation && null != this.conversations) {
+            if (null != conversation) {
                 this.tryAddConversation(conversation);
             }
         }
@@ -1110,6 +1110,11 @@ public class MessagingService extends Module {
                 storage.updateConversation(conversation);
 
                 synchronized (MessagingService.this) {
+                    if (conversation.getState() == ConversationState.Deleted) {
+                        // 尝试删除已删除的会话
+                        conversations.remove(conversation);
+                    }
+
                     sortConversationList(conversations);
                 }
 
@@ -1836,6 +1841,23 @@ public class MessagingService extends Module {
             if (!this.conversations.contains(conversation)) {
                 this.conversations.add(conversation);
                 this.sortConversationList(this.conversations);
+
+                // 修改状态
+                if (conversation.getState() == ConversationState.Deleted) {
+                    conversation.setState(ConversationState.Normal);
+                    // 与服务器同步数据
+                    this.updateConversation(conversation, new DefaultConversationHandler(false) {
+                        @Override
+                        public void handleConversation(Conversation conversation) {
+                            // Nothing
+                        }
+                    }, new StableFailureHandler() {
+                        @Override
+                        public void handleFailure(Module module, ModuleError error) {
+                            // Nothing
+                        }
+                    });
+                }
 
                 this.storage.writeConversation(conversation);
             }

@@ -2283,6 +2283,12 @@ public class ContactService extends Module {
         });
     }
 
+    /**
+     * 从服务器更新分区信息。
+     *
+     * @param timestamp
+     * @param handler
+     */
     private void listContactZones(long timestamp, ContactZoneListHandler handler) {
         JSONObject requestParam = new JSONObject();
         try {
@@ -2489,6 +2495,28 @@ public class ContactService extends Module {
             @Override
             public void handleList(List<ContactZone> list) {
                 LogUtils.d(ContactService.class.getSimpleName(), "#listContactZones");
+
+                for (ContactZone contactZone : list) {
+                    if (contactZone.name.equals(defaultContactZoneName)) {
+                        if (null != defaultContactZone) {
+                            // 重新加载默认分区
+                            defaultContactZone = contactZone;
+                            execute(() -> {
+                                fillContactZone(defaultContactZone);
+                            });
+                        }
+                    }
+                    else if (contactZone.name.equals(defaultGroupZoneName)) {
+                        if (null != defaultGroupZone) {
+                            // 重新加载默认分区
+                            defaultGroupZone = contactZone;
+                            execute(() -> {
+                                fillContactZone(defaultGroupZone);
+                            });
+                        }
+                    }
+                }
+
                 gotZoneList.value = true;
                 completion.handleCompletion(null);
             }

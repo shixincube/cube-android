@@ -48,6 +48,7 @@ import com.shixincube.app.widget.optionitemview.OptionItemView;
 import butterknife.BindView;
 import cube.contact.model.Contact;
 import cube.engine.CubeEngine;
+import cube.messaging.model.Conversation;
 
 /**
  * 联系人详情界面。
@@ -184,10 +185,17 @@ public class ContactDetailsActivity extends BaseActivity<ContactDetailsView, Con
         });
 
         this.toChatButton.setOnClickListener((view) -> {
-            Intent intent = new Intent(ContactDetailsActivity.this, MessagePanelActivity.class);
-            intent.putExtra("conversationId", contact.getId());
-            jumpToActivity(intent);
-            finish();
+            // 申请会话
+            Conversation conversation = CubeEngine.getInstance().getMessagingService().applyConversation(contact.getId());
+            if (null != conversation) {
+                Intent intent = new Intent(ContactDetailsActivity.this, MessagePanelActivity.class);
+                intent.putExtra("conversationId", conversation.getId());
+                jumpToActivity(intent);
+                finish();
+            }
+            else {
+                UIUtils.showToast(UIUtils.getString(R.string.not_allow));
+            }
         });
     }
 

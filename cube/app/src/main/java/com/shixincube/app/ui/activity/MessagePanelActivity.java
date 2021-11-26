@@ -384,7 +384,7 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
             case REQUEST_FILE_PICKER:
                 if (resultCode == RESULT_OK) {
                     ArrayList<NormalFile> list = data.getParcelableArrayListExtra(Constant.RESULT_PICK_FILE);
-
+                    // TODO 文件处理
                 }
                 break;
             case REQUEST_DETAILS:

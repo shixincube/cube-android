@@ -136,6 +136,7 @@
     <string name="no_setting">未设置</string>
     <string name="please_wait_a_moment">请稍候</string>
     <string name="please_try_again_later">请稍候再试</string>
+    <string name="not_allow">不允许的操作</string>
     <string name="save">保存</string>
     <string name="delete">删除</string>
     <string name="save_success">保存成功</string>

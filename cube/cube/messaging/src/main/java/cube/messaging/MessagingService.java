@@ -465,7 +465,7 @@ public class MessagingService extends Module {
             @Override
             public void handleGroup(Group group) {
                 // 创建会话
-                Conversation conversation = getConversation(group.id);
+                Conversation conversation = applyConversation(group.id);
                 if (successHandler.isInMainThread()) {
                     executeOnMainThread(() -> {
                         successHandler.handleConversation(conversation);
@@ -647,51 +647,97 @@ public class MessagingService extends Module {
     }
 
     /**
-     * 获取指定 ID 的会话。
+     * 申请指定 ID 的会话。
      *
      * @param id 指定会话 ID 。
-     * @return 返回会话实例。
+     * @return 返回会话实例。如果无法申请到合法的会话返回 {@code null} 值。
      */
-    public Conversation getConversation(Long id) {
+    public Conversation applyConversation(Long id) {
         Conversation conversation = null;
 
         synchronized (this) {
-            if (this.conversations.isEmpty()) {
-                conversation = this.storage.readConversation(id);
-            }
-            else {
-                for (Conversation conv : this.conversations) {
-                    if (conv.id.longValue() == id.longValue()) {
-                        conversation = conv;
-                        break;
-                    }
+            for (Conversation conv : this.conversations) {
+                if (conv.id.longValue() == id.longValue()) {
+                    conversation = conv;
+                    break;
                 }
             }
         }
 
         if (null == conversation) {
-            // 从存储里读取
             conversation = this.storage.readConversation(id);
+        }
 
-            if (null == conversation) {
-                // 创建新的会话
-                Group group = null;
-                Contact contact = this.contactService.getLocalContact(id);
-                if (null == contact) {
-                    group = this.contactService.getGroup(id);
-                }
-
-                if (null != contact) {
-                    conversation = new Conversation(this.contactService.getSelf(), contact, ConversationReminded.Normal);
-                }
-                else if (null != group) {
-                    conversation = new Conversation(this.contactService.getSelf(), group, ConversationReminded.Normal);
-                }
+        if (null != conversation) {
+            // 判断状态
+            if (conversation.getState() == ConversationState.Destroyed) {
+                return null;
             }
 
-            if (null != conversation) {
-                this.tryAddConversation(conversation);
+            if (conversation.getState() == ConversationState.Deleted) {
+                // 从删除状态恢复到标准状态
+                conversation.setState(ConversationState.Normal);
+                // 更新
+                updateConversation(conversation, new DefaultConversationHandler(false) {
+                    @Override
+                    public void handleConversation(Conversation conversation) {
+                        // Nothing
+                    }
+                }, new StableFailureHandler() {
+                    @Override
+                    public void handleFailure(Module module, ModuleError error) {
+                        // Nothing
+                    }
+                });
             }
+
+            this.tryAddConversation(conversation);
+
+            return conversation;
+        }
+
+        // 创建新的会话
+        Group group = null;
+        Contact contact = this.contactService.getLocalContact(id);
+        if (null == contact) {
+            group = this.contactService.getGroup(id);
+        }
+
+        if (null != contact) {
+            conversation = new Conversation(this.contactService.getSelf(), contact, ConversationReminded.Normal);
+        }
+        else if (null != group) {
+            conversation = new Conversation(this.contactService.getSelf(), group, ConversationReminded.Normal);
+        }
+
+        if (null != conversation) {
+            this.tryAddConversation(conversation);
+            this.storage.writeConversation(conversation);
+        }
+
+        return conversation;
+    }
+
+    /**
+     * 获取指定 ID 的会话。
+     *
+     * @param id 指定会话 ID 。
+     * @return
+     */
+    public Conversation getConversation(Long id) {
+        Conversation conversation = null;
+
+        synchronized (this) {
+            for (Conversation conv : this.conversations) {
+                if (conv.id.longValue() == id.longValue()) {
+                    conversation = conv;
+                    break;
+                }
+            }
+        }
+
+        if (null == conversation) {
+            conversation = this.storage.readConversation(id);
         }
 
         return conversation;
@@ -1204,10 +1250,10 @@ public class MessagingService extends Module {
     public MessageListResult getRecentMessages(Conversation conversation, int limit) {
         MessageList list = this.conversationMessageListMap.get(conversation.id);
         if (null != list) {
-            if (!list.messages.isEmpty()) {
-                // 延长实体寿命
-                list.extendLife(3L * 60L * 1000L);
+            // 延长实体寿命
+            list.extendLife(3L * 60L * 1000L);
 
+            if (!list.messages.isEmpty()) {
                 final List<Message> resultList = new ArrayList<>(list.messages);
                 final boolean hasMore = list.hasMore;
 
@@ -1901,25 +1947,6 @@ public class MessagingService extends Module {
             if (!this.conversations.contains(conversation)) {
                 this.conversations.add(conversation);
                 this.sortConversationList(this.conversations);
-
-                // 修改状态
-                if (conversation.getState() == ConversationState.Deleted) {
-                    conversation.setState(ConversationState.Normal);
-                    // 与服务器同步数据
-                    this.updateConversation(conversation, new DefaultConversationHandler(false) {
-                        @Override
-                        public void handleConversation(Conversation conversation) {
-                            // Nothing
-                        }
-                    }, new StableFailureHandler() {
-                        @Override
-                        public void handleFailure(Module module, ModuleError error) {
-                            // Nothing
-                        }
-                    });
-                }
-
-                this.storage.writeConversation(conversation);
             }
         }
     }
@@ -2539,6 +2566,14 @@ public class MessagingService extends Module {
         MessageList list = this.conversationMessageListMap.get(conversationId);
         if (null != list) {
             list.appendMessage(message);
+            // 延长有效期
+            list.extendLife(3L * 60L * 1000L);
+        }
+        else {
+            list = new MessageList();
+            this.conversationMessageListMap.put(conversationId, list);
+            // 托管列表内的实体生命周期
+            this.kernel.getInspector().depositList(list.messages);
         }
 
         Conversation conversation = null;
@@ -2559,6 +2594,9 @@ public class MessagingService extends Module {
                 this.storage.updateConversationTimestamp(conversation);
                 return;
             }
+
+            // 追加消息
+            list.appendMessage(message);
 
             // 更新消息
             conversation.setRecentMessage(message);

@@ -138,22 +138,7 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
             }
 
             if (null != tip) {
-                NotificationMessage tipMessage = new NotificationMessage(tip);
-
-                CubeEngine.getInstance().getMessagingService().sendMessage(this.conversation, tipMessage,
-                        new SimpleSendHandler<Conversation, NotificationMessage>(false) {
-                            @Override
-                            public void handleSending(Conversation destination, NotificationMessage message) {
-                                // Nothing
-                            }
-
-                            @Override
-                            public void handleSent(Conversation destination, NotificationMessage message) {
-                                activity.runOnUiThread(() -> {
-                                    loadMessages();
-                                });
-                            }
-                        });
+                this.appendLocalMessage(tip);
             }
         }
     }
@@ -367,7 +352,11 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
     }
 
     public void moveToBottom() {
-        getView().getMessageListView().smoothMoveToPosition(this.adapter.getData().size() - 1);
+        if (this.messageList.isEmpty()) {
+            return;
+        }
+
+        getView().getMessageListView().smoothMoveToPosition(this.messageList.size() - 1);
     }
 
     private void updateMessageStatus(Message message) {

@@ -117,6 +117,11 @@ public abstract class BaseActivity<V, T extends BasePresenter<V>> extends AppCom
         }
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
     public void setToolbarTitle(String title) {
         toolbarTitle.setText(title);
     }

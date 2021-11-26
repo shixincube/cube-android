@@ -13,7 +13,7 @@
         <com.zhy.autolayout.AutoRelativeLayout
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:background="@color/toolbar_bg">
+            android:background="?attr/colorToolbarBackground">
 
             <ImageView
                 android:id="@+id/ivToolbarNavigation"
@@ -21,15 +21,14 @@
                 android:layout_height="20dp"
                 android:layout_centerVertical="true"
                 android:layout_marginStart="10dp"
-                android:src="@mipmap/ic_back_black" />
+                android:src="?attr/mipmapToolbarNavigation" />
 
-            <!--android:background="@drawable/shape_vertical_line"-->
             <View
                 android:id="@+id/vToolbarDivision"
                 android:layout_width="18dp"
                 android:layout_height="match_parent"
                 android:layout_toEndOf="@id/ivToolbarNavigation"
-                android:background="@color/toolbar_bg"
+                android:background="?attr/colorToolbarBackground"
                 android:visibility="gone" />
 
             <com.zhy.autolayout.AutoLinearLayout
@@ -47,7 +46,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text=""
-                    android:textColor="@color/toolbar_text"
+                    android:textColor="?attr/colorToolbarText"
                     android:textSize="18sp"
                     android:visibility="visible" />
 
@@ -55,9 +54,10 @@
                     android:id="@+id/tvToolbarSubTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/toolbar_text"
+                    android:textColor="?attr/colorToolbarText"
                     android:textSize="12sp"
                     android:visibility="gone" />
+
             </com.zhy.autolayout.AutoLinearLayout>
 
             <!-- 附加菜单 -->
@@ -69,34 +69,8 @@
                 android:layout_centerVertical="true"
                 android:layout_marginEnd="@dimen/item_margin_left_and_right"
                 android:background="@null"
-                android:src="@mipmap/ic_add_black"
+                android:src="?attr/mipmapToolbarPopup"
                 android:visibility="gone" />
-
-            <!-- 添加联系人 -->
-            <com.zhy.autolayout.AutoLinearLayout
-                android:id="@+id/llToolbarAddContact"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_alignParentEnd="true"
-                android:gravity="center"
-                android:visibility="gone">
-
-                <View
-                    android:layout_width="16dp"
-                    android:layout_height="match_parent"
-                    android:layout_toEndOf="@id/ivToolbarNavigation"
-                    android:background="@drawable/shape_vertical_line"
-                    android:visibility="visible" />
-
-                <TextView
-                    android:id="@+id/tvToolbarAddContact"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="12dp"
-                    android:text="@string/add_contact"
-                    android:textColor="@color/toolbar_text"
-                    android:textSize="20sp" />
-            </com.zhy.autolayout.AutoLinearLayout>
 
             <!-- 搜索 -->
             <com.zhy.autolayout.AutoLinearLayout
@@ -124,8 +98,8 @@
                     android:maxLines="1"
                     android:inputType="text"
                     android:autofillHints=""
-                    android:textColor="@color/toolbar_text"
-                    android:textColorHint="@color/text_accent"
+                    android:textColor="?attr/colorToolbarText"
+                    android:textColorHint="?attr/colorToolbarTextHint"
                     android:textSize="14sp" />
 
                 <View
@@ -135,7 +109,7 @@
                     android:background="@drawable/shape_bottom_theme" />
             </com.zhy.autolayout.AutoLinearLayout>
 
-            <!-- 辅助按钮 -->
+            <!-- 辅助功能按钮 -->
             <Button
                 android:id="@+id/btnToolbarFunc"
                 android:layout_width="64dp"

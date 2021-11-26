@@ -28,12 +28,17 @@ package com.shixincube.app;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Handler;
 import android.widget.ImageView;
 
+import androidx.appcompat.app.AppCompatDelegate;
+
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.shixincube.app.manager.PreferenceHelper;
+import com.shixincube.app.manager.ThemeMode;
 import com.shixincube.app.widget.emotion.EmotionKit;
 import com.shixincube.app.widget.emotion.ImageLoader;
 import com.shixincube.imagepicker.ImagePicker;
@@ -52,6 +57,8 @@ public class CubeApp extends CubeBaseApp {
     public void onCreate() {
         super.onCreate();
 
+        setupTheme();
+
         EmotionKit.init(this, new ImageLoader() {
             @Override
             public void displayImage(Context context, String path, ImageView imageView) {
@@ -66,6 +73,50 @@ public class CubeApp extends CubeBaseApp {
                 initImagePicker();
             }
         }, 100);
+    }
+
+    /**
+     * 配置主题。
+     */
+    private void setupTheme() {
+        int uiMode = getResources().getConfiguration().uiMode;
+        int dayNightUiMode = uiMode & Configuration.UI_MODE_NIGHT_MASK;
+
+        // 主题模式
+        ThemeMode themeMode = PreferenceHelper.getInstance().getDarkThemeMode();
+
+        if (themeMode == ThemeMode.FollowSystem) {
+            // 跟随系统
+            switch (dayNightUiMode) {
+                case Configuration.UI_MODE_NIGHT_YES:
+                    // 需要使用夜间主题
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                    break;
+                case Configuration.UI_MODE_NIGHT_NO:
+                    // 不需要使用夜间主题
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                    break;
+                case Configuration.UI_MODE_NIGHT_UNDEFINED:
+                    // 系统未定义，进行检查
+                    if (PreferenceHelper.getInstance().checkEnableDarkTheme()) {
+                        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                    }
+                    else {
+                        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+        else if (themeMode == ThemeMode.AlwaysOn) {
+            // 启用夜间主题
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+        }
+        else if (themeMode == ThemeMode.AlwaysOff) {
+            // 停用夜间主题
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        }
     }
 
     private void initImagePicker() {

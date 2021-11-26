@@ -42,7 +42,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import com.shixincube.app.R;
-import com.shixincube.app.ui.base.BaseFragmentActivity;
+import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.presenter.MessagePanelPresenter;
 import com.shixincube.app.ui.view.MessagePanelView;
 import com.shixincube.app.util.UIUtils;
@@ -50,7 +50,6 @@ import com.shixincube.app.widget.emotion.EmotionLayout;
 import com.shixincube.app.widget.keyboard.SoftwareKeyboard;
 import com.shixincube.app.widget.recyclerview.RecyclerView;
 import com.shixincube.filepicker.Constant;
-import com.shixincube.filepicker.activity.BaseActivity;
 import com.shixincube.filepicker.activity.NormalFilePickActivity;
 import com.shixincube.filepicker.filter.entity.NormalFile;
 import com.shixincube.imagepicker.ImagePicker;
@@ -72,7 +71,7 @@ import cube.messaging.model.ConversationState;
 /**
  * 消息面板。
  */
-public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView, MessagePanelPresenter> implements MessagePanelView, BGARefreshLayout.BGARefreshLayoutDelegate {
+public class MessagePanelActivity extends BaseActivity<MessagePanelView, MessagePanelPresenter> implements MessagePanelView, BGARefreshLayout.BGARefreshLayoutDelegate {
 
     public final static int REQUEST_IMAGE_PICKER = 1000;
     public final static int REQUEST_TAKE_PHOTO = 2000;
@@ -248,7 +247,7 @@ public class MessagePanelActivity extends BaseFragmentActivity<MessagePanelView,
         filesButton.setOnClickListener((view) -> {
             Intent intent = new Intent(this, NormalFilePickActivity.class);
             intent.putExtra(Constant.MAX_NUMBER, 9);
-            intent.putExtra(BaseActivity.IS_NEED_FOLDER_LIST, true);
+            intent.putExtra(com.shixincube.filepicker.activity.BaseActivity.IS_NEED_FOLDER_LIST, true);
             intent.putExtra(NormalFilePickActivity.SUFFIX,
                     new String[] {"jpg", "jpeg", "png", "bmp",
                             "xlsx", "xls", "doc", "docx", "ppt", "pptx", "pdf"});

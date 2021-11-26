@@ -9,6 +9,26 @@
     <color name="hint">#C8969696</color>
     <color name="avatar">#D9D9D9</color>
 
+    <color name="toolbar_text">#050505</color>
+    <color name="toolbar_bg">#FDFDFD</color>
+    <color name="toolbar_text_night">#FEFEFE</color>
+    <color name="toolbar_bg_night">#303135</color>
+
+    <color name="theme_bg">#EBEBEB</color>
+    <color name="theme_bg_night">#191919</color>
+
+    <color name="text">#010101</color>
+    <color name="text_secondary">#7E7E7E</color>
+    <color name="background">#FFFFFF</color>
+    <color name="background_pressed">#D9D9D9</color>
+
+    <color name="text_night">#FEFEFE</color>
+    <color name="text_secondary_night">#969696</color>
+    <color name="background_night">#303135</color>
+    <color name="background_pressed_night">#56575B</color>
+
+    <!-- 以上为核验的主题颜色 -->
+
     <color name="color_primary">#DFDFDF</color>
     <color name="color_accent">#7E7E7E</color>
 
@@ -28,17 +48,11 @@
     <color name="theme_blue_light">#368CF2</color>
 
     <color name="main_bg">#FFFFFF</color>
-    <color name="theme_bg">#EBEBEB</color>
-    <color name="theme_dark_bg">#191919</color>
 
-    <color name="text">#050505</color>
+    <color name="text_secondary_old">#969696</color>
     <color name="text_accent">#7E7E7E</color>
-    <color name="text_secondary">#969696</color>
     <color name="text_danger">#E64340</color>
     <color name="text_link">#3655bf</color>
-
-    <color name="toolbar_text">#101010</color>
-    <color name="toolbar_bg">#FDFDFD</color>
 
     <color name="tabbar_text">#464646</color>
     <color name="tabbar_bg">#FEFEFE</color>

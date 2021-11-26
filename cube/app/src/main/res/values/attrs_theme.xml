@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="colorToolbarText" format="color"/>
+    <attr name="colorToolbarTextHint" format="color"/>
+    <attr name="colorToolbarBackground" format="color"/>
+    <attr name="mipmapToolbarNavigation" format="reference"/>
+    <attr name="mipmapToolbarPopup" format="reference"/>
+
+    <attr name="colorThemeBackground" format="color"/>
+    <attr name="colorText" format="color"/>
+    <attr name="colorTextSecondary" format="color"/>
+    <attr name="colorBackground" format="color"/>
+    
+    <attr name="selectorOptionItem" format="reference"/>
+</resources>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:auto="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorThemeBackground"
+    android:orientation="vertical">
+
+    <include layout="@layout/include_toolbar"/>
+
+    <com.zhy.autolayout.AutoLinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorBackground"
+        android:orientation="vertical">
+
+        <!-- 深夜主题 -->
+        <com.shixincube.app.widget.optionitemview.OptionItemView
+            android:id="@+id/oivDarkTheme"
+            style="@style/OptionItem"
+            android:background="?attr/selectorOptionItem"
+            android:focusable="true"
+            android:clickable="true"
+            auto:start_text="@string/dark_theme"
+            auto:start_text_color="?attr/colorText"
+            auto:start_text_size="16sp"
+            auto:start_text_margin_left="@dimen/item_margin_start_and_end"
+            auto:end_text=""
+            auto:end_text_color="?attr/colorTextSecondary"
+            auto:end_text_size="16sp"
+            auto:end_src="@mipmap/indicator"/>
+
+        <View
+            style="@style/Line"
+            android:layout_marginStart="@dimen/item_margin_start_and_end"
+            android:layout_marginEnd="@dimen/item_margin_start_and_end"/>
+
+        <com.zhy.autolayout.AutoLinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical"
+            android:visibility="gone">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/activity_horizontal_margin"
+                android:layout_weight="1"
+                android:text="@string/dark_theme"
+                android:textColor="?attr/colorText"
+                android:textSize="16sp"/>
+
+            <com.kyleduo.switchbutton.SwitchButton
+                android:id="@+id/sbDarkTheme"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/option_item_margin_start"
+                auto:kswBackDrawable="@drawable/ios_back_drawable"
+                auto:kswThumbDrawable="@drawable/ios_thumb_selector"
+                auto:kswThumbMarginTop="2dp"
+                auto:kswThumbMarginBottom="-2dp"/>
+        </com.zhy.autolayout.AutoLinearLayout>
+
+    </com.zhy.autolayout.AutoLinearLayout>
+
+</LinearLayout>

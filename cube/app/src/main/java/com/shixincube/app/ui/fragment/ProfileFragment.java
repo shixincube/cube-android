@@ -31,11 +31,13 @@ import android.widget.TextView;
 
 import com.shixincube.app.R;
 import com.shixincube.app.ui.activity.MainActivity;
+import com.shixincube.app.ui.activity.PreferenceActivity;
 import com.shixincube.app.ui.activity.ProfileInfoActivity;
 import com.shixincube.app.ui.base.BaseFragment;
 import com.shixincube.app.ui.presenter.ProfilePresenter;
 import com.shixincube.app.ui.view.ProfileView;
 import com.shixincube.app.widget.AdvancedImageView;
+import com.shixincube.app.widget.optionitemview.OptionItemView;
 
 import butterknife.BindView;
 
@@ -54,6 +56,9 @@ public class ProfileFragment extends BaseFragment<ProfileView, ProfilePresenter>
     @BindView(R.id.tvCubeId)
     TextView cubeIdText;
 
+    @BindView(R.id.oivSetting)
+    OptionItemView settingItemView;
+
     public ProfileFragment() {
         super();
     }
@@ -65,8 +70,12 @@ public class ProfileFragment extends BaseFragment<ProfileView, ProfilePresenter>
 
     @Override
     public void initListener() {
-        this.profileInfoLayout.setOnClickListener(view -> {
+        this.profileInfoLayout.setOnClickListener((view) -> {
             ((MainActivity) getActivity()).jumpToActivityAndClearTop(ProfileInfoActivity.class);
+        });
+
+        this.settingItemView.setOnClickListener((view) -> {
+            ((MainActivity) getActivity()).jumpToActivityAndClearTop(PreferenceActivity.class);
         });
     }
 

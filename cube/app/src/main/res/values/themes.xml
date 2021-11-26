@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Theme.Cube" parent="Theme.MaterialComponents.Light.NoActionBar.Bridge">
+    <style name="CubeTheme" parent="Theme.MaterialComponents.NoActionBar.Bridge">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryVariant">@color/colorPrimaryDark</item>
@@ -11,7 +11,20 @@
         <item name="colorOnSecondary">@color/black</item>
         <!-- Status bar color. -->
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
-        <!-- Customize your theme here. -->
+
+        <!-- 主题 -->
+        <item name="colorToolbarText">@color/toolbar_text</item>
+        <item name="colorToolbarTextHint">@color/hint</item>
+        <item name="colorToolbarBackground">@color/toolbar_bg</item>
+        <item name="mipmapToolbarNavigation">@mipmap/ic_back_black</item>
+        <item name="mipmapToolbarPopup">@mipmap/ic_popup_black</item>
+
+        <item name="colorThemeBackground">@color/theme_bg</item>
+        <item name="colorText">@color/text</item>
+        <item name="colorTextSecondary">@color/text_secondary</item>
+        <item name="colorBackground">@color/background</item>
+
+        <item name="selectorOptionItem">@drawable/selector_option_item</item>
 
         <!-- Activity 切换动画 -->
         <item name="android:windowAnimationStyle">@style/activityAnimation</item>

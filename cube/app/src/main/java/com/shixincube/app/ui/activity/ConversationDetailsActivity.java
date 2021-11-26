@@ -124,7 +124,7 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
     }
 
     @Override
-    public void onResume() {
+    protected void onResume() {
         super.onResume();
 
         this.presenter.load();

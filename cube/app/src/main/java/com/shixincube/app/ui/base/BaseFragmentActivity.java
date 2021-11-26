@@ -42,7 +42,6 @@ import androidx.fragment.app.FragmentActivity;
 
 import com.google.android.material.appbar.AppBarLayout;
 import com.jaeger.library.StatusBarUtil;
-import com.shixincube.app.CubeApp;
 import com.shixincube.app.R;
 import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.CustomDialog;
@@ -76,7 +75,7 @@ public abstract class BaseFragmentActivity<V, T extends BaseFragmentPresenter<V>
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        CubeApp.addActivity(this);
+//        CubeApp.addActivity(this);
 
         init();
 
@@ -101,7 +100,7 @@ public abstract class BaseFragmentActivity<V, T extends BaseFragmentPresenter<V>
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        CubeApp.removeActivity(this);
+//        CubeApp.removeActivity(this);
 
         if (null != this.presenter) {
             this.presenter.detachView();

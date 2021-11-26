@@ -34,8 +34,8 @@ import com.shixincube.app.R;
 import com.shixincube.app.ui.activity.ImageShowcaseActivity;
 import com.shixincube.app.ui.activity.MessagePanelActivity;
 import com.shixincube.app.ui.adapter.MessagePanelAdapter;
-import com.shixincube.app.ui.base.BaseFragmentActivity;
-import com.shixincube.app.ui.base.BaseFragmentPresenter;
+import com.shixincube.app.ui.base.BaseActivity;
+import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.MessagePanelView;
 import com.shixincube.app.util.FileOpenUtils;
 import com.shixincube.app.util.UIUtils;
@@ -75,7 +75,7 @@ import cube.util.LogUtils;
 /**
  * 消息面板。
  */
-public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelView> implements OnItemClickListener, MessageEventListener {
+public class MessagePanelPresenter extends BasePresenter<MessagePanelView> implements OnItemClickListener, MessageEventListener {
 
     private int pageSize = 10;
 
@@ -87,7 +87,7 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
 
     private List<Message> messageList;
 
-    public MessagePanelPresenter(BaseFragmentActivity activity, Conversation conversation) {
+    public MessagePanelPresenter(BaseActivity activity, Conversation conversation) {
         super(activity);
         this.conversation = conversation;
         this.messageList = new ArrayList<>();
@@ -372,7 +372,6 @@ public class MessagePanelPresenter extends BaseFragmentPresenter<MessagePanelVie
         }
     }
 
-    @Override
     public void close() throws IOException {
         CubeEngine.getInstance().getMessagingService().removeEventListener(this.conversation, this);
     }

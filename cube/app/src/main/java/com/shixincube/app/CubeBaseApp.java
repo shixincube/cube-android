@@ -34,6 +34,8 @@ import android.os.Looper;
 
 import androidx.multidex.MultiDexApplication;
 
+import com.shixincube.app.ui.base.BaseActivity;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -42,7 +44,7 @@ import java.util.List;
  */
 public class CubeBaseApp extends MultiDexApplication {
 
-    private static List<Activity> activities = new LinkedList<>();
+    private static List<BaseActivity> activities = new LinkedList<>();
 
     // 上下文
     private static Context context;
@@ -88,14 +90,20 @@ public class CubeBaseApp extends MultiDexApplication {
         CubeBaseApp.context.startActivity(intent);
     }
 
-    public static void addActivity(Activity activity) {
+    public static void addActivity(BaseActivity activity) {
         if (!CubeBaseApp.activities.contains(activity)) {
             CubeBaseApp.activities.add(activity);
         }
     }
 
-    public static void removeActivity(Activity activity) {
+    public static void removeActivity(BaseActivity activity) {
         CubeBaseApp.activities.remove(activity);
+    }
+
+    public static void eachActivity(ActivityHandler handler) {
+        for (BaseActivity activity : CubeBaseApp.activities) {
+            handler.handle(activity);
+        }
     }
 
     public static Context getContext() {
@@ -116,5 +124,13 @@ public class CubeBaseApp extends MultiDexApplication {
 
     public static Handler getMainThreadHandler() {
         return CubeBaseApp.mainHandler;
+    }
+
+
+    /**
+     * Activity 句柄。
+     */
+    public interface ActivityHandler {
+        void handle(BaseActivity activity);
     }
 }

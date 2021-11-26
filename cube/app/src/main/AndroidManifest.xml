@@ -20,7 +20,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Cube">
+        android:theme="@style/CubeTheme">
 
         <meta-data
             android:name="design_width"
@@ -124,6 +124,10 @@
             android:name=".ui.activity.TakePhotoActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Fullscreen">
+        </activity>
+        <activity
+            android:name=".ui.activity.PreferenceActivity"
+            android:screenOrientation="portrait">
         </activity>
     </application>
 

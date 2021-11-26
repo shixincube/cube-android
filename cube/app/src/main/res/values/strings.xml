@@ -135,6 +135,12 @@
     <string name="request_sent_success">请求已发送</string>
     <string name="request_sent_failure">请求发送失败</string>
 
+    <!-- 偏好设置界面 -->
+    <string name="dark_theme">深色主题</string>
+    <string name="follow_system">跟随系统</string>
+    <string name="dark_theme_enable">已启用</string>
+    <string name="dark_theme_disable">未启用</string>
+
     <!-- 常用 -->
     <string name="prompt">提示</string>
     <string name="remark">备注</string>

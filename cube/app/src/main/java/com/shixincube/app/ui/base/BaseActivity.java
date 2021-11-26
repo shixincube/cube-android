@@ -74,7 +74,7 @@ public abstract class BaseActivity<V, T extends BasePresenter<V>> extends AppCom
     @BindView(R.id.tvToolbarSubTitle)
     protected TextView toolbarSubTitle;
 
-    @BindView(R.id.btnToolbarFun)
+    @BindView(R.id.btnToolbarFunc)
     protected Button toolbarFuncButton;
 
     @BindView(R.id.ibToolbarMore)

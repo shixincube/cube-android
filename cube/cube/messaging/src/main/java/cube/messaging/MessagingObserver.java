@@ -126,12 +126,12 @@ public class MessagingObserver implements Observer {
                 this.service.destroyConversation(bundle.participant.id, new DefaultConversationHandler(false) {
                     @Override
                     public void handleConversation(Conversation conversation) {
-                        LogUtils.d(TAG, "ZoneParticipantRemoved");
+                        LogUtils.d(TAG, "ZoneParticipantRemoved -> #destroyConversation OK");
                     }
                 }, new StableFailureHandler() {
                     @Override
                     public void handleFailure(Module module, ModuleError error) {
-                        LogUtils.w(TAG, "ZoneParticipantRemoved: " + error.code);
+                        LogUtils.w(TAG, "ZoneParticipantRemoved -> #destroyConversation: " + error.code);
                     }
                 });
             }

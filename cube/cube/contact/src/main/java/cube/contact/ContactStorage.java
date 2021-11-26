@@ -670,6 +670,43 @@ public class ContactStorage extends AbstractStorage {
     }
 
     /**
+     * 添加参与人。
+     *
+     * @param zone
+     * @param participant
+     */
+    public void addParticipant(ContactZone zone, ContactZoneParticipant participant) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put("timestamp", zone.getTimestamp());
+        values.put("last", zone.getLast());
+        values.put("expiry", zone.getExpiry());
+        // update
+        db.update("contact_zone", values,
+                "id=?", new String[] { zone.id.toString() });
+
+        // delete
+        db.delete("contact_zone_participant", "contact_zone_id=? AND id=?",
+                new String[]{ zone.id.toString(), participant.id.toString() });
+
+        // 添加
+        values = new ContentValues();
+        values.put("contact_zone_id", zone.id);
+        values.put("id", participant.getId());
+        values.put("type", participant.getType().code);
+        values.put("state", participant.getState().code);
+        values.put("timestamp", participant.getTimestamp());
+        values.put("inviter_id", participant.getInviterId());
+        values.put("postscript", participant.getPostscript());
+        values.put("context", (null != participant.getContext()) ? participant.getContext().toString() : "");
+        // insert
+        db.insert("contact_zone_participant", null, values);
+
+        this.closeWritableDatabase(db);
+    }
+
+    /**
      * 移除参与人。
      *
      * @param zone

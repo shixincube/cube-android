@@ -24,37 +24,37 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app.ui.view;
+package com.shixincube.app.ui.activity;
 
-import android.widget.ImageButton;
-import android.widget.TextView;
+import android.view.View;
+
+import com.shixincube.app.R;
+import com.shixincube.app.ui.base.BaseActivity;
+import com.shixincube.app.ui.base.BasePresenter;
+import com.shixincube.app.util.UIUtils;
 
 /**
- * 主界面。
+ * 附言界面。
  */
-public interface MainView {
+public class PostscriptActivity extends BaseActivity {
 
-    void setToolbarTitle(String title);
+    public PostscriptActivity() {
+        super();
+    }
 
-    ImageButton getPopupMenuButton();
+    @Override
+    public void initView() {
+        this.toolbarFuncButton.setVisibility(View.VISIBLE);
+        this.toolbarFuncButton.setText(UIUtils.getString(R.string.send));
+    }
 
-    TextView getConversationNormalIcon();
-    TextView getConversationNormalTitle();
-    TextView getConversationPressedIcon();
-    TextView getConversationPressedTitle();
+    @Override
+    protected BasePresenter createPresenter() {
+        return null;
+    }
 
-    TextView getFilesNormalIcon();
-    TextView getFilesNormalTitle();
-    TextView getFilesPressedIcon();
-    TextView getFilesPressedTitle();
-
-    TextView getContactsNormalIcon();
-    TextView getContactsNormalTitle();
-    TextView getContactsPressedIcon();
-    TextView getContactsPressedTitle();
-
-    TextView getProfileNormalIcon();
-    TextView getProfileNormalTitle();
-    TextView getProfilePressedIcon();
-    TextView getProfilePressedTitle();
+    @Override
+    protected int provideContentViewId() {
+        return R.layout.activity_postscript;
+    }
 }

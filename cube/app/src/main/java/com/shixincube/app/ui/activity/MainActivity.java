@@ -233,6 +233,11 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
     }
 
     @Override
+    public ImageButton getPopupMenuButton() {
+        return this.popupMenuButton;
+    }
+
+    @Override
     public TextView getConversationNormalIcon() {
         return this.conversationNormal;
     }

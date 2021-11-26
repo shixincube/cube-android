@@ -51,7 +51,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import cube.contact.ContactService;
-import cube.contact.ContactServiceEvent;
 import cube.contact.handler.StableGroupHandler;
 import cube.contact.model.AbstractContact;
 import cube.contact.model.Contact;
@@ -207,10 +206,7 @@ public class MessagingService extends Module {
 
         // 监听联系人模块
         this.contactService = (ContactService) this.kernel.getModule(ContactService.NAME);
-        this.contactService.attachWithName(ContactServiceEvent.SelfReady, this.observer);
-        this.contactService.attachWithName(ContactServiceEvent.SignIn, this.observer);
-        this.contactService.attachWithName(ContactServiceEvent.SignOut, this.observer);
-        this.contactService.attachWithName(ContactServiceEvent.GroupDismissed, this.observer);
+        this.contactService.attach(this.observer);
 
         synchronized (this) {
             if (null != this.contactService.getSelf() && !this.ready && !this.preparing.get()) {
@@ -242,10 +238,7 @@ public class MessagingService extends Module {
 
         this.kernel.getInspector().withdrawMap(this.capsuleCache);
 
-        this.contactService.detachWithName(ContactServiceEvent.SelfReady, this.observer);
-        this.contactService.detachWithName(ContactServiceEvent.SignIn, this.observer);
-        this.contactService.detachWithName(ContactServiceEvent.SignOut, this.observer);
-        this.contactService.detachWithName(ContactServiceEvent.GroupDismissed, this.observer);
+        this.contactService.detach(this.observer);
 
         this.pipeline.removeListener(MessagingService.NAME, this.pipelineListener);
 
@@ -1251,7 +1244,7 @@ public class MessagingService extends Module {
         MessageList list = this.conversationMessageListMap.get(conversation.id);
         if (null != list) {
             // 延长实体寿命
-            list.extendLife(3L * 60L * 1000L);
+            list.extendLife(5L * 60L * 1000L);
 
             if (!list.messages.isEmpty()) {
                 final List<Message> resultList = new ArrayList<>(list.messages);

@@ -39,11 +39,7 @@ import java.util.Locale;
 
 import cube.contact.ContactService;
 import cube.contact.handler.ContactZoneHandler;
-import cube.contact.handler.StableContactZoneHandler;
-import cube.core.Module;
-import cube.core.ModuleError;
 import cube.core.handler.FailureHandler;
-import cube.core.handler.StableFailureHandler;
 import cube.core.model.Entity;
 
 /**
@@ -231,33 +227,33 @@ public class ContactZone extends Entity {
         this.participants.remove(participant);
     }
 
-    public void addParticipant(Contact contact, String postscript) {
+    /**
+     * 添加联系人。
+     *
+     * @param contact 指定联系人。
+     * @param postscript
+     * @param successHandler 指定操作成功回调句柄。
+     * @param failureHandler 指定操作失败回调句柄。
+     */
+    public void addParticipant(Contact contact, String postscript, ContactZoneHandler successHandler, FailureHandler failureHandler) {
         if (this.contains(contact)) {
+            this.service.execute(failureHandler);
             return;
         }
 
         ContactZoneParticipant participant = new ContactZoneParticipant(contact.id, System.currentTimeMillis(),
                 ContactZoneParticipantType.Contact, ContactZoneParticipantState.Pending,
                 this.service.getSelf().id, postscript);
-        this.service.addParticipantToZone(this, participant, new StableContactZoneHandler() {
-            @Override
-            public void handleContactZone(ContactZone contactZone) {
 
-            }
-        }, new StableFailureHandler() {
-            @Override
-            public void handleFailure(Module module, ModuleError error) {
-
-            }
-        });
+        this.service.addParticipantToZone(this, participant, successHandler, failureHandler);
     }
 
     /**
      * 移除参与人。
      *
-     * @param contact
-     * @param successHandler
-     * @param failureHandler
+     * @param contact 指定联系人。
+     * @param successHandler 指定操作成功回调句柄。
+     * @param failureHandler 指定操作失败回调句柄。
      */
     public void removeParticipant(Contact contact, ContactZoneHandler successHandler, FailureHandler failureHandler) {
         ContactZoneParticipant participant = this.getParticipant(contact);

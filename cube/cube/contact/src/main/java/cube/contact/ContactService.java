@@ -1113,18 +1113,119 @@ public class ContactService extends Module {
         });
     }
 
+    /**
+     * 向指定分区添加参与人。
+     *
+     * @param zone 指定联系人分区。
+     * @param participant 指定待添加的参与人。
+     * @param successHandler 指定操作成功回调句柄。
+     * @param failureHandler 指定操作失败回调句柄。
+     */
     public void addParticipantToZone(ContactZone zone, ContactZoneParticipant participant,
                                      ContactZoneHandler successHandler, FailureHandler failureHandler) {
+        if (!this.pipeline.isReady()) {
+            ModuleError error = new ModuleError(NAME, ContactServiceState.NoNetwork.code);
+            error.data = zone;
+            if (failureHandler.isInMainThread()) {
+                executeOnMainThread(() -> {
+                    failureHandler.handleFailure(ContactService.this, error);
+                });
+            }
+            else {
+                execute(() -> {
+                    failureHandler.handleFailure(ContactService.this, error);
+                });
+            }
+            return;
+        }
 
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("name", zone.name);
+            payload.put("participant", participant.toJSON());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        Packet requestPacket = new Packet(ContactServiceAction.AddParticipantToZone, payload);
+        this.pipeline.send(ContactService.NAME, requestPacket, (packet) -> {
+            if (packet.state.code != PipelineState.Ok.code) {
+                ModuleError error = new ModuleError(NAME, packet.state.code);
+                error.data = zone;
+                if (failureHandler.isInMainThread()) {
+                    executeOnMainThread(() -> {
+                        failureHandler.handleFailure(ContactService.this, error);
+                    });
+                }
+                else {
+                    execute(() -> {
+                        failureHandler.handleFailure(ContactService.this, error);
+                    });
+                }
+                return;
+            }
+
+            int stateCode = packet.extractServiceStateCode();
+            if (stateCode != ContactServiceState.Ok.code) {
+                ModuleError error = new ModuleError(NAME, stateCode);
+                error.data = zone;
+                if (failureHandler.isInMainThread()) {
+                    executeOnMainThread(() -> {
+                        failureHandler.handleFailure(ContactService.this, error);
+                    });
+                }
+                else {
+                    execute(() -> {
+                        failureHandler.handleFailure(ContactService.this, error);
+                    });
+                }
+                return;
+            }
+
+            JSONObject response = packet.extractServiceData();
+            long timestamp = 0;
+            try {
+                timestamp = response.getLong("timestamp");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            // 移除
+            zone.addParticipant(participant);
+            zone.resetLast(timestamp);
+            zone.setTimestamp(timestamp);
+
+            // 更新数据库
+            storage.addParticipant(zone, participant);
+
+            if (successHandler.isInMainThread()) {
+                executeOnMainThread(() -> {
+                    successHandler.handleContactZone(zone);
+                });
+            }
+            else {
+                execute(() -> {
+                    successHandler.handleContactZone(zone);
+                });
+            }
+
+            execute(() -> {
+                ContactZoneBundle bundle = new ContactZoneBundle(zone, participant);
+                ObservableEvent event = new ObservableEvent(ContactServiceEvent.ZoneParticipantAdded, bundle);
+                notifyObservers(event);
+
+                event = new ObservableEvent(ContactServiceEvent.ContactZoneUpdated, zone);
+                notifyObservers(event);
+            });
+        });
     }
 
     /**
      * 从指定分区里移除参与人。
      *
-     * @param zone
-     * @param participant
-     * @param successHandler
-     * @param failureHandler
+     * @param zone 指定联系人分区。
+     * @param participant 指定待移除的参与人。
+     * @param successHandler 指定操作成功回调句柄。
+     * @param failureHandler 指定操作失败回调句柄。
      */
     public void removeParticipantFromZone(ContactZone zone, ContactZoneParticipant participant,
                                           ContactZoneHandler successHandler, FailureHandler failureHandler) {

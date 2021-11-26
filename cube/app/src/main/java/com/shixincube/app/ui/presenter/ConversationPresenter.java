@@ -74,6 +74,8 @@ import cube.util.LogUtils;
  */
 public class ConversationPresenter extends BasePresenter<ConversationView> implements MessagingRecentEventListener {
 
+    private final static String TAG = ConversationPresenter.class.getSimpleName();
+
     private List<MessageConversation> messageConversations;
 
     private AdapterForRecyclerView<MessageConversation> adapter;
@@ -277,7 +279,13 @@ public class ConversationPresenter extends BasePresenter<ConversationView> imple
 
     @Override
     public void onConversationUpdated(Conversation conversation, MessagingService service) {
-        if (conversation.getState() == ConversationState.Deleted) {
+        if (LogUtils.isDebugLevel()) {
+            LogUtils.d(TAG, "#onConversationUpdated : " + conversation.getPivotalId()
+                    + " - " + conversation.getState().name());
+        }
+
+        if (conversation.getState() == ConversationState.Deleted ||
+            conversation.getState() == ConversationState.Destroyed) {
             if (removeMessageConversation(conversation)) {
                 this.adapter.notifyDataSetChangedWrapper();
             }

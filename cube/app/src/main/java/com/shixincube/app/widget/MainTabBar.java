@@ -54,6 +54,7 @@ public class MainTabBar {
         this.view.getConversationNormalTitle().setVisibility(View.INVISIBLE);
 
         this.view.setToolbarTitle(UIUtils.getString(R.string.conversation));
+        this.view.getPopupMenuButton().setVisibility(View.VISIBLE);
     }
 
     public void toggleToFiles() {
@@ -65,6 +66,7 @@ public class MainTabBar {
         this.view.getFilesNormalTitle().setVisibility(View.INVISIBLE);
 
         this.view.setToolbarTitle(UIUtils.getString(R.string.files));
+        this.view.getPopupMenuButton().setVisibility(View.VISIBLE);
     }
 
     public void toggleToContacts() {
@@ -76,6 +78,7 @@ public class MainTabBar {
         this.view.getContactsNormalTitle().setVisibility(View.INVISIBLE);
 
         this.view.setToolbarTitle(UIUtils.getString(R.string.contacts));
+        this.view.getPopupMenuButton().setVisibility(View.VISIBLE);
     }
 
     public void toggleToProfile() {
@@ -87,6 +90,7 @@ public class MainTabBar {
         this.view.getProfileNormalTitle().setVisibility(View.INVISIBLE);
 
         this.view.setToolbarTitle(UIUtils.getString(R.string.profile));
+        this.view.getPopupMenuButton().setVisibility(View.GONE);
     }
 
     private void reset() {

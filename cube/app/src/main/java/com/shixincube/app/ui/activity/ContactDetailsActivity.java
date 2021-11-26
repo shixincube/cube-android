@@ -145,6 +145,8 @@ public class ContactDetailsActivity extends BaseActivity<ContactDetailsView, Con
                 this.nickNameView.setVisibility(View.INVISIBLE);
                 this.toChatButton.setVisibility(View.GONE);
                 this.addToContactsButton.setVisibility(View.VISIBLE);
+                // 不显示右上角的"更多"按钮
+                this.toolbarMore.setVisibility(View.GONE);
             }
         }
     }
@@ -188,6 +190,7 @@ public class ContactDetailsActivity extends BaseActivity<ContactDetailsView, Con
             // 申请会话
             Conversation conversation = CubeEngine.getInstance().getMessagingService().applyConversation(contact.getId());
             if (null != conversation) {
+                // 转到消息面板
                 Intent intent = new Intent(ContactDetailsActivity.this, MessagePanelActivity.class);
                 intent.putExtra("conversationId", conversation.getId());
                 jumpToActivity(intent);
@@ -196,6 +199,13 @@ public class ContactDetailsActivity extends BaseActivity<ContactDetailsView, Con
             else {
                 UIUtils.showToast(UIUtils.getString(R.string.not_allow));
             }
+        });
+
+        this.addToContactsButton.setOnClickListener((view) -> {
+            // 填写附言
+            Intent intent = new Intent(this, PostscriptActivity.class);
+            intent.putExtra("contactId", this.contact.getId());
+            jumpToActivity(intent);
         });
     }
 

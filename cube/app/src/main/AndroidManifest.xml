@@ -89,6 +89,10 @@
             android:screenOrientation="portrait">
         </activity>
         <activity
+            android:name=".ui.activity.PostscriptActivity"
+            android:screenOrientation="portrait">
+        </activity>
+        <activity
             android:name=".ui.activity.SearchContactActivity"
             android:screenOrientation="portrait">
         </activity>

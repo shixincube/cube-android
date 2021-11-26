@@ -54,18 +54,23 @@ public class ContactDetailsPresenter extends BasePresenter<ContactDetailsView> {
     }
 
     public void deleteContact() {
+        activity.showWaitingDialog(UIUtils.getString(R.string.please_wait_a_moment));
+
         // 获取默认联系人分区，将联系人移除
         CubeEngine.getInstance().getContactService()
                 .getDefaultContactZone()
                 .removeParticipant(contact, new DefaultContactZoneHandler(true) {
                     @Override
                     public void handleContactZone(ContactZone contactZone) {
+                        activity.hideWaitingDialog();
+
                         activity.setResult(ContactDetailsActivity.RESULT_REMOVE);
                         activity.finish();
                     }
                 }, new DefaultFailureHandler(true) {
                     @Override
                     public void handleFailure(Module module, ModuleError error) {
+                        activity.hideWaitingDialog();
                         UIUtils.showToast(UIUtils.getString(R.string.set_failure));
                     }
                 });

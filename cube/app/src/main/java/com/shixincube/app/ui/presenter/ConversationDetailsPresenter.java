@@ -123,8 +123,8 @@ public class ConversationDetailsPresenter extends BasePresenter<ConversationDeta
 
                 activity.showWaitingDialog(UIUtils.getString(R.string.please_wait_a_moment));
 
-                // 删除会话
-                CubeEngine.getInstance().getMessagingService().deleteConversation(conversation, new DefaultConversationHandler(true) {
+                // 销毁会话
+                CubeEngine.getInstance().getMessagingService().destroyConversation(conversation, new DefaultConversationHandler(true) {
                     @Override
                     public void handleConversation(Conversation conversation) {
                         activity.hideWaitingDialog();

@@ -28,6 +28,7 @@ package cube.messaging;
 
 import cube.contact.ContactService;
 import cube.contact.ContactServiceEvent;
+import cube.contact.model.ContactZone;
 import cube.contact.model.ContactZoneBundle;
 import cube.contact.model.Group;
 import cube.core.Module;
@@ -116,18 +117,24 @@ public class MessagingObserver implements Observer {
             }
         }
         else if (ContactServiceEvent.ZoneParticipantRemoved.equals(event.name)) {
+            ContactService contactService = (ContactService) event.getSubject();
             ContactZoneBundle bundle = (ContactZoneBundle) event.getData();
-            this.service.deleteConversation(bundle.participant.id, new DefaultConversationHandler(false) {
-                @Override
-                public void handleConversation(Conversation conversation) {
-                    LogUtils.d(TAG, "ZoneParticipantRemoved");
-                }
-            }, new StableFailureHandler() {
-                @Override
-                public void handleFailure(Module module, ModuleError error) {
-                    LogUtils.w(TAG, "ZoneParticipantRemoved: " + error.code);
-                }
-            });
+            // 参与人被移除，判断是不是默认分区
+            ContactZone defaultZone = contactService.getDefaultContactZone();
+            if (defaultZone.name.equals(bundle.zone.name)) {
+                // 默认分区的参与人被删除，联动销毁对应的会话
+                this.service.destroyConversation(bundle.participant.id, new DefaultConversationHandler(false) {
+                    @Override
+                    public void handleConversation(Conversation conversation) {
+                        LogUtils.d(TAG, "ZoneParticipantRemoved");
+                    }
+                }, new StableFailureHandler() {
+                    @Override
+                    public void handleFailure(Module module, ModuleError error) {
+                        LogUtils.w(TAG, "ZoneParticipantRemoved: " + error.code);
+                    }
+                });
+            }
         }
         else if (ContactServiceEvent.SignOut.equals(event.name)) {
             synchronized (this.service) {

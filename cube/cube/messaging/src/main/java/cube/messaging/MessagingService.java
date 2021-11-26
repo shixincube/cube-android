@@ -415,13 +415,13 @@ public class MessagingService extends Module {
                         Group group = conversation.getGroup();
                         if (null != group && group.getState() != GroupState.Normal) {
                             // 将已经失效的群组对应的会话删除
-                            conversation.setState(ConversationState.Deleted);
+                            conversation.setState(ConversationState.Destroyed);
                             this.storage.updateConversation(conversation);
                             iter.remove();
                         }
                     }
                     else if (conversation.getType() == ConversationType.Contact) {
-                        if (conversation.getState() == ConversationState.Deleted) {
+                        if (conversation.getState() == ConversationState.Destroyed) {
                             iter.remove();
                         }
                     }
@@ -493,16 +493,30 @@ public class MessagingService extends Module {
     /**
      * 删除指定会话。
      *
+     * @param conversation 指定会话。
+     * @param successHandler 指定操作成功回调句柄。
+     * @param failureHandler 指定操作失败回调句柄。
+     */
+    public void deleteConversation(Conversation conversation, ConversationHandler successHandler, FailureHandler failureHandler) {
+        // 设置删除状态
+        conversation.setState(ConversationState.Deleted);
+        // 更新会话
+        updateConversation(conversation, successHandler, failureHandler);
+    }
+
+    /**
+     * 销毁指定会话。
+     *
      * <b>该操作不可逆。</b>
      *
      * @param conversation 指定会话。
      * @param successHandler 指定操作成功回调句柄。
      * @param failureHandler 指定操作失败回调句柄。
      */
-    public void deleteConversation(Conversation conversation, ConversationHandler successHandler, FailureHandler failureHandler) {
+    public void destroyConversation(Conversation conversation, ConversationHandler successHandler, FailureHandler failureHandler) {
         if (conversation.getType() == ConversationType.Contact) {
-            // 设置删除状态
-            conversation.setState(ConversationState.Deleted);
+            // 设置销毁状态
+            conversation.setState(ConversationState.Destroyed);
 
             // 更新会话
             updateConversation(conversation, successHandler, failureHandler);
@@ -513,14 +527,8 @@ public class MessagingService extends Module {
                 @Override
                 public void handleGroup(Group group) {
                     // 已退出或解散群组
-                    // 设置删除状态
-                    conversation.setState(ConversationState.Deleted);
-
-                    // 从最近列表删除
-                    synchronized (MessagingService.this) {
-                        conversationMessageListMap.remove(conversation.id);
-                        conversations.remove(conversation);
-                    }
+                    // 设置销毁状态
+                    conversation.setState(ConversationState.Destroyed);
 
                     // 更新会话
                     updateConversation(conversation, successHandler, failureHandler);
@@ -547,16 +555,16 @@ public class MessagingService extends Module {
     }
 
     /**
-     * 删除指定名称的会话。
+     * 销毁指定名称的会话。
      *
      * @param conversationId
      * @param successHandler
      * @param failureHandler
      */
-    public void deleteConversation(Long conversationId, ConversationHandler successHandler, FailureHandler failureHandler) {
+    protected void destroyConversation(Long conversationId, ConversationHandler successHandler, FailureHandler failureHandler) {
         for (Conversation conversation : this.conversations) {
             if (conversation.id.longValue() == conversationId.longValue()) {
-                deleteConversation(conversation, successHandler, failureHandler);
+                destroyConversation(conversation, successHandler, failureHandler);
                 return;
             }
         }
@@ -577,7 +585,8 @@ public class MessagingService extends Module {
             return;
         }
 
-        deleteConversation(conversation, successHandler, failureHandler);
+        // 销毁
+        destroyConversation(conversation, successHandler, failureHandler);
     }
 
     /**
@@ -1150,16 +1159,18 @@ public class MessagingService extends Module {
                 // 更新数据库
                 storage.updateConversation(conversation);
 
-                synchronized (MessagingService.this) {
-                    if (conversation.getState() == ConversationState.Deleted) {
-                        // 尝试删除已删除的会话
+                if (conversation.getState() == ConversationState.Deleted
+                    || conversation.getState() == ConversationState.Destroyed) {
+                    // 从最近列表删除
+                    synchronized (MessagingService.this) {
+                        conversationMessageListMap.remove(conversation.id);
                         conversations.remove(conversation);
-
-                        execute(() -> {
-                            // 从数据库里删除所有消息相关数据
-                            storage.deleteConversationAndMessages(conversation);
-                        });
                     }
+                }
+
+                if (conversation.getState() == ConversationState.Destroyed) {
+                    // 从数据库里删除所有消息相关数据
+                    storage.deleteConversationAndMessages(conversation);
                 }
 
                 if (conversationHandler.isInMainThread()) {

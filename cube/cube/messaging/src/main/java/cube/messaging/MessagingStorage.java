@@ -202,7 +202,7 @@ public class MessagingStorage extends AbstractStorage {
 
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT * FROM `conversation` WHERE `id`=? AND `state`<>?",
-                new String[] { conversationId.toString(), ConversationState.Deleted.toString() });
+                new String[] { conversationId.toString(), ConversationState.Destroyed.toString() });
         if (cursor.moveToFirst()) {
             try {
                 String messageString = cursor.getString(cursor.getColumnIndex("recent_message"));

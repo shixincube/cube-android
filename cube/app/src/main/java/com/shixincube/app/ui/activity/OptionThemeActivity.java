@@ -27,50 +27,22 @@
 package com.shixincube.app.ui.activity;
 
 import com.shixincube.app.R;
-import com.shixincube.app.manager.PreferenceHelper;
-import com.shixincube.app.manager.ThemeMode;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.util.UIUtils;
-import com.shixincube.app.widget.optionitemview.OptionItemView;
-
-import butterknife.BindView;
 
 /**
- * 偏好设置。
+ * 主题模式设置。
  */
-public class PreferenceActivity extends BaseActivity {
+public class OptionThemeActivity extends BaseActivity {
 
-    @BindView(R.id.oivDarkTheme)
-    OptionItemView darkThemeItem;
-
-    public PreferenceActivity() {
+    public OptionThemeActivity() {
         super();
     }
 
     @Override
     public void initView() {
-        setToolbarTitle(UIUtils.getString(R.string.setting));
-
-        ThemeMode mode = PreferenceHelper.getInstance().getDarkThemeMode();
-        switch (mode) {
-            case AlwaysOn:
-                this.darkThemeItem.setEndText(UIUtils.getString(R.string.dark_theme_enable));
-                break;
-            case AlwaysOff:
-                this.darkThemeItem.setEndText(UIUtils.getString(R.string.dark_theme_disable));
-                break;
-            default:
-                this.darkThemeItem.setEndText(UIUtils.getString(R.string.follow_system));
-                break;
-        }
-    }
-
-    @Override
-    public void initListener() {
-        this.darkThemeItem.setOnClickListener((view) -> {
-            jumpToActivity(OptionThemeActivity.class);
-        });
+        setToolbarTitle(UIUtils.getString(R.string.dark_theme));
     }
 
     @Override
@@ -80,6 +52,6 @@ public class PreferenceActivity extends BaseActivity {
 
     @Override
     protected int provideContentViewId() {
-        return R.layout.activity_preference;
+        return R.layout.activity_option_theme;
     }
 }

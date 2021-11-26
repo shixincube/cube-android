@@ -26,10 +26,12 @@
 
 package com.shixincube.app.manager;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 
 import androidx.appcompat.app.AppCompatDelegate;
 
+import com.shixincube.app.AppConsts;
 import com.shixincube.app.CubeBaseApp;
 import com.shixincube.app.ui.base.BaseActivity;
 
@@ -49,20 +51,43 @@ public final class PreferenceHelper {
 
     private ThemeMode darkThemeMode;
 
-    private boolean darkThemeEnabled;
-
     private PreferenceHelper() {
         this.darkThemeMode = ThemeMode.FollowSystem;
+    }
+
+    public final static PreferenceHelper getInstance(Context context) {
+        if (null == PreferenceHelper.instance.sp) {
+            PreferenceHelper.instance.sp = context.getSharedPreferences(SP_NAME, Context.MODE_PRIVATE);
+            PreferenceHelper.instance.editor = PreferenceHelper.instance.sp.edit();
+            PreferenceHelper.instance.load();
+        }
+
+        return PreferenceHelper.instance;
     }
 
     public final static PreferenceHelper getInstance() {
         return PreferenceHelper.instance;
     }
 
+    private void load() {
+        int modeCode = this.sp.getInt(AppConsts.APP_DARK_THEME_MODE, ThemeMode.FollowSystem.code);
+        this.darkThemeMode = ThemeMode.parse(modeCode);
+    }
+
+    /**
+     * 获取夜间主题模式。
+     *
+     * @return
+     */
     public ThemeMode getDarkThemeMode() {
         return this.darkThemeMode;
     }
 
+    /**
+     * 检查当前时间段是否应启用夜间模式。
+     *
+     * @return
+     */
     public boolean checkEnableDarkTheme() {
         Calendar calendar = Calendar.getInstance();
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
@@ -81,29 +106,37 @@ public final class PreferenceHelper {
         }
     }
 
-    public void enableDarkTheme() {
-        if (this.darkThemeEnabled) {
-            return;
+    /**
+     * 设置深色主题模式。
+     *
+     * @param themeMode 指定主题模式。
+     */
+    public void setDarkThemeMode(ThemeMode themeMode) {
+        this.darkThemeMode = themeMode;
+        this.editor.putLong(AppConsts.APP_DARK_THEME_MODE, themeMode.code);
+        this.editor.commit();
+
+        switch (themeMode) {
+            case AlwaysOn:
+                CubeBaseApp.eachActivity(new CubeBaseApp.ActivityHandler() {
+                    @Override
+                    public void handle(BaseActivity activity) {
+                        activity.getDelegate().setLocalNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                    }
+                });
+                break;
+
+            case AlwaysOff:
+                CubeBaseApp.eachActivity(new CubeBaseApp.ActivityHandler() {
+                    @Override
+                    public void handle(BaseActivity activity) {
+                        activity.getDelegate().setLocalNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                    }
+                });
+                break;
+
+            default:
+                break;
         }
-
-        CubeBaseApp.eachActivity(new CubeBaseApp.ActivityHandler() {
-            @Override
-            public void handle(BaseActivity activity) {
-                activity.getDelegate().setLocalNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-            }
-        });
-    }
-
-    public void disableDarkTheme() {
-        if (!this.darkThemeEnabled) {
-            return;
-        }
-
-        CubeBaseApp.eachActivity(new CubeBaseApp.ActivityHandler() {
-            @Override
-            public void handle(BaseActivity activity) {
-                activity.getDelegate().setLocalNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-            }
-        });
     }
 }

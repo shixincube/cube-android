@@ -59,6 +59,11 @@ public final class AppConsts {
     public final static String APP_ACCOUNT = "AppAccount";
 
     /**
+     * 深色主题模式。
+     */
+    public final static String APP_DARK_THEME_MODE = "AppDarkThemeMode";
+
+    /**
      * 图片保存位置。
      */
     public final static String IMAGE_DIR = FileUtils.getDir("image");

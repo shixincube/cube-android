@@ -3,7 +3,7 @@
     xmlns:auto="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/theme_bg"
+    android:background="?attr/colorThemeBackground"
     android:orientation="vertical">
 
     <!-- Profile Info - Begin -->
@@ -72,11 +72,11 @@
         android:id="@+id/oivSetting"
         style="@style/OptionItem"
         android:layout_marginTop="@dimen/option_item_margin_top"
-        android:background="@drawable/selector_common_item"
+        android:background="@drawable/selector_option_item"
         android:clickable="true"
         android:focusable="true"
-        auto:start_image_margin_left="@dimen/option_item_margin_left"
-        auto:start_image_margin_right="@dimen/option_item_margin_right"
+        auto:start_image_margin_left="@dimen/option_item_margin_start"
+        auto:start_image_margin_right="@dimen/option_item_margin_end"
         auto:start_src="@mipmap/ic_setting_blue"
         auto:start_text="@string/setting"
         auto:start_text_color="@color/text"

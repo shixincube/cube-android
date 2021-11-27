@@ -14,8 +14,8 @@
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingBottom="@dimen/item_margin_top_and_bottom"
-        android:paddingLeft="@dimen/item_margin_left_and_right"
-        android:paddingRight="@dimen/item_margin_left_and_right"
+        android:paddingLeft="@dimen/item_margin_start_and_end"
+        android:paddingRight="@dimen/item_margin_start_and_end"
         android:paddingTop="@dimen/item_margin_top_and_bottom">
 
         <com.zhy.autolayout.AutoRelativeLayout
@@ -50,7 +50,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/item_margin_left_and_right"
+            android:layout_marginStart="@dimen/item_margin_start_and_end"
             android:text="@string/new_contact"
             android:textColor="@color/black"
             android:textSize="16sp"/>
@@ -58,8 +58,8 @@
     </com.zhy.autolayout.AutoLinearLayout>
 
     <View style="@style/Line"
-        android:layout_marginLeft="@dimen/item_margin_left_and_right"
-        android:layout_marginRight="@dimen/item_margin_left_and_right"/>
+        android:layout_marginLeft="@dimen/item_margin_start_and_end"
+        android:layout_marginRight="@dimen/item_margin_start_and_end"/>
 
     <!-- 群组 -->
     <com.zhy.autolayout.AutoLinearLayout
@@ -70,8 +70,8 @@
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingBottom="@dimen/item_margin_top_and_bottom"
-        android:paddingLeft="@dimen/item_margin_left_and_right"
-        android:paddingRight="@dimen/item_margin_left_and_right"
+        android:paddingLeft="@dimen/item_margin_start_and_end"
+        android:paddingRight="@dimen/item_margin_start_and_end"
         android:paddingTop="@dimen/item_margin_top_and_bottom">
 
         <com.zhy.autolayout.AutoRelativeLayout
@@ -106,7 +106,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/item_margin_left_and_right"
+            android:layout_marginStart="@dimen/item_margin_start_and_end"
             android:text="@string/group"
             android:textColor="@color/black"
             android:textSize="16sp"/>
@@ -114,8 +114,8 @@
     </com.zhy.autolayout.AutoLinearLayout>
 
     <View style="@style/Line"
-        android:layout_marginLeft="@dimen/item_margin_left_and_right"
-        android:layout_marginRight="@dimen/item_margin_left_and_right"/>
+        android:layout_marginLeft="@dimen/item_margin_start_and_end"
+        android:layout_marginRight="@dimen/item_margin_start_and_end"/>
 
     <!-- 标签 -->
     <com.zhy.autolayout.AutoLinearLayout
@@ -126,8 +126,8 @@
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingBottom="@dimen/item_margin_top_and_bottom"
-        android:paddingLeft="@dimen/item_margin_left_and_right"
-        android:paddingRight="@dimen/item_margin_left_and_right"
+        android:paddingLeft="@dimen/item_margin_start_and_end"
+        android:paddingRight="@dimen/item_margin_start_and_end"
         android:paddingTop="@dimen/item_margin_top_and_bottom">
 
         <com.zhy.autolayout.AutoRelativeLayout
@@ -162,7 +162,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/item_margin_left_and_right"
+            android:layout_marginStart="@dimen/item_margin_start_and_end"
             android:text="@string/tag"
             android:textColor="@color/black"
             android:textSize="16sp"/>
@@ -170,8 +170,8 @@
     </com.zhy.autolayout.AutoLinearLayout>
 
     <View style="@style/Line"
-        android:layout_marginLeft="@dimen/item_margin_left_and_right"
-        android:layout_marginRight="@dimen/item_margin_left_and_right"/>
+        android:layout_marginLeft="@dimen/item_margin_start_and_end"
+        android:layout_marginRight="@dimen/item_margin_start_and_end"/>
 
     <!-- 会议 -->
     <com.zhy.autolayout.AutoLinearLayout
@@ -182,8 +182,8 @@
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingBottom="@dimen/item_margin_top_and_bottom"
-        android:paddingLeft="@dimen/item_margin_left_and_right"
-        android:paddingRight="@dimen/item_margin_left_and_right"
+        android:paddingLeft="@dimen/item_margin_start_and_end"
+        android:paddingRight="@dimen/item_margin_start_and_end"
         android:paddingTop="@dimen/item_margin_top_and_bottom">
 
         <com.zhy.autolayout.AutoRelativeLayout
@@ -218,7 +218,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/item_margin_left_and_right"
+            android:layout_marginStart="@dimen/item_margin_start_and_end"
             android:text="@string/conference"
             android:textColor="@color/black"
             android:textSize="16sp"/>
@@ -226,8 +226,8 @@
     </com.zhy.autolayout.AutoLinearLayout>
 
     <View style="@style/Line"
-        android:layout_marginLeft="@dimen/item_margin_left_and_right"
-        android:layout_marginRight="@dimen/item_margin_left_and_right"/>
+        android:layout_marginLeft="@dimen/item_margin_start_and_end"
+        android:layout_marginRight="@dimen/item_margin_start_and_end"/>
     <!--
     <View
         android:layout_width="match_parent"

@@ -28,7 +28,9 @@
             auto:end_text=""
             auto:end_text_color="?attr/colorTextSecondary"
             auto:end_text_size="16sp"
-            auto:end_src="@mipmap/indicator"/>
+            auto:end_src="@mipmap/indicator"
+            auto:end_image_margin_left="8dp"
+            auto:end_image_margin_right="@dimen/option_item_margin_end_mix"/>
 
         <View
             style="?attr/styleLine"

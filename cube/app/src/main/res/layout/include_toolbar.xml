@@ -67,7 +67,7 @@
                 android:layout_height="22dp"
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
-                android:layout_marginEnd="@dimen/item_margin_left_and_right"
+                android:layout_marginEnd="@dimen/item_margin_start_and_end"
                 android:background="@null"
                 android:src="?attr/mipmapToolbarPopup"
                 android:visibility="gone" />

@@ -140,6 +140,8 @@
     <string name="follow_system">跟随系统</string>
     <string name="dark_theme_enable">已启用</string>
     <string name="dark_theme_disable">未启用</string>
+    <string name="manual_selection">手动选择</string>
+    <string name="light_theme">普通模式</string>
 
     <!-- 常用 -->
     <string name="prompt">提示</string>

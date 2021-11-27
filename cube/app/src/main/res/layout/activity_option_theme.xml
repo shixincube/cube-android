@@ -8,16 +8,17 @@
 
     <include layout="@layout/include_toolbar"/>
 
-    <com.zhy.autolayout.AutoLinearLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?attr/colorBackground"
         android:orientation="vertical">
 
-        <com.zhy.autolayout.AutoLinearLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:gravity="center_vertical">
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -28,7 +29,7 @@
                 android:textSize="16sp"/>
 
             <com.kyleduo.switchbutton.SwitchButton
-                android:id="@+id/sbDarkTheme"
+                android:id="@+id/sbFollowSystem"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="@dimen/option_item_margin_end"
@@ -36,8 +37,98 @@
                 auto:kswThumbDrawable="@drawable/ios_thumb_selector"
                 auto:kswThumbMarginTop="2dp"
                 auto:kswThumbMarginBottom="-2dp"/>
-        </com.zhy.autolayout.AutoLinearLayout>
+        </LinearLayout>
 
-    </com.zhy.autolayout.AutoLinearLayout>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?attr/colorThemeBackground"/>
+
+        <LinearLayout
+            android:id="@+id/llManualSelection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="23dp"
+                android:gravity="center_vertical"
+                android:paddingStart="@dimen/option_item_margin_start"
+                android:background="?attr/colorItemIndexBackground"
+                android:text="@string/manual_selection"
+                android:textColor="?attr/colorTextSecondary"
+                android:textSize="12sp"
+                android:visibility="visible"/>
+
+            <LinearLayout
+                android:id="@+id/llDarkThemeOff"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="?attr/selectorOptionItem"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/option_item_margin_start"
+                android:paddingEnd="@dimen/option_item_margin_end"
+                android:focusable="true"
+                android:clickable="true">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:singleLine="true"
+                    android:text="@string/light_theme"
+                    android:textColor="?attr/colorText"
+                    android:textSize="16sp"/>
+
+                <CheckBox
+                    android:id="@+id/cbDarkThemeOff"
+                    style="@style/CustomCheckboxTheme"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:clickable="false"/>
+
+            </LinearLayout>
+
+            <View
+                style="@style/Line"
+                android:layout_marginStart="@dimen/item_margin_start_and_end"
+                android:layout_marginEnd="@dimen/item_margin_start_and_end"/>
+
+            <LinearLayout
+                android:id="@+id/llDarkThemeOn"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="?attr/selectorOptionItem"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/option_item_margin_start"
+                android:paddingEnd="@dimen/option_item_margin_end"
+                android:focusable="true"
+                android:clickable="true">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:singleLine="true"
+                    android:text="@string/dark_theme"
+                    android:textColor="?attr/colorText"
+                    android:textSize="16sp"/>
+
+                <CheckBox
+                    android:id="@+id/cbDarkThemeOn"
+                    style="@style/CustomCheckboxTheme"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:clickable="false"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
 
 </LinearLayout>

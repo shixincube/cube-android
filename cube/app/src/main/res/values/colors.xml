@@ -27,6 +27,9 @@
     <color name="background_night">#303135</color>
     <color name="background_pressed_night">#56575B</color>
 
+    <color name="item_index_bg">#DFDFDF</color>
+    <color name="item_index_bg_night">#393A3F</color>
+
     <!-- 以上为核验的主题颜色 -->
 
     <color name="color_primary">#DFDFDF</color>
@@ -62,7 +65,6 @@
     <color name="item_text">#464646</color>
     <color name="item_bg">#FFFFFF</color>
     <color name="item_focus_bg">#EFEFEF</color>
-    <color name="item_index_bg">#E5E5E5</color>
     <color name="badge_bg">#FF3E3E</color>
 
     <color name="message_bar_bg">#FDFDFD</color>

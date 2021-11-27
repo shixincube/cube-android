@@ -28,6 +28,7 @@ package com.shixincube.app.manager;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 
 import androidx.appcompat.app.AppCompatDelegate;
 
@@ -49,9 +50,11 @@ public final class PreferenceHelper {
     private SharedPreferences sp;
     private SharedPreferences.Editor editor;
 
+    private int nightMode;
     private ThemeMode darkThemeMode;
 
     private PreferenceHelper() {
+        this.nightMode = Configuration.UI_MODE_NIGHT_UNDEFINED;
         this.darkThemeMode = ThemeMode.FollowSystem;
     }
 
@@ -75,6 +78,15 @@ public final class PreferenceHelper {
     }
 
     /**
+     * 设置当前系统的夜间模式。
+     *
+     * @param nightMode
+     */
+    public void setNightMode(int nightMode) {
+        this.nightMode = nightMode;
+    }
+
+    /**
      * 获取夜间主题模式。
      *
      * @return
@@ -93,12 +105,12 @@ public final class PreferenceHelper {
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
 
         // 00:00 到 07:00 夜间
-        // 19:00 到 23:59 夜间
+        // 22:00 到 23:59 夜间
 
         if (hour < 7) {
             return true;
         }
-        else if (hour >= 19) {
+        else if (hour >= 22) {
             return true;
         }
         else {
@@ -112,8 +124,12 @@ public final class PreferenceHelper {
      * @param themeMode 指定主题模式。
      */
     public void setDarkThemeMode(ThemeMode themeMode) {
+        if (this.darkThemeMode == themeMode) {
+            return;
+        }
+
         this.darkThemeMode = themeMode;
-        this.editor.putLong(AppConsts.APP_DARK_THEME_MODE, themeMode.code);
+        this.editor.putInt(AppConsts.APP_DARK_THEME_MODE, themeMode.code);
         this.editor.commit();
 
         switch (themeMode) {
@@ -136,6 +152,27 @@ public final class PreferenceHelper {
                 break;
 
             default:
+                switch (nightMode) {
+                    case Configuration.UI_MODE_NIGHT_YES:
+                        CubeBaseApp.eachActivity(new CubeBaseApp.ActivityHandler() {
+                            @Override
+                            public void handle(BaseActivity activity) {
+                                activity.getDelegate().setLocalNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                            }
+                        });
+                        break;
+                    case Configuration.UI_MODE_NIGHT_NO:
+                    case Configuration.UI_MODE_NIGHT_UNDEFINED:
+                        CubeBaseApp.eachActivity(new CubeBaseApp.ActivityHandler() {
+                            @Override
+                            public void handle(BaseActivity activity) {
+                                activity.getDelegate().setLocalNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                            }
+                        });
+                        break;
+                    default:
+                        break;
+                }
                 break;
         }
     }

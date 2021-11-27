@@ -84,6 +84,8 @@ public class CubeApp extends CubeBaseApp {
 
         // 主题模式
         ThemeMode themeMode = PreferenceHelper.getInstance(this.getApplicationContext()).getDarkThemeMode();
+        // 设置当前系统的夜间模式
+        PreferenceHelper.getInstance().setNightMode(dayNightUiMode);
 
         if (themeMode == ThemeMode.FollowSystem) {
             // 跟随系统

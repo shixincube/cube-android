@@ -12,4 +12,5 @@
     <attr name="colorBackground" format="color"/>
     
     <attr name="selectorOptionItem" format="reference"/>
+    <attr name="colorItemIndexBackground" format="color"/>
 </resources>

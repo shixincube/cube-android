@@ -49,9 +49,19 @@ public class PreferenceActivity extends BaseActivity {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+
+        this.initData();
+    }
+
+    @Override
     public void initView() {
         setToolbarTitle(UIUtils.getString(R.string.setting));
+    }
 
+    @Override
+    public void initData() {
         ThemeMode mode = PreferenceHelper.getInstance().getDarkThemeMode();
         switch (mode) {
             case AlwaysOn:

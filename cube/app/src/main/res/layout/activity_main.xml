@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.zhy.autolayout.AutoLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/theme_bg"
+    android:background="?attr/colorThemeBackground"
     android:orientation="vertical">
 
     <include layout="@layout/include_toolbar"/>
@@ -15,17 +15,18 @@
     </androidx.viewpager.widget.ViewPager>
 
     <!-- View Bottom -->
-    <View style="@style/Line" />
+    <View
+        style="?attr/styleLine"/>
 
-    <com.zhy.autolayout.AutoLinearLayout
+    <LinearLayout
         android:id="@+id/llBottom"
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:layout_alignParentBottom="true"
-        android:background="@color/tabbar_bg">
+        android:background="?attr/colorTabBackground">
 
         <!-- Conversation - Begin -->
-        <com.zhy.autolayout.AutoLinearLayout
+        <LinearLayout
             android:id="@+id/llConversation"
             android:layout_width="0dp"
             android:layout_height="match_parent"
@@ -35,13 +36,13 @@
             android:orientation="vertical">
 
             <!-- Icon -->
-            <com.zhy.autolayout.AutoRelativeLayout
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="5"
                 android:gravity="bottom">
 
-                <com.zhy.autolayout.AutoRelativeLayout
+                <RelativeLayout
                     android:id="@+id/rlConversation"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -53,10 +54,9 @@
                         android:layout_width="@dimen/main_bottom_iv_horizontal_size"
                         android:layout_height="@dimen/main_bottom_iv_vertical_size"
                         android:layout_centerInParent="true"
-                        android:background="@mipmap/tabbar_conversation"
+                        android:background="?attr/mipmapTabConversationNormal"
                         android:button="@null"
                         android:gravity="center"
-                        android:textColor="@color/tabbar_text"
                         android:textSize="14sp"/>
 
                     <TextView
@@ -64,13 +64,12 @@
                         android:layout_width="@dimen/main_bottom_iv_horizontal_size"
                         android:layout_height="@dimen/main_bottom_iv_vertical_size"
                         android:layout_centerInParent="true"
-                        android:background="@mipmap/tabbar_conversation_pressed"
+                        android:background="?attr/mipmapTabConversationPressed"
                         android:button="@null"
                         android:gravity="center"
-                        android:textColor="@color/theme_blue"
                         android:textSize="14sp"/>
 
-                </com.zhy.autolayout.AutoRelativeLayout>
+                </RelativeLayout>
 
                 <TextView
                     android:id="@+id/tvConversationBadge"
@@ -87,10 +86,10 @@
                     android:textSize="12sp"
                     android:visibility="gone"/>
 
-            </com.zhy.autolayout.AutoRelativeLayout>
+            </RelativeLayout>
 
             <!-- Text -->
-            <com.zhy.autolayout.AutoRelativeLayout
+            <RelativeLayout
                 android:layout_width="wrap_content"
                 android:layout_height="0dp"
                 android:layout_weight="3">
@@ -100,7 +99,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/conversation"
-                    android:textColor="@color/tabbar_text"
+                    android:textColor="?attr/colorTabNormal"
                     android:textSize="14sp"/>
 
                 <TextView
@@ -108,15 +107,15 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/conversation"
-                    android:textColor="@color/theme_blue"
+                    android:textColor="?attr/colorTabPressed"
                     android:textSize="14sp"/>
-            </com.zhy.autolayout.AutoRelativeLayout>
+            </RelativeLayout>
 
-        </com.zhy.autolayout.AutoLinearLayout>
+        </LinearLayout>
         <!-- Conversation - End -->
 
         <!-- Files - Begin -->
-        <com.zhy.autolayout.AutoLinearLayout
+        <LinearLayout
             android:id="@+id/llFiles"
             android:layout_width="0dp"
             android:layout_height="match_parent"
@@ -126,13 +125,13 @@
             android:orientation="vertical">
 
             <!-- Icon -->
-            <com.zhy.autolayout.AutoRelativeLayout
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="5"
                 android:gravity="bottom">
 
-                <com.zhy.autolayout.AutoRelativeLayout
+                <RelativeLayout
                     android:id="@+id/rlFiles"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -143,23 +142,21 @@
                         android:id="@+id/tvFilesNormal"
                         android:layout_width="@dimen/main_bottom_iv_horizontal_size"
                         android:layout_height="@dimen/main_bottom_iv_vertical_size"
-                        android:background="@mipmap/tabbar_files"
+                        android:background="?attr/mipmapTabFilesNormal"
                         android:button="@null"
                         android:gravity="center"
-                        android:textColor="@color/tabbar_text"
                         android:textSize="14sp"/>
 
                     <TextView
                         android:id="@+id/tvFilesPressed"
                         android:layout_width="@dimen/main_bottom_iv_horizontal_size"
                         android:layout_height="@dimen/main_bottom_iv_vertical_size"
-                        android:background="@mipmap/tabbar_files_pressed"
+                        android:background="?attr/mipmapTabFilesPressed"
                         android:button="@null"
                         android:gravity="center"
-                        android:textColor="@color/theme_blue"
                         android:textSize="14sp"/>
 
-                </com.zhy.autolayout.AutoRelativeLayout>
+                </RelativeLayout>
 
                 <TextView
                     android:id="@+id/tvFilesBadge"
@@ -176,10 +173,10 @@
                     android:textSize="12sp"
                     android:visibility="gone"/>
 
-            </com.zhy.autolayout.AutoRelativeLayout>
+            </RelativeLayout>
 
             <!-- Text -->
-            <com.zhy.autolayout.AutoRelativeLayout
+            <RelativeLayout
                 android:layout_width="wrap_content"
                 android:layout_height="0dp"
                 android:layout_weight="3">
@@ -189,7 +186,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/files"
-                    android:textColor="@color/tabbar_text"
+                    android:textColor="?attr/colorTabNormal"
                     android:textSize="14sp"/>
 
                 <TextView
@@ -197,16 +194,16 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/files"
-                    android:textColor="@color/theme_blue"
+                    android:textColor="?attr/colorTabPressed"
                     android:textSize="14sp"/>
 
-            </com.zhy.autolayout.AutoRelativeLayout>
+            </RelativeLayout>
 
-        </com.zhy.autolayout.AutoLinearLayout>
+        </LinearLayout>
         <!-- Files - End -->
 
         <!-- Contacts - Begin -->
-        <com.zhy.autolayout.AutoLinearLayout
+        <LinearLayout
             android:id="@+id/llContacts"
             android:layout_width="0dp"
             android:layout_height="match_parent"
@@ -216,13 +213,13 @@
             android:orientation="vertical">
 
             <!-- Icon -->
-            <com.zhy.autolayout.AutoRelativeLayout
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="5"
                 android:gravity="bottom">
 
-                <com.zhy.autolayout.AutoRelativeLayout
+                <RelativeLayout
                     android:id="@+id/rlContacts"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -233,23 +230,21 @@
                         android:id="@+id/tvContactsNormal"
                         android:layout_width="@dimen/main_bottom_iv_horizontal_size"
                         android:layout_height="@dimen/main_bottom_iv_vertical_size"
-                        android:background="@mipmap/tabbar_contacts"
+                        android:background="?attr/mipmapTabContactsNormal"
                         android:button="@null"
                         android:gravity="center"
-                        android:textColor="@color/tabbar_text"
                         android:textSize="14sp"/>
 
                     <TextView
                         android:id="@+id/tvContactsPressed"
                         android:layout_width="@dimen/main_bottom_iv_horizontal_size"
                         android:layout_height="@dimen/main_bottom_iv_vertical_size"
-                        android:background="@mipmap/tabbar_contacts_pressed"
+                        android:background="?attr/mipmapTabContactsPressed"
                         android:button="@null"
                         android:gravity="center"
-                        android:textColor="@color/theme_blue"
                         android:textSize="14sp"/>
 
-                </com.zhy.autolayout.AutoRelativeLayout>
+                </RelativeLayout>
 
                 <TextView
                     android:id="@+id/tvContactBadge"
@@ -279,10 +274,10 @@
                     android:textSize="12sp"
                     android:visibility="gone"/>
 
-            </com.zhy.autolayout.AutoRelativeLayout>
+            </RelativeLayout>
 
             <!-- Text -->
-            <com.zhy.autolayout.AutoRelativeLayout
+            <RelativeLayout
                 android:layout_width="wrap_content"
                 android:layout_height="0dp"
                 android:layout_weight="3">
@@ -292,7 +287,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/contacts"
-                    android:textColor="@color/tabbar_text"
+                    android:textColor="?attr/colorTabNormal"
                     android:textSize="14sp"/>
 
                 <TextView
@@ -300,15 +295,15 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/contacts"
-                    android:textColor="@color/theme_blue"
+                    android:textColor="?attr/colorTabPressed"
                     android:textSize="14sp"/>
-            </com.zhy.autolayout.AutoRelativeLayout>
+            </RelativeLayout>
 
-        </com.zhy.autolayout.AutoLinearLayout>
+        </LinearLayout>
         <!-- Contacts - End -->
 
         <!-- Profile - Begin -->
-        <com.zhy.autolayout.AutoLinearLayout
+        <LinearLayout
             android:id="@+id/llProfile"
             android:layout_width="0dp"
             android:layout_height="match_parent"
@@ -318,13 +313,13 @@
             android:orientation="vertical">
 
             <!-- Icon -->
-            <com.zhy.autolayout.AutoRelativeLayout
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="5"
                 android:gravity="bottom">
 
-                <com.zhy.autolayout.AutoRelativeLayout
+                <RelativeLayout
                     android:id="@+id/rlProfile"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -335,23 +330,21 @@
                         android:id="@+id/tvProfileNormal"
                         android:layout_width="@dimen/main_bottom_iv_horizontal_size"
                         android:layout_height="@dimen/main_bottom_iv_vertical_size"
-                        android:background="@mipmap/tabbar_profile"
+                        android:background="?attr/mipmapTabProfileNormal"
                         android:button="@null"
                         android:gravity="center"
-                        android:textColor="@color/tabbar_text"
                         android:textSize="14sp"/>
 
                     <TextView
                         android:id="@+id/tvProfilePressed"
                         android:layout_width="@dimen/main_bottom_iv_horizontal_size"
                         android:layout_height="@dimen/main_bottom_iv_vertical_size"
-                        android:background="@mipmap/tabbar_profile_pressed"
+                        android:background="?attr/mipmapTabProfilePressed"
                         android:button="@null"
                         android:gravity="center"
-                        android:textColor="@color/theme_blue"
                         android:textSize="14sp"/>
 
-                </com.zhy.autolayout.AutoRelativeLayout>
+                </RelativeLayout>
 
                 <TextView
                     android:id="@+id/tvProfileBadgeOnly"
@@ -366,10 +359,10 @@
                     android:textSize="14sp"
                     android:visibility="gone"/>
 
-            </com.zhy.autolayout.AutoRelativeLayout>
+            </RelativeLayout>
 
             <!-- Text -->
-            <com.zhy.autolayout.AutoRelativeLayout
+            <RelativeLayout
                 android:layout_width="wrap_content"
                 android:layout_height="0dp"
                 android:layout_weight="3">
@@ -379,7 +372,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/profile"
-                    android:textColor="@color/tabbar_text"
+                    android:textColor="?attr/colorTabNormal"
                     android:textSize="14sp"/>
 
                 <TextView
@@ -387,14 +380,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/profile"
-                    android:textColor="@color/theme_blue"
+                    android:textColor="?attr/colorTabPressed"
                     android:textSize="14sp"/>
 
-            </com.zhy.autolayout.AutoRelativeLayout>
+            </RelativeLayout>
 
-        </com.zhy.autolayout.AutoLinearLayout>
+        </LinearLayout>
         <!-- Profile - End -->
 
-    </com.zhy.autolayout.AutoLinearLayout>
+    </LinearLayout>
 
-</com.zhy.autolayout.AutoLinearLayout>
+</LinearLayout>

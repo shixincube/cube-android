@@ -5,11 +5,30 @@
     <attr name="colorToolbarBackground" format="color"/>
     <attr name="mipmapToolbarNavigation" format="reference"/>
     <attr name="mipmapToolbarPopup" format="reference"/>
+    <attr name="mipmapToolbarMore" format="reference"/>
 
+    <attr name="colorTabNormal" format="color"/>
+    <attr name="colorTabPressed" format="color"/>
+    <attr name="colorTabBackground" format="color"/>
+    <attr name="mipmapTabConversationNormal" format="reference"/>
+    <attr name="mipmapTabConversationPressed" format="reference"/>
+    <attr name="mipmapTabFilesNormal" format="reference"/>
+    <attr name="mipmapTabFilesPressed" format="reference"/>
+    <attr name="mipmapTabContactsNormal" format="reference"/>
+    <attr name="mipmapTabContactsPressed" format="reference"/>
+    <attr name="mipmapTabProfileNormal" format="reference"/>
+    <attr name="mipmapTabProfilePressed" format="reference"/>
+
+    <attr name="styleLine" format="reference"/>
+
+    <attr name="colorTheme" format="color"/>
+    <attr name="colorThemeActive" format="color"/>
     <attr name="colorThemeBackground" format="color"/>
     <attr name="colorText" format="color"/>
     <attr name="colorTextSecondary" format="color"/>
     <attr name="colorBackground" format="color"/>
+
+    <attr name="colorButtonPrimaryText" format="color"/>
     
     <attr name="selectorOptionItem" format="reference"/>
     <attr name="colorItemIndexBackground" format="color"/>

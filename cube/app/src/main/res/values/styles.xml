@@ -5,6 +5,11 @@
         <item name="android:layout_height">0.5dp</item>
         <item name="android:background">@color/line</item>
     </style>
+    <style name="LineNight">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">0.5dp</item>
+        <item name="android:background">@color/line_night</item>
+    </style>
 
     <!-- Dialog -->
     <style name="CustomDialog" parent="@android:style/Theme.Dialog">

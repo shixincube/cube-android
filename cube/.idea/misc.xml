@@ -61,12 +61,15 @@
         <entry key="app/src/main/res/drawable/selector_secondary_button.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/selector_strip_button.xml" value="0.3203125" />
         <entry key="app/src/main/res/drawable/selector_theme_btn.xml" value="0.3203125" />
+        <entry key="app/src/main/res/drawable/selector_theme_button.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/selector_view_pager_indicator.xml" value="0.13515625" />
         <entry key="app/src/main/res/drawable/shape_badge.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/shape_bottom_gray.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/shape_bottom_theme.xml" value="0.3203125" />
         <entry key="app/src/main/res/drawable/shape_button_danger.xml" value="0.240234375" />
+        <entry key="app/src/main/res/drawable/shape_button_disable.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/shape_button_primary.xml" value="0.240234375" />
+        <entry key="app/src/main/res/drawable/shape_button_primary_pressed.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/shape_button_secondary.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/shape_corner_rect_solid_gray.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/shape_corner_rect_solid_white.xml" value="0.240234375" />
@@ -89,6 +92,7 @@
         <entry key="app/src/main/res/drawable/shape_strip_button_enable.xml" value="0.3203125" />
         <entry key="app/src/main/res/drawable/shape_strip_button_pressed.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/shape_vertical_line.xml" value="0.11381578947368422" />
+        <entry key="app/src/main/res/layout/activity_about.xml" value="0.15744535519125682" />
         <entry key="app/src/main/res/layout/activity_add_contact.xml" value="0.15198087431693988" />
         <entry key="app/src/main/res/layout/activity_contact_details.xml" value="0.21618852459016394" />
         <entry key="app/src/main/res/layout/activity_conversation_details.xml" value="0.5" />

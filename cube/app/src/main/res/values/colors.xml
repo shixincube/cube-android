@@ -6,6 +6,7 @@
     <color name="transparent">#00000000</color>
 
     <color name="line">#D2D2D2</color>
+    <color name="line_night">#575B55</color>
     <color name="hint">#C8969696</color>
     <color name="avatar">#D9D9D9</color>
 
@@ -13,6 +14,17 @@
     <color name="toolbar_bg">#FDFDFD</color>
     <color name="toolbar_text_night">#FEFEFE</color>
     <color name="toolbar_bg_night">#303135</color>
+
+    <color name="tab_normal">#464646</color>
+    <color name="tab_pressed">#287DF6</color>
+    <color name="tab_bg">#FEFEFE</color>
+    <color name="tab_normal_night">#DFDFDF</color>
+    <color name="tab_pressed_night">#368CF2</color>
+    <color name="tab_bg_night">#202125</color>
+
+    <color name="theme">#287DF6</color>
+    <color name="theme_dark">#0854E6</color>
+    <color name="theme_light">#368CF2</color>
 
     <color name="theme_bg">#EBEBEB</color>
     <color name="theme_bg_night">#191919</color>
@@ -26,6 +38,9 @@
     <color name="text_secondary_night">#969696</color>
     <color name="background_night">#303135</color>
     <color name="background_pressed_night">#56575B</color>
+
+    <color name="button_primary_text">#FFFFFF</color>
+    <color name="button_disabled">#999999</color>
 
     <color name="item_index_bg">#DFDFDF</color>
     <color name="item_index_bg_night">#393A3F</color>
@@ -43,7 +58,6 @@
     <color name="button_red_pressed">#CD3E40</color>
     <color name="button_normal">#F5F5F5</color>
     <color name="button_pressed">#EBEBEB</color>
-    <color name="button_disabled">#999999</color>
     <color name="button_accent">#D9D9D9</color>
 
     <color name="theme_blue">#287DF6</color>
@@ -56,9 +70,6 @@
     <color name="text_accent">#7E7E7E</color>
     <color name="text_danger">#E64340</color>
     <color name="text_link">#3655bf</color>
-
-    <color name="tabbar_text">#464646</color>
-    <color name="tabbar_bg">#FEFEFE</color>
 
     <color name="pressed">#D9D9D9</color>
 

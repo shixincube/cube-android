@@ -152,7 +152,7 @@ public final class PreferenceHelper {
                 break;
 
             default:
-                switch (nightMode) {
+                switch (this.nightMode) {
                     case Configuration.UI_MODE_NIGHT_YES:
                         CubeBaseApp.eachActivity(new CubeBaseApp.ActivityHandler() {
                             @Override
@@ -173,6 +173,31 @@ public final class PreferenceHelper {
                     default:
                         break;
                 }
+                break;
+        }
+    }
+
+    /**
+     * 配置 Activity 的主题。
+     *
+     * @param activity
+     */
+    public void setupTheme(BaseActivity activity) {
+        // MODE_NIGHT_NO, MODE_NIGHT_YES
+        int localNightMode = activity.getDelegate().getLocalNightMode();
+
+        switch (this.darkThemeMode) {
+            case AlwaysOn:
+                if (localNightMode != AppCompatDelegate.MODE_NIGHT_YES) {
+                    activity.getDelegate().setLocalNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                }
+                break;
+            case AlwaysOff:
+                if (localNightMode != AppCompatDelegate.MODE_NIGHT_NO) {
+                    activity.getDelegate().setLocalNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                }
+                break;
+            default:
                 break;
         }
     }

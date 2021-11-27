@@ -93,7 +93,7 @@
             </LinearLayout>
 
             <View
-                style="@style/Line"
+                style="?attr/styleLine"
                 android:layout_marginStart="@dimen/item_margin_start_and_end"
                 android:layout_marginEnd="@dimen/item_margin_start_and_end"/>
 

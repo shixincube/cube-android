@@ -8,13 +8,13 @@
 
     <include layout="@layout/include_toolbar"/>
 
-    <com.zhy.autolayout.AutoLinearLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?attr/colorBackground"
         android:orientation="vertical">
 
-        <!-- 深夜主题 -->
+        <!-- 深色模式 -->
         <com.shixincube.app.widget.optionitemview.OptionItemView
             android:id="@+id/oivDarkTheme"
             style="@style/OptionItem"
@@ -31,10 +31,31 @@
             auto:end_src="@mipmap/indicator"/>
 
         <View
-            style="@style/Line"
+            style="?attr/styleLine"
             android:layout_marginStart="@dimen/item_margin_start_and_end"
             android:layout_marginEnd="@dimen/item_margin_start_and_end"/>
 
-    </com.zhy.autolayout.AutoLinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorBackground"
+        android:layout_marginTop="@dimen/activity_vertical_margin"
+        android:orientation="vertical">
+
+        <com.shixincube.app.widget.optionitemview.OptionItemView
+            android:id="@+id/oivAbout"
+            style="@style/OptionItem"
+            android:background="?attr/selectorOptionItem"
+            android:focusable="true"
+            android:clickable="true"
+            auto:start_text="@string/about_cube"
+            auto:start_text_color="?attr/colorText"
+            auto:start_text_size="16sp"
+            auto:start_text_margin_left="@dimen/option_item_margin_start"
+            auto:end_src="@mipmap/indicator"/>
+
+    </LinearLayout>
 
 </LinearLayout>

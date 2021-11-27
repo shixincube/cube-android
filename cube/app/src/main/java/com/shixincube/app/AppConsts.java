@@ -26,6 +26,8 @@
 
 package com.shixincube.app;
 
+import android.annotation.SuppressLint;
+
 import com.shixincube.app.util.FileUtils;
 
 /**
@@ -34,9 +36,25 @@ import com.shixincube.app.util.FileUtils;
 public final class AppConsts {
 
     /**
-     * 日志 TAG 。
+     * 程序主版本。
      */
-    public final static String TAG = "Cube";
+    public final static int VERSION_MAJOR = 3;
+
+    /**
+     * 程序副版本。
+     */
+    public final static int VERSION_MINOR = 0;
+
+    /**
+     * 程序修订号。
+     */
+    public final static int VERSION_REVISION = 0;
+
+    /**
+     * 应用程序版本。
+     */
+    @SuppressLint("DefaultLocale")
+    public final static String VERSION = String.format("%d.%d.%d", VERSION_MAJOR, VERSION_MINOR, VERSION_REVISION);
 
     /**
      * 默认国际电话区号。

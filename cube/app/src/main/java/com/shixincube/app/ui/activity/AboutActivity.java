@@ -26,67 +26,49 @@
 
 package com.shixincube.app.ui.activity;
 
+import android.content.Intent;
+import android.net.Uri;
+import android.widget.Button;
+import android.widget.TextView;
+
+import com.shixincube.app.AppConsts;
 import com.shixincube.app.R;
-import com.shixincube.app.manager.PreferenceHelper;
-import com.shixincube.app.manager.ThemeMode;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.util.UIUtils;
-import com.shixincube.app.widget.optionitemview.OptionItemView;
 
 import butterknife.BindView;
 
 /**
- * 偏好设置。
+ * 关于界面。
  */
-public class PreferenceActivity extends BaseActivity {
+public class AboutActivity extends BaseActivity {
 
-    @BindView(R.id.oivDarkTheme)
-    OptionItemView darkThemeItem;
+    @BindView(R.id.tvAppName)
+    TextView appNameText;
 
-    @BindView(R.id.oivAbout)
-    OptionItemView aboutItem;
+    @BindView(R.id.btnGotoWebsite)
+    Button gotoWebsiteButton;
 
-    public PreferenceActivity() {
+    public AboutActivity() {
         super();
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-
-        this.initData();
-    }
-
-    @Override
     public void initView() {
-        setToolbarTitle(UIUtils.getString(R.string.setting));
-    }
+        this.setToolbarTitle(UIUtils.getString(R.string.about_cube));
 
-    @Override
-    public void initData() {
-        ThemeMode mode = PreferenceHelper.getInstance().getDarkThemeMode();
-        switch (mode) {
-            case AlwaysOn:
-                this.darkThemeItem.setEndText(UIUtils.getString(R.string.dark_theme_enable));
-                break;
-            case AlwaysOff:
-                this.darkThemeItem.setEndText(UIUtils.getString(R.string.dark_theme_disable));
-                break;
-            default:
-                this.darkThemeItem.setEndText(UIUtils.getString(R.string.follow_system));
-                break;
-        }
+        this.appNameText.setText(UIUtils.getString(R.string.app_name_in_about,
+                AppConsts.VERSION));
     }
 
     @Override
     public void initListener() {
-        this.darkThemeItem.setOnClickListener((view) -> {
-            jumpToActivity(OptionThemeActivity.class);
-        });
-
-        this.aboutItem.setOnClickListener((view) -> {
-            jumpToActivity(AboutActivity.class);
+        this.gotoWebsiteButton.setOnClickListener((view) -> {
+            Intent intent = new Intent();
+            intent.setData(Uri.parse("https://shixincube.com"));
+            intent.setAction(Intent.ACTION_VIEW);
+            startActivity(intent);
         });
     }
 
@@ -97,6 +79,6 @@ public class PreferenceActivity extends BaseActivity {
 
     @Override
     protected int provideContentViewId() {
-        return R.layout.activity_preference;
+        return R.layout.activity_about;
     }
 }

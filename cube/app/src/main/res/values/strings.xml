@@ -142,6 +142,9 @@
     <string name="dark_theme_disable">未启用</string>
     <string name="manual_selection">手动选择</string>
     <string name="light_theme">普通模式</string>
+    <string name="about_cube">关于时信魔方</string>
+    <string name="app_name_in_about">时信魔方 %1$s</string>
+    <string name="goto_website">访问官网 shixincube.com</string>
 
     <!-- 常用 -->
     <string name="prompt">提示</string>

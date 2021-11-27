@@ -45,6 +45,7 @@ import com.google.android.material.appbar.AppBarLayout;
 import com.jaeger.library.StatusBarUtil;
 import com.shixincube.app.CubeApp;
 import com.shixincube.app.R;
+import com.shixincube.app.manager.PreferenceHelper;
 import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.CustomDialog;
 
@@ -94,6 +95,8 @@ public abstract class BaseActivity<V, T extends BasePresenter<V>> extends AppCom
             this.presenter.attachView((V) this);
         }
 
+        setupTheme();
+
         setContentView(provideContentViewId());
         ButterKnife.bind(this);
 
@@ -120,6 +123,10 @@ public abstract class BaseActivity<V, T extends BasePresenter<V>> extends AppCom
     @Override
     protected void onResume() {
         super.onResume();
+    }
+
+    private void setupTheme() {
+        PreferenceHelper.getInstance().setupTheme(this);
     }
 
     public void setToolbarTitle(String title) {

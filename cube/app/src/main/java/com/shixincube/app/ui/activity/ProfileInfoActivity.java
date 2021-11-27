@@ -26,6 +26,9 @@
 
 package com.shixincube.app.ui.activity;
 
+import android.content.Intent;
+import android.widget.LinearLayout;
+
 import com.shixincube.app.R;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.presenter.ProfileInfoPresenter;
@@ -39,6 +42,11 @@ import butterknife.BindView;
  * 个人信息详情。
  */
 public class ProfileInfoActivity extends BaseActivity<ProfileInfoView, ProfileInfoPresenter> implements ProfileInfoView {
+
+    public final static int REQUEST_AVATAR = 1000;
+
+    @BindView(R.id.llAvatar)
+    LinearLayout avatarLayout;
 
     @BindView(R.id.aivAvatar)
     AdvancedImageView avatarImage;
@@ -54,6 +62,14 @@ public class ProfileInfoActivity extends BaseActivity<ProfileInfoView, ProfileIn
     @Override
     public void initView() {
         setToolbarTitle(getString(R.string.title_profile_info));
+    }
+
+    @Override
+    public void initListener() {
+        this.avatarLayout.setOnClickListener((view) -> {
+            Intent intent = new Intent(this, SelectAvatarActivity.class);
+            startActivityForResult(intent, REQUEST_AVATAR);
+        });
     }
 
     @Override

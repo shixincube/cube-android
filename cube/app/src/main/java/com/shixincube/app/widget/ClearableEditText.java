@@ -9,13 +9,11 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import androidx.appcompat.widget.AppCompatEditText;
-import androidx.core.content.ContextCompat;
-import androidx.core.graphics.drawable.DrawableCompat;
 
 import com.shixincube.app.R;
 
 /**
- * 待清空按钮的文本输入框。
+ * 带清空按钮的文本输入框。
  */
 public class ClearableEditText extends AppCompatEditText implements View.OnTouchListener, View.OnFocusChangeListener, TextWatcher {
 
@@ -49,11 +47,14 @@ public class ClearableEditText extends AppCompatEditText implements View.OnTouch
     }
 
     private void init(final Context context) {
-        final Drawable drawable = ContextCompat.getDrawable(context, R.mipmap.ic_delete_mini);
-        final Drawable wrappedDrawable = DrawableCompat.wrap(drawable); //Wrap the drawable so that it can be tinted pre Lollipop
-        DrawableCompat.setTint(wrappedDrawable, getCurrentHintTextColor());
-        mClearTextIcon = wrappedDrawable;
-        mClearTextIcon.setBounds(0, 0, mClearTextIcon.getIntrinsicHeight(), mClearTextIcon.getIntrinsicHeight());
+//        final Drawable drawable = ContextCompat.getDrawable(context, R.mipmap.ic_clear_edit);
+//        final Drawable wrappedDrawable = DrawableCompat.wrap(drawable); //Wrap the drawable so that it can be tinted pre Lollipop
+//        DrawableCompat.setTint(wrappedDrawable, getCurrentHintTextColor());
+//        mClearTextIcon = wrappedDrawable;
+//        mClearTextIcon.setBounds(0, 0, mClearTextIcon.getIntrinsicHeight(), mClearTextIcon.getIntrinsicHeight());
+
+        this.mClearTextIcon = getResources().getDrawable(R.mipmap.ic_clear_edit, context.getTheme());
+
         setClearIconVisible(false);
         super.setOnTouchListener(this);
         super.setOnFocusChangeListener(this);
@@ -86,10 +87,9 @@ public class ClearableEditText extends AppCompatEditText implements View.OnTouch
     }
 
     @Override
-    public final void onTextChanged(final CharSequence s, final int start, final int before, final int count) {
-        if (isFocused()) {
-            setClearIconVisible(s.length() > 0);
-        }
+    public final void onTextChanged(final CharSequence text, final int start, final int before, final int count) {
+        super.onTextChanged(text, start, before, count);
+        setClearIconVisible(isFocused() && isEnabled() && text.length() > 0);
     }
 
     @Override
@@ -100,11 +100,17 @@ public class ClearableEditText extends AppCompatEditText implements View.OnTouch
     public void afterTextChanged(Editable s) {
     }
 
-
     private void setClearIconVisible(final boolean visible) {
-        mClearTextIcon.setVisible(visible, false);
+//        mClearTextIcon.setVisible(visible);
+
         final Drawable[] compoundDrawables = getCompoundDrawables();
-        setCompoundDrawables(
+//        setCompoundDrawables(
+//                compoundDrawables[0],
+//                compoundDrawables[1],
+//                visible ? mClearTextIcon : null,
+//                compoundDrawables[3]);
+
+        setCompoundDrawablesWithIntrinsicBounds(
                 compoundDrawables[0],
                 compoundDrawables[1],
                 visible ? mClearTextIcon : null,

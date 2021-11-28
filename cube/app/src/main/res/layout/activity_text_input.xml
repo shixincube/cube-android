@@ -62,7 +62,7 @@
         android:background="?attr/colorThemeBackground"
         android:orientation="vertical">
 
-        <EditText
+        <com.shixincube.app.widget.ClearableEditText
             android:id="@+id/etContent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

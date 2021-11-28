@@ -80,6 +80,7 @@ public class ProfileInfoActivity extends BaseActivity<ProfileInfoView, ProfileIn
             Intent intent = new Intent(ProfileInfoActivity.this, TextInputActivity.class);
             intent.putExtra("title", UIUtils.getString(R.string.modify_name));
             intent.putExtra("content", presenter.getName());
+            intent.putExtra("minLength", 3);
             startActivityForResult(intent, REQUEST_NAME);
         });
     }
@@ -100,6 +101,13 @@ public class ProfileInfoActivity extends BaseActivity<ProfileInfoView, ProfileIn
                     // 更换头像
                     presenter.modifyAvatar(avatarName);
                 }
+            }
+        }
+        else if (requestCode == REQUEST_NAME) {
+            if (resultCode == RESULT_OK) {
+                String name = data.getStringExtra("content");
+                // 更改名称
+                presenter.modifyName(name);
             }
         }
     }

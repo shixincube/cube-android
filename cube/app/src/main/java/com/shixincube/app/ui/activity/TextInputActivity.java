@@ -58,6 +58,11 @@ public class TextInputActivity extends BaseActivity {
     @BindView(R.id.etContent)
     EditText contentEditText;
 
+    /**
+     * 允许输入的最小长度。
+     */
+    private int minLength = 0;
+
     public TextInputActivity() {
         super();
     }
@@ -87,6 +92,8 @@ public class TextInputActivity extends BaseActivity {
             contentEditText.setMaxLines(20);
         }
 
+        this.minLength = getIntent().getIntExtra("minLength", 0);
+
         this.contentEditText.requestFocus();
         CubeApp.getMainThreadHandler().postDelayed(() -> {
             contentEditText.requestFocus();
@@ -115,7 +122,7 @@ public class TextInputActivity extends BaseActivity {
             @Override
             public void onTextChanged(CharSequence charSequence, int start,int count, int after) {
                 String text = contentEditText.getText().toString();
-                if (!TextUtils.isEmpty(text)) {
+                if (!TextUtils.isEmpty(text) && text.length() >= minLength) {
                     if (!submitButton.isEnabled()) {
                         submitButton.setEnabled(true);
                     }

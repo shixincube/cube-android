@@ -85,4 +85,26 @@ public class ProfileInfoPresenter extends BasePresenter<ProfileInfoView> {
                     });
                 }));
     }
+
+    public void modifyName(String name) {
+        Explorer.getInstance().setAccountInfo(AccountHelper.getInstance().getTokenCode(),
+                name, null)
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.io())
+                .subscribe(accountInfoResponse -> {
+                    Account account = accountInfoResponse.toAccount();
+                    // 更新本地数据
+                    AccountHelper.getInstance().updateCurrentAccount(account.name, account.avatar);
+                    // 更新引擎数据
+                    Self self = CubeEngine.getInstance().getContactService().modifySelf(account.name, account.toJSON());
+
+                    activity.runOnUiThread(() -> {
+                        getView().getNickNameItem().setEndText(self.getName());
+                    });
+                }, (throwable -> {
+                    activity.runOnUiThread(() -> {
+                        UIUtils.showToast(UIUtils.getString(R.string.operate_failure));
+                    });
+                }));
+    }
 }

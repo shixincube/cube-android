@@ -19,6 +19,7 @@
     <attr name="mipmapTabProfileNormal" format="reference"/>
     <attr name="mipmapTabProfilePressed" format="reference"/>
 
+    <attr name="colorLine" format="color"/>
     <attr name="styleLine" format="reference"/>
 
     <attr name="colorTheme" format="color"/>
@@ -28,6 +29,7 @@
     <attr name="colorText" format="color"/>
     <attr name="colorTextSecondary" format="color"/>
     <attr name="colorBackground" format="color"/>
+    <attr name="colorBackgroundAccent" format="color"/>
 
     <attr name="colorButtonPrimaryText" format="color"/>
     <attr name="colorButtonSecondary" format="color"/>
@@ -36,4 +38,10 @@
     
     <attr name="selectorOptionItem" format="reference"/>
     <attr name="colorItemIndexBackground" format="color"/>
+
+    <attr name="colorMessageBarBackground" format="color"/>
+    <attr name="colorMessageBoxSelfText" format="color"/>
+    <attr name="colorMessageBoxSelfBG" format="color"/>
+    <attr name="colorMessageBoxPartnerText" format="color"/>
+    <attr name="colorMessageBoxPartnerBG" format="color"/>
 </resources>

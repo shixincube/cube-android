@@ -28,9 +28,12 @@ package com.shixincube.app.util;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.graphics.Color;
 import android.os.Handler;
+import android.view.ContextThemeWrapper;
 import android.widget.Toast;
 
+import com.google.android.material.color.MaterialColors;
 import com.shixincube.app.CubeBaseApp;
 import com.shixincube.app.R;
 
@@ -116,6 +119,17 @@ public final class UIUtils {
      */
     public static int getColor(int colorId) {
         return getResources().getColor(colorId, getContext().getTheme());
+    }
+
+    /**
+     * 通过属性 ID 获取颜色值。
+     *
+     * @param colorAttributeResId
+     * @return
+     */
+    public static int getColorByAttrId(int colorAttributeResId) {
+        ContextThemeWrapper wrapper = new ContextThemeWrapper(getContext(), R.style.CubeTheme);
+        return MaterialColors.getColor(wrapper, colorAttributeResId, Color.RED);
     }
 
     /**

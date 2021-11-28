@@ -32,6 +32,7 @@
         <item name="mipmapTabProfileNormal">@mipmap/tab_profile_normal</item>
         <item name="mipmapTabProfilePressed">@mipmap/tab_profile_pressed</item>
 
+        <item name="colorLine">@color/line</item>
         <item name="styleLine">@style/Line</item>
 
         <item name="colorTheme">@color/theme</item>
@@ -41,6 +42,7 @@
         <item name="colorText">@color/text</item>
         <item name="colorTextSecondary">@color/text_secondary</item>
         <item name="colorBackground">@color/background</item>
+        <item name="colorBackgroundAccent">@color/background_accent</item>
 
         <item name="colorButtonPrimaryText">@color/button_primary_text</item>
         <item name="colorButtonSecondary">@color/button_secondary</item>
@@ -49,6 +51,12 @@
 
         <item name="selectorOptionItem">@drawable/selector_option_item</item>
         <item name="colorItemIndexBackground">@color/item_index_bg</item>
+
+        <item name="colorMessageBarBackground">@color/message_bar_bg</item>
+        <item name="colorMessageBoxSelfText">@color/message_box_self_text</item>
+        <item name="colorMessageBoxSelfBG">@color/message_box_self_bg</item>
+        <item name="colorMessageBoxPartnerText">@color/message_box_partner_text</item>
+        <item name="colorMessageBoxPartnerBG">@color/message_box_partner_bg</item>
 
         <!-- Activity 切换动画 -->
         <item name="android:windowAnimationStyle">@style/activityAnimation</item>

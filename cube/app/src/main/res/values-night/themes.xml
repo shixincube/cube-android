@@ -32,6 +32,7 @@
         <item name="mipmapTabProfileNormal">@mipmap/tab_profile_normal_night</item>
         <item name="mipmapTabProfilePressed">@mipmap/tab_profile_pressed</item>
 
+        <item name="colorLine">@color/line_night</item>
         <item name="styleLine">@style/LineNight</item>
 
         <item name="colorTheme">@color/theme_dark</item>
@@ -41,6 +42,7 @@
         <item name="colorText">@color/text_night</item>
         <item name="colorTextSecondary">@color/text_secondary_night</item>
         <item name="colorBackground">@color/background_night</item>
+        <item name="colorBackgroundAccent">@color/background_accent_night</item>
 
         <item name="colorButtonPrimaryText">@color/button_primary_text</item>
         <item name="colorButtonSecondary">@color/button_secondary_night</item>
@@ -49,6 +51,12 @@
 
         <item name="selectorOptionItem">@drawable/selector_option_item_night</item>
         <item name="colorItemIndexBackground">@color/item_index_bg_night</item>
+
+        <item name="colorMessageBarBackground">@color/message_bar_bg_night</item>
+        <item name="colorMessageBoxSelfText">@color/message_box_self_text_night</item>
+        <item name="colorMessageBoxSelfBG">@color/message_box_self_bg_night</item>
+        <item name="colorMessageBoxPartnerText">@color/message_box_partner_text_night</item>
+        <item name="colorMessageBoxPartnerBG">@color/message_box_partner_bg_night</item>
 
         <!-- Activity 切换动画 -->
         <item name="android:windowAnimationStyle">@style/activityAnimation</item>

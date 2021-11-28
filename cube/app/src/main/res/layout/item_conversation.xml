@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.zhy.autolayout.AutoFrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:auto="http://schemas.android.com/apk/res-auto"
     android:id="@+id/flRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/item_bg">
+    android:background="?attr/colorBackground">
 
-    <com.zhy.autolayout.AutoLinearLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <com.zhy.autolayout.AutoLinearLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
@@ -19,11 +19,11 @@
             android:paddingStart="2dp"
             android:paddingEnd="12dp">
 
-            <com.zhy.autolayout.AutoRelativeLayout
+            <RelativeLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content">
 
-                <com.zhy.autolayout.AutoRelativeLayout
+                <RelativeLayout
                     android:id="@+id/rlAvatar"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -40,7 +40,7 @@
                         android:src="@mipmap/avatar_default"
                         auto:corner_radius="4dp" />
 
-                </com.zhy.autolayout.AutoRelativeLayout>
+                </RelativeLayout>
 
                 <!-- 文字气泡 -->
                 <TextView
@@ -74,16 +74,16 @@
                     android:textSize="2sp"
                     android:visibility="gone"/>
 
-            </com.zhy.autolayout.AutoRelativeLayout>
+            </RelativeLayout>
 
-            <com.zhy.autolayout.AutoLinearLayout
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
                 android:layout_marginStart="10dp"
                 android:gravity="center_vertical"
                 android:orientation="vertical">
 
-                <com.zhy.autolayout.AutoLinearLayout
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical">
@@ -97,7 +97,7 @@
                         android:ellipsize="end"
                         android:maxLines="1"
                         android:text=""
-                        android:textColor="@color/text"
+                        android:textColor="?attr/colorText"
                         android:textSize="17sp"/>
 
                     <!-- 日期 -->
@@ -108,13 +108,13 @@
                         android:ellipsize="end"
                         android:maxLines="1"
                         android:text=""
-                        android:textColor="@color/text_secondary"
+                        android:textColor="?attr/colorTextSecondary"
                         android:textSize="14sp"/>
 
-                </com.zhy.autolayout.AutoLinearLayout>
+                </LinearLayout>
 
                 <!-- 内容/摘要 -->
-                <com.zhy.autolayout.AutoLinearLayout
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
@@ -139,22 +139,21 @@
                         android:ellipsize="end"
                         android:maxLines="1"
                         android:text=""
-                        android:textColor="@color/text_accent"
+                        android:textColor="?attr/colorTextSecondary"
                         android:textSize="14sp"/>
 
-                </com.zhy.autolayout.AutoLinearLayout>
+                </LinearLayout>
 
-            </com.zhy.autolayout.AutoLinearLayout>
+            </LinearLayout>
 
-        </com.zhy.autolayout.AutoLinearLayout>
+        </LinearLayout>
 
         <View
             android:id="@+id/vLine"
-            style="@style/Line"
+            style="?attr/styleLine"
             android:layout_marginStart="84dp"
-            android:layout_marginEnd="0dp"
-            android:visibility="visible"/>
+            android:layout_marginEnd="0dp"/>
 
-    </com.zhy.autolayout.AutoLinearLayout>
+    </LinearLayout>
 
-</com.zhy.autolayout.AutoFrameLayout>
+</FrameLayout>

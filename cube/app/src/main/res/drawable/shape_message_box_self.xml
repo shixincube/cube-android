@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:useLevel="false">
-    <solid android:color="@color/message_box_self_bg" />
+    <solid android:color="?attr/colorMessageBoxSelfBG" />
     <corners
         android:topLeftRadius="10dp"
         android:bottomLeftRadius="10dp"

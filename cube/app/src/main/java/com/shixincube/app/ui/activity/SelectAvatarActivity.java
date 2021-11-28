@@ -92,6 +92,14 @@ public class SelectAvatarActivity extends BaseActivity {
             this.avatarImageList.add(imageButton);
 
             imageButton.setOnClickListener(this::onAvatarItemClick);
+
+            if (null != this.avatarName) {
+                String an = String.format("avatar%02d", i);
+                if (this.avatarName.equals(an)) {
+                    this.selectedImage = imageButton;
+                    this.selectedImage.setBackgroundColor(UIUtils.getColor(R.color.theme_blue_light));
+                }
+            }
         }
 
         this.toolbarFuncButton.setOnClickListener((view) -> {

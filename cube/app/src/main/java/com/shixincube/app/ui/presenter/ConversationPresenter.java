@@ -124,10 +124,10 @@ public class ConversationPresenter extends BasePresenter<ConversationView> imple
 
                     // 会话是否置顶
                     if (item.conversation.focused()) {
-                        helper.setBackgroundColor(R.id.flRoot, R.color.item_focus_bg);
+                        helper.getView(R.id.flRoot).setBackgroundColor(UIUtils.getColorByAttrId(R.attr.colorBackgroundAccent));
                     }
                     else {
-                        helper.setBackgroundColor(R.id.flRoot, R.color.item_bg);
+                        helper.getView(R.id.flRoot).setBackgroundColor(UIUtils.getColorByAttrId(R.attr.colorBackground));
                     }
 
                     // 会话提醒类型

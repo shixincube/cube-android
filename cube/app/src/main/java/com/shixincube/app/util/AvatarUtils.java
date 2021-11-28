@@ -66,12 +66,16 @@ public class AvatarUtils {
     }
 
     public static int getAvatarResource(Contact contact) {
-        String name = Account.getAvatar(contact.getContext());
+        String name = Account.getAvatar(contact);
         return explainAvatarForResource(name);
     }
 
     public static void fillContactAvatar(Context context, Contact contact, ImageView imageView) {
         Glide.with(context).load(getAvatarResource(contact)).centerCrop().into(imageView);
+    }
+
+    public static int getAvatarResource(String avatarName) {
+        return explainAvatarForResource(avatarName);
     }
 
     private static int explainAvatarForResource(String avatarName) {

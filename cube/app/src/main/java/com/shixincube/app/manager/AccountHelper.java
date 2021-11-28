@@ -135,6 +135,29 @@ public class AccountHelper implements ContactDataProvider {
         return this.current;
     }
 
+    /**
+     * 更新当前账号。
+     *
+     * @param name
+     * @param avatar
+     */
+    public void updateCurrentAccount(String name, String avatar) {
+        if (null == this.current) {
+            return;
+        }
+
+        if (null != name) {
+            this.current.name = name;
+        }
+
+        if (null != avatar) {
+            this.current.avatar = avatar;
+        }
+
+        this.editor.putString(AppConsts.APP_ACCOUNT, this.current.toJSON().toString());
+        this.editor.commit();
+    }
+
     public void saveToken(String tokenCode, long expire) {
         // 令牌赋值
         this.tokenCode = tokenCode;

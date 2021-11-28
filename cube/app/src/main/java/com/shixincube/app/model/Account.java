@@ -47,8 +47,6 @@ public class Account implements JSONable {
 
     public long id;
 
-    public String account;
-
     @SerializedName("phone")
     public String phoneNumber;
 
@@ -67,7 +65,6 @@ public class Account implements JSONable {
 
     public Account(JSONObject json) throws JSONException {
         this.id = json.getLong("id");
-        this.account = json.getString("account");
         this.phoneNumber = json.getString("phone");
         this.name = json.getString("name");
         this.avatar = json.getString("avatar");
@@ -76,7 +73,11 @@ public class Account implements JSONable {
         this.department = json.getString("department");
     }
 
-    public static String getAvatar(JSONObject json) {
+    public static String getAvatar(Contact contact) {
+        return getAvatar(contact.getContext());
+    }
+
+    private static String getAvatar(JSONObject json) {
         if (null == json) {
             return "default";
         }
@@ -147,7 +148,6 @@ public class Account implements JSONable {
         JSONObject json = new JSONObject();
         try {
             json.put("id", this.id);
-            json.put("account", this.account);
             json.put("phone", this.phoneNumber);
             json.put("name", this.name);
             json.put("avatar", this.avatar);

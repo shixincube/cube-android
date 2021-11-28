@@ -71,7 +71,7 @@ public class ContactDetailsPresenter extends BasePresenter<ContactDetailsView> {
                     @Override
                     public void handleFailure(Module module, ModuleError error) {
                         activity.hideWaitingDialog();
-                        UIUtils.showToast(UIUtils.getString(R.string.set_failure));
+                        UIUtils.showToast(UIUtils.getString(R.string.operate_failure));
                     }
                 });
     }

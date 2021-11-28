@@ -33,6 +33,7 @@ import com.shixincube.app.manager.AccountHelper;
 import com.shixincube.app.model.request.CheckPhoneRequest;
 import com.shixincube.app.model.request.LoginRequest;
 import com.shixincube.app.model.request.RegisterRequest;
+import com.shixincube.app.model.request.SetAccountInfoRequest;
 import com.shixincube.app.model.response.AccountInfoResponse;
 import com.shixincube.app.model.response.CheckPhoneResponse;
 import com.shixincube.app.model.response.LoginResponse;
@@ -159,6 +160,21 @@ public class Explorer {
      */
     public Observable<AccountInfoResponse> getAccountInfo(Long id, String token) {
         return this.api.getAccountInfo(id, token);
+    }
+
+    /**
+     * 设置账号信息。
+     *
+     * @param token
+     * @param name
+     * @param avatar
+     * @return
+     */
+    public Observable<AccountInfoResponse> setAccountInfo(String token, String name, String avatar) {
+        SetAccountInfoRequest request = new SetAccountInfoRequest(token);
+        request.name = name;
+        request.avatar = avatar;
+        return this.api.setAccountInfo(getRequestBody(request));
     }
 
     /**

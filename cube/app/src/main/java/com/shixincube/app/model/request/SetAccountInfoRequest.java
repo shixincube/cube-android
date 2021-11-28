@@ -29,8 +29,15 @@ package com.shixincube.app.model.request;
 /**
  * 账号信息。
  */
-public class AccountInfoRequest {
+public class SetAccountInfoRequest {
 
     public String token;
 
+    public String name;
+
+    public String avatar;
+
+    public SetAccountInfoRequest(String token) {
+        this.token = token;
+    }
 }

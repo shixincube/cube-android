@@ -29,6 +29,8 @@ package com.shixincube.app.ui.activity;
 import android.content.Intent;
 import android.widget.LinearLayout;
 
+import androidx.annotation.Nullable;
+
 import com.shixincube.app.R;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.presenter.ProfileInfoPresenter;
@@ -67,7 +69,8 @@ public class ProfileInfoActivity extends BaseActivity<ProfileInfoView, ProfileIn
     @Override
     public void initListener() {
         this.avatarLayout.setOnClickListener((view) -> {
-            Intent intent = new Intent(this, SelectAvatarActivity.class);
+            Intent intent = new Intent(ProfileInfoActivity.this, SelectAvatarActivity.class);
+            intent.putExtra("avatarName", presenter.getAvatarName());
             startActivityForResult(intent, REQUEST_AVATAR);
         });
     }
@@ -75,6 +78,21 @@ public class ProfileInfoActivity extends BaseActivity<ProfileInfoView, ProfileIn
     @Override
     public void initData() {
         this.presenter.loadAccountInfo();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_AVATAR) {
+            if (resultCode == RESULT_OK) {
+                String avatarName = data.getStringExtra("avatarName");
+                if (!avatarName.equals(presenter.getAvatarName())) {
+                    // 更换头像
+                    presenter.modifyAvatar(avatarName);
+                }
+            }
+        }
     }
 
     @Override

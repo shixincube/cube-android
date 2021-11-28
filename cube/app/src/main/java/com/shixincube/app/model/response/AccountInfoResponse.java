@@ -36,8 +36,6 @@ public class AccountInfoResponse {
 
     public long id;
 
-    public String account;
-
     public String name;
 
     @SerializedName("phone")
@@ -57,7 +55,6 @@ public class AccountInfoResponse {
     public Account toAccount() {
         Account account = new Account();
         account.id = this.id;
-        account.account = (null != this.account) ? this.account : "";
         account.name = this.name;
         account.phoneNumber = this.phoneNumber;
         account.avatar = this.avatar;

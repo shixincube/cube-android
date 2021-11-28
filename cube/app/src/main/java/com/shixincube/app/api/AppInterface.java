@@ -93,6 +93,15 @@ public interface AppInterface {
     Observable<AccountInfoResponse> getAccountInfo(@Query("id") Long id, @Query("token") String token);
 
     /**
+     * 修改账号信息。
+     *
+     * @param body
+     * @return
+     */
+    @POST("/account/info/")
+    Observable<AccountInfoResponse> setAccountInfo(@Body RequestBody body);
+
+    /**
      * 搜索指定 ID 的账号。
      *
      * @param token

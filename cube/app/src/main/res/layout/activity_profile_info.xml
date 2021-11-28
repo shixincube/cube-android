@@ -44,7 +44,7 @@
             <ImageView
                 android:layout_width="27dp"
                 android:layout_height="27dp"
-                android:layout_marginEnd="@dimen/option_item_margin_end_mix"
+                android:layout_marginEnd="10dp"
                 android:src="@mipmap/indicator"/>
 
         </LinearLayout>

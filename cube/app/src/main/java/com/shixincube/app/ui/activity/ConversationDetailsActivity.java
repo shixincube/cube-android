@@ -314,7 +314,7 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
                 group.getAppendix().modifyDisplayNameFlag(checked, new DefaultGroupHandler(true) {
                     @Override
                     public void handleGroup(Group group) {
-                        UIUtils.showToast(UIUtils.getString(R.string.set_success));
+                        UIUtils.showToast(UIUtils.getString(R.string.operate_success));
 
                         // 需要设置结果，以便消息面板更新消息的 ITEM 显示
                         setResult(RESULT_INVALIDATE);
@@ -322,7 +322,7 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
                 }, new DefaultFailureHandler(true) {
                     @Override
                     public void handleFailure(Module module, ModuleError error) {
-                        UIUtils.showToast(UIUtils.getString(R.string.set_failure));
+                        UIUtils.showToast(UIUtils.getString(R.string.operate_failure));
                     }
                 });
             }

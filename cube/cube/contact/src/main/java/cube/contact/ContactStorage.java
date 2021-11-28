@@ -46,7 +46,6 @@ import cube.contact.model.GroupAppendix;
 import cube.contact.model.GroupBundle;
 import cube.contact.model.GroupState;
 import cube.core.AbstractStorage;
-import cube.core.model.Entity;
 
 /**
  * 联系人模块存储器。
@@ -222,17 +221,14 @@ public class ContactStorage extends AbstractStorage {
      * 更新联系人的上下文数据。
      *
      * @param contact
-     * @return 返回当前更新的时间戳。
      */
-    public long updateContactContext(Contact contact) {
+    public void updateContactContext(Contact contact) {
         SQLiteDatabase db = this.getWritableDatabase();
-
-        long now = System.currentTimeMillis();
 
         ContentValues values = new ContentValues();
         values.put("context", contact.getContext().toString());
-        values.put("last", now);
-        values.put("expiry", now + Entity.LIFESPAN_IN_MSEC);
+        values.put("last", contact.getLast());
+        values.put("expiry", contact.getExpiry());
         // 执行更新
         int row = db.update("contact", values, "id=?", new String[] { contact.id.toString() });
 
@@ -247,8 +243,6 @@ public class ContactStorage extends AbstractStorage {
         }
 
         this.closeWritableDatabase(db);
-
-        return now;
     }
 
     public void clearAllContactContexts() {

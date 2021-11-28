@@ -28,6 +28,8 @@
 
     <color name="theme_bg">#EBEBEB</color>
     <color name="theme_bg_night">#191919</color>
+    <color name="theme_accent_bg">#D1D1D1</color>
+    <color name="theme_accent_bg_night">#595959</color>
 
     <color name="text">#010101</color>
     <color name="text_secondary">#7E7E7E</color>

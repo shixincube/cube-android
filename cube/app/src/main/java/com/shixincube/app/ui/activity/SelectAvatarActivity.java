@@ -26,25 +26,36 @@
 
 package com.shixincube.app.ui.activity;
 
+import android.content.Intent;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 
+import com.bumptech.glide.Glide;
 import com.shixincube.app.R;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
+import com.shixincube.app.util.AvatarUtils;
 import com.shixincube.app.util.UIUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import butterknife.BindView;
 
 /**
  * 选择内置头像。
  */
 public class SelectAvatarActivity extends BaseActivity {
 
+    @BindView(R.id.aivPreview)
+    ImageView previewImage;
+
     private List<ImageButton> avatarImageList;
 
     private ImageButton selectedImage;
+
+    private String avatarName;
 
     public SelectAvatarActivity() {
         super();
@@ -54,6 +65,22 @@ public class SelectAvatarActivity extends BaseActivity {
     @Override
     public void initView() {
         this.setToolbarTitle(UIUtils.getString(R.string.select_avatar));
+
+        this.toolbarFuncButton.setText(UIUtils.getString(R.string.complete));
+        this.toolbarFuncButton.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void initData() {
+        String avatarName = getIntent().getStringExtra("avatarName");
+        if (null != avatarName) {
+            this.avatarName = avatarName;
+
+            Glide.with(this)
+                    .load(AvatarUtils.getAvatarResource(this.avatarName))
+                    .centerCrop()
+                    .into(this.previewImage);
+        }
     }
 
     @Override
@@ -66,6 +93,25 @@ public class SelectAvatarActivity extends BaseActivity {
 
             imageButton.setOnClickListener(this::onAvatarItemClick);
         }
+
+        this.toolbarFuncButton.setOnClickListener((view) -> {
+            if (null != avatarName) {
+                Intent data = new Intent();
+                data.putExtra("avatarName", avatarName);
+                setResult(RESULT_OK, data);
+            }
+            else {
+                setResult(RESULT_CANCELED);
+            }
+
+            finish();
+        });
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        setResult(RESULT_CANCELED);
     }
 
     @Override
@@ -79,7 +125,7 @@ public class SelectAvatarActivity extends BaseActivity {
     }
 
     private void onAvatarItemClick(View view) {
-        if (selectedImage == view) {
+        if (this.selectedImage == view) {
             return;
         }
 
@@ -89,5 +135,10 @@ public class SelectAvatarActivity extends BaseActivity {
 
         this.selectedImage = (ImageButton) view;
         this.selectedImage.setBackgroundColor(UIUtils.getColor(R.color.theme_blue_light));
+
+        this.avatarName = String.format("avatar%02d",
+                Integer.parseInt(this.selectedImage.getTag().toString()));
+        int resourceId = AvatarUtils.getAvatarResource(this.avatarName);
+        Glide.with(this).load(resourceId).centerCrop().into(this.previewImage);
     }
 }

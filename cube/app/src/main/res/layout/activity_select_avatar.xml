@@ -15,15 +15,16 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="300dp"
+            android:layout_height="280dp"
             android:layout_gravity="center_vertical"
             android:gravity="center_vertical"
-            android:background="@color/gray"
+            android:background="?attr/colorThemeBackground"
             android:orientation="vertical">
 
             <com.shixincube.app.widget.AdvancedImageView
-                android:layout_width="260dp"
-                android:layout_height="260dp"
+                android:id="@+id/aivPreview"
+                android:layout_width="240dp"
+                android:layout_height="240dp"
                 android:layout_gravity="center"
                 android:scaleType="centerCrop"
                 android:src="@mipmap/avatar_default"
@@ -39,7 +40,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:gravity="center"
-            android:layout_marginTop="2dp"
+            android:layout_marginTop="8dp"
             android:orientation="vertical">
 
             <LinearLayout
@@ -50,37 +51,35 @@
                 android:orientation="horizontal">
                 <ImageButton
                     android:id="@+id/ibAvatar01"
+                    android:tag="1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:padding="8dp"
                     android:background="@null"
-                    android:layout_marginEnd="2dp"
                     android:src="@mipmap/avatar_01"/>
                 <ImageButton
                     android:id="@+id/ibAvatar02"
+                    android:tag="2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:padding="8dp"
                     android:background="@null"
-                    android:layout_marginStart="2dp"
-                    android:layout_marginEnd="2dp"
                     android:src="@mipmap/avatar_02"/>
                 <ImageButton
                     android:id="@+id/ibAvatar03"
+                    android:tag="3"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:padding="8dp"
                     android:background="@null"
-                    android:layout_marginStart="2dp"
-                    android:layout_marginEnd="2dp"
                     android:src="@mipmap/avatar_03"/>
                 <ImageButton
                     android:id="@+id/ibAvatar04"
+                    android:tag="4"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:padding="8dp"
                     android:background="@null"
-                    android:layout_marginStart="2dp"
                     android:src="@mipmap/avatar_04"/>
             </LinearLayout>
 
@@ -88,42 +87,39 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_marginTop="4dp"
                 android:gravity="center"
                 android:orientation="horizontal">
                 <ImageButton
                     android:id="@+id/ibAvatar05"
+                    android:tag="5"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:padding="8dp"
                     android:background="@null"
-                    android:layout_marginEnd="2dp"
                     android:src="@mipmap/avatar_05"/>
                 <ImageButton
                     android:id="@+id/ibAvatar06"
+                    android:tag="6"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:padding="8dp"
                     android:background="@null"
-                    android:layout_marginStart="2dp"
-                    android:layout_marginEnd="2dp"
                     android:src="@mipmap/avatar_06"/>
                 <ImageButton
                     android:id="@+id/ibAvatar07"
+                    android:tag="7"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:padding="8dp"
                     android:background="@null"
-                    android:layout_marginStart="2dp"
-                    android:layout_marginEnd="2dp"
                     android:src="@mipmap/avatar_07"/>
                 <ImageButton
                     android:id="@+id/ibAvatar08"
+                    android:tag="8"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:padding="8dp"
                     android:background="@null"
-                    android:layout_marginStart="2dp"
                     android:src="@mipmap/avatar_08"/>
             </LinearLayout>
 
@@ -131,42 +127,39 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_marginTop="4dp"
                 android:gravity="center"
                 android:orientation="horizontal">
                 <ImageButton
                     android:id="@+id/ibAvatar09"
+                    android:tag="9"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:padding="8dp"
                     android:background="@null"
-                    android:layout_marginEnd="2dp"
                     android:src="@mipmap/avatar_09"/>
                 <ImageButton
                     android:id="@+id/ibAvatar10"
+                    android:tag="10"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:padding="8dp"
                     android:background="@null"
-                    android:layout_marginStart="2dp"
-                    android:layout_marginEnd="2dp"
                     android:src="@mipmap/avatar_10"/>
                 <ImageButton
                     android:id="@+id/ibAvatar11"
+                    android:tag="11"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:padding="8dp"
                     android:background="@null"
-                    android:layout_marginStart="2dp"
-                    android:layout_marginEnd="2dp"
                     android:src="@mipmap/avatar_11"/>
                 <ImageButton
                     android:id="@+id/ibAvatar12"
+                    android:tag="12"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:padding="8dp"
                     android:background="@null"
-                    android:layout_marginStart="2dp"
                     android:src="@mipmap/avatar_12"/>
             </LinearLayout>
 
@@ -174,42 +167,39 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_marginTop="4dp"
                 android:gravity="center"
                 android:orientation="horizontal">
                 <ImageButton
                     android:id="@+id/ibAvatar13"
+                    android:tag="13"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:padding="8dp"
                     android:background="@null"
-                    android:layout_marginEnd="2dp"
                     android:src="@mipmap/avatar_13"/>
                 <ImageButton
                     android:id="@+id/ibAvatar14"
+                    android:tag="14"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:padding="8dp"
                     android:background="@null"
-                    android:layout_marginStart="2dp"
-                    android:layout_marginEnd="2dp"
                     android:src="@mipmap/avatar_14"/>
                 <ImageButton
                     android:id="@+id/ibAvatar15"
+                    android:tag="15"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:padding="8dp"
                     android:background="@null"
-                    android:layout_marginStart="2dp"
-                    android:layout_marginEnd="2dp"
                     android:src="@mipmap/avatar_15"/>
                 <ImageButton
                     android:id="@+id/ibAvatar16"
+                    android:tag="16"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:padding="8dp"
                     android:background="@null"
-                    android:layout_marginStart="2dp"
                     android:src="@mipmap/avatar_16"/>
             </LinearLayout>
 

@@ -64,11 +64,6 @@ public class ProfileFragment extends BaseFragment<ProfileView, ProfilePresenter>
     }
 
     @Override
-    public void initData() {
-        this.presenter.loadAccountInfo();
-    }
-
-    @Override
     public void initListener() {
         this.profileInfoLayout.setOnClickListener((view) -> {
             ((MainActivity) getActivity()).jumpToActivityAndClearTop(ProfileInfoActivity.class);
@@ -77,6 +72,13 @@ public class ProfileFragment extends BaseFragment<ProfileView, ProfilePresenter>
         this.settingItemView.setOnClickListener((view) -> {
             ((MainActivity) getActivity()).jumpToActivityAndClearTop(PreferenceActivity.class);
         });
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        this.presenter.loadAccountInfo();
     }
 
     @Override

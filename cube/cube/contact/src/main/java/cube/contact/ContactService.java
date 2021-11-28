@@ -273,8 +273,8 @@ public class ContactService extends Module {
                 // 设置上下文
                 if (null != this.self.getContext()) {
                     // 更新联系人的上下文
-                    long last = this.storage.updateContactContext(this.self);
-                    this.self.resetLast(last);
+                    this.self.resetLast(System.currentTimeMillis());
+                    this.storage.updateContactContext(this.self);
                 }
                 else {
                     this.self.setContext(contact.getContext());
@@ -333,6 +333,10 @@ public class ContactService extends Module {
                 // 设置回调
                 this.signInHandler = handler;
             }
+
+            // 更新上下文
+            this.self.resetLast(System.currentTimeMillis());
+            this.storage.updateContactContext(this.self);
 
             // 请求服务器进行签入
             JSONObject payload = new JSONObject();
@@ -486,6 +490,86 @@ public class ContactService extends Module {
      * @return 返回当前签入的联系人。
      */
     public Self getSelf() {
+        return this.self;
+    }
+
+    /**
+     * 修改当前登录用户自己的信息。
+     *
+     * @param name 指定待修改的名称。
+     * @param context 指定待修改的上下文数据。
+     * @return 返回当前签入的联系人。
+     */
+    public Self modifySelf(String name, JSONObject context) {
+        if (null == name && null == context) {
+            return this.self;
+        }
+
+        if (null != name && name.length() > 2) {
+            this.self.setName(name);
+            this.self.resetLast(System.currentTimeMillis());
+            this.storage.updateContactName(this.self);
+        }
+
+        if (null != context) {
+            this.self.setContext(context);
+            this.self.resetLast(System.currentTimeMillis());
+            this.storage.updateContactContext(this.self);
+        }
+
+        if (!this.pipeline.isReady()) {
+            return this.self;
+        }
+
+        JSONObject payload = new JSONObject();
+        try {
+            if (null != name) {
+                payload.put("name", name);
+            }
+
+            if (null != context) {
+                payload.put("context", context);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        Packet request = new Packet(ContactServiceAction.ModifyContact, payload);
+        this.pipeline.send(ContactService.NAME, request, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    synchronized (payload) {
+                        payload.notify();
+                    }
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != ContactServiceState.Ok.code) {
+                    synchronized (payload) {
+                        payload.notify();
+                    }
+                    return;
+                }
+
+                if (LogUtils.isDebugLevel()) {
+                    LogUtils.d(TAG, "Modify self");
+                }
+
+                synchronized (payload) {
+                    payload.notify();
+                }
+            }
+        });
+
+        synchronized (payload) {
+            try {
+                payload.wait(this.blockingTimeout);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
         return this.self;
     }
 
@@ -686,8 +770,8 @@ public class ContactService extends Module {
                 if (null == contact.getContext() && null != this.contactDataProvider) {
                     contact.setContext(this.contactDataProvider.needContactContext(contact));
                     if (null != contact.getContext()) {
-                        long last = this.storage.updateContactContext(contact);
-                        contact.resetLast(last);
+                        contact.resetLast(System.currentTimeMillis());
+                        this.storage.updateContactContext(contact);
                     }
                     this.storage.updateContactName(contact);
                 }

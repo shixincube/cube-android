@@ -194,7 +194,7 @@ public class ConversationPresenter extends BasePresenter<ConversationView> imple
                                 }, new DefaultFailureHandler(true) {
                                     @Override
                                     public void handleFailure(Module module, ModuleError error) {
-                                        UIUtils.showToast(UIUtils.getString(R.string.set_failure));
+                                        UIUtils.showToast(UIUtils.getString(R.string.operate_failure));
                                     }
                                 });
                             }
@@ -207,7 +207,7 @@ public class ConversationPresenter extends BasePresenter<ConversationView> imple
                                 }, new DefaultFailureHandler(true) {
                                     @Override
                                     public void handleFailure(Module module, ModuleError error) {
-                                        UIUtils.showToast(UIUtils.getString(R.string.set_failure));
+                                        UIUtils.showToast(UIUtils.getString(R.string.operate_failure));
                                     }
                                 });
                             }
@@ -221,7 +221,7 @@ public class ConversationPresenter extends BasePresenter<ConversationView> imple
                                 }, new DefaultFailureHandler(true) {
                                     @Override
                                     public void handleFailure(Module module, ModuleError error) {
-                                        UIUtils.showToast(UIUtils.getString(R.string.set_failure));
+                                        UIUtils.showToast(UIUtils.getString(R.string.operate_failure));
                                     }
                                 });
                             }

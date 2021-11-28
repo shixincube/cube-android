@@ -57,6 +57,9 @@ public class MessagingPipelineListener implements PipelineListener {
         else if (MessagingAction.Pull.equals(packet.name)) {
             this.service.triggerPull(packet.extractServiceStateCode(), packet.extractServiceData());
         }
+        else if (MessagingAction.Read.equals(packet.name)) {
+            this.service.triggerRead(packet.extractServiceData());
+        }
     }
 
     @Override

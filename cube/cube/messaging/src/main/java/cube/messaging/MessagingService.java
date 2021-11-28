@@ -2669,6 +2669,21 @@ public class MessagingService extends Module {
     }
 
     /**
+     * 处理已读标志修改。
+     *
+     * @param stateCode
+     * @param data
+     */
+    protected void triggerRead(JSONObject data) {
+        // TODO XJW
+        try {
+            Message message = new Message(this, data);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
      * 填充消息数据各属性的实例。
      *
      * @param message

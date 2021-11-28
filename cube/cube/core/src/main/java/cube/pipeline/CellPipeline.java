@@ -153,7 +153,7 @@ public class CellPipeline extends Pipeline implements TalkListener {
         // 转为数据包格式
         final Packet packet = this.convertDialectToPacket(dialect);
 
-        // 如果有回答回调，则不触发监听器
+        // 如果有应答回调，则不触发监听器
         this.executor.execute(() -> {
             ResponseCallback callback = responseCallbackMap.remove(packet.sn);
             if (null != callback) {

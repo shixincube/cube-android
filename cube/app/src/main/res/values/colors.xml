@@ -11,7 +11,7 @@
     <color name="avatar">#D9D9D9</color>
 
     <color name="toolbar_text">#050505</color>
-    <color name="toolbar_bg">#FDFDFD</color>
+    <color name="toolbar_bg">#F1F1F1</color>
     <color name="toolbar_text_night">#FEFEFE</color>
     <color name="toolbar_bg_night">#303135</color>
 
@@ -43,6 +43,12 @@
 
     <color name="button_primary_text">#FFFFFF</color>
     <color name="button_disabled">#999999</color>
+    <color name="button_secondary">#E5E5E5</color>
+    <color name="button_secondary_text">#101010</color>
+    <color name="button_secondary_pressed">#BDBDBD</color>
+    <color name="button_secondary_night">#D1D1D1</color>
+    <color name="button_secondary_text_night">#101010</color>
+    <color name="button_secondary_pressed_night">#56575B</color>
 
     <color name="item_index_bg">#DFDFDF</color>
     <color name="item_index_bg_night">#393A3F</color>

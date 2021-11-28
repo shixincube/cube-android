@@ -19,7 +19,7 @@
     <!-- 开屏页 -->
     <string name="login">登录</string>
     <string name="register">注册</string>
-    <string name="nickname">昵称</string>
+    <string name="nickname">名称</string>
     <string name="nickname_hint">例如：来自平行宇宙的我</string>
     <string name="password">密码</string>
     <string name="verification_code">验证码</string>
@@ -33,7 +33,7 @@
 
     <!-- 注册账号 -->
     <string name="title_register">注册账号</string>
-    <string name="nickname_length_error">昵称至少输入3个字符</string>
+    <string name="nickname_length_error">名称至少输入3个字符</string>
     <string name="password_length_error">密码至少6个字符</string>
     <string name="phone_not_empty">手机号码不能为空</string>
     <string name="phone_format_error">手机号码格式不正确</string>
@@ -76,7 +76,7 @@
     <string name="file_audio">音频</string>
 
     <!-- 个人信息 -->
-    <string name="my_nickname">我的昵称</string>
+    <string name="my_nickname">我的名称</string>
     <string name="cube_id_colon">魔方号：%1$s</string>
     <string name="my_cube_id">我的魔方号：</string>
     <string name="setting">设置</string>
@@ -84,9 +84,10 @@
     <string name="avatar">头像</string>
     <string name="cube_id">魔方号</string>
     <string name="select_avatar">选择头像</string>
+    <string name="modify_name">修改名称</string>
 
     <!-- 用户信息 -->
-    <string name="nickname_colon">昵称：%1$s</string>
+    <string name="nickname_colon">名称：%1$s</string>
     <string name="set_remark_and_tag">备注和标签</string>
     <string name="signature">个性签名</string>
     <string name="send_message">发消息</string>

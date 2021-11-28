@@ -30,6 +30,9 @@
     <attr name="colorBackground" format="color"/>
 
     <attr name="colorButtonPrimaryText" format="color"/>
+    <attr name="colorButtonSecondary" format="color"/>
+    <attr name="colorButtonSecondaryText" format="color"/>
+    <attr name="colorButtonSecondaryPressed" format="color"/>
     
     <attr name="selectorOptionItem" format="reference"/>
     <attr name="colorItemIndexBackground" format="color"/>

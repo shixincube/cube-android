@@ -1,27 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.zhy.autolayout.AutoLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="?attr/colorThemeBackground"
     android:orientation="vertical">
 
     <include layout="@layout/include_toolbar"
         android:visibility="gone"/>
 
-    <com.zhy.autolayout.AutoLinearLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:paddingTop="7dp"
-        android:background="@color/toolbar_bg"
+        android:layout_gravity="center_vertical"
+        android:gravity="center_vertical"
+        android:background="?attr/colorToolbarBackground"
         android:orientation="horizontal">
 
         <Button
             android:id="@+id/btnCancel"
             android:layout_width="60dp"
             android:layout_height="36dp"
-            android:layout_marginStart="@dimen/activity_horizontal_margin"
-            android:layout_gravity="start"
+            android:layout_marginStart="@dimen/item_margin_start_and_end"
+            android:layout_gravity="start|center_vertical"
             android:background="@drawable/selector_secondary_button"
-            android:textColor="@color/text"
+            android:textColor="?attr/colorButtonSecondaryText"
             android:text="@string/cancel"
             android:textSize="14sp"/>
 
@@ -29,51 +31,52 @@
             android:id="@+id/tvTitle"
             android:layout_width="wrap_content"
             android:layout_height="36dp"
-            android:layout_gravity="center_horizontal"
+            android:layout_gravity="center"
             android:layout_weight="1"
             android:gravity="center"
             android:maxLines="1"
             android:ellipsize="middle"
             android:text="@string/untitled"
             android:textSize="16sp"
-            android:textColor="@color/text"/>
+            android:textColor="?attr/colorText"/>
 
         <Button
             android:id="@+id/btnSubmit"
             android:layout_width="60dp"
             android:layout_height="36dp"
-            android:layout_marginEnd="@dimen/activity_horizontal_margin"
-            android:layout_gravity="end"
+            android:layout_marginEnd="@dimen/item_margin_start_and_end"
+            android:layout_gravity="end|center_vertical"
             android:background="@drawable/selector_primary_button"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorButtonPrimaryText"
             android:text="@string/complete"
             android:textSize="14sp"/>
 
-    </com.zhy.autolayout.AutoLinearLayout>
+    </LinearLayout>
 
-    <com.zhy.autolayout.AutoLinearLayout
+    <View
+        style="?attr/styleLine"/>
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingStart="@dimen/activity_horizontal_margin"
-        android:paddingEnd="@dimen/activity_horizontal_margin"
-        android:paddingTop="10dp"
-        android:paddingBottom="10dp"
-        android:background="@color/theme_bg"
+        android:background="?attr/colorThemeBackground"
         android:orientation="vertical">
 
         <EditText
             android:id="@+id/etContent"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@null"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/item_margin_start_and_end"
+            android:background="?attr/colorBackground"
             android:drawableBottom="@null"
             android:textCursorDrawable="@drawable/cursor"
             android:gravity="top"
+            android:maxLines="1"
             android:focusable="true"
             android:focusableInTouchMode="true"
             android:textColor="@color/text"
             android:textSize="16sp"/>
 
-    </com.zhy.autolayout.AutoLinearLayout>
+    </LinearLayout>
 
-</com.zhy.autolayout.AutoLinearLayout>
+</LinearLayout>

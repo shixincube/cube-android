@@ -35,6 +35,7 @@ import com.shixincube.app.R;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.presenter.ProfileInfoPresenter;
 import com.shixincube.app.ui.view.ProfileInfoView;
+import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.AdvancedImageView;
 import com.shixincube.app.widget.optionitemview.OptionItemView;
 
@@ -45,7 +46,8 @@ import butterknife.BindView;
  */
 public class ProfileInfoActivity extends BaseActivity<ProfileInfoView, ProfileInfoPresenter> implements ProfileInfoView {
 
-    public final static int REQUEST_AVATAR = 1000;
+    public final static int REQUEST_AVATAR = 1001;
+    public final static int REQUEST_NAME = 1002;
 
     @BindView(R.id.llAvatar)
     LinearLayout avatarLayout;
@@ -72,6 +74,13 @@ public class ProfileInfoActivity extends BaseActivity<ProfileInfoView, ProfileIn
             Intent intent = new Intent(ProfileInfoActivity.this, SelectAvatarActivity.class);
             intent.putExtra("avatarName", presenter.getAvatarName());
             startActivityForResult(intent, REQUEST_AVATAR);
+        });
+
+        this.nicknameItem.setOnClickListener((view) -> {
+            Intent intent = new Intent(ProfileInfoActivity.this, TextInputActivity.class);
+            intent.putExtra("title", UIUtils.getString(R.string.modify_name));
+            intent.putExtra("content", presenter.getName());
+            startActivityForResult(intent, REQUEST_NAME);
         });
     }
 

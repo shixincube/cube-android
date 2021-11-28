@@ -71,6 +71,7 @@
         <entry key="app/src/main/res/drawable/shape_button_primary.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/shape_button_primary_pressed.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/shape_button_secondary.xml" value="0.240234375" />
+        <entry key="app/src/main/res/drawable/shape_button_secondary_pressed.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/shape_corner_rect_solid_gray.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/shape_corner_rect_solid_white.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/shape_file_tab_normal.xml" value="0.240234375" />

@@ -53,6 +53,10 @@ public class ProfileInfoPresenter extends BasePresenter<ProfileInfoView> {
         return Account.getAvatar(CubeEngine.getInstance().getContactService().getSelf());
     }
 
+    public String getName() {
+        return CubeEngine.getInstance().getContactService().getSelf().getPriorityName();
+    }
+
     public void loadAccountInfo() {
         Self self = CubeEngine.getInstance().getContactService().getSelf();
         getView().getAvatarImage().setImageResource(AvatarUtils.getAvatarResource(self));

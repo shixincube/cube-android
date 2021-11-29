@@ -95,6 +95,25 @@
 
                 </LinearLayout>
 
+                <!-- 已读/未读 -->
+                <LinearLayout
+                    android:id="@+id/llRead"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom"
+                    android:layout_marginEnd="10dp"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:id="@+id/tvRead"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/message_read"
+                        android:textColor="?attr/colorTextSecondary"
+                        android:textSize="12sp"/>
+
+                </LinearLayout>
+
                 <com.shixincube.app.widget.AdvancedImageView
                     android:id="@+id/ivSticker"
                     android:layout_width="60dp"

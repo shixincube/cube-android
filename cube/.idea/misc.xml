@@ -142,7 +142,7 @@
         <entry key="app/src/main/res/layout/item_message_no_support.xml" value="0.18032786885245902" />
         <entry key="app/src/main/res/layout/item_message_notification.xml" value="0.1840846994535519" />
         <entry key="app/src/main/res/layout/item_message_sticker_receive.xml" value="0.1" />
-        <entry key="app/src/main/res/layout/item_message_sticker_send.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/item_message_sticker_send.xml" value="0.5" />
         <entry key="app/src/main/res/layout/item_message_text_receive.xml" value="0.5" />
         <entry key="app/src/main/res/layout/item_message_text_send.xml" value="0.5" />
         <entry key="app/src/main/res/layout/item_no_support_message.xml" value="0.1598360655737705" />

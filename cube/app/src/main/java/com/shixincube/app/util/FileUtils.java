@@ -41,8 +41,6 @@ import okhttp3.ResponseBody;
  */
 public final class FileUtils {
 
-    public static final String ROOT_DIR = "Android/data/" + UIUtils.getPackageName();
-
     private FileUtils() {
     }
 
@@ -55,13 +53,14 @@ public final class FileUtils {
     public static String getDir(String name) {
         StringBuilder buf = new StringBuilder();
         if (isSDCardAvailable()) {
-            buf.append(getExternalStoragePath());
+            buf.append(getExternalStoragePath(name));
         }
         else {
             buf.append(getCachePath());
+            buf.append(name);
+            buf.append(File.separator);
         }
-        buf.append(name);
-        buf.append(File.separator);
+
         String path = buf.toString();
         if (createDirs(path)) {
             return path;
@@ -72,7 +71,7 @@ public final class FileUtils {
     }
 
     /**
-     * 判断 SD 卡是否挂载
+     * 判断 SD 卡是否挂载。
      */
     public static boolean isSDCardAvailable() {
         if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
@@ -88,11 +87,9 @@ public final class FileUtils {
      *
      * @return
      */
-    public static String getExternalStoragePath() {
+    public static String getExternalStoragePath(String dir) {
         StringBuilder buf = new StringBuilder();
-        buf.append(Environment.getExternalStorageDirectory().getAbsolutePath());
-        buf.append(File.separator);
-        buf.append(ROOT_DIR);
+        buf.append(UIUtils.getContext().getExternalFilesDir(dir).getAbsolutePath());
         buf.append(File.separator);
         return buf.toString();
     }
@@ -108,7 +105,7 @@ public final class FileUtils {
             return null;
         }
         else {
-            return dir.getAbsolutePath() + "/";
+            return dir.getAbsolutePath() + File.separator;
         }
     }
 

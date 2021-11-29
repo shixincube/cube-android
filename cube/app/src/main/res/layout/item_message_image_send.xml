@@ -57,6 +57,7 @@
                 android:src="@mipmap/ic_error"/>
         </LinearLayout>
 
+        <!-- 已读/未读 -->
         <LinearLayout
             android:id="@+id/llRead"
             android:layout_width="wrap_content"
@@ -69,7 +70,7 @@
                 android:id="@+id/tvRead"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/message_unread"
+                android:text="@string/message_read"
                 android:textColor="?attr/colorTextSecondary"
                 android:textSize="12sp"/>
 

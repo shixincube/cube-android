@@ -5,6 +5,8 @@
     <color name="gray">#FFD9D9D9</color>
     <color name="transparent">#00000000</color>
 
+    <color name="warning">#FCCE0B</color>
+
     <color name="line">#D2D2D2</color>
     <color name="line_night">#575B55</color>
     <color name="hint">#C8969696</color>

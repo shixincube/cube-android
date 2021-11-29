@@ -27,6 +27,7 @@
 package cube.filestorage;
 
 import android.os.Build;
+import android.os.Environment;
 import android.util.MutableInt;
 
 import androidx.annotation.Nullable;
@@ -101,9 +102,15 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
         }
 
         StringBuilder buf = new StringBuilder();
-        buf.append(this.getContext().getFilesDir());
-        buf.append(File.separator);
-        buf.append("cube_files");
+
+        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
+            buf.append(this.getContext().getExternalFilesDir("cube_files").getAbsoluteFile());
+        }
+        else {
+            buf.append(this.getContext().getFilesDir());
+            buf.append(File.separator);
+            buf.append("cube_files");
+        }
         buf.append(File.separator);
 
         this.fileCachePath = buf.toString();

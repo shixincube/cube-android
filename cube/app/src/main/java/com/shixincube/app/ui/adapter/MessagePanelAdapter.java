@@ -155,11 +155,15 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
         if (item.isSelfTyper()) {
             if (item.getState() == MessageState.Read) {
                 helper.setViewVisibility(R.id.llRead, View.VISIBLE);
-                helper.setText(R.id.tvRead, UIUtils.getString(R.string.message_read));
+                TextView textView = helper.getView(R.id.tvRead);
+                textView.setText(UIUtils.getString(R.string.message_read));
+                textView.setTextColor(UIUtils.getColorByAttrId(R.attr.colorTextSecondary));
             }
             else if (item.getState() == MessageState.Sent) {
                 helper.setViewVisibility(R.id.llRead, View.VISIBLE);
-                helper.setText(R.id.tvRead, UIUtils.getString(R.string.message_unread));
+                TextView textView = helper.getView(R.id.tvRead);
+                textView.setText(UIUtils.getString(R.string.message_unread));
+                textView.setTextColor(UIUtils.getColor(R.color.warning));
             }
             else {
                 helper.setViewVisibility(R.id.llRead, View.GONE);

@@ -30,6 +30,7 @@ import android.content.Intent;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.shixincube.app.AppConsts;
 import com.shixincube.app.R;
 import com.shixincube.app.model.MessageConversation;
 import com.shixincube.app.ui.activity.ImageShowcaseActivity;
@@ -64,6 +65,7 @@ import cube.messaging.extension.HyperTextMessage;
 import cube.messaging.extension.ImageMessage;
 import cube.messaging.extension.NotificationMessage;
 import cube.messaging.handler.DefaultConversationHandler;
+import cube.messaging.handler.DefaultMessageHandler;
 import cube.messaging.handler.DefaultMessageListResultHandler;
 import cube.messaging.handler.DefaultSendHandler;
 import cube.messaging.handler.SimpleSendHandler;
@@ -365,7 +367,32 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
     }
 
     private void asyncMarkRead(Message message) {
-
+        Promise.create(new PromiseHandler<Message>() {
+            @Override
+            public void emit(PromiseFuture<Message> promise) {
+                CubeEngine.getInstance().getMessagingService().markRead(message, new DefaultMessageHandler(false) {
+                    @Override
+                    public void handleMessage(Message message) {
+                        promise.resolve(message);
+                    }
+                }, new DefaultFailureHandler(false) {
+                    @Override
+                    public void handleFailure(Module module, ModuleError error) {
+                        promise.reject(message);
+                    }
+                });
+            }
+        }).then(new Future<Message>() {
+            @Override
+            public void come(Message data) {
+                LogUtils.d(AppConsts.TAG, "#asyncMarkRead - success");
+            }
+        }).catchReject(new Future<Message>() {
+            @Override
+            public void come(Message data) {
+                LogUtils.d(AppConsts.TAG, "#asyncMarkRead - failure");
+            }
+        }).launch();
     }
 
     private void updateMessageStatus(Message message) {

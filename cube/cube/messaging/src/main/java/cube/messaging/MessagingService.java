@@ -81,6 +81,7 @@ import cube.messaging.handler.ConversationHandler;
 import cube.messaging.handler.DefaultConversationHandler;
 import cube.messaging.handler.DefaultSendHandler;
 import cube.messaging.handler.LoadAttachmentHandler;
+import cube.messaging.handler.MessageHandler;
 import cube.messaging.handler.MessageListResultHandler;
 import cube.messaging.handler.SendHandler;
 import cube.messaging.hook.InstantiateHook;
@@ -700,6 +701,119 @@ public class MessagingService extends Module {
         }
 
         return conversation;
+    }
+
+    /**
+     * 标记指定消息已读。
+     *
+     * @param message
+     * @param successHandler
+     * @param failureHandler
+     */
+    public void markRead(Message message, MessageHandler successHandler, FailureHandler failureHandler) {
+        if (!this.pipeline.isReady()) {
+            ModuleError error = new ModuleError(NAME, MessagingServiceState.PipelineFault.code);
+            error.data = message;
+            if (failureHandler.isInMainThread()) {
+                executeOnMainThread(() -> {
+                    failureHandler.handleFailure(MessagingService.this, error);
+                });
+            }
+            else {
+                execute(() -> {
+                    failureHandler.handleFailure(MessagingService.this, error);
+                });
+            }
+            return;
+        }
+
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("contactId", this.contactService.getSelf().id.longValue());
+            payload.put("messageId", message.getId().longValue());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        Packet requestPacket = new Packet(MessagingAction.Read, payload);
+        this.pipeline.send(MessagingService.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    ModuleError error = new ModuleError(NAME, packet.state.code);
+                    error.data = message;
+                    if (failureHandler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            failureHandler.handleFailure(MessagingService.this, error);
+                        });
+                    }
+                    else {
+                        execute(() -> {
+                            failureHandler.handleFailure(MessagingService.this, error);
+                        });
+                    }
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != MessagingServiceState.Ok.code) {
+                    ModuleError error = new ModuleError(NAME, stateCode);
+                    error.data = message;
+                    if (failureHandler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            failureHandler.handleFailure(MessagingService.this, error);
+                        });
+                    }
+                    else {
+                        execute(() -> {
+                            failureHandler.handleFailure(MessagingService.this, error);
+                        });
+                    }
+                    return;
+                }
+
+                try {
+                    Message responseMessage = new Message(MessagingService.this, packet.extractServiceData());
+
+                    storage.updateMessage(message.id, message.getState(), responseMessage.getState());
+                    message.setState(responseMessage.getState());
+
+                    Conversation conversation = null;
+                    if (!message.isSelfTyper() && !message.isFromGroup()) {
+                        // 来自别人发送的消息
+                        conversation = getConversation(message.getFrom());
+                    }
+                    else if (message.isFromGroup()) {
+                        // 来自群组
+                        conversation = getConversation(message.getSource());
+                    }
+
+                    if (null != conversation) {
+                        // 减未读数据计数
+                        conversation.decrementUnread(1);
+
+                        // 检查最近消息
+                        Message recent = conversation.getRecentMessage();
+                        if (recent.id.longValue() == message.id.longValue()) {
+                            recent.setState(message.getState());
+                        }
+                        storage.updateConversation(conversation);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                if (successHandler.isInMainThread()) {
+                    executeOnMainThread(() -> {
+                        successHandler.handleMessage(message);
+                    });
+                }
+                else {
+                    execute(() -> {
+                        successHandler.handleMessage(message);
+                    });
+                }
+            }
+        });
     }
 
     /**

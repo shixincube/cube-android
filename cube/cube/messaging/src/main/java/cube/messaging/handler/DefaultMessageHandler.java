@@ -26,13 +26,24 @@
 
 package cube.messaging.handler;
 
-import cube.core.handler.CallbackHandler;
 import cube.messaging.model.Message;
 
 /**
- * 消息句柄。
+ * 默认消息回调句柄。
  */
-public interface MessageHandler <MessageInstanceType extends Message> extends CallbackHandler {
+public abstract class DefaultMessageHandler<MessageInstanceType extends Message> implements MessageHandler {
 
-    void handleMessage(MessageInstanceType message);
+    private boolean inMainThread = false;
+
+    public DefaultMessageHandler() {
+    }
+
+    public DefaultMessageHandler(boolean inMainThread) {
+        this.inMainThread = inMainThread;
+    }
+
+    @Override
+    public boolean isInMainThread() {
+        return this.inMainThread;
+    }
 }

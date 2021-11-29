@@ -50,7 +50,7 @@ import java.util.List;
 public class SoftwareKeyboard implements View.OnTouchListener, ViewTreeObserver.OnGlobalLayoutListener {
 
     private static final String SHARE_PREFERENCE_NAME = "CubeSoftwareKeyboard";
-    private static final String SHARE_PREFERENCE_SOFT_INPUT_HEIGHT = "sofe_input_height";
+    private static final String SHARE_PREFERENCE_SOFT_INPUT_HEIGHT = "soft_input_height";
 
     private Activity activity;
 

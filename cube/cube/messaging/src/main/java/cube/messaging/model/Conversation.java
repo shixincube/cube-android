@@ -326,7 +326,19 @@ public class Conversation extends Entity {
     }
 
     public void setUnreadCount(int count) {
-        this.unreadCount = count;
+        synchronized (this) {
+            this.unreadCount = count;
+        }
+    }
+
+    public void decrementUnread(int count) {
+        synchronized (this) {
+            this.unreadCount -= count;
+
+            if (this.unreadCount < 0) {
+                this.unreadCount = 0;
+            }
+        }
     }
 
     public void setState(ConversationState state) {

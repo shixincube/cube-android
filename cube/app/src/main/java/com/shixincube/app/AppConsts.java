@@ -35,6 +35,8 @@ import com.shixincube.app.util.FileUtils;
  */
 public final class AppConsts {
 
+    public final static String TAG = "Cube";
+
     /**
      * 程序主版本。
      */

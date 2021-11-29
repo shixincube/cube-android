@@ -1225,6 +1225,10 @@ public class MessagingService extends Module {
                 final List<Message> resultList = new ArrayList<>(list.messages);
                 final boolean hasMore = list.hasMore;
 
+                for (Message message : resultList) {
+                    this.queryState(message);
+                }
+
                 return new MessageListResult() {
                     @Override
                     public List<Message> getList() {
@@ -1248,6 +1252,11 @@ public class MessagingService extends Module {
         if (conversation.getType() == ConversationType.Contact) {
             MessageListResult result = this.storage.queryMessagesByReverseWithContact(conversation.getContact().getId(),
                     System.currentTimeMillis(), limit);
+
+            for (Message message : result.getList()) {
+                this.queryState(message);
+            }
+
             // 从数据库里查出来的是时间倒序，从大到小
             // 这里对列表进行翻转，翻转为时间正序
             Collections.reverse(result.getList());
@@ -2507,6 +2516,55 @@ public class MessagingService extends Module {
         });
     }
 
+    /**
+     * 查询状态。
+     *
+     * @param message
+     */
+    private void queryState(Message message) {
+        if (message.isFromGroup()) {
+            return;
+        }
+
+        if (message.isSelfTyper()
+                && message.getState() == MessageState.Sent
+                && this.pipeline.isReady()) {
+            JSONObject payload = new JSONObject();
+            try {
+                payload.put("contactId", message.getFrom());
+                payload.put("messageId", message.getId().longValue());
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            Packet requestPacket = new Packet(MessagingAction.QueryState, payload);
+            this.pipeline.send(MessagingService.NAME, requestPacket, new PipelineHandler() {
+                @Override
+                public void handleResponse(Packet packet) {
+                    if (packet.state.code != PipelineState.Ok.code) {
+                        return;
+                    }
+
+                    if (packet.extractServiceStateCode() != MessagingServiceState.Ok.code) {
+                        return;
+                    }
+
+                    JSONObject data = packet.extractServiceData();
+                    try {
+                        MessageState state = MessageState.parse(data.getInt("state"));
+                        if (message.getState() != state) {
+                            // 修改数据库
+                            storage.updateMessage(message.getId(), message.getState(), state);
+                            // 修改状态
+                            message.setState(state);
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+    }
+
     @Override
     public void notifyObservers(ObservableEvent event) {
         super.notifyObservers(event);
@@ -2636,10 +2694,10 @@ public class MessagingService extends Module {
         Message compMessage = this.fillMessage(message);
 
         // 数据写入数据库
-        boolean exists = this.storage.updateMessage(message);
+        boolean exists = this.storage.updateMessage(compMessage);
 
-        if (message.getRemoteTimestamp() > this.lastMessageTime) {
-            this.lastMessageTime = message.getRemoteTimestamp();
+        if (compMessage.getRemoteTimestamp() > this.lastMessageTime) {
+            this.lastMessageTime = compMessage.getRemoteTimestamp();
         }
 
         if (!exists) {
@@ -2704,6 +2762,10 @@ public class MessagingService extends Module {
             this.execute(() -> {
                 Message message = this.findMessageInMemory(copy.getId());
                 if (null != message) {
+                    if (LogUtils.isDebugLevel()) {
+                        LogUtils.d(TAG, "#triggerRead - will notify event: " + message.getId());
+                    }
+
                     // 修改状态
                     message.setState(copy.getState());
 
@@ -2718,6 +2780,10 @@ public class MessagingService extends Module {
                     notifyObservers(event);
                 }
                 else {
+                    if (LogUtils.isDebugLevel()) {
+                        LogUtils.d(TAG, "#triggerRead - no event: " + message.getId());
+                    }
+
                     // 更新数据库
                     storage.updateMessage(copy.getId(), MessageState.Sent, copy.getState());
                 }

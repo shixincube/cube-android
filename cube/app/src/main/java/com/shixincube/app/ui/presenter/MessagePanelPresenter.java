@@ -157,8 +157,10 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
         }
 
         Message message = null;
-        if (!this.messageList.isEmpty()) {
-            message = this.messageList.get(0);
+        synchronized (this.messageList) {
+            if (!this.messageList.isEmpty()) {
+                message = this.messageList.get(0);
+            }
         }
 
         int max = this.pageSize + this.pageSize;
@@ -176,8 +178,10 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
                         }
 
                         // Result 清单里的消息是从旧到新的，时间正序，因此倒着插入到列表
-                        for (int i = newMessageList.size() - 1; i >= 0; --i) {
-                            messageList.add(0, newMessageList.get(i));
+                        synchronized (messageList) {
+                            for (int i = newMessageList.size() - 1; i >= 0; --i) {
+                                messageList.add(0, newMessageList.get(i));
+                            }
                         }
 
                         getView().getMessageListView().moveToPosition(newMessageList.size() - 1);
@@ -365,14 +369,16 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
     }
 
     private void updateMessageStatus(Message message) {
-        List<Message> list = this.messageList;
-        for (int i = 0, length = list.size(); i < length; ++i) {
-            Message current = list.get(i);
-            if (current.id.longValue() == message.id.longValue()) {
-                list.remove(i);
-                list.add(i, message);
-                adapter.notifyDataSetChangedWrapper();
-                break;
+        synchronized (this.messageList) {
+            List<Message> list = this.messageList;
+            for (int i = 0, length = list.size(); i < length; ++i) {
+                Message current = list.get(i);
+                if (current.id.longValue() == message.id.longValue()) {
+                    list.remove(i);
+                    list.add(i, message);
+                    adapter.notifyDataSetChangedWrapper();
+                    break;
+                }
             }
         }
     }
@@ -443,11 +449,15 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
 
     @Override
     public void onMessageRead(Message message, MessagingService service) {
+        // 消息修改为已读
+        this.updateMessageStatus(message);
     }
 
     @Override
     public void onMessageReceived(Message message, MessagingService service) {
-        this.messageList.add(message);
+        synchronized (this.messageList) {
+            this.messageList.add(message);
+        }
 
         if (null != this.adapter) {
             this.adapter.notifyDataSetChangedWrapper();

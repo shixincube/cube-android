@@ -62,6 +62,11 @@ public final class MessagingAction {
     public final static String Read = "read";
 
     /**
+     * 查询消息状态信息。
+     */
+    public final static String QueryState = "queryState";
+
+    /**
      * 获取会话列表。
      */
     public final static String GetConversations = "getConversations";

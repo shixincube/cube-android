@@ -42,6 +42,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import cell.util.Cryptology;
+import cell.util.log.LogLevel;
+import cell.util.log.LogManager;
 import cube.auth.AuthService;
 import cube.auth.AuthToken;
 import cube.auth.handler.AuthTokenHandler;
@@ -99,6 +101,9 @@ public class Kernel implements PipelineListener {
         if (null == config || null == handler || this.working) {
             return false;
         }
+
+        // 设置 cell 的日志等级
+        LogManager.getInstance().setLevel(LogLevel.INFO);
 
         this.working = true;
 

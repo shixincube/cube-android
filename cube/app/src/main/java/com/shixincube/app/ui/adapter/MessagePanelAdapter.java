@@ -161,6 +161,9 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
                 helper.setViewVisibility(R.id.llRead, View.VISIBLE);
                 helper.setText(R.id.tvRead, UIUtils.getString(R.string.message_unread));
             }
+            else {
+                helper.setViewVisibility(R.id.llRead, View.GONE);
+            }
         }
     }
 

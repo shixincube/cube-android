@@ -32,6 +32,7 @@
                 android:layout_centerHorizontal="true"
                 android:layout_marginTop="7dp"
                 android:text="@string/fun_album"
+                android:textColor="?attr/colorText"
                 android:textSize="12sp"/>
 
         </RelativeLayout>
@@ -57,7 +58,9 @@
                 android:layout_centerHorizontal="true"
                 android:layout_marginTop="7dp"
                 android:text="@string/fun_shot"
+                android:textColor="?attr/colorText"
                 android:textSize="12sp"/>
+
         </RelativeLayout>
 
         <RelativeLayout
@@ -81,6 +84,7 @@
                 android:layout_centerHorizontal="true"
                 android:layout_marginTop="7dp"
                 android:text="@string/fun_voice_comm"
+                android:textColor="?attr/colorText"
                 android:textSize="12sp"/>
 
         </RelativeLayout>
@@ -106,6 +110,7 @@
                 android:layout_centerHorizontal="true"
                 android:layout_marginTop="7dp"
                 android:text="@string/fun_video_comm"
+                android:textColor="?attr/colorText"
                 android:textSize="12sp"/>
 
         </RelativeLayout>
@@ -139,6 +144,7 @@
                 android:layout_centerHorizontal="true"
                 android:layout_marginTop="7dp"
                 android:text="@string/files"
+                android:textColor="?attr/colorText"
                 android:textSize="12sp"/>
 
         </RelativeLayout>

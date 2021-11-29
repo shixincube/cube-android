@@ -125,8 +125,6 @@ public class MessagingService extends Module {
 
     private MessagingRecentEventListener recentEventListener;
 
-    private List<MessageEventListener> eventListeners;
-
     private Map<Long, List<MessageEventListener>> conversationMessageListeners;
 
     protected AtomicBoolean preparing;
@@ -179,6 +177,7 @@ public class MessagingService extends Module {
         this.preloadConversationRecentNum = 5;
         this.preloadConversationMessageNum = 10;
         this.capsuleCache = new ConcurrentHashMap<>();
+        this.conversationMessageListeners = new ConcurrentHashMap<>();
     }
 
     @Override
@@ -266,44 +265,12 @@ public class MessagingService extends Module {
     }
 
     /**
-     * 添加消息事件监听器。
-     *
-     * @param listener 消息监听器。
-     */
-    public void addEventListener(MessageEventListener listener) {
-        if (null == this.eventListeners) {
-            this.eventListeners = new Vector<>();
-        }
-
-        if (!this.eventListeners.contains(listener)) {
-            this.eventListeners.add(listener);
-        }
-    }
-
-    /**
-     * 移除消息事件监听器。
-     *
-     * @param listener 消息监听器。
-     */
-    public void removeEventListener(MessageEventListener listener) {
-        if (null == this.eventListeners) {
-            return;
-        }
-
-        this.eventListeners.remove(listener);
-    }
-
-    /**
      * 添加指定会话的消息事件监听器。
      *
      * @param conversation 指定会话。
      * @param listener 消息事件监听器。
      */
     public void addEventListener(Conversation conversation, MessageEventListener listener) {
-        if (null == this.conversationMessageListeners) {
-            this.conversationMessageListeners = new HashMap<>();
-        }
-
         List<MessageEventListener> list = this.conversationMessageListeners.get(conversation.id);
         if (null == list) {
             list = new Vector<>();
@@ -322,13 +289,12 @@ public class MessagingService extends Module {
      * @param listener 消息事件监听器。
      */
     public void removeEventListener(Conversation conversation, MessageEventListener listener) {
-        if (null == this.conversationMessageListeners) {
-            return;
-        }
-
         List<MessageEventListener> list = this.conversationMessageListeners.get(conversation.id);
         if (null != list) {
             list.remove(listener);
+            if (list.isEmpty()) {
+                this.conversationMessageListeners.remove(conversation.id);
+            }
         }
     }
 
@@ -2548,29 +2514,41 @@ public class MessagingService extends Module {
         String eventName = event.getName();
         if (MessagingServiceEvent.Notify.equals(eventName)) {
             Message message = (Message) event.getData();
+            Long convId = message.isFromGroup() ? message.getSource() : message.getPartnerId();
 
-            if (null != this.eventListeners) {
-                for (MessageEventListener listener : this.eventListeners) {
-                    listener.onMessageReceived(message, this);
-                }
-            }
-
-            if (null != this.conversationMessageListeners) {
-                Long convId = message.isFromGroup() ? message.getSource() : message.getPartnerId();
-                List<MessageEventListener> list = this.conversationMessageListeners.get(convId);
-                if (null != list) {
+            List<MessageEventListener> list = this.conversationMessageListeners.get(convId);
+            if (null != list) {
+                executeOnMainThread(() -> {
                     for (MessageEventListener listener : list) {
                         listener.onMessageReceived(message, this);
                     }
-                }
+                });
             }
         }
         else if (MessagingServiceEvent.Processing.equals(eventName)) {
             Message message = (Message) event.getData();
-            if (null != this.eventListeners) {
-                for (MessageEventListener listener : this.eventListeners) {
-                    listener.onMessageProcessing(message, this);
-                }
+            Long convId = message.isFromGroup() ? message.getSource() : message.getPartnerId();
+
+            List<MessageEventListener> list = this.conversationMessageListeners.get(convId);
+            if (null != list) {
+                executeOnMainThread(() -> {
+                    for (MessageEventListener listener : list) {
+                        listener.onMessageProcessing(message, this);
+                    }
+                });
+            }
+        }
+        else if (MessagingServiceEvent.Read.equals(eventName)) {
+            Message message = (Message) event.getData();
+            Long convId = message.isFromGroup() ? message.getSource() : message.getPartnerId();
+
+            List<MessageEventListener> list = this.conversationMessageListeners.get(convId);
+            if (null != list) {
+                executeOnMainThread(() -> {
+                    for (MessageEventListener listener : list) {
+                        listener.onMessageRead(message, this);
+                    }
+                });
             }
         }
         else if (MessagingServiceEvent.ConversationUpdated.equals(eventName)) {
@@ -2625,6 +2603,25 @@ public class MessagingService extends Module {
             // 更新会话数据库
             this.storage.updateRecentMessage(conversation);
         }
+    }
+
+    /**
+     * 从内存里找到对应 ID 的消息。
+     *
+     * @param messageId
+     * @return
+     */
+    private Message findMessageInMemory(Long messageId) {
+        for (MessageList list : this.conversationMessageListMap.values()) {
+            for (Message message : list.messages) {
+                if (message.getId().equals(messageId)) {
+                    list.extendLife(LIFESPAN);
+                    return message;
+                }
+            }
+        }
+
+        return null;
     }
 
     protected void triggerNotify(JSONObject data) {
@@ -2702,7 +2699,29 @@ public class MessagingService extends Module {
      */
     protected void triggerRead(JSONObject data) {
         try {
-            Message message = new Message(this, data);
+            Message copy = new Message(this, data);
+
+            this.execute(() -> {
+                Message message = this.findMessageInMemory(copy.getId());
+                if (null != message) {
+                    // 修改状态
+                    message.setState(copy.getState());
+
+                    if (message.getState() != MessageState.Read) {
+                        LogUtils.w(TAG, "Message read state exception from server: " + message.getId());
+                    }
+
+                    // 更新数据库
+                    storage.updateMessage(message.getId(), MessageState.Sent, message.getState());
+
+                    ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Read, message);
+                    notifyObservers(event);
+                }
+                else {
+                    // 更新数据库
+                    storage.updateMessage(copy.getId(), MessageState.Sent, copy.getState());
+                }
+            });
         } catch (JSONException e) {
             e.printStackTrace();
         }

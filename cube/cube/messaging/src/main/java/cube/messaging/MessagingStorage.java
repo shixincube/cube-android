@@ -575,6 +575,24 @@ public class MessagingStorage extends AbstractStorage {
     }
 
     /**
+     * 更新指定 ID 消息的状态。
+     *
+     * @param messageId
+     * @param currentState
+     * @param newState
+     */
+    public void updateMessage(Long messageId, MessageState currentState, MessageState newState) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("state", newState.code);
+        db.update("message", values, "id=? AND state=?", new String[]{
+                messageId.toString(),
+                currentState.toString()
+        });
+        this.closeWritableDatabase(db);
+    }
+
+    /**
      * 更新消息数据。
      *
      * @param message

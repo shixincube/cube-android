@@ -38,6 +38,15 @@ import cube.messaging.model.ConversationType;
  */
 public class MessageConversation {
 
+    /**
+     * 当前活跃的消息会话。
+     */
+    public static Conversation ActiveConversation = null;
+
+
+    /**
+     * 对应的会话。
+     */
     public final Conversation conversation;
 
     /**
@@ -67,5 +76,23 @@ public class MessageConversation {
 
     public Conversation getConversation() {
         return this.conversation;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (null == object) {
+            return false;
+        }
+
+        if (object instanceof Conversation) {
+            Conversation conv = (Conversation) object;
+            return (conv.id.longValue() == this.conversation.id.longValue());
+        }
+        else if (object instanceof MessageConversation) {
+            MessageConversation other = (MessageConversation) object;
+            return (other.conversation.id.longValue() == this.conversation.id.longValue());
+        }
+
+        return false;
     }
 }

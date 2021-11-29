@@ -31,6 +31,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.shixincube.app.R;
+import com.shixincube.app.model.MessageConversation;
 import com.shixincube.app.ui.activity.ImageShowcaseActivity;
 import com.shixincube.app.ui.activity.MessagePanelActivity;
 import com.shixincube.app.ui.adapter.MessagePanelAdapter;
@@ -359,8 +360,12 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
         getView().getMessageListView().smoothMoveToPosition(this.messageList.size() - 1);
     }
 
+    private void asyncMarkRead(Message message) {
+
+    }
+
     private void updateMessageStatus(Message message) {
-        List<Message> list = adapter.getData();
+        List<Message> list = this.messageList;
         for (int i = 0, length = list.size(); i < length; ++i) {
             Message current = list.get(i);
             if (current.id.longValue() == message.id.longValue()) {
@@ -411,7 +416,7 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
 
     @Override
     public void onItemClick(ViewHolder helper, ViewGroup parent, View itemView, int position) {
-//        Message message = this.adapter.getData().get(position);
+//        Message message = this.messageList.get(position);
 //        this.fireItemClick(helper, message, position);
         ((MessagePanelActivity) activity).fireClickBlank();
     }
@@ -437,18 +442,25 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
     }
 
     @Override
-    public void onMessageReceived(Message message, MessagingService service) {
-        List<Message> list = this.adapter.getData();
-        list.add(message);
+    public void onMessageRead(Message message, MessagingService service) {
+    }
 
-        this.activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                adapter.notifyDataSetChangedWrapper();
-                if (null != getView() && null != getView().getMessageListView()) {
-                    moveToBottom();
-                }
-            }
-        });
+    @Override
+    public void onMessageReceived(Message message, MessagingService service) {
+        this.messageList.add(message);
+
+        if (null != this.adapter) {
+            this.adapter.notifyDataSetChangedWrapper();
+        }
+
+        if (null != getView() && null != getView().getMessageListView()) {
+            moveToBottom();
+        }
+
+        // 如果当前会话是活跃会话，将接收到的消息标记为已读
+        if (null != MessageConversation.ActiveConversation
+            && MessageConversation.ActiveConversation.equals(this.conversation)) {
+            this.asyncMarkRead(message);
+        }
     }
 }

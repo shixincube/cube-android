@@ -42,6 +42,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import com.shixincube.app.R;
+import com.shixincube.app.model.MessageConversation;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.presenter.MessagePanelPresenter;
 import com.shixincube.app.ui.view.MessagePanelView;
@@ -326,6 +327,12 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
         }
         else {
             super.onBackPressed();
+
+            if (null != MessageConversation.ActiveConversation) {
+                if (MessageConversation.ActiveConversation.equals(this.conversation)) {
+                    MessageConversation.ActiveConversation = null;
+                }
+            }
         }
     }
 
@@ -334,6 +341,8 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
         super.onResume();
 
         setToolbarTitle(this.conversation.getDisplayName());
+
+        MessageConversation.ActiveConversation = this.conversation;
     }
 
     @Override
@@ -348,6 +357,12 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
         }
 
         this.softwareKeyboard.destroy();
+
+        if (null != MessageConversation.ActiveConversation) {
+            if (MessageConversation.ActiveConversation.equals(this.conversation)) {
+                MessageConversation.ActiveConversation = null;
+            }
+        }
     }
 
     @Override

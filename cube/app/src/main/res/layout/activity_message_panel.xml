@@ -3,11 +3,11 @@
     android:id="@+id/llRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="?attr/colorThemeBackground"
     android:orientation="vertical">
 
     <include layout="@layout/include_toolbar"/>
 
-    <!-- 消息区域 -->
     <LinearLayout
         android:id="@+id/llMessagePanel"
         android:layout_width="match_parent"
@@ -16,6 +16,7 @@
         android:background="?attr/colorThemeBackground"
         android:orientation="vertical">
 
+        <!-- 消息区域 -->
         <cn.bingoogolapple.refreshlayout.BGARefreshLayout
             android:id="@+id/refreshLayout"
             android:layout_width="match_parent"
@@ -61,6 +62,8 @@
                     android:background="@null"
                     android:drawableBottom="@drawable/selector_edit_focus"
                     android:textCursorDrawable="@drawable/cursor"
+                    android:textSize="16sp"
+                    android:textColor="?attr/colorText"
                     android:visibility="visible"/>
 
                 <Button
@@ -112,7 +115,7 @@
         android:id="@+id/flFunctionView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:minHeight="175dp"
+        android:minHeight="160dp"
         android:visibility="gone">
 
         <!-- 表情 -->

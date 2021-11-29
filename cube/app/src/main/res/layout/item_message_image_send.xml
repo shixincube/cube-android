@@ -71,7 +71,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/message_unread"
                 android:textColor="?attr/colorTextSecondary"
-                android:textSize="10sp"/>
+                android:textSize="12sp"/>
 
         </LinearLayout>
 

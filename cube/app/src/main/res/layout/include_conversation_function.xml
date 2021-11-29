@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.zhy.autolayout.AutoLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="?attr/colorThemeBackground"
     android:orientation="vertical">
 
-    <com.zhy.autolayout.AutoLinearLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:orientation="horizontal">
 
-        <com.zhy.autolayout.AutoRelativeLayout
+        <RelativeLayout
             android:id="@+id/rlAlbum"
             android:layout_width="0dp"
             android:layout_height="match_parent"
@@ -33,9 +34,9 @@
                 android:text="@string/fun_album"
                 android:textSize="12sp"/>
 
-        </com.zhy.autolayout.AutoRelativeLayout>
+        </RelativeLayout>
 
-        <com.zhy.autolayout.AutoRelativeLayout
+        <RelativeLayout
             android:id="@+id/rlShot"
             android:layout_width="0dp"
             android:layout_height="match_parent"
@@ -57,9 +58,9 @@
                 android:layout_marginTop="7dp"
                 android:text="@string/fun_shot"
                 android:textSize="12sp"/>
-        </com.zhy.autolayout.AutoRelativeLayout>
+        </RelativeLayout>
 
-        <com.zhy.autolayout.AutoRelativeLayout
+        <RelativeLayout
             android:id="@+id/rlVoice"
             android:layout_width="0dp"
             android:layout_height="match_parent"
@@ -82,9 +83,9 @@
                 android:text="@string/fun_voice_comm"
                 android:textSize="12sp"/>
 
-        </com.zhy.autolayout.AutoRelativeLayout>
+        </RelativeLayout>
 
-        <com.zhy.autolayout.AutoRelativeLayout
+        <RelativeLayout
             android:id="@+id/rlVideo"
             android:layout_width="0dp"
             android:layout_height="match_parent"
@@ -107,17 +108,17 @@
                 android:text="@string/fun_video_comm"
                 android:textSize="12sp"/>
 
-        </com.zhy.autolayout.AutoRelativeLayout>
+        </RelativeLayout>
 
-    </com.zhy.autolayout.AutoLinearLayout>
+    </LinearLayout>
 
-    <com.zhy.autolayout.AutoLinearLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:orientation="horizontal">
 
-        <com.zhy.autolayout.AutoRelativeLayout
+        <RelativeLayout
             android:id="@+id/rlFiles"
             android:layout_width="0dp"
             android:layout_height="match_parent"
@@ -140,26 +141,26 @@
                 android:text="@string/files"
                 android:textSize="12sp"/>
 
-        </com.zhy.autolayout.AutoRelativeLayout>
+        </RelativeLayout>
 
-        <com.zhy.autolayout.AutoRelativeLayout
+        <RelativeLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1">
-        </com.zhy.autolayout.AutoRelativeLayout>
+        </RelativeLayout>
 
-        <com.zhy.autolayout.AutoRelativeLayout
+        <RelativeLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1">
-        </com.zhy.autolayout.AutoRelativeLayout>
+        </RelativeLayout>
 
-        <com.zhy.autolayout.AutoRelativeLayout
+        <RelativeLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1">
-        </com.zhy.autolayout.AutoRelativeLayout>
+        </RelativeLayout>
 
-    </com.zhy.autolayout.AutoLinearLayout>
+    </LinearLayout>
 
-</com.zhy.autolayout.AutoLinearLayout>
+</LinearLayout>

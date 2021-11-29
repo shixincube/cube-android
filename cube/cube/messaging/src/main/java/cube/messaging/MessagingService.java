@@ -794,7 +794,10 @@ public class MessagingService extends Module {
         MessageList messageList = this.conversationMessageListMap.get(conversation.id);
         if (null != messageList) {
             for (Message message : messageList.messages) {
-                message.setState(MessageState.Read);
+                if (!message.isSelfTyper()) {
+                    // 将对方发送的消息设置为已读
+                    message.setState(MessageState.Read);
+                }
             }
         }
 
@@ -808,12 +811,18 @@ public class MessagingService extends Module {
             }
 
             if (null != current) {
-                current.getRecentMessage().setState(MessageState.Read);
+                Message recentMessage = current.getRecentMessage();
+                if (!recentMessage.isSelfTyper()) {
+                    recentMessage.setState(MessageState.Read);
+                }
                 current.setUnreadCount(0);
             }
         }
 
-        conversation.getRecentMessage().setState(MessageState.Read);
+        Message recentMessage = conversation.getRecentMessage();
+        if (!recentMessage.isSelfTyper()) {
+            recentMessage.setState(MessageState.Read);
+        }
         conversation.setUnreadCount(0);
 
         this.execute(() -> {
@@ -1525,8 +1534,7 @@ public class MessagingService extends Module {
     public <T extends Message> void sendMessage(final Conversation conversation, final T message,
                             SendHandler<Conversation, T> sendHandler, FailureHandler failureHandler) {
         // 检查会话状态
-        if (conversation.getState() != ConversationState.Normal
-                || conversation.getState() != ConversationState.Important) {
+        if (conversation.getState() == ConversationState.Destroyed) {
             ModuleError error = new ModuleError(NAME, MessagingServiceState.ConversationDisabled.code);
             error.data = conversation;
             if (failureHandler.isInMainThread()) {
@@ -1607,6 +1615,9 @@ public class MessagingService extends Module {
             }, failureHandler);
 
             this.tryAddConversation(conversation);
+        }
+        else {
+            LogUtils.w(TAG, "Conversation type error: " + conversation.getId() + " - " + conversation.getDisplayName());
         }
     }
 
@@ -1958,6 +1969,10 @@ public class MessagingService extends Module {
         this.sendingList.offer(message);
 
         this.execute(() -> {
+            if (LogUtils.isDebugLevel()) {
+                LogUtils.d(TAG, "Message Processing : " + message.getId());
+            }
+
             sendHandler.handleProcessing(null, message);
 
             // 产生事件
@@ -1985,6 +2000,10 @@ public class MessagingService extends Module {
         }
 
         this.execute(() -> {
+            if (LogUtils.isDebugLevel()) {
+                LogUtils.d(TAG, "Message Processed : " + message.getId());
+            }
+
             sendHandler.handleProcessed(null, message);
 
             // 产生事件
@@ -2080,6 +2099,10 @@ public class MessagingService extends Module {
         }
         else {
             this.execute(() -> {
+                if (LogUtils.isDebugLevel()) {
+                    LogUtils.d(TAG, "Message Sending : " + message.getId());
+                }
+
                 sendHandler.handleSending(null, message);
 
                 // 产生事件
@@ -2171,6 +2194,10 @@ public class MessagingService extends Module {
 
                     if (stateCode == MessagingServiceState.Ok.code) {
                         if (message.getScope() == MessageScope.Unlimited) {
+                            if (LogUtils.isDebugLevel()) {
+                                LogUtils.d(TAG, "Message Sent : " + message.getId() + " - " + message.getState().name());
+                            }
+
                             // 回调
                             sendHandler.handleSent(null, message);
 
@@ -2671,11 +2698,9 @@ public class MessagingService extends Module {
     /**
      * 处理已读标志修改。
      *
-     * @param stateCode
      * @param data
      */
     protected void triggerRead(JSONObject data) {
-        // TODO XJW
         try {
             Message message = new Message(this, data);
         } catch (JSONException e) {

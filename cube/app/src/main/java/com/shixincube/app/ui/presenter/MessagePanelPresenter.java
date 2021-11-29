@@ -75,7 +75,7 @@ import cube.util.LogUtils;
 /**
  * 消息面板。
  */
-public class MessagePanelPresenter extends BasePresenter<MessagePanelView> implements OnItemClickListener, MessageEventListener {
+public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> implements OnItemClickListener, MessageEventListener {
 
     private int pageSize = 10;
 
@@ -120,7 +120,7 @@ public class MessagePanelPresenter extends BasePresenter<MessagePanelView> imple
 
             getView().getMessageListView().setAdapter(this.adapter);
 
-            UIUtils.postTaskDelay(() -> moveToBottom(), 100);
+            UIUtils.postTaskDelay(() -> moveToBottom(), 500);
         }
         else {
             this.adapter.notifyDataSetChangedWrapper();
@@ -185,7 +185,7 @@ public class MessagePanelPresenter extends BasePresenter<MessagePanelView> imple
     }
 
     private boolean checkState() {
-        if (this.conversation.getState() == ConversationState.Deleted) {
+        if (this.conversation.getState() == ConversationState.Destroyed) {
             return false;
         }
 

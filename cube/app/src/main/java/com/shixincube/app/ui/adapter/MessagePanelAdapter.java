@@ -95,6 +95,7 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
         setTime(helper, item, position);
         setAvatar(helper, item, position);
         setName(helper, item, position);
+        setState(helper, item, position);
         setContent(helper, item, position);
     }
 
@@ -142,6 +143,24 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
         }
         else {
             textView.setVisibility(View.GONE);
+        }
+    }
+
+    private void setState(ViewHolderForRecyclerView helper, Message item, int position) {
+        if (item.isFromGroup()) {
+            // 群组消息没有已读和未读状态
+            return;
+        }
+
+        if (item.isSelfTyper()) {
+            if (item.getState() == MessageState.Read) {
+                helper.setViewVisibility(R.id.llRead, View.VISIBLE);
+                helper.setText(R.id.tvRead, UIUtils.getString(R.string.message_read));
+            }
+            else if (item.getState() == MessageState.Sent) {
+                helper.setViewVisibility(R.id.llRead, View.VISIBLE);
+                helper.setText(R.id.tvRead, UIUtils.getString(R.string.message_unread));
+            }
         }
     }
 

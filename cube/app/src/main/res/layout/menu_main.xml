@@ -3,10 +3,10 @@
     xmlns:auto="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    auto:cardBackgroundColor="@color/colorPrimaryDark"
+    auto:cardBackgroundColor="@color/popup_menu_bg"
     auto:cardElevation="5dp">
 
-    <com.zhy.autolayout.AutoLinearLayout
+    <LinearLayout
         android:layout_width="170dp"
         android:layout_height="wrap_content"
         android:background="@color/colorPrimaryDark"
@@ -24,7 +24,7 @@
             android:gravity="center_vertical"
             android:paddingStart="10dp"
             android:text="@string/create_group"
-            android:textColor="@color/white"
+            android:textColor="@color/popup_menu_text"
             android:textSize="14sp"/>
 
         <TextView
@@ -38,9 +38,9 @@
             android:gravity="center_vertical"
             android:paddingStart="10dp"
             android:text="@string/add_contact"
-            android:textColor="@color/white"
+            android:textColor="@color/popup_menu_text"
             android:textSize="14sp"/>
 
-    </com.zhy.autolayout.AutoLinearLayout>
+    </LinearLayout>
 
 </com.shixincube.app.widget.AutoCardView>

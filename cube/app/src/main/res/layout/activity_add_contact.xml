@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/theme_bg"
+    android:background="?attr/colorThemeBackground"
     android:orientation="vertical">
 
     <include layout="@layout/include_toolbar"/>
@@ -11,8 +11,8 @@
         android:id="@+id/llSearchContact"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="22dp"
-        android:background="@color/white"
+        android:layout_marginTop="@dimen/activity_vertical_margin"
+        android:background="?attr/colorBackground"
         android:orientation="vertical"
         android:paddingStart="15dp"
         android:paddingEnd="15dp"
@@ -29,7 +29,7 @@
             android:drawablePadding="10dp"
             android:gravity="center_vertical"
             android:text="@string/cube_or_phone"
-            android:textColor="@color/text_secondary"
+            android:textColor="?attr/colorTextSecondary"
             android:textSize="14sp"/>
 
     </LinearLayout>
@@ -53,7 +53,7 @@
             android:id="@+id/tvCubeId"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/theme_blue_dark"
+            android:textColor="?attr/colorTheme"
             android:textSize="15sp"/>
 
         <ImageView
@@ -68,7 +68,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/white"
+        android:background="?attr/colorThemeBackground"
         android:orientation="vertical">
 
     </LinearLayout>

@@ -32,6 +32,7 @@ import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -42,6 +43,7 @@ import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.presenter.ContactDetailsPresenter;
 import com.shixincube.app.ui.view.ContactDetailsView;
 import com.shixincube.app.util.AvatarUtils;
+import com.shixincube.app.util.DateUtils;
 import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.optionitemview.OptionItemView;
 
@@ -49,6 +51,7 @@ import butterknife.BindView;
 import cube.contact.handler.DefaultContactZoneHandler;
 import cube.contact.model.Contact;
 import cube.contact.model.ContactZone;
+import cube.contact.model.ContactZoneParticipant;
 import cube.core.Module;
 import cube.core.ModuleError;
 import cube.core.handler.DefaultFailureHandler;
@@ -60,11 +63,15 @@ import cube.messaging.model.Conversation;
  */
 public class ContactDetailsActivity extends BaseActivity<ContactDetailsView, ContactDetailsPresenter> implements ContactDetailsView {
 
+    public final static int MODE_MY_CONTACT = 1;
+    public final static int MODE_STRANGE_CONTACT = 2;
+    public final static int MODE_PENDING_CONTACT = 3;
+
     public final static int REQUEST_POSTSCRIPT = 1001;
 
-    public final static int RESULT_NOTHING = 100;
     public final static int RESULT_REMOVE = 101;
     public final static int RESULT_ADD = 102;
+    public final static int RESULT_PENDING_AGREE = 201;
 
     @BindView(R.id.ivAvatar)
     ImageView avatarView;
@@ -87,6 +94,13 @@ public class ContactDetailsActivity extends BaseActivity<ContactDetailsView, Con
     @BindView(R.id.tvSignature)
     TextView signatureText;
 
+    @BindView(R.id.llPostscript)
+    LinearLayout postscriptLayout;
+    @BindView(R.id.tvPostscriptDate)
+    TextView postscriptDateText;
+    @BindView(R.id.tvPostscript)
+    TextView postscriptText;
+
     @BindView(R.id.btnChat)
     Button toChatButton;
 
@@ -103,9 +117,15 @@ public class ContactDetailsActivity extends BaseActivity<ContactDetailsView, Con
     @BindView(R.id.oivDelete)
     OptionItemView deleteItemView;
 
+    /**
+     * 工作模式。
+     */
+    private int mode;
+
     private Contact contact;
 
-    private boolean isMyContact;
+    private String zoneName;
+    private ContactZoneParticipant participant;
 
     public ContactDetailsActivity() {
         super();
@@ -114,22 +134,37 @@ public class ContactDetailsActivity extends BaseActivity<ContactDetailsView, Con
     @Override
     public void init() {
         Intent intent = getIntent();
-        Long contactId = intent.getExtras().getLong("contactId");
-        this.isMyContact = intent.getBooleanExtra("isMyContact", true);
-        this.contact = CubeEngine.getInstance().getContactService().getContact(contactId);
+        Long contactId = intent.getLongExtra("contactId", 0L);
+        if (contactId.longValue() > 0) {
+            if (intent.getBooleanExtra("isMyContact", true)) {
+                this.mode = MODE_MY_CONTACT;
+            }
+            else {
+                this.mode = MODE_STRANGE_CONTACT;
+            }
+            this.contact = CubeEngine.getInstance().getContactService().getContact(contactId);
+        }
+        else {
+            this.mode = MODE_PENDING_CONTACT;
+            this.zoneName = intent.getStringExtra("zoneName");
+            Long participantId = intent.getLongExtra("participantId", 0L);
+            ContactZone zone = CubeEngine.getInstance().getContactService().getContactZone(this.zoneName);
+            this.participant = zone.getParticipant(participantId);
+            this.contact = this.participant.getContact();
+        }
     }
 
     @Override
     public void initView() {
-        if (null == this.contact) {
+        if (null == this.contact && null == this.participant) {
             finish();
             return;
         }
 
-        toolbarMore.setVisibility(View.VISIBLE);
-
         // FIXME 暂时隐藏个性签名
         this.signatureText.setVisibility(View.GONE);
+
+        this.postscriptLayout.setVisibility(View.GONE);
 
         if (this.contact.equals(CubeEngine.getInstance().getContactService().getSelf())) {
             // 我
@@ -141,14 +176,24 @@ public class ContactDetailsActivity extends BaseActivity<ContactDetailsView, Con
             this.toolbarMore.setVisibility(View.GONE);
         }
         else {
-            if (this.isMyContact) {
+            if (this.mode == MODE_MY_CONTACT) {
                 // 我的联系人
                 this.nickNameView.setVisibility(View.VISIBLE);
                 this.toChatButton.setVisibility(View.VISIBLE);
                 this.addToContactsButton.setVisibility(View.GONE);
+                this.toolbarMore.setVisibility(View.VISIBLE);
+            }
+            else if (this.mode == MODE_STRANGE_CONTACT) {
+                // 陌生人
+                this.nickNameView.setVisibility(View.INVISIBLE);
+                this.toChatButton.setVisibility(View.GONE);
+                this.addToContactsButton.setVisibility(View.VISIBLE);
+                // 不显示右上角的"更多"按钮
+                this.toolbarMore.setVisibility(View.GONE);
             }
             else {
-                // 陌生人
+                // 待处理联系人
+                this.postscriptLayout.setVisibility(View.VISIBLE);
                 this.nickNameView.setVisibility(View.INVISIBLE);
                 this.toChatButton.setVisibility(View.GONE);
                 this.addToContactsButton.setVisibility(View.VISIBLE);
@@ -163,8 +208,13 @@ public class ContactDetailsActivity extends BaseActivity<ContactDetailsView, Con
         Glide.with(this).load(AvatarUtils.getAvatarResource(this.contact)).centerCrop().into(avatarView);
         this.nameView.setText(this.contact.getPriorityName());
 
-        this.cubeIdView.setText(UIUtils.getString(R.string.cube_id_colon, this.contact.getId().toString()));
         this.nickNameView.setText(UIUtils.getString(R.string.nickname_colon, this.contact.getName()));
+        this.cubeIdView.setText(UIUtils.getString(R.string.cube_id_colon, this.contact.getId().toString()));
+
+        if (this.mode == MODE_PENDING_CONTACT) {
+            this.postscriptDateText.setText(DateUtils.formatYMDHM(this.participant.getTimestamp()));
+            this.postscriptText.setText(this.participant.getPostscript());
+        }
     }
 
     @Override
@@ -209,9 +259,19 @@ public class ContactDetailsActivity extends BaseActivity<ContactDetailsView, Con
         });
 
         this.addToContactsButton.setOnClickListener((view) -> {
-            // 填写附言
-            Intent intent = new Intent(this, PostscriptActivity.class);
-            startActivityForResult(intent, REQUEST_POSTSCRIPT);
+            if (MODE_PENDING_CONTACT == this.mode) {
+                // 通过验证，添加为联系人
+                Intent intent = new Intent();
+                intent.putExtra("zoneName", zoneName);
+                intent.putExtra("participantId", participant.getId().longValue());
+                setResult(RESULT_PENDING_AGREE, intent);
+                finish();
+            }
+            else {
+                // 填写附言
+                Intent intent = new Intent(this, PostscriptActivity.class);
+                startActivityForResult(intent, REQUEST_POSTSCRIPT);
+            }
         });
     }
 
@@ -267,7 +327,7 @@ public class ContactDetailsActivity extends BaseActivity<ContactDetailsView, Con
 
     private void showMenu() {
         this.menuLayout.setVisibility(View.VISIBLE);
-        this.deleteItemView.setVisibility(this.isMyContact ? View.VISIBLE : View.GONE);
+        this.deleteItemView.setVisibility(MODE_MY_CONTACT == this.mode ? View.VISIBLE : View.GONE);
 
         TranslateAnimation animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0,
                 Animation.RELATIVE_TO_SELF, 0,

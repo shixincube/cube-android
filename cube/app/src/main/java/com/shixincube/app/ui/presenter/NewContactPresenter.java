@@ -26,11 +26,14 @@
 
 package com.shixincube.app.ui.presenter;
 
+import android.content.Intent;
 import android.view.View;
 import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
 import com.shixincube.app.R;
+import com.shixincube.app.ui.activity.ContactDetailsActivity;
+import com.shixincube.app.ui.activity.NewContactActivity;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.NewContactView;
@@ -85,6 +88,15 @@ public class NewContactPresenter extends BasePresenter<NewContactView> {
         this.adapter.notifyDataSetChangedWrapper();
     }
 
+    public void agreeAddToContacts(Long participantId) {
+        ContactZoneParticipant participant = this.contactZone.getParticipant(participantId);
+        if (null == participant) {
+            return;
+        }
+
+        
+    }
+
     private void setAdapter() {
         if (null == this.adapter) {
             this.adapter = new AdapterForRecyclerView<ContactZoneParticipant>(activity, this.pendingContacts, R.layout.item_new_contact) {
@@ -115,6 +127,10 @@ public class NewContactPresenter extends BasePresenter<NewContactView> {
 
     private void onInviterDetailsClicked(View view) {
         Long id = (Long) view.getTag();
+        Intent intent = new Intent(activity, ContactDetailsActivity.class);
+        intent.putExtra("zoneName", this.contactZone.getName());
+        intent.putExtra("participantId", id);
+        activity.startActivityForResult(intent, NewContactActivity.REQUEST_CONTACT_DETAILS);
     }
 
     /**

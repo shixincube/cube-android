@@ -22,8 +22,8 @@
             <!-- 头像 -->
             <com.shixincube.app.widget.AdvancedImageView
                 android:id="@+id/ivAvatar"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
                 android:layout_marginStart="5dp"
                 android:scaleType="centerCrop"
                 android:src="@mipmap/avatar_default"
@@ -81,6 +81,65 @@
 
         </LinearLayout>
 
+        <!-- 附言 -->
+        <LinearLayout
+            android:id="@+id/llPostscript"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/activity_vertical_margin"
+            android:background="?attr/colorBackground"
+            android:gravity="center_vertical"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="?attr/colorOptionItem"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/item_margin_start_and_end"
+                    android:layout_weight="1"
+                    android:text="@string/postscript"
+                    android:textColor="?attr/colorText"
+                    android:textSize="16sp"/>
+
+                <TextView
+                    android:id="@+id/tvPostscriptDate"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end|center_vertical"
+                    android:gravity="end|center_vertical"
+                    android:layout_marginEnd="@dimen/option_item_margin_end"
+                    android:layout_weight="2"
+                    android:text="@string/app_name"
+                    android:textColor="?attr/colorTextSecondary"
+                    android:textSize="14sp"/>
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvPostscript"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/activity_vertical_margin"
+                android:layout_marginStart="@dimen/item_margin_start_and_end"
+                android:layout_marginEnd="@dimen/item_margin_start_and_end"
+                android:layout_weight="1"
+                android:maxLines="5"
+                android:ellipsize="end"
+                android:textColor="?attr/colorTextSecondary"
+                android:textSize="14sp"/>
+
+        </LinearLayout>
+
+        <View
+            style="?attr/styleLine"/>
+
         <!-- 备注和标签 -->
         <com.shixincube.app.widget.optionitemview.OptionItemView
             android:id="@+id/oivRemarkAndTag"
@@ -89,8 +148,14 @@
             android:focusable="true"
             android:clickable="true"
             android:layout_marginTop="20dp"
+            auto:start_text="@string/set_remark_and_tag"
+            auto:start_text_margin_left="@dimen/option_item_margin_start"
             auto:end_src="@mipmap/indicator"
-            auto:start_text="@string/set_remark_and_tag"/>
+            auto:end_image_margin_right="@dimen/option_item_margin_end"/>
+
+        <View style="?attr/styleLine"
+            android:layout_marginStart="@dimen/item_margin_start_and_end"
+            android:layout_marginEnd="@dimen/item_margin_start_and_end"/>
 
         <!-- 地区 -->
         <LinearLayout
@@ -134,7 +199,8 @@
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:background="?attr/selectorOptionItem"
-            android:gravity="center_vertical">
+            android:gravity="center_vertical"
+            android:visibility="gone">
 
             <TextView
                 android:layout_width="0dp"

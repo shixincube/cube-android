@@ -142,6 +142,22 @@ public class ContactZone extends Entity {
     }
 
     /**
+     * 获取指定 ID 的参与人。
+     *
+     * @param id
+     * @return
+     */
+    public ContactZoneParticipant getParticipant(Long id) {
+        for (ContactZoneParticipant participant : this.participants) {
+            if (participant.id.longValue() == id.longValue()) {
+                return participant;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * 获取参与人的联系人列表。
      *
      * @return 返回参与人的联系人列表。

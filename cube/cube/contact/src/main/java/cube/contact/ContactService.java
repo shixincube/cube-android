@@ -124,6 +124,8 @@ public class ContactService extends Module {
 
     protected ConcurrentHashMap<Long, AbstractContact> cache;
 
+    protected ConcurrentHashMap<String, ContactZone> zoneCache;
+
     private List<ContactZoneListener> contactZoneListenerList;
 
     /**
@@ -135,6 +137,7 @@ public class ContactService extends Module {
         super(ContactService.NAME);
         this.signInReady = new AtomicBoolean(false);
         this.cache = new ConcurrentHashMap<>();
+        this.zoneCache = new ConcurrentHashMap<>();
     }
 
     @Override
@@ -149,6 +152,7 @@ public class ContactService extends Module {
         this.pipeline.addListener(NAME, this.pipelineListener);
 
         this.kernel.getInspector().depositMap(this.cache);
+        this.kernel.getInspector().depositMap(this.zoneCache);
 
         return true;
     }
@@ -158,7 +162,9 @@ public class ContactService extends Module {
         super.stop();
 
         this.kernel.getInspector().withdrawMap(this.cache);
+        this.kernel.getInspector().withdrawMap(this.zoneCache);
         this.cache.clear();
+        this.zoneCache.clear();
 
         this.signInHandler = null;
 
@@ -1042,6 +1048,37 @@ public class ContactService extends Module {
     }
 
     /**
+     * 获取指定名称的联系人分区。
+     *
+     * @param zoneName
+     * @return
+     */
+    public ContactZone getContactZone(String zoneName) {
+        if (this.defaultContactZoneName.equals(zoneName)) {
+            return this.defaultContactZone;
+        }
+        else if (this.defaultGroupZoneName.equals(zoneName)) {
+            return this.defaultGroupZone;
+        }
+
+        ContactZone zone = this.zoneCache.get(zoneName);
+        if (null != zone) {
+            zone.entityLifeExpiry += LIFESPAN;
+            return zone;
+        }
+
+        zone = this.storage.readContactZone(zoneName);
+        if (null != zone) {
+            // 填充数据
+            this.fillContactZone(zone);
+
+            this.zoneCache.put(zone.name, zone);
+        }
+
+        return zone;
+    }
+
+    /**
      * 获取指定的联系人分区。
      *
      * @param zoneName
@@ -1055,6 +1092,8 @@ public class ContactService extends Module {
             if (zone.isValid()) {
                 // 填充数据
                 this.fillContactZone(zone);
+
+                this.zoneCache.put(zone.name, zone);
 
                 // 回调
                 if (successHandler.isInMainThread()) {

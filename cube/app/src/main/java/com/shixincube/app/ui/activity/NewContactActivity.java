@@ -26,6 +26,7 @@
 
 package com.shixincube.app.ui.activity;
 
+import android.content.Intent;
 import android.widget.LinearLayout;
 
 import com.shixincube.app.R;
@@ -41,6 +42,8 @@ import butterknife.BindView;
  * 新联系人。
  */
 public class NewContactActivity extends BaseActivity<NewContactView, NewContactPresenter> implements NewContactView {
+
+    public final static int REQUEST_CONTACT_DETAILS = 1001;
 
     @BindView(R.id.llNoNewContact)
     LinearLayout noNewContactLayout;
@@ -63,6 +66,18 @@ public class NewContactActivity extends BaseActivity<NewContactView, NewContactP
     @Override
     public void initData() {
         this.presenter.loadData();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_CONTACT_DETAILS) {
+            if (resultCode == ContactDetailsActivity.RESULT_PENDING_AGREE) {
+                Long participantId = data.getLongExtra("participantId", 0L);
+                presenter.agreeAddToContacts(participantId);
+            }
+        }
     }
 
     @Override

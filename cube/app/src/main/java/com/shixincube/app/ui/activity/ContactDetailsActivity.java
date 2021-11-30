@@ -46,7 +46,12 @@ import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.optionitemview.OptionItemView;
 
 import butterknife.BindView;
+import cube.contact.handler.DefaultContactZoneHandler;
 import cube.contact.model.Contact;
+import cube.contact.model.ContactZone;
+import cube.core.Module;
+import cube.core.ModuleError;
+import cube.core.handler.DefaultFailureHandler;
 import cube.engine.CubeEngine;
 import cube.messaging.model.Conversation;
 
@@ -55,9 +60,11 @@ import cube.messaging.model.Conversation;
  */
 public class ContactDetailsActivity extends BaseActivity<ContactDetailsView, ContactDetailsPresenter> implements ContactDetailsView {
 
-    public final static int RESULT_NOTHING = 1000;
-    public final static int RESULT_REMOVE = 2000;
-    public final static int RESULT_ADD = 3000;
+    public final static int REQUEST_POSTSCRIPT = 1001;
+
+    public final static int RESULT_NOTHING = 100;
+    public final static int RESULT_REMOVE = 101;
+    public final static int RESULT_ADD = 102;
 
     @BindView(R.id.ivAvatar)
     ImageView avatarView;
@@ -204,9 +211,48 @@ public class ContactDetailsActivity extends BaseActivity<ContactDetailsView, Con
         this.addToContactsButton.setOnClickListener((view) -> {
             // 填写附言
             Intent intent = new Intent(this, PostscriptActivity.class);
-            intent.putExtra("contactId", this.contact.getId());
-            jumpToActivity(intent);
+            startActivityForResult(intent, REQUEST_POSTSCRIPT);
         });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_POSTSCRIPT) {
+            if (resultCode == RESULT_OK) {
+                String postscript = data.getStringExtra("postscript");
+
+                // 向默认分区添加待处理的联系人
+                CubeEngine.getInstance().getContactService().getDefaultContactZone()
+                        .addParticipant(contact, postscript, new DefaultContactZoneHandler(true) {
+                            @Override
+                            public void handleContactZone(ContactZone contactZone) {
+                                // 关闭当前界面
+                                Intent intent = new Intent();
+                                intent.putExtra("contactId", contact.getId().longValue());
+                                setResult(RESULT_ADD, intent);
+                                finish();
+                            }
+                        }, new DefaultFailureHandler(true) {
+                            @Override
+                            public void handleFailure(Module module, ModuleError error) {
+                                // 提示发送附言失败
+                                showMaterialDialog(UIUtils.getString(R.string.add_contact),
+                                        UIUtils.getString(R.string.not_allow_add_to_contacts),
+                                        UIUtils.getString(R.string.sure),
+                                        null,
+                                        new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View view) {
+                                                hideMaterialDialog();
+                                            }
+                                        },
+                                        null);
+                            }
+                        });
+            }
+        }
     }
 
     @Override

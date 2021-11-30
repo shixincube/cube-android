@@ -38,6 +38,7 @@ import com.shixincube.app.R;
 import com.shixincube.app.model.Account;
 import com.shixincube.app.ui.activity.ContactDetailsActivity;
 import com.shixincube.app.ui.activity.MainActivity;
+import com.shixincube.app.ui.activity.NewContactActivity;
 import com.shixincube.app.ui.base.BaseFragment;
 import com.shixincube.app.ui.presenter.ContactsPresenter;
 import com.shixincube.app.ui.view.ContactsView;
@@ -97,6 +98,8 @@ public class ContactsFragment extends BaseFragment<ContactsView, ContactsPresent
     public void initListener() {
         this.headerView.findViewById(R.id.llNewContact).setOnClickListener((view) -> {
             newContactUnreadTextView.setVisibility(View.GONE);
+            Intent intent = new Intent(getActivity(), NewContactActivity.class);
+            startActivity(intent);
         });
 
         this.indexBar.setListener(new QuickIndexBar.LetterUpdateListener() {

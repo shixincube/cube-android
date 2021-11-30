@@ -3,7 +3,7 @@
     xmlns:auto="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/theme_bg"
+    android:background="?attr/colorThemeBackground"
     android:orientation="vertical">
 
     <include layout="@layout/include_toolbar"/>
@@ -11,39 +11,38 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/main_bg"
+        android:background="?attr/colorBackground"
         android:orientation="vertical">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
+            android:layout_marginStart="@dimen/item_margin_start_and_end"
             android:layout_marginTop="20dp"
             android:text="@string/postscript_tip"
-            android:textColor="@color/text_secondary"
+            android:textColor="?attr/colorTextSecondary"
             android:textSize="14sp"/>
 
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="@dimen/activity_vertical_margin"
             android:layout_marginBottom="30dp">
 
             <EditText
                 android:id="@+id/etPostscript"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="15dp"
-                android:layout_marginRight="15dp"
+                android:layout_marginStart="@dimen/item_margin_start_and_end"
+                android:layout_marginEnd="@dimen/item_margin_start_and_end"
                 android:background="@null"
                 android:textCursorDrawable="@drawable/cursor"
                 android:drawableBottom="@drawable/shape_bottom_theme"
                 android:drawablePadding="10dp"
                 android:gravity="bottom"
-                android:hint=""
                 android:textColorHint="@color/hint"
-                android:textSize="16sp"
-                android:visibility="visible"/>
+                android:textColor="?attr/colorText"
+                android:textSize="16sp"/>
 
             <ImageButton
                 android:id="@+id/ibClear"
@@ -52,20 +51,21 @@
                 android:layout_alignParentEnd="true"
                 android:layout_marginEnd="20dp"
                 android:background="@null"
-                android:src="@mipmap/ic_delete"/>
+                android:src="@mipmap/ic_delete_mini"/>
 
         </RelativeLayout>
 
     </LinearLayout>
 
     <View
+        android:background="@null"
         android:layout_width="match_parent"
-        android:layout_height="20dp"/>
+        android:layout_height="@dimen/activity_vertical_margin"/>
 
-    <com.zhy.autolayout.AutoLinearLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:background="@color/main_bg"
+        android:background="?attr/colorBackground"
         android:gravity="center_vertical">
         <TextView
             android:layout_width="0dp"
@@ -73,7 +73,7 @@
             android:layout_marginStart="@dimen/activity_horizontal_margin"
             android:layout_weight="1"
             android:text="@string/not_allow_to_read_my_share_box"
-            android:textColor="@color/black"
+            android:textColor="?attr/colorText"
             android:textSize="16sp"/>
 
         <com.kyleduo.switchbutton.SwitchButton
@@ -85,6 +85,6 @@
             auto:kswThumbDrawable="@drawable/ios_thumb_selector"
             auto:kswThumbMarginTop="2dp"
             auto:kswThumbMarginBottom="-2dp"/>
-    </com.zhy.autolayout.AutoLinearLayout>
+    </LinearLayout>
 
 </LinearLayout>

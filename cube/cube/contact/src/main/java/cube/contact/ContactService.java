@@ -2347,7 +2347,7 @@ public class ContactService extends Module {
             // 邀请人
             Long inviterId = participant.getInviterId();
             if (inviterId.longValue() > 0 && null == participant.getInviter()) {
-                participant.setInviter(this.getContact(inviterId));
+                participant.setInviter(this.getContact(inviterId), inviterId.longValue() == this.self.id.longValue());
             }
         }
     }

@@ -173,24 +173,29 @@ public class ContactZone extends Entity {
     }
 
     /**
-     * 获取参与人的联系人列表。
+     * 获取参与人列表。
      *
      * @param excludedState 指定排除的参与人状态。
      * @return 返回不包含排除状态的联系人列表。
      */
-    public List<Contact> getParticipantContactsByExcluding(ContactZoneParticipantState excludedState) {
-        ArrayList<Contact> list = new ArrayList<>();
+    public List<ContactZoneParticipant> getParticipantsByExcluding(ContactZoneParticipantState excludedState) {
+        ArrayList<ContactZoneParticipant> list = new ArrayList<>();
+
         for (ContactZoneParticipant participant : this.participants) {
             if (participant.getState() != excludedState) {
-                list.add(participant.getContact());
+                list.add(participant);
             }
         }
 
+        if (list.isEmpty()) {
+            return list;
+        }
+
         // 时间倒序
-        Collections.sort(list, new Comparator<Contact>() {
+        Collections.sort(list, new Comparator<ContactZoneParticipant>() {
             @Override
-            public int compare(Contact contact1, Contact contact2) {
-                return (int) (contact2.getTimestamp() - contact1.getTimestamp());
+            public int compare(ContactZoneParticipant participant1, ContactZoneParticipant participant2) {
+                return (int) (participant2.getTimestamp() - participant1.getTimestamp());
             }
         });
 

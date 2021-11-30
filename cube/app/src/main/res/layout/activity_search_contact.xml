@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="?attr/colorThemeBackground"
     android:orientation="vertical">
 
     <include layout="@layout/include_toolbar"/>
@@ -17,14 +18,14 @@
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
             android:text="@string/not_find_contact"
-            android:textColor="@color/text_accent"
+            android:textColor="?attr/colorTextSecondary"
             android:textSize="14sp"/>
 
         <View
             android:layout_width="match_parent"
             android:layout_height="10dp"
             android:layout_alignParentBottom="true"
-            android:background="@color/theme_bg"/>
+            android:background="?attr/colorThemeBackground"/>
     </RelativeLayout>
 
 
@@ -38,12 +39,11 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="56dp"
-            android:background="@color/white"
+            android:background="?attr/colorBackground"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:paddingStart="14dp"
-            android:paddingEnd="15dp"
-            >
+            android:paddingEnd="15dp">
 
             <ImageView
                 android:layout_width="45dp"
@@ -66,7 +66,7 @@
                     android:layout_marginStart="10dp"
                     android:singleLine="true"
                     android:text="@string/search"
-                    android:textColor="@color/text_accent"
+                    android:textColor="?attr/colorTextSecondary"
                     android:textSize="16sp"
                     android:visibility="visible"/>
 
@@ -76,14 +76,13 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="10dp"
                     android:singleLine="true"
-                    android:textColor="@color/theme_blue"
+                    android:textColor="?attr/colorTheme"
                     android:textSize="16sp"/>
             </LinearLayout>
 
         </LinearLayout>
 
-        <View
-            style="@style/Line"/>
+        <View style="?attr/styleLine"/>
 
     </LinearLayout>
 

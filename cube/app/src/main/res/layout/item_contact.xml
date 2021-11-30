@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.zhy.autolayout.AutoLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:auto="http://schemas.android.com/apk/res-auto"
     android:id="@+id/llRoot"
     android:layout_width="match_parent"
@@ -19,23 +19,21 @@
         android:textSize="12sp"
         android:visibility="gone"/>
 
-    <com.zhy.autolayout.AutoLinearLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="66dp"
+        android:layout_height="wrap_content"
         android:background="@drawable/selector_common_item"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingBottom="@dimen/item_margin_top_and_bottom"
-        android:paddingLeft="@dimen/item_margin_start_and_end"
-        android:paddingRight="@dimen/item_margin_start_and_end"
-        android:paddingTop="@dimen/item_margin_top_and_bottom">
+        android:paddingStart="@dimen/item_margin_start_and_end"
+        android:paddingEnd="@dimen/item_margin_start_and_end"
+        android:paddingTop="@dimen/item_margin_top_and_bottom"
+        android:paddingBottom="@dimen/item_margin_top_and_bottom">
 
         <com.shixincube.app.widget.AdvancedImageView
             android:id="@+id/ivAvatar"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:layout_marginEnd="5dp"
-            android:layout_marginTop="5dp"
             android:scaleType="centerCrop"
             android:gravity="center_vertical"
             android:src="@mipmap/avatar_default"
@@ -48,7 +46,7 @@
             android:layout_marginStart="@dimen/item_margin_start_and_end"
             android:layout_weight="1"
             android:singleLine="true"
-            android:text=""
+            android:text="@string/app_name"
             android:textColor="@color/black"
             android:textSize="16sp"/>
 
@@ -61,7 +59,7 @@
             android:clickable="false"
             android:visibility="gone"/>
 
-    </com.zhy.autolayout.AutoLinearLayout>
+    </LinearLayout>
 
     <View
         android:id="@+id/vLine"
@@ -70,4 +68,4 @@
         android:layout_marginEnd="@dimen/item_margin_start_and_end"
         android:visibility="visible"/>
 
-</com.zhy.autolayout.AutoLinearLayout>
+</LinearLayout>

@@ -37,6 +37,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.TranslateAnimation;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -162,14 +164,16 @@ public class SoftwareKeyboard implements View.OnTouchListener, ViewTreeObserver.
                     if (null != current && layout != current) {
                         showLayout(current);
 
-                        if (!contentView.isShown()) {
-                            contentView.setVisibility(View.VISIBLE);
-                        }
+//                        if (!contentView.isShown()) {
+//                            contentView.setVisibility(View.VISIBLE);
+//                        }
+                        showView(contentView);
                     }
                     else {
-                        if (contentView.isShown()) {
-                            contentView.setVisibility(View.GONE);
-                        }
+//                        if (contentView.isShown()) {
+//                            contentView.setVisibility(View.GONE);
+//                        }
+                        hideView(contentView);
                     }
 
                     // 软键盘显示后，释放内容高度
@@ -190,7 +194,8 @@ public class SoftwareKeyboard implements View.OnTouchListener, ViewTreeObserver.
 
                         if (!contentView.isShown()) {
                             contentView.getLayoutParams().height = softInputHeight;
-                            contentView.setVisibility(View.VISIBLE);
+//                            contentView.setVisibility(View.VISIBLE);
+                            showView(contentView);
                         }
 
                         unlockContentHeightDelayed();
@@ -204,13 +209,49 @@ public class SoftwareKeyboard implements View.OnTouchListener, ViewTreeObserver.
                             showLayout(stuffList.get(0).layout);
                         }
 
-                        if (!contentView.isShown()) {
-                            contentView.setVisibility(View.VISIBLE);
-                        }
+//                        if (!contentView.isShown()) {
+//                            contentView.setVisibility(View.VISIBLE);
+//                        }
+                        showView(contentView);
                     }
                 }
             }
         };
+    }
+
+    private void showView(View view) {
+        if (!view.isShown()) {
+            view.setVisibility(View.VISIBLE);
+            TranslateAnimation animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0,
+                    Animation.RELATIVE_TO_SELF, 0,
+                    Animation.RELATIVE_TO_SELF, 1,
+                    Animation.RELATIVE_TO_SELF, 0);
+            animation.setDuration(200);
+            view.startAnimation(animation);
+        }
+    }
+
+    private void hideView(View view) {
+        TranslateAnimation animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0,
+                Animation.RELATIVE_TO_SELF, 0,
+                Animation.RELATIVE_TO_SELF, 0,
+                Animation.RELATIVE_TO_SELF, 1);
+        animation.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                view.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+            }
+        });
+        animation.setDuration(200);
+        view.startAnimation(animation);
     }
 
     private View getShownLayout() {
@@ -313,7 +354,11 @@ public class SoftwareKeyboard implements View.OnTouchListener, ViewTreeObserver.
 
     private void showLayout(View layout) {
         if (this.softInputHeight == 0) {
-            this.softInputHeight = sharedPreferences.getInt(SHARE_PREFERENCE_SOFT_INPUT_HEIGHT, dip2Px(270));
+            this.softInputHeight = sharedPreferences.getInt(SHARE_PREFERENCE_SOFT_INPUT_HEIGHT, dip2px(300));
+            int max = dip2px(320);
+            if (this.softInputHeight > max) {
+                this.softInputHeight = max;
+            }
         }
         hideSoftInput();
         layout.getLayoutParams().height = this.softInputHeight;
@@ -334,7 +379,7 @@ public class SoftwareKeyboard implements View.OnTouchListener, ViewTreeObserver.
         }
     }
 
-    private int dip2Px(int dip) {
+    private int dip2px(int dip) {
         float density = this.activity.getApplicationContext().getResources().getDisplayMetrics().density;
         int px = (int) (dip * density + 0.5f);
         return px;
@@ -346,7 +391,7 @@ public class SoftwareKeyboard implements View.OnTouchListener, ViewTreeObserver.
     private void lockContentHeight() {
         LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) this.contentView.getLayoutParams();
         params.height = this.contentView.getHeight();
-        params.weight = 0.0F;
+        params.weight = 0.0f;
     }
 
     /**
@@ -356,7 +401,7 @@ public class SoftwareKeyboard implements View.OnTouchListener, ViewTreeObserver.
         this.hostEditText.postDelayed(new Runnable() {
             @Override
             public void run() {
-                ((LinearLayout.LayoutParams) contentView.getLayoutParams()).weight = 1.0F;
+                ((LinearLayout.LayoutParams) contentView.getLayoutParams()).weight = 1.0f;
             }
         }, 200L);
     }
@@ -444,14 +489,9 @@ public class SoftwareKeyboard implements View.OnTouchListener, ViewTreeObserver.
         }
     }
 
-    /**
-     * 获取软键盘高度
-     *
-     * @return
-     */
-    public int getKeyBoardHeight() {
-        return sharedPreferences.getInt(SHARE_PREFERENCE_SOFT_INPUT_HEIGHT, 400);
-    }
+//    public int getKeyBoardHeight() {
+//        return sharedPreferences.getInt(SHARE_PREFERENCE_SOFT_INPUT_HEIGHT, 180);
+//    }
 
     public interface ButtonOnClickListener {
 

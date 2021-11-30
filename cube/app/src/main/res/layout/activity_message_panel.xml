@@ -115,7 +115,7 @@
         android:id="@+id/flFunctionView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:minHeight="160dp"
+        android:minHeight="240dp"
         android:visibility="gone">
 
         <!-- 表情 -->

@@ -38,6 +38,7 @@
     <attr name="colorButtonSecondaryPressed" format="color"/>
     
     <attr name="selectorOptionItem" format="reference"/>
+    <attr name="colorOptionItem" format="color"/>
     <attr name="colorItemIndexBackground" format="color"/>
 
     <attr name="colorMessageBarBackground" format="color"/>

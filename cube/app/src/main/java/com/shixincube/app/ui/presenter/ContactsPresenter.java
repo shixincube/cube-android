@@ -82,7 +82,6 @@ public class ContactsPresenter extends BasePresenter<ContactsView> implements Co
     public ContactsPresenter(BaseActivity activity) {
         super(activity);
         this.contacts = new ArrayList<>();
-        this.pendingContacts = new ArrayList<>();
     }
 
     public void loadContacts() {
@@ -97,15 +96,12 @@ public class ContactsPresenter extends BasePresenter<ContactsView> implements Co
                 if (null != contactZone) {
                     // 排序
                     contacts.clear();
-                    pendingContacts.clear();
 
                     List<Contact> contactList = contactZone.getParticipantContacts(ContactZoneParticipantState.Normal);
                     for (Contact contact : contactList) {
                         Account.setNameSpelling(contact);
                         contacts.add(contact);
                     }
-
-                    pendingContacts.addAll(contactZone.getParticipantContactsByExcluding(ContactZoneParticipantState.Normal));
 
                     promise.resolve(contactZone);
                 }

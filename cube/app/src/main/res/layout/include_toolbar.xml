@@ -100,7 +100,7 @@
                     android:autofillHints=""
                     android:textColor="?attr/colorToolbarText"
                     android:textColorHint="?attr/colorToolbarTextHint"
-                    android:textSize="14sp" />
+                    android:textSize="16sp" />
 
                 <View
                     android:layout_width="match_parent"

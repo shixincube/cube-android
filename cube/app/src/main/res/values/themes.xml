@@ -51,6 +51,7 @@
         <item name="colorButtonSecondaryPressed">@color/button_secondary_pressed</item>
 
         <item name="selectorOptionItem">@drawable/selector_option_item</item>
+        <item name="colorOptionItem">@color/background</item>
         <item name="colorItemIndexBackground">@color/item_index_bg</item>
 
         <item name="colorMessageBarBackground">@color/message_bar_bg</item>

@@ -105,6 +105,7 @@ public class SearchContactPresenter extends BasePresenter<SearchContactView> {
     private void handleSuccess(Account account) {
         Contact contact = AccountHelper.getInstance().createContact(account);
 
+        // 将联系人存储到引擎，这个操作非必须操作
         CubeEngine.getInstance().getContactService().saveLocalContact(contact);
 
         // 判断是否是自己的联系人

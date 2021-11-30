@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.zhy.autolayout.AutoLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:auto="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
 
     <!-- 新联系人 -->
-    <com.zhy.autolayout.AutoLinearLayout
+    <LinearLayout
         android:id="@+id/llNewContact"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/selector_common_item"
+        android:background="?attr/selectorOptionItem"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingBottom="@dimen/item_margin_top_and_bottom"
@@ -55,7 +55,7 @@
             android:textColor="@color/black"
             android:textSize="16sp"/>
 
-    </com.zhy.autolayout.AutoLinearLayout>
+    </LinearLayout>
 
     <View style="@style/Line"
         android:layout_marginLeft="@dimen/item_margin_start_and_end"
@@ -234,4 +234,4 @@
         android:layout_height="@dimen/option_item_margin_top"/>
     -->
 
-</com.zhy.autolayout.AutoLinearLayout>
+</LinearLayout>

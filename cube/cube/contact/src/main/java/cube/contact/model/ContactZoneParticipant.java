@@ -46,6 +46,12 @@ public class ContactZoneParticipant extends Entity {
 
     private Contact inviter;
 
+    /**
+     * 当前登录的联系人是不是邀请人。
+     * 如果是表示"我"发起的邀请，如果不是表示是对方发起的邀请。
+     */
+    private boolean isInviter;
+
     private Contact contact;
 
     private Group group;
@@ -86,6 +92,10 @@ public class ContactZoneParticipant extends Entity {
         return this.inviter;
     }
 
+    public boolean isInviter() {
+        return this.isInviter;
+    }
+
     public Long getInviterId() {
         return this.inviterId;
     }
@@ -102,8 +112,9 @@ public class ContactZoneParticipant extends Entity {
         this.group = group;
     }
 
-    public void setInviter(Contact inviter) {
+    public void setInviter(Contact inviter, boolean isInviter) {
         this.inviter = inviter;
+        this.isInviter = isInviter;
     }
 
     @Override

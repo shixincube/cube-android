@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.zhy.autolayout.AutoFrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:auto="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="?attr/colorThemeBackground">
 
-    <com.zhy.autolayout.AutoLinearLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/theme_bg"
+        android:background="?attr/colorThemeBackground"
         android:orientation="vertical">
 
         <include layout="@layout/include_toolbar"/>
 
-        <com.zhy.autolayout.AutoLinearLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:background="@drawable/selector_common_item"
+            android:background="?attr/selectorOptionItem"
             android:padding="12dp">
 
             <!-- 头像 -->
@@ -29,7 +29,7 @@
                 android:src="@mipmap/avatar_default"
                 auto:corner_radius="4dp"/>
 
-            <com.zhy.autolayout.AutoLinearLayout
+            <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
@@ -37,7 +37,7 @@
                 android:layout_weight="1"
                 android:orientation="vertical">
 
-                <com.zhy.autolayout.AutoLinearLayout
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="4dp"
@@ -51,11 +51,11 @@
                         android:layout_marginEnd="12dp"
                         android:gravity="center"
                         android:singleLine="true"
-                        android:text=""
-                        android:textColor="@color/item_text"
+                        android:text="@string/app_name"
+                        android:textColor="?attr/colorText"
                         android:textSize="16sp"/>
 
-                </com.zhy.autolayout.AutoLinearLayout>
+                </LinearLayout>
 
                 <!-- Cube ID -->
                 <TextView
@@ -64,8 +64,8 @@
                     android:layout_height="wrap_content"
                     android:singleLine="true"
                     android:text="@string/cube_id_colon"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="12sp"/>
+                    android:textColor="?attr/colorTextSecondary"
+                    android:textSize="14sp"/>
 
                 <TextView
                     android:id="@+id/tvNickName"
@@ -74,114 +74,124 @@
                     android:layout_marginTop="4dp"
                     android:singleLine="true"
                     android:text="@string/nickname_colon"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="12sp"/>
+                    android:textColor="?attr/colorTextSecondary"
+                    android:textSize="14sp"/>
 
-            </com.zhy.autolayout.AutoLinearLayout>
+            </LinearLayout>
 
-        </com.zhy.autolayout.AutoLinearLayout>
+        </LinearLayout>
 
+        <!-- 备注和标签 -->
         <com.shixincube.app.widget.optionitemview.OptionItemView
             android:id="@+id/oivRemarkAndTag"
             style="@style/OptionItem"
+            android:background="?attr/selectorOptionItem"
+            android:focusable="true"
+            android:clickable="true"
             android:layout_marginTop="20dp"
-            android:background="@drawable/selector_common_item"
             auto:end_src="@mipmap/indicator"
             auto:start_text="@string/set_remark_and_tag"/>
 
-        <com.zhy.autolayout.AutoLinearLayout
+        <!-- 地区 -->
+        <LinearLayout
             android:id="@+id/llCountriesAndRegions"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginTop="20dp"
-            android:background="@drawable/selector_common_item"
+            android:layout_height="50dp"
+            android:layout_marginTop="@dimen/activity_vertical_margin"
+            android:background="?attr/selectorOptionItem"
             android:gravity="center_vertical">
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_weight="1.5"
+                android:layout_marginStart="@dimen/item_margin_start_and_end"
+                android:layout_weight="1"
                 android:text="@string/countries_and_regions"
-                android:textColor="@color/text"
+                android:textColor="?attr/colorText"
                 android:textSize="16sp"/>
 
             <TextView
                 android:id="@+id/tvCountriesAndRegions"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_weight="4"
+                android:layout_gravity="end|center_vertical"
+                android:gravity="end|center_vertical"
+                android:layout_marginEnd="@dimen/option_item_margin_end_only_text"
+                android:layout_weight="2"
                 android:text="@string/china"
-                android:textColor="@color/text_accent"
+                android:textColor="?attr/colorTextSecondary"
                 android:textSize="16sp"/>
 
-        </com.zhy.autolayout.AutoLinearLayout>
+        </LinearLayout>
 
-        <View style="@style/Line"
-            android:layout_marginStart="12dp"
-            android:layout_marginEnd="12dp"/>
+        <View style="?attr/styleLine"
+            android:layout_marginStart="@dimen/item_margin_start_and_end"
+            android:layout_marginEnd="@dimen/item_margin_start_and_end"/>
 
-        <com.zhy.autolayout.AutoLinearLayout
+        <!-- 个性签名 -->
+        <LinearLayout
             android:id="@+id/llSignature"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:background="@drawable/selector_common_item"
+            android:background="?attr/selectorOptionItem"
             android:gravity="center_vertical">
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
+                android:layout_marginStart="@dimen/item_margin_start_and_end"
                 android:layout_weight="1"
                 android:text="@string/signature"
-                android:textColor="@color/text"
+                android:textColor="?attr/colorText"
                 android:textSize="16sp"/>
 
             <TextView
                 android:id="@+id/tvSignature"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_weight="4"
-                android:textColor="@color/text_accent"
+                android:layout_gravity="end|center_vertical"
+                android:gravity="end|center_vertical"
+                android:layout_marginEnd="@dimen/option_item_margin_end_only_text"
+                android:layout_weight="2"
+                android:text=""
+                android:textColor="?attr/colorTextSecondary"
                 android:textSize="16sp"/>
 
-        </com.zhy.autolayout.AutoLinearLayout>
+        </LinearLayout>
 
         <Button
             android:id="@+id/btnChat"
             style="?android:attr/borderlessButtonStyle"
             android:layout_width="match_parent"
-            android:layout_height="45dp"
-            android:layout_marginBottom="20dp"
-            android:layout_marginStart="15dp"
-            android:layout_marginEnd="15dp"
-            android:layout_marginTop="20dp"
-            android:background="@drawable/shape_contact_details_send_message"
+            android:layout_height="@dimen/strip_button_height"
+            android:layout_marginStart="@dimen/item_margin_start_and_end"
+            android:layout_marginEnd="@dimen/item_margin_start_and_end"
+            android:layout_marginTop="@dimen/activity_vertical_margin"
+            android:layout_marginBottom="@dimen/activity_vertical_margin"
+            android:background="@drawable/selector_primary_button"
             android:text="@string/send_message"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorButtonPrimaryText"
             android:textSize="16sp"/>
 
         <Button
             android:id="@+id/btnAddToContacts"
             style="?android:attr/borderlessButtonStyle"
             android:layout_width="match_parent"
-            android:layout_height="45dp"
-            android:layout_marginBottom="20dp"
-            android:layout_marginStart="15dp"
-            android:layout_marginEnd="15dp"
-            android:layout_marginTop="20dp"
-            android:background="@drawable/shape_contact_details_add_to_contacts"
+            android:layout_height="@dimen/strip_button_height"
+            android:layout_marginStart="@dimen/item_margin_start_and_end"
+            android:layout_marginEnd="@dimen/item_margin_start_and_end"
+            android:layout_marginTop="@dimen/activity_vertical_margin"
+            android:layout_marginBottom="@dimen/activity_vertical_margin"
+            android:background="@drawable/selector_primary_button"
             android:text="@string/add_to_contacts"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorButtonPrimaryText"
             android:textSize="16sp"/>
 
-    </com.zhy.autolayout.AutoLinearLayout>
+    </LinearLayout>
 
 
     <!-- 菜单 -->
-    <com.zhy.autolayout.AutoRelativeLayout
+    <RelativeLayout
         android:id="@+id/rlMenu"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -200,56 +210,57 @@
             android:layout_alignParentBottom="true"
             android:scrollbars="none">
 
-            <com.zhy.autolayout.AutoLinearLayout
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@color/main_bg"
+                android:background="?attr/colorBackground"
                 android:gravity="center"
                 android:orientation="vertical">
 
                 <com.shixincube.app.widget.optionitemview.OptionItemView
                     android:id="@+id/oivRemark"
                     style="@style/OptionItem"
-                    android:background="@drawable/selector_option_item"
-                    android:visibility="gone"
+                    android:background="?attr/selectorOptionItem"
                     auto:start_image_margin_left="20dp"
                     auto:start_image_margin_right="18dp"
                     auto:start_src="@mipmap/ic_contact_remark"
                     auto:start_text="@string/set_remark_and_tag"
-                    auto:start_text_color="@color/text" />
+                    auto:start_text_color="?attr/colorText"
+                    android:visibility="gone"/>
 
                 <com.shixincube.app.widget.optionitemview.OptionItemView
+                    android:id="@+id/oivSendCard"
                     style="@style/OptionItem"
-                    android:background="@drawable/selector_option_item"
+                    android:background="?attr/selectorOptionItem"
                     android:visibility="gone"
                     auto:start_image_margin_left="20dp"
                     auto:start_image_margin_right="18dp"
                     auto:start_src="@mipmap/ic_contact_share"
                     auto:start_text="@string/send_contact_card"
-                    auto:start_text_color="@color/text"/>
+                    auto:start_text_color="?attr/colorText"/>
 
                 <com.shixincube.app.widget.optionitemview.OptionItemView
                     android:id="@+id/oivAddToBlockList"
                     style="@style/OptionItem"
-                    android:background="@drawable/selector_option_item"
+                    android:background="?attr/selectorOptionItem"
                     auto:start_image_margin_left="20dp"
                     auto:start_image_margin_right="18dp"
                     auto:start_src="@mipmap/ic_contact_forbid"
                     auto:start_text="@string/add_to_block_list"
-                    auto:start_text_color="@color/text"/>
+                    auto:start_text_color="?attr/colorText"/>
 
                 <com.shixincube.app.widget.optionitemview.OptionItemView
                     android:id="@+id/oivDelete"
                     style="@style/OptionItem"
-                    android:background="@drawable/selector_option_item"
+                    android:background="?attr/selectorOptionItem"
                     auto:start_image_margin_left="20dp"
                     auto:start_image_margin_right="18dp"
                     auto:start_src="@mipmap/ic_contact_delete"
                     auto:start_text="@string/delete"
                     auto:start_text_color="@color/text_danger"/>
 
-            </com.zhy.autolayout.AutoLinearLayout>
+            </LinearLayout>
         </ScrollView>
-    </com.zhy.autolayout.AutoRelativeLayout>
+    </RelativeLayout>
 
-</com.zhy.autolayout.AutoFrameLayout>
+</FrameLayout>

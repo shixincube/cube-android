@@ -26,6 +26,9 @@
 
 package cube.contact.model;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 /**
  * 联系人分区操作时捆绑相关的元素。
  */
@@ -38,5 +41,10 @@ public class ContactZoneBundle {
     public ContactZoneBundle(ContactZone zone, ContactZoneParticipant participant) {
         this.zone = zone;
         this.participant = participant;
+    }
+
+    public ContactZoneBundle(JSONObject json) throws JSONException {
+        this.zone = new ContactZone(null, json.getJSONObject("zone"));
+        this.participant = new ContactZoneParticipant(json.getJSONObject("participant"));
     }
 }

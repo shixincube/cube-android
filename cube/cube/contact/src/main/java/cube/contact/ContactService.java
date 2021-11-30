@@ -2768,9 +2768,18 @@ public class ContactService extends Module {
         })).start();
     }
 
-    protected void triggerSignIn(int stateCode, JSONObject payload) {
+    protected void triggerSignIn(Packet packet) {
+        int stateCode = packet.extractServiceStateCode();
+        JSONObject payload = packet.extractServiceData();
+
         if (stateCode != ContactServiceState.Ok.code) {
-            ObservableEvent event = new ObservableEvent(ContactServiceEvent.Fault, stateCode);
+            ModuleError error = new ModuleError(NAME, stateCode);
+
+            if (null != this.signInHandler) {
+                this.signInHandler.handleFailure(this, error);
+            }
+
+            ObservableEvent event = new ObservableEvent(ContactServiceEvent.Fault, error);
             this.notifyObservers(event);
             return;
         }
@@ -2881,8 +2890,10 @@ public class ContactService extends Module {
         });
     }
 
-    protected void triggerListGroups(JSONObject data) {
+    protected void triggerListGroups(Packet packet) {
         try {
+            JSONObject data = packet.extractServiceData();
+
             int total = data.getInt("total");
 
             if (LogUtils.isDebugLevel()) {
@@ -3024,6 +3035,22 @@ public class ContactService extends Module {
         else {
             ObservableEvent event = new ObservableEvent(ContactServiceEvent.GroupMemberRemoved, group);
             notifyObservers(event);
+        }
+    }
+
+    protected void triggerModifyZoneParticipant(Packet packet) {
+        try {
+            ContactZoneBundle bundle = new ContactZoneBundle(packet.extractServiceData());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    protected void triggerModifyZone(Packet packet) {
+        try {
+            ContactZoneBundle bundle = new ContactZoneBundle(packet.extractServiceData());
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
     }
 }

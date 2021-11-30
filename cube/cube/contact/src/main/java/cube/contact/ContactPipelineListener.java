@@ -52,10 +52,10 @@ public class ContactPipelineListener implements PipelineListener {
         }
 
         if (ContactServiceAction.SignIn.equals(packet.name)) {
-            this.service.triggerSignIn(packet.extractServiceStateCode(), packet.extractServiceData());
+            this.service.triggerSignIn(packet);
         }
         else if (ContactServiceAction.ListGroups.equals(packet.name)) {
-            this.service.triggerListGroups(packet.extractServiceData());
+            this.service.triggerListGroups(packet);
         }
         else if (ContactServiceAction.CreateGroup.equals(packet.name)) {
             this.service.triggerCreateGroup(packet);
@@ -65,6 +65,12 @@ public class ContactPipelineListener implements PipelineListener {
         }
         else if (ContactServiceAction.DismissGroup.equals(packet.name)) {
             this.service.triggerDismissGroup(packet);
+        }
+        else if (ContactServiceAction.ModifyZoneParticipant.equals(packet.name)) {
+            this.service.triggerModifyZoneParticipant(packet);
+        }
+        else if (ContactServiceAction.ModifyZone.equals(packet.name)) {
+            this.service.triggerModifyZone(packet);
         }
     }
 

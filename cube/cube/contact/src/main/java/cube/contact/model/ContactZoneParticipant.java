@@ -69,7 +69,7 @@ public class ContactZoneParticipant extends Entity {
         this.type = ContactZoneParticipantType.parse(json.getInt("type"));
         this.state = ContactZoneParticipantState.parse(json.getInt("state"));
         this.inviterId = json.getLong("inviterId");
-        this.postscript = json.getString("postscript");
+        this.postscript = json.has("postscript") ? json.getString("postscript") : "";
     }
 
     public Contact getContact() {
@@ -112,6 +112,10 @@ public class ContactZoneParticipant extends Entity {
         this.group = group;
     }
 
+    public void setState(ContactZoneParticipantState state) {
+        this.state = state;
+    }
+
     public void setInviter(Contact inviter, boolean isInviter) {
         this.inviter = inviter;
         this.isInviter = isInviter;
@@ -133,11 +137,8 @@ public class ContactZoneParticipant extends Entity {
 
     @Override
     public JSONObject toJSON() {
-        JSONObject json = super.toCompactJSON();
+        JSONObject json = this.toCompactJSON();
         try {
-            json.put("type", this.type.code);
-            json.put("state", this.state.code);
-            json.put("inviterId", this.inviterId.longValue());
             json.put("postscript", this.postscript);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -147,6 +148,14 @@ public class ContactZoneParticipant extends Entity {
 
     @Override
     public JSONObject toCompactJSON() {
-        return this.toJSON();
+        JSONObject json = super.toCompactJSON();
+        try {
+            json.put("type", this.type.code);
+            json.put("state", this.state.code);
+            json.put("inviterId", this.inviterId.longValue());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return json;
     }
 }

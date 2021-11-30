@@ -72,11 +72,6 @@ public class ContactsPresenter extends BasePresenter<ContactsView> implements Co
      */
     private List<Contact> contacts;
 
-    /**
-     * 待处理的联系人列表。
-     */
-    private List<Contact> pendingContacts;
-
     private HeaderAndFooterAdapter adapter;
 
     public ContactsPresenter(BaseActivity activity) {

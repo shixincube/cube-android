@@ -45,9 +45,13 @@ import com.shixincube.app.widget.adapter.ViewHolderForRecyclerView;
 import java.util.ArrayList;
 import java.util.List;
 
+import cube.contact.handler.DefaultContactZoneParticipantHandler;
 import cube.contact.model.ContactZone;
 import cube.contact.model.ContactZoneParticipant;
 import cube.contact.model.ContactZoneParticipantState;
+import cube.core.Module;
+import cube.core.ModuleError;
+import cube.core.handler.DefaultFailureHandler;
 import cube.engine.CubeEngine;
 
 /**
@@ -94,7 +98,24 @@ public class NewContactPresenter extends BasePresenter<NewContactView> {
             return;
         }
 
-        
+        activity.showWaitingDialog(UIUtils.getString(R.string.please_wait_a_moment));
+
+        this.contactZone.modifyParticipant(participant, ContactZoneParticipantState.Normal,
+                new DefaultContactZoneParticipantHandler(true) {
+                    @Override
+                    public void handleContactZoneParticipant(ContactZoneParticipant participant, ContactZone contactZone) {
+                        loadData();
+
+                        activity.hideWaitingDialog();
+                    }
+                }, new DefaultFailureHandler(true) {
+                    @Override
+                    public void handleFailure(Module module, ModuleError error) {
+                        activity.hideWaitingDialog();
+
+                        UIUtils.showToast(UIUtils.getString(R.string.operate_failure_with_code, error.code));
+                    }
+                });
     }
 
     private void setAdapter() {
@@ -109,7 +130,7 @@ public class NewContactPresenter extends BasePresenter<NewContactView> {
                     // 名字
                     helper.setText(R.id.tvName, item.getContact().getPriorityName());
 
-                    if (!item.isInviter()) {
+                    if (item.isInviter()) {
                         displayAsInviter(helper, item, position);
                     }
                     else {

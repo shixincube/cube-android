@@ -724,6 +724,36 @@ public class ContactStorage extends AbstractStorage {
         this.closeWritableDatabase(db);
     }
 
+    /**
+     * 更新参与人。
+     *
+     * @param zone
+     * @param participant
+     */
+    public void updateParticipant(ContactZone zone, ContactZoneParticipant participant) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        // 更新 participant
+        ContentValues values = new ContentValues();
+        values.put("state", participant.getState().code);
+        values.put("timestamp", participant.getTimestamp());
+        // update
+        db.update("contact_zone_participant", values,
+                "contact_zone_id=? AND id=?",
+                new String[]{ zone.id.toString(), participant.id.toString() });
+
+        // 更新 zone
+        values = new ContentValues();
+        values.put("timestamp", zone.getTimestamp());
+        values.put("last", zone.getLast());
+        values.put("expiry", zone.getExpiry());
+        // update
+        db.update("contact_zone", values,
+                "id=?", new String[] { zone.id.toString() });
+
+        this.closeWritableDatabase(db);
+    }
+
     private Group readGroup(Cursor cursor) {
         JSONObject context = null;
         String contextString = cursor.getString(cursor.getColumnIndex("context"));

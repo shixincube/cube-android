@@ -39,6 +39,7 @@ import java.util.Locale;
 
 import cube.contact.ContactService;
 import cube.contact.handler.ContactZoneHandler;
+import cube.contact.handler.ContactZoneParticipantHandler;
 import cube.core.handler.FailureHandler;
 import cube.core.model.Entity;
 
@@ -284,6 +285,40 @@ public class ContactZone extends Entity {
         }
 
         this.service.removeParticipantFromZone(this, participant, successHandler, failureHandler);
+    }
+
+    /**
+     * 修改参与人状态。
+     *
+     * @param participant
+     * @param state
+     * @param successHandler
+     * @param failureHandler
+     */
+    public void modifyParticipant(ContactZoneParticipant participant, ContactZoneParticipantState state,
+                                  ContactZoneParticipantHandler successHandler,
+                                  FailureHandler failureHandler) {
+        this.service.modifyParticipant(this, participant, state, successHandler, failureHandler);
+    }
+
+    /**
+     * 修改参与人状态。
+     *
+     * @param participantId
+     * @param state
+     * @param successHandler
+     * @param failureHandler
+     */
+    public void modifyParticipant(Long participantId, ContactZoneParticipantState state,
+                                  ContactZoneParticipantHandler successHandler,
+                                  FailureHandler failureHandler) {
+        ContactZoneParticipant participant = this.getParticipant(participantId);
+        if (null == participant) {
+            this.service.execute(failureHandler);
+            return;
+        }
+
+        this.modifyParticipant(participant, state, successHandler, failureHandler);
     }
 
     /**

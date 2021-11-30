@@ -45,6 +45,7 @@ import cube.contact.handler.ContactHandler;
 import cube.contact.handler.ContactListHandler;
 import cube.contact.handler.ContactZoneHandler;
 import cube.contact.handler.ContactZoneListHandler;
+import cube.contact.handler.ContactZoneParticipantHandler;
 import cube.contact.handler.DefaultContactZoneHandler;
 import cube.contact.handler.GroupHandler;
 import cube.contact.handler.SignHandler;
@@ -59,6 +60,7 @@ import cube.contact.model.ContactAppendix;
 import cube.contact.model.ContactZone;
 import cube.contact.model.ContactZoneBundle;
 import cube.contact.model.ContactZoneParticipant;
+import cube.contact.model.ContactZoneParticipantState;
 import cube.contact.model.ContactZoneParticipantType;
 import cube.contact.model.ContactZoneState;
 import cube.contact.model.Group;
@@ -1371,7 +1373,7 @@ public class ContactService extends Module {
         JSONObject payload = new JSONObject();
         try {
             payload.put("name", zone.name);
-            payload.put("participant", participant.toJSON());
+            payload.put("participant", participant.toCompactJSON());
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -1445,6 +1447,113 @@ public class ContactService extends Module {
                 event = new ObservableEvent(ContactServiceEvent.ContactZoneUpdated, zone);
                 notifyObservers(event);
             });
+        });
+    }
+
+    /**
+     * 修改制定参与人的状态。
+     *
+     * @param zone
+     * @param participant
+     * @param state
+     * @param successHandler
+     * @param failureHandler
+     */
+    public void modifyParticipant(ContactZone zone, ContactZoneParticipant participant, ContactZoneParticipantState state,
+                                  ContactZoneParticipantHandler successHandler,
+                                  FailureHandler failureHandler) {
+        // 判断是否能修改
+        if (participant.isInviter()) {
+            // "我"是邀请人不能修改状态
+            this.execute(failureHandler);
+            return;
+        }
+
+        if (!this.pipeline.isReady()) {
+            ModuleError error = new ModuleError(NAME, ContactServiceState.NoNetwork.code);
+            error.data = zone;
+            this.execute(failureHandler, error);
+            return;
+        }
+
+        // 原状态
+        ContactZoneParticipantState currentState = participant.getState();
+
+        // 如果状态相同，则返回成功
+        if (state == currentState) {
+            if (successHandler.isInMainThread()) {
+                executeOnMainThread(() -> {
+                    successHandler.handleContactZoneParticipant(participant, zone);
+                });
+            }
+            else {
+                execute(() -> {
+                    successHandler.handleContactZoneParticipant(participant, zone);
+                });
+            }
+            return;
+        }
+
+        // 设置新状态
+        participant.setState(state);
+
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("name", zone.name);
+            payload.put("participant", participant.toCompactJSON());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        Packet requestPacket = new Packet(ContactServiceAction.ModifyZoneParticipant, payload);
+        this.pipeline.send(ContactService.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    // 设置失败，还原状态
+                    participant.setState(currentState);
+                    ModuleError error = new ModuleError(NAME, packet.state.code);
+                    execute(failureHandler, error);
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != ContactServiceState.Ok.code) {
+                    // 设置失败，还原状态
+                    participant.setState(currentState);
+                    ModuleError error = new ModuleError(NAME, stateCode);
+                    execute(failureHandler, error);
+                    return;
+                }
+
+                try {
+                    ContactZoneParticipant response = new ContactZoneParticipant(packet.extractServiceData());
+                    long timestamp = response.getTimestamp();
+
+                    participant.setState(response.getState());
+                    participant.setTimestamp(timestamp);
+
+                    zone.resetLast(timestamp);
+                    zone.setTimestamp(timestamp);
+
+                    storage.updateParticipant(zone, participant);
+
+                    // 更新缓存寿命
+                    zone.entityLifeExpiry += LIFESPAN;
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                if (successHandler.isInMainThread()) {
+                    executeOnMainThread(() -> {
+                        successHandler.handleContactZoneParticipant(participant, zone);
+                    });
+                }
+                else {
+                    execute(() -> {
+                        successHandler.handleContactZoneParticipant(participant, zone);
+                    });
+                }
+            }
         });
     }
 

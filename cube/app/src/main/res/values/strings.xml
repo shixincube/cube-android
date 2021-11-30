@@ -174,6 +174,7 @@
     <string name="save_failure">保存失败</string>
     <string name="operate_success">操作成功</string>
     <string name="operate_failure">操作失败</string>
+    <string name="operate_failure_with_code">操作失败(%1$d)</string>
     <string name="cube_or_phone">魔方号/手机号</string>
     <string name="developing">该功能开发中</string>
     <string name="letter_A">A</string>

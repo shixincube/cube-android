@@ -1334,7 +1334,7 @@ public class ContactService extends Module {
             }
 
             execute(() -> {
-                ContactZoneBundle bundle = new ContactZoneBundle(zone, participant);
+                ContactZoneBundle bundle = new ContactZoneBundle(zone, participant, ContactZoneBundle.ACTION_ADD);
                 ObservableEvent event = new ObservableEvent(ContactServiceEvent.ZoneParticipantAdded, bundle);
                 notifyObservers(event);
 
@@ -1440,7 +1440,7 @@ public class ContactService extends Module {
             }
 
             execute(() -> {
-                ContactZoneBundle bundle = new ContactZoneBundle(zone, participant);
+                ContactZoneBundle bundle = new ContactZoneBundle(zone, participant, ContactZoneBundle.ACTION_REMOVE);
                 ObservableEvent event = new ObservableEvent(ContactServiceEvent.ZoneParticipantRemoved, bundle);
                 notifyObservers(event);
 
@@ -1553,6 +1553,12 @@ public class ContactService extends Module {
                         successHandler.handleContactZoneParticipant(participant, zone);
                     });
                 }
+
+                execute(() -> {
+                    ContactZoneBundle bundle = new ContactZoneBundle(zone, participant, ContactZoneBundle.ACTION_UPDATE);
+                    ObservableEvent event = new ObservableEvent(ContactServiceEvent.ContactZoneUpdated, bundle);
+                    notifyObservers(event);
+                });
             }
         });
     }
@@ -3041,6 +3047,19 @@ public class ContactService extends Module {
     protected void triggerModifyZoneParticipant(Packet packet) {
         try {
             ContactZoneBundle bundle = new ContactZoneBundle(packet.extractServiceData());
+
+            this.storage.updateParticipant(bundle.zone, bundle.participant);
+
+            ContactZone current = this.zoneCache.get(bundle.zone.name);
+            if (null != current) {
+                current.setTimestamp(bundle.zone.getTimestamp());
+                current.resetExpiry(bundle.zone.getExpiry(), bundle.zone.getLast());
+
+                ContactZoneParticipant currentParticipant = current.getParticipant(bundle.participant.id);
+                if (null != currentParticipant) {
+                    currentParticipant.setState(bundle.participant.getState());
+                }
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -3049,6 +3068,30 @@ public class ContactService extends Module {
     protected void triggerModifyZone(Packet packet) {
         try {
             ContactZoneBundle bundle = new ContactZoneBundle(packet.extractServiceData());
+
+            this.storage.updateContactZone(bundle.zone);
+
+            ContactZone current = this.zoneCache.get(bundle.zone.name);
+            if (null != current) {
+                current.setTimestamp(bundle.zone.getTimestamp());
+                current.resetExpiry(bundle.zone.getExpiry(), bundle.zone.getLast());
+            }
+
+            if (bundle.action == ContactZoneBundle.ACTION_ADD) {
+                this.storage.addParticipant(bundle.zone, bundle.participant);
+
+                if (null != current) {
+                    current.addParticipant(bundle.participant);
+                    this.fillContactZone(current);
+                }
+            }
+            else if (bundle.action == ContactZoneBundle.ACTION_REMOVE) {
+                this.storage.removeParticipant(bundle.zone, bundle.participant);
+
+                if (null != current) {
+                    current.removeParticipant(bundle.participant);
+                }
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }

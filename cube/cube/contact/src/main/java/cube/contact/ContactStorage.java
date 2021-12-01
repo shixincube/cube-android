@@ -664,6 +664,30 @@ public class ContactStorage extends AbstractStorage {
     }
 
     /**
+     * 更新联系人分区。
+     *
+     * @param zone
+     */
+    public void updateContactZone(ContactZone zone) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        String contextString = (null != zone.getContext()) ? zone.getContext().toString() : "";
+
+        ContentValues values = new ContentValues();
+        values.put("display_name", zone.getDisplayName());
+        values.put("peer_mode", zone.isPeerMode() ? 1 : 0);
+        values.put("state", zone.getState().code);
+        values.put("timestamp", zone.getTimestamp());
+        values.put("last", zone.getLast());
+        values.put("expiry", zone.getExpiry());
+        values.put("context", contextString);
+        // update
+        db.update("contact_zone", values, "`name`=?", new String[]{ zone.name });
+
+        this.closeWritableDatabase(db);
+    }
+
+    /**
      * 添加参与人。
      *
      * @param zone

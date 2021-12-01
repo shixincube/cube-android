@@ -34,17 +34,27 @@ import org.json.JSONObject;
  */
 public class ContactZoneBundle {
 
+    public final static int ACTION_ADD = 1;
+
+    public final static int ACTION_REMOVE = 0;
+
+    public final static int ACTION_UPDATE = 9;
+
     public final ContactZone zone;
 
     public final ContactZoneParticipant participant;
 
-    public ContactZoneBundle(ContactZone zone, ContactZoneParticipant participant) {
+    public final int action;
+
+    public ContactZoneBundle(ContactZone zone, ContactZoneParticipant participant, int action) {
         this.zone = zone;
         this.participant = participant;
+        this.action = action;
     }
 
     public ContactZoneBundle(JSONObject json) throws JSONException {
         this.zone = new ContactZone(null, json.getJSONObject("zone"));
         this.participant = new ContactZoneParticipant(json.getJSONObject("participant"));
+        this.action = json.getInt("action");
     }
 }

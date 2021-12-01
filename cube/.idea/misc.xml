@@ -27,6 +27,7 @@
         <entry key="app/filepicker/src/main/res/layout/vw_layout_item_video_pick.xml" value="0.1676912568306011" />
         <entry key="app/filepicker/src/main/res/layout/vw_layout_top_bar.xml" value="0.1676912568306011" />
         <entry key="app/imagepicker/src/main/res/drawable/selector_back_press.xml" value="0.240234375" />
+        <entry key="app/imagepicker/src/main/res/drawable/selector_common_item.xml" value="0.240234375" />
         <entry key="app/imagepicker/src/main/res/drawable/selector_grid_camera_bg.xml" value="0.240234375" />
         <entry key="app/imagepicker/src/main/res/drawable/selector_item_checked.xml" value="0.240234375" />
         <entry key="app/imagepicker/src/main/res/drawable/selector_top_ok.xml" value="0.240234375" />

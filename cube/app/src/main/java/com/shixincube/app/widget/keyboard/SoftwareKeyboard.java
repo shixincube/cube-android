@@ -90,6 +90,7 @@ public class SoftwareKeyboard implements View.OnTouchListener, ViewTreeObserver.
         softwareInputDetector.inputManager = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
         softwareInputDetector.sharedPreferences = activity.getSharedPreferences(SHARE_PREFERENCE_NAME, Context.MODE_PRIVATE);
         activity.getWindow().getDecorView().getViewTreeObserver().addOnGlobalLayoutListener(softwareInputDetector);
+        softwareInputDetector.softInputHeight = softwareInputDetector.dip2px(300);
         return softwareInputDetector;
     }
 
@@ -157,7 +158,7 @@ public class SoftwareKeyboard implements View.OnTouchListener, ViewTreeObserver.
                     lockContentHeight();
 
                     // 隐藏布局，显示软键盘
-                    hideLayout(layout, true);
+                    hideLayout(layout, false);
 
                     // 判读是否显示新布局
                     View current = findLayoutWithButton(view);
@@ -354,10 +355,11 @@ public class SoftwareKeyboard implements View.OnTouchListener, ViewTreeObserver.
 
     private void showLayout(View layout) {
         if (this.softInputHeight == 0) {
-            this.softInputHeight = sharedPreferences.getInt(SHARE_PREFERENCE_SOFT_INPUT_HEIGHT, dip2px(300));
-            int max = dip2px(320);
+            int max = dip2px(300);
+            this.softInputHeight = this.sharedPreferences.getInt(SHARE_PREFERENCE_SOFT_INPUT_HEIGHT, max);
             if (this.softInputHeight > max) {
                 this.softInputHeight = max;
+                this.sharedPreferences.edit().putInt(SHARE_PREFERENCE_SOFT_INPUT_HEIGHT, this.softInputHeight).apply();
             }
         }
         hideSoftInput();

@@ -1,19 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.zhy.autolayout.AutoLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="?attr/colorThemeBackground"
     android:orientation="vertical">
 
     <include layout="@layout/include_toolbar"/>
 
-    <com.zhy.autolayout.AutoLinearLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="?attr/colorBackground"
         android:orientation="vertical"
         android:paddingLeft="20dp"
         android:paddingRight="20dp">
 
-        <com.zhy.autolayout.AutoLinearLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:gravity="center_vertical"
@@ -25,7 +27,7 @@
                 android:layout_marginStart="10dp"
                 android:layout_weight="1"
                 android:text="@string/countries_and_regions"
-                android:textColor="@color/black0"
+                android:textColor="?attr/colorText"
                 android:textSize="16sp"/>
 
             <TextView
@@ -33,16 +35,16 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="10dp"
                 android:text="@string/china"
-                android:textColor="@color/theme_blue"
+                android:textColor="@color/theme"
                 android:textSize="16sp"/>
 
-        </com.zhy.autolayout.AutoLinearLayout>
+        </LinearLayout>
 
         <View
-            style="@style/Line"/>
+            style="?attr/styleLine"/>
 
         <!-- 电话号码 -->
-        <com.zhy.autolayout.AutoLinearLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:gravity="center_vertical"
@@ -54,7 +56,7 @@
                 android:layout_width="70dp"
                 android:layout_height="wrap_content"
                 android:text="@string/china_region_number"
-                android:textColor="@color/black"
+                android:textColor="?attr/colorText"
                 android:textSize="16sp"/>
 
             <EditText
@@ -65,18 +67,19 @@
                 android:hint="@string/enter_phone_number"
                 android:inputType="phone"
                 android:text=""
+                android:textColor="?attr/colorText"
                 android:textColorHint="@color/hint"
                 android:textSize="16sp"
                 android:textCursorDrawable="@drawable/cursor"/>
 
-        </com.zhy.autolayout.AutoLinearLayout>
+        </LinearLayout>
 
         <View
             android:id="@+id/vLinePhoneNumber"
-            style="@style/Line"/>
+            style="?attr/styleLine"/>
 
         <!-- 密码 -->
-        <com.zhy.autolayout.AutoLinearLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:gravity="center_vertical"
@@ -88,7 +91,7 @@
                 android:layout_width="70dp"
                 android:layout_height="wrap_content"
                 android:text="@string/password"
-                android:textColor="@color/black"
+                android:textColor="?attr/colorText"
                 android:textSize="16sp"/>
 
             <EditText
@@ -99,15 +102,16 @@
                 android:hint="@string/enter_password"
                 android:inputType="textPassword"
                 android:text=""
+                android:textColor="?attr/colorText"
                 android:textColorHint="@color/hint"
                 android:textSize="16sp"
                 android:textCursorDrawable="@drawable/cursor"/>
 
-        </com.zhy.autolayout.AutoLinearLayout>
+        </LinearLayout>
 
         <View
             android:id="@+id/vLinePassword"
-            style="@style/Line"/>
+            style="?attr/styleLine"/>
 
         <Button
             android:id="@+id/btnLogin"
@@ -115,12 +119,12 @@
             android:layout_height="50dp"
             android:layout_marginBottom="20dp"
             android:layout_marginTop="20dp"
-            android:background="@drawable/selector_strip_button"
+            android:background="@drawable/selector_primary_button"
             android:enabled="false"
             android:text="@string/login"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorButtonPrimaryText"
             android:textSize="18sp"/>
 
-    </com.zhy.autolayout.AutoLinearLayout>
+    </LinearLayout>
 
-</com.zhy.autolayout.AutoLinearLayout>
+</LinearLayout>

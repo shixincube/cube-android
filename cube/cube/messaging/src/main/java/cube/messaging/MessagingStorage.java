@@ -91,7 +91,8 @@ public class MessagingStorage extends AbstractStorage {
 
         Cursor cursor = db.rawQuery("SELECT * FROM `conversation` WHERE `state`=? OR `state`=? ORDER BY `timestamp` DESC LIMIT ?",
                 new String[] { ConversationState.Normal.toString(),
-                        ConversationState.Important.toString(), Integer.toString(limit)});
+                        ConversationState.Important.toString(),
+                        Integer.toString(limit) });
         while (cursor.moveToNext()) {
             String messageString = cursor.getString(cursor.getColumnIndex("recent_message"));
             Message recentMessage = null;

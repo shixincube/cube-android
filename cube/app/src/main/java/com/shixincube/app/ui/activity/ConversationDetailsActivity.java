@@ -136,7 +136,7 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
     @Override
     public void init() {
         Intent intent = getIntent();
-        Long conversationId = intent.getLongExtra("conversationId", 0);
+        long conversationId = intent.getLongExtra("conversationId", 0);
         this.conversation = CubeEngine.getInstance().getMessagingService().getConversation(conversationId);
     }
 

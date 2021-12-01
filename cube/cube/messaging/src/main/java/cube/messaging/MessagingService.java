@@ -700,6 +700,25 @@ public class MessagingService extends Module {
             conversation = this.storage.readConversation(id);
         }
 
+        if (null != conversation) {
+            // 如果是 Delete 状态，从 Delete 状态恢复到正常状态
+            if (conversation.getState() == ConversationState.Deleted) {
+                conversation.setState(ConversationState.Normal);
+                updateConversation(conversation, new DefaultConversationHandler(false) {
+                    @Override
+                    public void handleConversation(Conversation conversation) {
+                        // 尝试添加到最近列表
+                        tryAddConversation(conversation);
+                    }
+                }, new StableFailureHandler() {
+                    @Override
+                    public void handleFailure(Module module, ModuleError error) {
+                        // Nothing
+                    }
+                });
+            }
+        }
+
         return conversation;
     }
 
@@ -1224,17 +1243,7 @@ public class MessagingService extends Module {
         if (!this.pipeline.isReady()) {
             ModuleError error = new ModuleError(MessagingService.NAME, MessagingServiceState.PipelineFault.code);
             error.data = conversation;
-            if (failureHandler.isInMainThread()) {
-                this.executeOnMainThread(() -> {
-                    failureHandler.handleFailure(MessagingService.this, error);
-                });
-            }
-            else {
-                this.execute(() -> {
-                    failureHandler.handleFailure(MessagingService.this, error);
-                });
-            }
-
+            execute(failureHandler, error);
             return false;
         }
 
@@ -1245,16 +1254,7 @@ public class MessagingService extends Module {
                 if (packet.state.code != PipelineState.Ok.code) {
                     ModuleError error = new ModuleError(MessagingService.NAME, packet.state.code);
                     error.data = conversation;
-                    if (failureHandler.isInMainThread()) {
-                        executeOnMainThread(() -> {
-                            failureHandler.handleFailure(MessagingService.this, error);
-                        });
-                    }
-                    else {
-                        execute(() -> {
-                            failureHandler.handleFailure(MessagingService.this, error);
-                        });
-                    }
+                    execute(failureHandler, error);
                     return;
                 }
 
@@ -1262,16 +1262,7 @@ public class MessagingService extends Module {
                 if (state != MessagingServiceState.Ok.code) {
                     ModuleError error = new ModuleError(MessagingService.NAME, state);
                     error.data = conversation;
-                    if (failureHandler.isInMainThread()) {
-                        executeOnMainThread(() -> {
-                            failureHandler.handleFailure(MessagingService.this, error);
-                        });
-                    }
-                    else {
-                        execute(() -> {
-                            failureHandler.handleFailure(MessagingService.this, error);
-                        });
-                    }
+                    execute(failureHandler, error);
                     return;
                 }
 
@@ -2774,6 +2765,19 @@ public class MessagingService extends Module {
 
             // 更新会话数据库
             this.storage.updateRecentMessage(conversation);
+        }
+    }
+
+    private void execute(FailureHandler failureHandler, ModuleError error) {
+        if (failureHandler.isInMainThread()) {
+            executeOnMainThread(() -> {
+                failureHandler.handleFailure(this, error);
+            });
+        }
+        else {
+            execute(() -> {
+                failureHandler.handleFailure(this, error);
+            });
         }
     }
 

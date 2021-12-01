@@ -26,9 +26,11 @@
 
 package com.shixincube.app.ui.presenter;
 
+import android.content.Intent;
 import android.widget.ImageView;
 
 import com.shixincube.app.R;
+import com.shixincube.app.ui.activity.MessagePanelActivity;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.GroupListView;
@@ -82,6 +84,13 @@ public class GroupListPresenter extends BasePresenter<GroupListView> {
                     helper.setText(R.id.tvMembersNum, Integer.toString(item.getGroup().numMembers()));
                 }
             };
+
+            this.adapter.setOnItemClickListener((helper, parent, itemView, position) -> {
+                Intent intent = new Intent(activity, MessagePanelActivity.class);
+                intent.putExtra("conversationId", this.groupList.get(position).getId());
+                activity.jumpToActivity(intent);
+                activity.finish();
+            });
 
             getView().getGroupsView().setAdapter(this.adapter);
         }

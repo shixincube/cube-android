@@ -32,6 +32,7 @@ import com.shixincube.app.R;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.presenter.GroupListPresenter;
 import com.shixincube.app.ui.view.GroupListView;
+import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.recyclerview.RecyclerView;
 
 import butterknife.BindView;
@@ -52,6 +53,11 @@ public class GroupListActivity extends BaseActivity<GroupListView, GroupListPres
 
     public GroupListActivity() {
         super();
+    }
+
+    @Override
+    public void initView() {
+        setToolbarTitle(UIUtils.getString(R.string.group));
     }
 
     @Override

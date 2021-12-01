@@ -37,7 +37,7 @@
             android:id="@+id/rlEmotionAdd"
             android:layout_width="55dp"
             android:layout_height="35dp"
-            android:background="@drawable/selector_common_item">
+            android:background="?attr/selectorOptionItem">
 
             <View
                 android:layout_width="1dp"

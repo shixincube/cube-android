@@ -130,7 +130,7 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
     @Override
     public void init() {
         Intent intent = getIntent();
-        Long conversationId = intent.getLongExtra("conversationId", 0L);
+        long conversationId = intent.getLongExtra("conversationId", 0);
         this.conversation = CubeEngine.getInstance().getMessagingService().getConversation(conversationId);
     }
 
@@ -267,7 +267,10 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
             public boolean onButtonClickListener(View view) {
                 switch (view.getId()) {
                     case R.id.ivEmoji:
-                        UIUtils.postTaskDelay(() -> messageListView.smoothMoveToPosition(messageListView.getAdapter().getItemCount() - 1), 100);
+                        UIUtils.postTaskDelay(() -> {
+                            messageListView.smoothMoveToPosition(messageListView.getAdapter().getItemCount() - 1);
+                            inputContentView.clearFocus();
+                        }, 100);
                         inputContentView.clearFocus();
                         if (emotionLayout.isShown()) {
                             emojiButtonView.setImageResource(R.mipmap.message_tool_emotion);

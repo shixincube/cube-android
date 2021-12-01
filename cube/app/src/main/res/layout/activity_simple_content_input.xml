@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.zhy.autolayout.AutoLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:auto="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_gravity="center_vertical"
-    android:background="@color/main_bg"
+    android:background="?attr/colorBackground"
     android:orientation="vertical">
 
     <include layout="@layout/include_toolbar"/>
@@ -19,7 +19,7 @@
         android:gravity="center"
         android:text="@string/untitled"
         android:textStyle="bold"
-        android:textColor="@color/text"
+        android:textColor="?attr/colorText"
         android:textSize="18sp"/>
 
     <TextView
@@ -32,15 +32,15 @@
         android:layout_gravity="center_horizontal"
         android:gravity="center"
         android:text="@string/untitled"
-        android:textColor="@color/text"
+        android:textColor="?attr/colorText"
         android:textSize="16sp"/>
 
     <View
-        style="@style/Line"
+        style="?attr/styleLine"
         android:layout_marginStart="40dp"
         android:layout_marginEnd="40dp"/>
 
-    <com.zhy.autolayout.AutoLinearLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="40dp"
@@ -66,15 +66,15 @@
             android:background="@null"
             android:drawableBottom="@drawable/selector_edit_focus"
             android:textCursorDrawable="@drawable/cursor"
-            android:textColor="@color/text"
+            android:textColor="?attr/colorText"
             android:singleLine="true"
             android:focusable="true"
             android:focusableInTouchMode="true"/>
 
-    </com.zhy.autolayout.AutoLinearLayout>
+    </LinearLayout>
 
     <View
-        style="@style/Line"
+        style="?attr/styleLine"
         android:layout_marginStart="40dp"
         android:layout_marginEnd="40dp"/>
 
@@ -84,9 +84,9 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
         android:layout_gravity="center_horizontal"
-        android:background="@drawable/shape_button_enabled"
-        android:textColor="@color/white"
+        android:background="@drawable/selector_primary_button"
+        android:textColor="?attr/colorButtonPrimaryText"
         android:textSize="16sp"
         android:text="@string/confirm"/>
 
-</com.zhy.autolayout.AutoLinearLayout>
+</LinearLayout>

@@ -20,10 +20,10 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="95dp"
+            android:layout_marginTop="90dp"
             android:text="@string/no_recommend_contact"
             android:textColor="@color/text_accent"
-            android:textSize="21sp"/>
+            android:textSize="18sp"/>
 
     </LinearLayout>
 

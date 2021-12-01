@@ -45,7 +45,9 @@ import com.shixincube.app.widget.adapter.ViewHolderForRecyclerView;
 import java.util.ArrayList;
 import java.util.List;
 
+import cube.contact.handler.DefaultContactZoneHandler;
 import cube.contact.model.Contact;
+import cube.contact.model.ContactZone;
 import cube.contact.model.DummyContact;
 import cube.contact.model.Group;
 import cube.core.Module;
@@ -85,6 +87,7 @@ public class ConversationDetailsPresenter extends BasePresenter<ConversationDeta
             @Override
             public void emit(PromiseFuture<List<Contact>> promise) {
                 loadMembers();
+                CubeEngine.getInstance().getContactService().getDefaultGroupZone();
                 promise.resolve(members);
             }
         }).thenOnMainThread(new Future<List<Contact>>() {
@@ -94,12 +97,57 @@ public class ConversationDetailsPresenter extends BasePresenter<ConversationDeta
                 getView().getTopConversationSwitchButton().setChecked(conversation.focused());
 
                 if (conversation.getType() == ConversationType.Group) {
+                    // 是否已保存在群组分区
+                    ContactZone zone = CubeEngine.getInstance().getContactService().getDefaultGroupZone();
+                    getView().getSaveAsGroupSwitchButton().setChecked(zone.contains(conversation.getGroup()));
+
+                    // 是否显示名称
                     getView().getDisplayMemberNameSwitchButton().setChecked(conversation.getGroup().getAppendix().isDisplayMemberName());
                 }
 
                 adapter.notifyDataSetChangedWrapper();
             }
         }).launch();
+    }
+
+    public void saveToGroupZone() {
+        ContactZone zone = CubeEngine.getInstance().getContactService().getDefaultGroupZone();
+        if (zone.contains(this.conversation.getGroup())) {
+            // 已存在
+            return;
+        }
+
+        zone.addParticipant(this.conversation.getGroup(), new DefaultContactZoneHandler(true) {
+            @Override
+            public void handleContactZone(ContactZone contactZone) {
+                UIUtils.showToast(UIUtils.getString(R.string.save_success));
+            }
+        }, new DefaultFailureHandler(true) {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                UIUtils.showToast(UIUtils.getString(R.string.operate_failure_with_code, error.code));
+            }
+        });
+    }
+
+    public void dropFromGroupZone() {
+        ContactZone zone = CubeEngine.getInstance().getContactService().getDefaultGroupZone();
+        if (!zone.contains(this.conversation.getGroup())) {
+            // 已删除
+            return;
+        }
+
+        zone.removeParticipant(this.conversation.getGroup(), new DefaultContactZoneHandler(true) {
+            @Override
+            public void handleContactZone(ContactZone contactZone) {
+                UIUtils.showToast(UIUtils.getString(R.string.operate_success));
+            }
+        }, new DefaultFailureHandler(true) {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                UIUtils.showToast(UIUtils.getString(R.string.operate_failure_with_code, error.code));
+            }
+        });
     }
 
     public void clearAllMessages() {

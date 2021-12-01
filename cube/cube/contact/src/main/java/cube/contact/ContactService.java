@@ -1251,16 +1251,7 @@ public class ContactService extends Module {
         if (!this.pipeline.isReady()) {
             ModuleError error = new ModuleError(NAME, ContactServiceState.NoNetwork.code);
             error.data = zone;
-            if (failureHandler.isInMainThread()) {
-                executeOnMainThread(() -> {
-                    failureHandler.handleFailure(ContactService.this, error);
-                });
-            }
-            else {
-                execute(() -> {
-                    failureHandler.handleFailure(ContactService.this, error);
-                });
-            }
+            this.execute(failureHandler, error);
             return;
         }
 
@@ -1276,16 +1267,7 @@ public class ContactService extends Module {
             if (packet.state.code != PipelineState.Ok.code) {
                 ModuleError error = new ModuleError(NAME, packet.state.code);
                 error.data = zone;
-                if (failureHandler.isInMainThread()) {
-                    executeOnMainThread(() -> {
-                        failureHandler.handleFailure(ContactService.this, error);
-                    });
-                }
-                else {
-                    execute(() -> {
-                        failureHandler.handleFailure(ContactService.this, error);
-                    });
-                }
+                execute(failureHandler, error);
                 return;
             }
 
@@ -1293,16 +1275,7 @@ public class ContactService extends Module {
             if (stateCode != ContactServiceState.Ok.code) {
                 ModuleError error = new ModuleError(NAME, stateCode);
                 error.data = zone;
-                if (failureHandler.isInMainThread()) {
-                    executeOnMainThread(() -> {
-                        failureHandler.handleFailure(ContactService.this, error);
-                    });
-                }
-                else {
-                    execute(() -> {
-                        failureHandler.handleFailure(ContactService.this, error);
-                    });
-                }
+                execute(failureHandler, error);
                 return;
             }
 
@@ -1338,7 +1311,7 @@ public class ContactService extends Module {
                 ObservableEvent event = new ObservableEvent(ContactServiceEvent.ZoneParticipantAdded, bundle);
                 notifyObservers(event);
 
-                event = new ObservableEvent(ContactServiceEvent.ContactZoneUpdated, zone);
+                event = new ObservableEvent(ContactServiceEvent.ContactZoneUpdated, bundle);
                 notifyObservers(event);
             });
         });
@@ -1357,16 +1330,7 @@ public class ContactService extends Module {
         if (!this.pipeline.isReady()) {
             ModuleError error = new ModuleError(NAME, ContactServiceState.NoNetwork.code);
             error.data = zone;
-            if (failureHandler.isInMainThread()) {
-                executeOnMainThread(() -> {
-                    failureHandler.handleFailure(ContactService.this, error);
-                });
-            }
-            else {
-                execute(() -> {
-                    failureHandler.handleFailure(ContactService.this, error);
-                });
-            }
+            this.execute(failureHandler, error);
             return;
         }
 
@@ -1382,16 +1346,7 @@ public class ContactService extends Module {
             if (packet.state.code != PipelineState.Ok.code) {
                 ModuleError error = new ModuleError(NAME, packet.state.code);
                 error.data = zone;
-                if (failureHandler.isInMainThread()) {
-                    executeOnMainThread(() -> {
-                        failureHandler.handleFailure(ContactService.this, error);
-                    });
-                }
-                else {
-                    execute(() -> {
-                        failureHandler.handleFailure(ContactService.this, error);
-                    });
-                }
+                execute(failureHandler, error);
                 return;
             }
 
@@ -1399,16 +1354,7 @@ public class ContactService extends Module {
             if (stateCode != ContactServiceState.Ok.code) {
                 ModuleError error = new ModuleError(NAME, stateCode);
                 error.data = zone;
-                if (failureHandler.isInMainThread()) {
-                    executeOnMainThread(() -> {
-                        failureHandler.handleFailure(ContactService.this, error);
-                    });
-                }
-                else {
-                    execute(() -> {
-                        failureHandler.handleFailure(ContactService.this, error);
-                    });
-                }
+                execute(failureHandler, error);
                 return;
             }
 
@@ -1444,7 +1390,7 @@ public class ContactService extends Module {
                 ObservableEvent event = new ObservableEvent(ContactServiceEvent.ZoneParticipantRemoved, bundle);
                 notifyObservers(event);
 
-                event = new ObservableEvent(ContactServiceEvent.ContactZoneUpdated, zone);
+                event = new ObservableEvent(ContactServiceEvent.ContactZoneUpdated, bundle);
                 notifyObservers(event);
             });
         });
@@ -2611,7 +2557,8 @@ public class ContactService extends Module {
                         }
 
                         execute(() -> {
-                            ObservableEvent event = new ObservableEvent(ContactServiceEvent.ContactZoneUpdated, newZone);
+                            ContactZoneBundle bundle = new ContactZoneBundle(newZone, null, ContactZoneBundle.ACTION_UPDATE);
+                            ObservableEvent event = new ObservableEvent(ContactServiceEvent.ContactZoneUpdated, bundle);
                             notifyObservers(event);
                         });
                     }
@@ -2669,7 +2616,8 @@ public class ContactService extends Module {
                             // 填充数据
                             fillContactZone(zone);
 
-                            ObservableEvent event = new ObservableEvent(ContactServiceEvent.ContactZoneUpdated, zone);
+                            ContactZoneBundle bundle = new ContactZoneBundle(zone, null, ContactZoneBundle.ACTION_UPDATE);
+                            ObservableEvent event = new ObservableEvent(ContactServiceEvent.ContactZoneUpdated, bundle);
                             notifyObservers(event);
                         }
 
@@ -2723,7 +2671,9 @@ public class ContactService extends Module {
             if (ContactServiceEvent.ContactZoneUpdated.equals(event.getName())) {
                 // 联系人分区已更新
                 this.execute(() -> {
-                    ContactZone contactZone = (ContactZone) event.getData();
+                    ContactZoneBundle bundle = (ContactZoneBundle) event.getData();
+                    ContactZone contactZone = bundle.zone;
+                    // 填充数据
                     fillContactZone(contactZone);
 
                     executeOnMainThread(() -> {

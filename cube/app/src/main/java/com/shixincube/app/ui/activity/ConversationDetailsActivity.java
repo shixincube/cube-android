@@ -106,6 +106,9 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
     @BindView(R.id.oivNameInGroup)
     OptionItemView nameInGroupItemView;
 
+    @BindView(R.id.sbSaveAsGroup)
+    SwitchButton saveAsGroupSwitch;
+
     @BindView(R.id.sbDisplayMemberName)
     SwitchButton displayMemberNameSwitch;
 
@@ -297,35 +300,42 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
             UIUtils.showToast(UIUtils.getString(R.string.developing));
         });
 
+        // 将多人会话保存为群组
+        this.saveAsGroupSwitch.setOnCheckedChangeListener((CompoundButton compoundButton, boolean checked) -> {
+            if (checked) {
+                presenter.saveToGroupZone();
+            }
+            else {
+                presenter.dropFromGroupZone();
+            }
+        });
+
         // 在本群里的昵称
         this.nameInGroupItemView.setOnClickListener((view) -> {
             UIUtils.showToast(UIUtils.getString(R.string.developing));
         });
 
         // 显示群成员名称
-        this.displayMemberNameSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean checked) {
-                Group group = conversation.getGroup();
-                if (group.getAppendix().isDisplayMemberName() == checked) {
-                    return;
-                }
-
-                group.getAppendix().modifyDisplayNameFlag(checked, new DefaultGroupHandler(true) {
-                    @Override
-                    public void handleGroup(Group group) {
-                        UIUtils.showToast(UIUtils.getString(R.string.operate_success));
-
-                        // 需要设置结果，以便消息面板更新消息的 ITEM 显示
-                        setResult(RESULT_INVALIDATE);
-                    }
-                }, new DefaultFailureHandler(true) {
-                    @Override
-                    public void handleFailure(Module module, ModuleError error) {
-                        UIUtils.showToast(UIUtils.getString(R.string.operate_failure));
-                    }
-                });
+        this.displayMemberNameSwitch.setOnCheckedChangeListener((CompoundButton compoundButton, boolean checked) -> {
+            Group group = conversation.getGroup();
+            if (group.getAppendix().isDisplayMemberName() == checked) {
+                return;
             }
+
+            group.getAppendix().modifyDisplayNameFlag(checked, new DefaultGroupHandler(true) {
+                @Override
+                public void handleGroup(Group group) {
+                    UIUtils.showToast(UIUtils.getString(R.string.operate_success));
+
+                    // 需要设置结果，以便消息面板更新消息的 ITEM 显示
+                    setResult(RESULT_INVALIDATE);
+                }
+            }, new DefaultFailureHandler(true) {
+                @Override
+                public void handleFailure(Module module, ModuleError error) {
+                    UIUtils.showToast(UIUtils.getString(R.string.operate_failure));
+                }
+            });
         });
 
         // 清空消息记录按钮事件
@@ -410,6 +420,11 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
     @Override
     public SwitchButton getTopConversationSwitchButton() {
         return this.topConversationSwitch;
+    }
+
+    @Override
+    public SwitchButton getSaveAsGroupSwitchButton() {
+        return this.saveAsGroupSwitch;
     }
 
     @Override

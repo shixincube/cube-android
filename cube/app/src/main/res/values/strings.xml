@@ -69,6 +69,7 @@
     <string name="tag">标签</string>
     <string name="conference">会议</string>
     <string name="count_of_contacts">%1$d位联系人</string>
+    <string name="no_group_now">暂无群组</string>
 
     <!-- 文件界面 -->
     <string name="all_files">全部</string>
@@ -107,6 +108,7 @@
     <!-- 群组信息 -->
     <string name="group_name">群组名称</string>
     <string name="group_notice">群组公告</string>
+    <string name="save_to_contacts">保存到我的群组</string>
     <string name="my_nickname_in_this_group">我在本群的昵称</string>
     <string name="display_member_name">显示群成员昵称</string>
     <string name="delete_and_quit">删除并退出</string>

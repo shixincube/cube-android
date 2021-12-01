@@ -81,22 +81,21 @@
                             android:layout_marginStart="@dimen/option_item_margin_start"
                             android:layout_weight="1"
                             android:text="@string/group_notice"
-                            android:textColor="@color/text"
+                            android:textColor="?attr/colorText"
                             android:textSize="16sp"/>
 
                         <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_weight="0.5"
-                            android:layout_gravity="end"
+                            android:layout_gravity="end|center_vertical"
                             android:layout_marginEnd="@dimen/item_margin_start_and_end"
-                            android:gravity="end"
+                            android:gravity="end|center_vertical"
                             android:orientation="vertical"
-                            android:paddingTop="9dp"
                             android:visibility="visible">
                             <ImageView
-                                android:layout_width="33dp"
-                                android:layout_height="33dp"
+                                android:layout_width="30dp"
+                                android:layout_height="30dp"
                                 android:layout_gravity="end"
                                 android:layout_marginEnd="-6dp"
                                 android:src="@mipmap/indicator"/>
@@ -115,13 +114,13 @@
                         android:maxLines="5"
                         android:ellipsize="end"
                         android:text="@string/no_setting"
-                        android:textColor="@color/text_secondary"
+                        android:textColor="?attr/colorTextSecondary"
                         android:textSize="14sp"/>
 
                 </LinearLayout>
 
                 <View
-                    style="@style/Line"
+                    style="?attr/styleLine"
                     android:layout_marginStart="@dimen/item_margin_start_and_end"
                     android:layout_marginEnd="@dimen/item_margin_start_and_end"/>
 
@@ -129,13 +128,13 @@
                 <com.shixincube.app.widget.optionitemview.OptionItemView
                     android:id="@+id/oivRemarkGroup"
                     style="@style/OptionItem"
-                    android:background="@drawable/selector_option_item"
+                    android:background="?attr/selectorOptionItem"
                     auto:start_text="@string/remark"
                     auto:start_text_color="@color/text"
                     auto:start_text_margin_left="@dimen/option_item_margin_start"
                     auto:start_text_size="16sp"
                     auto:end_text="@string/no_setting"
-                    auto:end_text_color="@color/text_secondary"
+                    auto:end_text_color="?attr/colorTextSecondary"
                     auto:end_text_size="16sp"
                     auto:end_image_margin_left="0dp"
                     auto:end_image_margin_right="11dp"
@@ -149,7 +148,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/option_item_margin_top"
-                android:background="@color/white"
+                android:background="?attr/colorBackground"
                 android:orientation="vertical"
                 android:visibility="visible">
 
@@ -157,12 +156,12 @@
                 <com.shixincube.app.widget.optionitemview.OptionItemView
                     android:id="@+id/oivSearchContent"
                     style="@style/OptionItem"
-                    android:background="@drawable/selector_common_item"
+                    android:background="?attr/selectorOptionItem"
                     android:clickable="true"
                     android:focusable="true"
                     auto:start_text_margin_left="@dimen/item_margin_start_and_end"
                     auto:start_text="@string/conv_search_content"
-                    auto:start_text_color="@color/black"
+                    auto:start_text_color="?attr/colorText"
                     auto:start_text_size="16sp"
                     auto:end_src="@mipmap/indicator"/>
 
@@ -172,7 +171,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/option_item_margin_top"
-                android:background="@color/white"
+                android:background="?attr/colorBackground"
                 android:orientation="vertical"
                 android:visibility="visible">
 
@@ -187,7 +186,7 @@
                         android:layout_marginStart="@dimen/activity_horizontal_margin"
                         android:layout_weight="1"
                         android:text="@string/conv_remind_close"
-                        android:textColor="@color/black"
+                        android:textColor="?attr/colorText"
                         android:textSize="16sp"/>
 
                     <com.kyleduo.switchbutton.SwitchButton
@@ -202,7 +201,7 @@
                 </LinearLayout>
 
                 <View
-                    style="@style/Line"
+                    style="?attr/styleLine"
                     android:layout_marginStart="@dimen/item_margin_start_and_end"
                     android:layout_marginEnd="@dimen/item_margin_start_and_end"/>
 
@@ -217,7 +216,7 @@
                         android:layout_marginStart="@dimen/activity_horizontal_margin"
                         android:layout_weight="1"
                         android:text="@string/conv_top"
-                        android:textColor="@color/text"
+                        android:textColor="?attr/colorText"
                         android:textSize="16sp"/>
 
                     <com.kyleduo.switchbutton.SwitchButton
@@ -239,20 +238,53 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/option_item_margin_top"
-                android:background="@color/item_bg"
+                android:background="?attr/colorBackground"
                 android:orientation="vertical"
                 android:visibility="visible">
+
+                <!-- 保存到联系人 -->
+                <LinearLayout
+                    android:id="@+id/llSaveAsGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:background="?attr/selectorOptionItem"
+                    android:gravity="center_vertical"
+                    android:visibility="visible">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/activity_horizontal_margin"
+                        android:layout_weight="1"
+                        android:text="@string/save_to_contacts"
+                        android:textColor="?attr/colorText"
+                        android:textSize="16sp"/>
+
+                    <com.kyleduo.switchbutton.SwitchButton
+                        android:id="@+id/sbSaveAsGroup"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="@dimen/option_item_margin_start"
+                        auto:kswBackDrawable="@drawable/ios_back_drawable"
+                        auto:kswThumbDrawable="@drawable/ios_thumb_selector"
+                        auto:kswThumbMarginTop="2dp"
+                        auto:kswThumbMarginBottom="-2dp"/>
+                </LinearLayout>
+
+                <View
+                    style="@style/Line"
+                    android:layout_marginStart="@dimen/item_margin_start_and_end"
+                    android:layout_marginEnd="@dimen/item_margin_start_and_end"/>
 
                 <com.shixincube.app.widget.optionitemview.OptionItemView
                     android:id="@+id/oivNameInGroup"
                     style="@style/OptionItem"
-                    android:background="@drawable/selector_option_item"
+                    android:background="?attr/selectorOptionItem"
                     auto:start_text="@string/my_nickname_in_this_group"
                     auto:start_text_color="@color/text"
                     auto:start_text_margin_left="@dimen/option_item_margin_start"
                     auto:start_text_size="16sp"
                     auto:end_text="@string/no_setting"
-                    auto:end_text_color="@color/text_secondary"
+                    auto:end_text_color="?attr/colorTextSecondary"
                     auto:end_text_size="16sp"
                     auto:end_image_margin_left="0dp"
                     auto:end_image_margin_right="10dp"
@@ -263,11 +295,12 @@
                     android:layout_marginStart="@dimen/item_margin_start_and_end"
                     android:layout_marginEnd="@dimen/item_margin_start_and_end"/>
 
+                <!-- 群名成员昵称显示 -->
                 <LinearLayout
                     android:id="@+id/llShowNickName"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
-                    android:background="@drawable/selector_option_item"
+                    android:background="?attr/selectorOptionItem"
                     android:gravity="center_vertical"
                     android:visibility="visible">
                     <TextView
@@ -276,7 +309,7 @@
                         android:layout_marginStart="@dimen/activity_horizontal_margin"
                         android:layout_weight="1"
                         android:text="@string/display_member_name"
-                        android:textColor="@color/text"
+                        android:textColor="?attr/colorText"
                         android:textSize="16sp"/>
 
                     <com.kyleduo.switchbutton.SwitchButton
@@ -296,27 +329,27 @@
                 android:id="@+id/btnClearRecords"
                 style="?android:attr/borderlessButtonStyle"
                 android:layout_width="match_parent"
-                android:layout_height="45dp"
+                android:layout_height="@dimen/strip_button_height"
                 android:layout_marginTop="@dimen/option_item_margin_top"
                 android:layout_marginStart="@dimen/option_item_margin_start"
                 android:layout_marginEnd="@dimen/option_item_margin_end"
                 android:background="@drawable/shape_button_danger"
                 android:text="@string/conv_clear_records"
-                android:textColor="@color/color_danger_text"
+                android:textColor="@color/danger_text"
                 android:textSize="16sp"/>
 
             <Button
                 android:id="@+id/btnQuitGroup"
                 style="?android:attr/borderlessButtonStyle"
                 android:layout_width="match_parent"
-                android:layout_height="45dp"
+                android:layout_height="@dimen/strip_button_height"
                 android:layout_marginTop="@dimen/option_item_margin_top"
                 android:layout_marginBottom="@dimen/option_item_margin_bottom"
                 android:layout_marginStart="@dimen/option_item_margin_start"
                 android:layout_marginEnd="@dimen/option_item_margin_end"
                 android:background="@drawable/shape_button_danger"
                 android:text="@string/delete_and_quit"
-                android:textColor="@color/color_danger_text"
+                android:textColor="@color/danger_text"
                 android:textSize="16sp"/>
 
         </LinearLayout>

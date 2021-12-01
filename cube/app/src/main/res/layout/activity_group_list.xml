@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:auto="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorThemeBackground"
+    android:orientation="vertical">
+
+    <include layout="@layout/include_toolbar"/>
+
+    <LinearLayout
+        android:id="@+id/llGroups"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="23dp"
+            android:background="?attr/colorBackgroundAccent"
+            android:gravity="center_vertical"
+            android:paddingStart="@dimen/item_margin_start_and_end"
+            android:text="@string/group"
+            android:textColor="?attr/colorTextSecondary"
+            android:textSize="13sp"
+            tools:ignore="RtlSymmetry"/>
+
+        <com.shixincube.app.widget.recyclerview.RecyclerView
+            android:id="@+id/rvGroups"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/llNoGroups"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvNoGroups"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:layout_marginTop="15dp"
+            android:gravity="center"
+            android:paddingStart="@dimen/item_margin_start_and_end"
+            android:paddingEnd="@dimen/item_margin_start_and_end"
+            android:text="@string/no_group_now"
+            android:textColor="?attr/colorTextSecondary"
+            android:textSize="14sp"/>
+
+    </LinearLayout>
+
+</LinearLayout>

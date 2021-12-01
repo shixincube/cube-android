@@ -278,7 +278,7 @@ public class ContactZone extends Entity {
      * @param failureHandler 指定操作失败回调句柄。
      */
     public void removeParticipant(Contact contact, ContactZoneHandler successHandler, FailureHandler failureHandler) {
-        ContactZoneParticipant participant = this.getParticipant(contact);
+        ContactZoneParticipant participant = this.getParticipant(contact.id);
         if (null == participant) {
             this.service.execute(failureHandler);
             return;
@@ -322,6 +322,43 @@ public class ContactZone extends Entity {
     }
 
     /**
+     * 添加群组参与人到分区。
+     *
+     * @param group
+     * @param successHandler
+     * @param failureHandler
+     */
+    public void addParticipant(Group group, ContactZoneHandler successHandler, FailureHandler failureHandler) {
+        if (this.contains(group)) {
+            this.service.execute(failureHandler);
+            return;
+        }
+
+        ContactZoneParticipant participant = new ContactZoneParticipant(group.id, System.currentTimeMillis(),
+                ContactZoneParticipantType.Group, ContactZoneParticipantState.Normal,
+                this.service.getSelf().id, "");
+
+        this.service.addParticipantToZone(this, participant, successHandler, failureHandler);
+    }
+
+    /**
+     * 从分区移除群组参与人。
+     *
+     * @param group
+     * @param successHandler
+     * @param failureHandler
+     */
+    public void removeParticipant(Group group, ContactZoneHandler successHandler, FailureHandler failureHandler) {
+        ContactZoneParticipant participant = this.getParticipant(group.id);
+        if (null == participant) {
+            this.service.execute(failureHandler);
+            return;
+        }
+
+        this.service.removeParticipantFromZone(this, participant, successHandler, failureHandler);
+    }
+
+    /**
      * 指定的联系人是否包含在该联系人分区里。
      *
      * @param contact 指定联系人。
@@ -329,7 +366,7 @@ public class ContactZone extends Entity {
      */
     public boolean contains(Contact contact) {
         for (ContactZoneParticipant participant : this.participants) {
-            if (participant.getId().equals(contact.id)) {
+            if (participant.id.equals(contact.id)) {
                 return true;
             }
         }
@@ -337,14 +374,20 @@ public class ContactZone extends Entity {
         return false;
     }
 
-    private ContactZoneParticipant getParticipant(Contact contact) {
+    /**
+     * 指定的群组是否包含在该联系人分区里。
+     *
+     * @param group 指定联系人。
+     * @return 如果该分区有该群组返回 {@code true} ，否则返回 {@code false} 。
+     */
+    public boolean contains(Group group) {
         for (ContactZoneParticipant participant : this.participants) {
-            if (participant.id.longValue() == contact.id.longValue()) {
-                return participant;
+            if (participant.id.equals(group.id)) {
+                return true;
             }
         }
 
-        return null;
+        return false;
     }
 
     /**
@@ -365,8 +408,8 @@ public class ContactZone extends Entity {
                         participant2.getContact().getPriorityName());
             }
             else if (null != participant1.getGroup() && null != participant2.getGroup()) {
-                return this.collator.compare(participant1.getGroup().getName(),
-                        participant2.getGroup().getName());
+                return this.collator.compare(participant1.getGroup().getPriorityName(),
+                        participant2.getGroup().getPriorityName());
             }
             else {
                 return 0;

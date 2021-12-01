@@ -18,7 +18,7 @@
         android:paddingRight="@dimen/item_margin_start_and_end"
         android:paddingTop="@dimen/item_margin_top_and_bottom">
 
-        <com.zhy.autolayout.AutoRelativeLayout
+        <RelativeLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
@@ -45,28 +45,28 @@
                 android:textSize="12sp"
                 android:visibility="gone"/>
 
-        </com.zhy.autolayout.AutoRelativeLayout>
+        </RelativeLayout>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/item_margin_start_and_end"
             android:text="@string/new_contact"
-            android:textColor="@color/black"
+            android:textColor="?attr/colorText"
             android:textSize="16sp"/>
 
     </LinearLayout>
 
-    <View style="@style/Line"
+    <View style="?attr/styleLine"
         android:layout_marginLeft="@dimen/item_margin_start_and_end"
         android:layout_marginRight="@dimen/item_margin_start_and_end"/>
 
     <!-- 群组 -->
-    <com.zhy.autolayout.AutoLinearLayout
-        android:id="@+id/llGroup"
+    <LinearLayout
+        android:id="@+id/llGroups"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/selector_common_item"
+        android:background="?attr/selectorOptionItem"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingBottom="@dimen/item_margin_top_and_bottom"
@@ -74,12 +74,12 @@
         android:paddingRight="@dimen/item_margin_start_and_end"
         android:paddingTop="@dimen/item_margin_top_and_bottom">
 
-        <com.zhy.autolayout.AutoRelativeLayout
+        <RelativeLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
             <com.shixincube.app.widget.AdvancedImageView
-                android:id="@+id/ivGroup"
+                android:id="@+id/ivGroups"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:layout_marginEnd="5dp"
@@ -91,8 +91,8 @@
                 android:id="@+id/tvGroupUnread"
                 android:layout_width="7dp"
                 android:layout_height="7dp"
-                android:layout_alignEnd="@id/ivGroup"
-                android:layout_alignTop="@id/ivGroup"
+                android:layout_alignEnd="@id/ivGroups"
+                android:layout_alignTop="@id/ivGroups"
                 android:layout_marginEnd="-4dp"
                 android:layout_marginTop="-2dp"
                 android:background="@mipmap/bg_unread"
@@ -101,28 +101,28 @@
                 android:textSize="12sp"
                 android:visibility="gone"/>
 
-        </com.zhy.autolayout.AutoRelativeLayout>
+        </RelativeLayout>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/item_margin_start_and_end"
             android:text="@string/group"
-            android:textColor="@color/black"
+            android:textColor="?attr/colorText"
             android:textSize="16sp"/>
 
-    </com.zhy.autolayout.AutoLinearLayout>
+    </LinearLayout>
 
-    <View style="@style/Line"
+    <View style="?attr/styleLine"
         android:layout_marginLeft="@dimen/item_margin_start_and_end"
         android:layout_marginRight="@dimen/item_margin_start_and_end"/>
 
     <!-- 标签 -->
-    <com.zhy.autolayout.AutoLinearLayout
+    <LinearLayout
         android:id="@+id/llTag"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/selector_common_item"
+        android:background="?attr/selectorOptionItem"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingBottom="@dimen/item_margin_top_and_bottom"
@@ -130,7 +130,7 @@
         android:paddingRight="@dimen/item_margin_start_and_end"
         android:paddingTop="@dimen/item_margin_top_and_bottom">
 
-        <com.zhy.autolayout.AutoRelativeLayout
+        <RelativeLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
@@ -157,28 +157,28 @@
                 android:textSize="12sp"
                 android:visibility="gone"/>
 
-        </com.zhy.autolayout.AutoRelativeLayout>
+        </RelativeLayout>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/item_margin_start_and_end"
             android:text="@string/tag"
-            android:textColor="@color/black"
+            android:textColor="?attr/colorText"
             android:textSize="16sp"/>
 
-    </com.zhy.autolayout.AutoLinearLayout>
+    </LinearLayout>
 
-    <View style="@style/Line"
+    <View style="?attr/styleLine"
         android:layout_marginLeft="@dimen/item_margin_start_and_end"
         android:layout_marginRight="@dimen/item_margin_start_and_end"/>
 
     <!-- 会议 -->
-    <com.zhy.autolayout.AutoLinearLayout
+    <LinearLayout
         android:id="@+id/llConference"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/selector_common_item"
+        android:background="?attr/selectorOptionItem"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingBottom="@dimen/item_margin_top_and_bottom"
@@ -186,7 +186,7 @@
         android:paddingRight="@dimen/item_margin_start_and_end"
         android:paddingTop="@dimen/item_margin_top_and_bottom">
 
-        <com.zhy.autolayout.AutoRelativeLayout
+        <RelativeLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
@@ -213,25 +213,20 @@
                 android:textSize="12sp"
                 android:visibility="gone"/>
 
-        </com.zhy.autolayout.AutoRelativeLayout>
+        </RelativeLayout>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/item_margin_start_and_end"
             android:text="@string/conference"
-            android:textColor="@color/black"
+            android:textColor="?attr/colorText"
             android:textSize="16sp"/>
 
-    </com.zhy.autolayout.AutoLinearLayout>
+    </LinearLayout>
 
-    <View style="@style/Line"
+    <View style="?attr/styleLine"
         android:layout_marginLeft="@dimen/item_margin_start_and_end"
         android:layout_marginRight="@dimen/item_margin_start_and_end"/>
-    <!--
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/option_item_margin_top"/>
-    -->
 
 </LinearLayout>

@@ -36,6 +36,7 @@ import com.shixincube.app.model.Account;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import cell.util.NetworkUtils;
 import cube.contact.ContactDataProvider;
 import cube.contact.model.Contact;
 import cube.util.LogUtils;
@@ -180,6 +181,10 @@ public class AccountHelper implements ContactDataProvider {
     @Override
     public JSONObject needContactContext(Contact contact) {
         LogUtils.d(this.getClass().getSimpleName(), "#needContactContext : " + contact.id);
+
+        if (!NetworkUtils.isAvailable(this.context)) {
+            return null;
+        }
 
         MutableJSONObject data = new MutableJSONObject();
 

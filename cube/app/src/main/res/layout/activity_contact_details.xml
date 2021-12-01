@@ -149,9 +149,9 @@
             android:clickable="true"
             android:layout_marginTop="20dp"
             auto:start_text="@string/set_remark_and_tag"
-            auto:start_text_margin_left="@dimen/option_item_margin_start"
+            auto:start_text_margin_left="@dimen/item_margin_start_and_end"
             auto:end_src="@mipmap/indicator"
-            auto:end_image_margin_right="@dimen/option_item_margin_end"/>
+            auto:end_image_margin_right="@dimen/item_margin_start_and_end"/>
 
         <View style="?attr/styleLine"
             android:layout_marginStart="@dimen/item_margin_start_and_end"
@@ -283,10 +283,16 @@
                 android:gravity="center"
                 android:orientation="vertical">
 
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:focusable="true"/>
+
                 <com.shixincube.app.widget.optionitemview.OptionItemView
                     android:id="@+id/oivRemark"
                     style="@style/OptionItem"
                     android:background="?attr/selectorOptionItem"
+                    android:focusable="false"
                     auto:start_image_margin_left="20dp"
                     auto:start_image_margin_right="18dp"
                     auto:start_src="@mipmap/ic_contact_remark"
@@ -298,6 +304,7 @@
                     android:id="@+id/oivSendCard"
                     style="@style/OptionItem"
                     android:background="?attr/selectorOptionItem"
+                    android:focusable="false"
                     android:visibility="gone"
                     auto:start_image_margin_left="20dp"
                     auto:start_image_margin_right="18dp"
@@ -309,6 +316,7 @@
                     android:id="@+id/oivAddToBlockList"
                     style="@style/OptionItem"
                     android:background="?attr/selectorOptionItem"
+                    android:focusable="false"
                     auto:start_image_margin_left="20dp"
                     auto:start_image_margin_right="18dp"
                     auto:start_src="@mipmap/ic_contact_forbid"
@@ -319,6 +327,7 @@
                     android:id="@+id/oivDelete"
                     style="@style/OptionItem"
                     android:background="?attr/selectorOptionItem"
+                    android:focusable="false"
                     auto:start_image_margin_left="20dp"
                     auto:start_image_margin_right="18dp"
                     auto:start_src="@mipmap/ic_contact_delete"

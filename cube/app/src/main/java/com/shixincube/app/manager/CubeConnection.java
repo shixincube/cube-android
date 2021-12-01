@@ -31,6 +31,7 @@ import android.content.ServiceConnection;
 import android.content.res.AssetManager;
 import android.os.IBinder;
 
+import com.shixincube.app.AppConsts;
 import com.shixincube.app.CubeBaseApp;
 import com.shixincube.app.model.Account;
 
@@ -80,7 +81,7 @@ public class CubeConnection implements ServiceConnection {
         cubeBinder.setEngineHandler(new EngineHandler() {
             @Override
             public void handleSuccess(CubeEngine engine) {
-                LogUtils.i("CubeApp", "Engine start success");
+                LogUtils.i(AppConsts.TAG, "Engine start success");
                 // 设置联系人数据提供器
                 engine.getContactService().setContactDataProvider(AccountHelper.getInstance());
 
@@ -90,10 +91,10 @@ public class CubeConnection implements ServiceConnection {
                 // 签入账号
                 signIn(() -> {
                     // 暖机
-                    LogUtils.i("CubeApp", "Engine warmup");
+                    LogUtils.i(AppConsts.TAG, "Engine warmup");
                     long timestamp = System.currentTimeMillis();
                     CubeEngine.getInstance().warmup();
-                    LogUtils.i("CubeApp", "Engine warmup elapsed: " + (System.currentTimeMillis() - timestamp) + " ms");
+                    LogUtils.i(AppConsts.TAG, "Engine warmup elapsed: " + (System.currentTimeMillis() - timestamp) + " ms");
 
                     if (null != successHandler) {
                         successHandler.run();
@@ -103,7 +104,7 @@ public class CubeConnection implements ServiceConnection {
 
             @Override
             public void handleFailure(int code, String description) {
-                LogUtils.i("CubeApp", "Engine start failure");
+                LogUtils.i(AppConsts.TAG, "Engine start failure");
 
                 if (null != failureHandler) {
                     failureHandler.run();
@@ -151,7 +152,7 @@ public class CubeConnection implements ServiceConnection {
                 boolean result = CubeEngine.getInstance().signIn(account.id, account.name, account.toJSON(), new DefaultSignHandler(true) {
                     @Override
                     public void handleSuccess(ContactService service, Self self) {
-                        LogUtils.i("CubeApp", "SignIn success");
+                        LogUtils.i(AppConsts.TAG, "SignIn success");
                         if (null != successHandler) {
                             successHandler.run();
                         }
@@ -159,7 +160,7 @@ public class CubeConnection implements ServiceConnection {
 
                     @Override
                     public void handleFailure(ContactService service, ModuleError error) {
-                        LogUtils.i("CubeApp", "SignIn failure");
+                        LogUtils.i(AppConsts.TAG, "SignIn failure");
                         if (null != failureHandler) {
                             failureHandler.run();
                         }
@@ -170,7 +171,7 @@ public class CubeConnection implements ServiceConnection {
                     if (null != failureHandler) {
                         failureHandler.run();
                     }
-                    LogUtils.w("CubeApp", "SignIn error");
+                    LogUtils.w(AppConsts.TAG, "SignIn error");
                 }
                 else {
                     if (null != startedHandler) {

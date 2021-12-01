@@ -37,6 +37,7 @@ import androidx.annotation.Nullable;
 import com.shixincube.app.R;
 import com.shixincube.app.model.Account;
 import com.shixincube.app.ui.activity.ContactDetailsActivity;
+import com.shixincube.app.ui.activity.GroupListActivity;
 import com.shixincube.app.ui.activity.MainActivity;
 import com.shixincube.app.ui.activity.NewContactActivity;
 import com.shixincube.app.ui.base.BaseFragment;
@@ -96,9 +97,16 @@ public class ContactsFragment extends BaseFragment<ContactsView, ContactsPresent
 
     @Override
     public void initListener() {
+        // 新的联系人
         this.headerView.findViewById(R.id.llNewContact).setOnClickListener((view) -> {
             newContactUnreadTextView.setVisibility(View.GONE);
             Intent intent = new Intent(getActivity(), NewContactActivity.class);
+            startActivity(intent);
+        });
+
+        // 群组
+        this.headerView.findViewById(R.id.llGroups).setOnClickListener((view) -> {
+            Intent intent = new Intent(getActivity(), GroupListActivity.class);
             startActivity(intent);
         });
 

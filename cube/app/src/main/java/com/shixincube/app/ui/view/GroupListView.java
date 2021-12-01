@@ -26,21 +26,18 @@
 
 package com.shixincube.app.ui.view;
 
-import com.kyleduo.switchbutton.SwitchButton;
+import android.widget.LinearLayout;
+
 import com.shixincube.app.widget.recyclerview.RecyclerView;
 
 /**
- * 会话详情。
+ * 群组列表。
  */
-public interface ConversationDetailsView {
+public interface GroupListView {
 
-    RecyclerView getMemberListView();
+    LinearLayout getGroupsLayout();
 
-    SwitchButton getCloseRemindSwitchButton();
+    RecyclerView getGroupsView();
 
-    SwitchButton getTopConversationSwitchButton();
-
-    SwitchButton getSaveAsGroupSwitchButton();
-
-    SwitchButton getDisplayMemberNameSwitchButton();
+    LinearLayout getNoGroupsLayout();
 }

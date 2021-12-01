@@ -32,6 +32,7 @@
     <attr name="colorBackgroundAccent" format="color"/>
     <attr name="colorBackgroundPressed" format="color"/>
 
+    <attr name="colorButtonPrimary" format="color"/>
     <attr name="colorButtonPrimaryText" format="color"/>
     <attr name="colorButtonSecondary" format="color"/>
     <attr name="colorButtonSecondaryText" format="color"/>

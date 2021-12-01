@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.zhy.autolayout.AutoFrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.zhy.autolayout.AutoRelativeLayout
+    <RelativeLayout
         android:layout_width="300dp"
         android:layout_height="106dp"
         android:background="@drawable/dialog_waiting">
@@ -23,8 +23,8 @@
             android:layout_centerVertical="true"
             android:layout_marginEnd="20dp"
             android:layout_toStartOf="@id/tvTip"
-            android:indeterminateTint="@color/theme_blue_light"/>
+            android:indeterminateTint="@color/theme_light"/>
 
-    </com.zhy.autolayout.AutoRelativeLayout>
+    </RelativeLayout>
 
-</com.zhy.autolayout.AutoFrameLayout>
+</FrameLayout>

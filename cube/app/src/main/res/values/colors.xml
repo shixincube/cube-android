@@ -51,17 +51,19 @@
     <color name="background_pressed_night">#56575B</color>
 
     <color name="text_danger">#E64340</color>
-    <color name="text_link">#3655bf</color>
+    <color name="text_link">#3655BF</color>
     <color name="text_accent">#7E7E7E</color>
 
     <color name="popup_menu_bg">#303135</color>
     <color name="popup_menu_text">#FEFEFE</color>
 
+    <color name="button_primary">#287DF6</color>
     <color name="button_primary_text">#FFFFFF</color>
     <color name="button_disabled">#999999</color>
     <color name="button_secondary">#E5E5E5</color>
     <color name="button_secondary_text">#101010</color>
     <color name="button_secondary_pressed">#BDBDBD</color>
+    <color name="button_primary_night">#0854E6</color>
     <color name="button_secondary_night">#D1D1D1</color>
     <color name="button_secondary_text_night">#101010</color>
     <color name="button_secondary_pressed_night">#56575B</color>
@@ -79,6 +81,10 @@
     <color name="message_box_self_bg_night">#0854E6</color>
     <color name="message_box_partner_text_night">#DDDDDD</color>
     <color name="message_box_partner_bg_night">#303135</color>
+
+    <!-- 快速索引 Bar 颜色-->
+    <color name="side_bar">#919091</color>
+    <color name="side_bar_pressed">#BFBFBF</color>
 
     <!-- 以上为核验的主题颜色 -->
 
@@ -104,13 +110,6 @@
     <color name="item_text">#464646</color>
     <color name="item_bg">#FFFFFF</color>
     <color name="item_focus_bg">#EFEFEF</color>
-
-    <!--快速索引 Bar 颜色-->
-    <color name="side_bar">#919091</color>
-    <color name="side_bar_pressed">#BFBFBF</color>
-
-    <color name="file_classify_button_normal">#FDFDFD</color>
-    <color name="file_classify_button_pressed">#E1E1E1</color>
 
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.zhy.autolayout.AutoLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:auto="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <com.zhy.autolayout.AutoLinearLayout
+    <LinearLayout
         android:id="@+id/llFileClassify"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -13,14 +13,14 @@
         android:orientation="horizontal"
         android:paddingTop="12dp"
         android:paddingBottom="12dp"
-        android:background="@color/toolbar_bg">
+        android:background="?attr/colorTabBackground">
 
         <View
             android:layout_width="match_parent"
             android:layout_height="40dp"
             android:layout_weight="0.5"/>
 
-        <com.zhy.autolayout.AutoLinearLayout
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
@@ -34,7 +34,6 @@
             <com.shixincube.app.widget.AdvancedImageView
                 android:layout_width="30dp"
                 android:layout_height="30dp"
-                android:layout_marginBottom="2dp"
                 android:scaleType="centerCrop"
                 android:src="@mipmap/ic_folder"
                 android:gravity="center"
@@ -43,19 +42,20 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
                 android:gravity="center"
                 android:text="@string/all_files"
-                android:textColor="@color/text"
+                android:textColor="?attr/colorButtonPrimaryText"
                 android:textSize="11sp"/>
 
-        </com.zhy.autolayout.AutoLinearLayout>
+        </LinearLayout>
 
         <View
             android:layout_width="match_parent"
             android:layout_height="40dp"
             android:layout_weight="0.5"/>
 
-        <com.zhy.autolayout.AutoLinearLayout
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
@@ -69,7 +69,6 @@
             <com.shixincube.app.widget.AdvancedImageView
                 android:layout_width="30dp"
                 android:layout_height="30dp"
-                android:layout_marginBottom="2dp"
                 android:scaleType="centerCrop"
                 android:src="@mipmap/ic_file_image"
                 android:gravity="center"
@@ -78,19 +77,20 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
                 android:gravity="center"
                 android:text="@string/file_image"
-                android:textColor="@color/text_accent"
+                android:textColor="?attr/colorButtonSecondaryText"
                 android:textSize="11sp"/>
 
-        </com.zhy.autolayout.AutoLinearLayout>
+        </LinearLayout>
 
         <View
             android:layout_width="match_parent"
             android:layout_height="40dp"
             android:layout_weight="0.5"/>
 
-        <com.zhy.autolayout.AutoLinearLayout
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
@@ -104,7 +104,6 @@
             <com.shixincube.app.widget.AdvancedImageView
                 android:layout_width="30dp"
                 android:layout_height="30dp"
-                android:layout_marginBottom="2dp"
                 android:scaleType="centerCrop"
                 android:src="@mipmap/ic_file_docx"
                 android:gravity="center"
@@ -113,19 +112,20 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
                 android:gravity="center"
                 android:text="@string/file_doc"
-                android:textColor="@color/text_accent"
+                android:textColor="?attr/colorButtonSecondaryText"
                 android:textSize="11sp"/>
 
-        </com.zhy.autolayout.AutoLinearLayout>
+        </LinearLayout>
 
         <View
             android:layout_width="match_parent"
             android:layout_height="40dp"
             android:layout_weight="0.5"/>
 
-        <com.zhy.autolayout.AutoLinearLayout
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
@@ -139,7 +139,6 @@
             <com.shixincube.app.widget.AdvancedImageView
                 android:layout_width="30dp"
                 android:layout_height="30dp"
-                android:layout_marginBottom="2dp"
                 android:scaleType="centerCrop"
                 android:src="@mipmap/ic_file_video"
                 android:gravity="center"
@@ -148,19 +147,20 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
                 android:gravity="center"
                 android:text="@string/file_video"
-                android:textColor="@color/text_accent"
+                android:textColor="?attr/colorButtonSecondaryText"
                 android:textSize="11sp"/>
 
-        </com.zhy.autolayout.AutoLinearLayout>
+        </LinearLayout>
 
         <View
             android:layout_width="match_parent"
             android:layout_height="40dp"
             android:layout_weight="0.5"/>
 
-        <com.zhy.autolayout.AutoLinearLayout
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
@@ -174,7 +174,6 @@
             <com.shixincube.app.widget.AdvancedImageView
                 android:layout_width="30dp"
                 android:layout_height="30dp"
-                android:layout_marginBottom="2dp"
                 android:scaleType="centerCrop"
                 android:src="@mipmap/ic_file_music"
                 android:gravity="center"
@@ -183,19 +182,20 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
                 android:gravity="center"
                 android:text="@string/file_audio"
-                android:textColor="@color/text_accent"
+                android:textColor="?attr/colorButtonSecondaryText"
                 android:textSize="11sp"/>
 
-        </com.zhy.autolayout.AutoLinearLayout>
+        </LinearLayout>
 
         <View
             android:layout_width="match_parent"
             android:layout_height="40dp"
             android:layout_weight="0.5"/>
 
-    </com.zhy.autolayout.AutoLinearLayout>
+    </LinearLayout>
 
     <com.shixincube.app.widget.recyclerview.RecyclerView
         android:id="@+id/rvFiles"
@@ -204,4 +204,4 @@
         auto:rv_divider_color="@color/line"
         auto:rv_divider_size="1dp"/>
 
-</com.zhy.autolayout.AutoLinearLayout>
+</LinearLayout>

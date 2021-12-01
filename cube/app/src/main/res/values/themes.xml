@@ -45,6 +45,7 @@
         <item name="colorBackgroundAccent">@color/background_accent</item>
         <item name="colorBackgroundPressed">@color/background_pressed</item>
 
+        <item name="colorButtonPrimary">@color/button_primary</item>
         <item name="colorButtonPrimaryText">@color/button_primary_text</item>
         <item name="colorButtonSecondary">@color/button_secondary</item>
         <item name="colorButtonSecondaryText">@color/button_secondary_text</item>

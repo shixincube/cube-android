@@ -45,6 +45,7 @@
         <item name="colorBackgroundAccent">@color/background_accent_night</item>
         <item name="colorBackgroundPressed">@color/background_pressed_night</item>
 
+        <item name="colorButtonPrimary">@color/button_primary_night</item>
         <item name="colorButtonPrimaryText">@color/button_primary_text</item>
         <item name="colorButtonSecondary">@color/button_secondary_night</item>
         <item name="colorButtonSecondaryText">@color/button_secondary_text_night</item>

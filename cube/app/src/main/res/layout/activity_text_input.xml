@@ -74,7 +74,7 @@
             android:maxLines="1"
             android:focusable="true"
             android:focusableInTouchMode="true"
-            android:textColor="@color/text"
+            android:textColor="?attr/colorText"
             android:textSize="16sp"/>
 
     </LinearLayout>

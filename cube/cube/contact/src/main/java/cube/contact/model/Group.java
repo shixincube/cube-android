@@ -202,7 +202,7 @@ public class Group extends AbstractContact implements Comparator<Group> {
         }
 
         List<Contact> list = new ArrayList<>(this.memberList);
-        Collections.sort(list, new PinYinComparator());
+        Collections.sort(list, new NameComparator());
         return list;
     }
 
@@ -331,11 +331,11 @@ public class Group extends AbstractContact implements Comparator<Group> {
         return json;
     }
 
-    protected class PinYinComparator implements Comparator<Contact> {
+    protected class NameComparator implements Comparator<Contact> {
 
         private Collator collator;
 
-        public PinYinComparator() {
+        public NameComparator() {
             this.collator = Collator.getInstance(Locale.CHINESE);
         }
 

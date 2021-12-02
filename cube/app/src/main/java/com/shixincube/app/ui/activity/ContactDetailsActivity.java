@@ -122,6 +122,8 @@ public class ContactDetailsActivity extends BaseActivity<ContactDetailsView, Con
      */
     private int mode;
 
+    private boolean readOnly;
+
     private Contact contact;
 
     private String zoneName;
@@ -152,6 +154,8 @@ public class ContactDetailsActivity extends BaseActivity<ContactDetailsView, Con
             this.participant = zone.getParticipant(participantId);
             this.contact = this.participant.getContact();
         }
+
+        this.readOnly = intent.getBooleanExtra("readOnly", false);
     }
 
     @Override
@@ -166,12 +170,12 @@ public class ContactDetailsActivity extends BaseActivity<ContactDetailsView, Con
 
         this.postscriptLayout.setVisibility(View.GONE);
 
-        if (this.contact.equals(CubeEngine.getInstance().getContactService().getSelf())) {
+        if (this.contact.equals(CubeEngine.getInstance().getContactService().getSelf()) || this.readOnly) {
             // 我
             this.nameView.setText(this.contact.getName());
-            this.nickNameView.setVisibility(View.INVISIBLE);
+            this.nickNameView.setVisibility(this.readOnly ? View.VISIBLE : View.INVISIBLE);
             this.remarkAndTagItem.setVisibility(View.GONE);
-            this.countriesAndRegionsText.setVisibility(View.GONE);
+            this.addToContactsButton.setVisibility(View.GONE);
             this.toChatButton.setVisibility(View.GONE);
             this.toolbarMore.setVisibility(View.GONE);
         }

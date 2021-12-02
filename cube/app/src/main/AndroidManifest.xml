@@ -113,6 +113,10 @@
             android:screenOrientation="portrait">
         </activity>
         <activity
+            android:name=".ui.activity.RemoveGroupMemberActivity"
+            android:screenOrientation="portrait">
+        </activity>
+        <activity
             android:name=".ui.activity.ImageShowcaseActivity"
             android:screenOrientation="portrait">
         </activity>

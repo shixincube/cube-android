@@ -1736,6 +1736,7 @@ public class ContactService extends Module {
 
                 for (Long id : bundle.modifiedIdList) {
                     group.addMember(id);
+                    group.updateMember(getContact(id));
                 }
                 group.setLastActive(bundle.group.getLastActive());
                 group.resetLast(bundle.group.getLastActive());
@@ -1780,6 +1781,12 @@ public class ContactService extends Module {
 
         if (group.numMembers() <= 2) {
             // 成员至少2人
+            execute(failureHandler);
+            return;
+        }
+
+        if (group.numMembers() - members.size() <= 2) {
+            // 删除之后，群组成员不能少于2人
             execute(failureHandler);
             return;
         }

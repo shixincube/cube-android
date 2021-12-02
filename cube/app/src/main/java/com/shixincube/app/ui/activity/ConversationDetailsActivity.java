@@ -365,7 +365,14 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
             if (resultCode == RESULT_OK) {
                 // 添加联系人
                 long[] idList = data.getLongArrayExtra("members");
-                
+                presenter.addMembers(idList);
+            }
+        }
+        else if (requestCode == REQUEST_REMOVE_GROUP_MEMBER) {
+            if (resultCode == RESULT_OK) {
+                // 移除联系人
+                long[] idList = data.getLongArrayExtra("members");
+                presenter.removeMembers(idList);
             }
         }
         else if (requestCode == REQUEST_SET_GROUP_NAME) {

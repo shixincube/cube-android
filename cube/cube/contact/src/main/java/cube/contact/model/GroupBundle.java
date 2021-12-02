@@ -46,7 +46,7 @@ public class GroupBundle {
 
     public GroupBundle(JSONObject json) {
         try {
-            this.group = new Group(json);
+            this.group = new Group(json.getJSONObject("group"));
 
             this.modifiedIdList = new ArrayList<>();
             JSONArray modified = json.getJSONArray("modified");

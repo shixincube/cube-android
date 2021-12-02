@@ -33,6 +33,7 @@ import com.shixincube.app.R;
 import com.shixincube.app.ui.activity.ContactDetailsActivity;
 import com.shixincube.app.ui.activity.ConversationDetailsActivity;
 import com.shixincube.app.ui.activity.OperateContactActivity;
+import com.shixincube.app.ui.activity.RemoveGroupMemberActivity;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.ConversationDetailsView;
@@ -46,6 +47,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cube.contact.handler.DefaultContactZoneHandler;
+import cube.contact.handler.DefaultGroupHandler;
 import cube.contact.model.Contact;
 import cube.contact.model.ContactZone;
 import cube.contact.model.DummyContact;
@@ -191,8 +193,54 @@ public class ConversationDetailsPresenter extends BasePresenter<ConversationDeta
             });
     }
 
-    public void addGroupMembers() {
+    public void addMembers(long[] memberIdList) {
+        activity.showWaitingDialog(UIUtils.getString(R.string.please_wait_a_moment));
 
+        List<Contact> contacts = new ArrayList<>();
+        for (long id : memberIdList) {
+            contacts.add(CubeEngine.getInstance().getContactService().getContact(id));
+        }
+        CubeEngine.getInstance().getContactService().addGroupMembers(conversation.getGroup(),
+                contacts, new DefaultGroupHandler(true) {
+                    @Override
+                    public void handleGroup(Group group) {
+                        activity.hideWaitingDialog();
+
+                        loadMembers();
+                        adapter.notifyDataSetChangedWrapper();
+                    }
+                }, new DefaultFailureHandler(true) {
+                    @Override
+                    public void handleFailure(Module module, ModuleError error) {
+                        activity.hideWaitingDialog();
+                        UIUtils.showToast(UIUtils.getString(R.string.operate_failure_with_code, error.code));
+                    }
+                });
+    }
+
+    public void removeMembers(long[] memberIdList) {
+        activity.showWaitingDialog(UIUtils.getString(R.string.please_wait_a_moment));
+
+        List<Contact> contacts = new ArrayList<>();
+        for (long id : memberIdList) {
+            contacts.add(CubeEngine.getInstance().getContactService().getContact(id));
+        }
+        CubeEngine.getInstance().getContactService().removeGroupMembers(conversation.getGroup(),
+                contacts, new DefaultGroupHandler(true) {
+                    @Override
+                    public void handleGroup(Group group) {
+                        activity.hideWaitingDialog();
+
+                        loadMembers();
+                        adapter.notifyDataSetChangedWrapper();
+                    }
+                }, new DefaultFailureHandler(true) {
+                    @Override
+                    public void handleFailure(Module module, ModuleError error) {
+                        activity.hideWaitingDialog();
+                        UIUtils.showToast(UIUtils.getString(R.string.operate_failure_with_code, error.code));
+                    }
+                });
     }
 
     private void loadMembers() {
@@ -284,6 +332,9 @@ public class ConversationDetailsPresenter extends BasePresenter<ConversationDeta
                     if (conversation.getGroup().isOwner()) {
                         if (position == members.size() - 1) {
                             // 点击 "-"
+                            Intent intent = new Intent(activity, RemoveGroupMemberActivity.class);
+                            intent.putExtra("groupId", conversation.getGroup().getId().longValue());
+                            activity.startActivityForResult(intent, ConversationDetailsActivity.REQUEST_REMOVE_GROUP_MEMBER);
                         }
                         else if (position == members.size() - 2) {
                             // 点击 "+"

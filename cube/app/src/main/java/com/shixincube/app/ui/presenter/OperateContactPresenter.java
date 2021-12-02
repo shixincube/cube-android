@@ -38,10 +38,10 @@ import com.bumptech.glide.Glide;
 import com.shixincube.app.R;
 import com.shixincube.app.model.Account;
 import com.shixincube.app.ui.activity.MessagePanelActivity;
-import com.shixincube.app.ui.activity.OperateGroupMemberMemberActivity;
+import com.shixincube.app.ui.activity.OperateContactActivity;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
-import com.shixincube.app.ui.view.OperateGroupMemberView;
+import com.shixincube.app.ui.view.OperateContactView;
 import com.shixincube.app.util.AvatarUtils;
 import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.adapter.AdapterForRecyclerView;
@@ -70,7 +70,7 @@ import cube.messaging.model.Conversation;
 /**
  * 创建群组。
  */
-public class OperateGroupMemberPresenter extends BasePresenter<OperateGroupMemberView> {
+public class OperateContactPresenter extends BasePresenter<OperateContactView> {
 
     private boolean createMode;
 
@@ -80,11 +80,15 @@ public class OperateGroupMemberPresenter extends BasePresenter<OperateGroupMembe
     private HeaderAndFooterAdapter contactsAdapter;
     private AdapterForRecyclerView<Contact> selectedAdapter;
 
-    public OperateGroupMemberPresenter(BaseActivity activity, List<Contact> selectedMembers, boolean createMode) {
+    public OperateContactPresenter(BaseActivity activity, List<Contact> selectedMembers, boolean createMode) {
         super(activity);
         this.createMode = createMode;
         this.allContacts = new ArrayList<>();
         this.selectedMembers = selectedMembers;
+    }
+
+    public List<Contact> getSelectedMembers() {
+        return this.selectedMembers;
     }
 
     public void load() {
@@ -175,7 +179,7 @@ public class OperateGroupMemberPresenter extends BasePresenter<OperateGroupMembe
                     // 是否可选，已经选择的标记为不可选
                     CheckBox selector = helper.getView(R.id.cbSelector);
                     selector.setVisibility(View.VISIBLE);
-                    Group group = ((OperateGroupMemberMemberActivity) activity).group;
+                    Group group = ((OperateContactActivity) activity).group;
                     if (null != group && group.isMember(item)) {
                         selector.setChecked(true);
                         selector.setEnabled(false);
@@ -185,6 +189,13 @@ public class OperateGroupMemberPresenter extends BasePresenter<OperateGroupMembe
                         selector.setChecked(selectedMembers.contains(item));
                         selector.setEnabled(true);
                         helper.setEnabled(R.id.llRoot, true);
+                    }
+
+                    if (createMode && selectedMembers.indexOf(item) == 0) {
+                        // 创建模式下，第一个联系人不允许删除
+                        selector.setChecked(true);
+                        selector.setEnabled(false);
+                        helper.setEnabled(R.id.llRoot, false);
                     }
 
                     // 判断是否显示索引字母
@@ -254,12 +265,20 @@ public class OperateGroupMemberPresenter extends BasePresenter<OperateGroupMembe
                 }
             };
             getView().getSelectedContactsView().setAdapter(this.selectedAdapter);
+
+            // 事件
+            this.selectedAdapter.setOnItemClickListener(this::onClickSelectedContact);
         }
     }
 
     private void onClickContact(ViewHolder helper, ViewGroup parent, View itemView, int position) {
         // 位置要 -1 ，因为有 Header View
         Contact contact = this.allContacts.get(position - 1);
+
+        if (this.createMode && this.selectedMembers.indexOf(contact) == 0) {
+            // 如果点击第一个联系人，不允许删除
+            return;
+        }
 
         // 反选
         if (this.selectedMembers.contains(contact)) {
@@ -269,6 +288,22 @@ public class OperateGroupMemberPresenter extends BasePresenter<OperateGroupMembe
             this.selectedMembers.add(contact);
         }
 
+        this.notifyDataSetChanged();
+    }
+
+    private void onClickSelectedContact(ViewHolder helper, ViewGroup parent, View itemView, int position) {
+        if (this.createMode && position == 0) {
+            // 如果是点击第一个联系人，不允许删除
+            return;
+        }
+
+        // 移除
+        this.selectedMembers.remove(position);
+
+        this.notifyDataSetChanged();
+    }
+
+    private void notifyDataSetChanged() {
         this.selectedAdapter.notifyDataSetChangedWrapper();
         this.contactsAdapter.notifyDataSetChanged();
 

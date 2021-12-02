@@ -28,36 +28,97 @@ package com.shixincube.app.widget;
 
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.shixincube.app.R;
+import com.shixincube.app.util.UIUtils;
 
 /**
  * 文件标签控制器。
  */
 public class FilesTabController implements View.OnClickListener {
 
-    public final static int TAB_ALL_FILE = 1;
-    public final static int TAB_IMAGE_FILE = 2;
-    public final static int TAB_DOC_FILE = 3;
-    public final static int TAB_VIDEO_FILE = 4;
-    public final static int TAB_AUDIO_FILE = 5;
+    public final static int TAB_ALL_FILES = 1;
+    public final static int TAB_IMAGE_FILES = 2;
+    public final static int TAB_DOC_FILES = 3;
+    public final static int TAB_VIDEO_FILES = 4;
+    public final static int TAB_AUDIO_FILES = 5;
 
     private LinearLayout rootLayout;
 
-    private LinearLayout activeTab;
+    private int activeTab;
+    private int activeTabId;
 
-    public FilesTabController(LinearLayout rootLayout) {
+    private TabChangedListener tabChangedListener;
+
+    public FilesTabController() {
+    }
+
+    public void bind(LinearLayout rootLayout) {
         this.rootLayout = rootLayout;
+        this.activeTab = TAB_ALL_FILES;
+        this.activeTabId = R.id.llAllFiles;
+
         this.rootLayout.findViewById(R.id.llAllFiles).setOnClickListener(this);
+        this.rootLayout.findViewById(R.id.llImageFiles).setOnClickListener(this);
+        this.rootLayout.findViewById(R.id.llDocFiles).setOnClickListener(this);
+        this.rootLayout.findViewById(R.id.llVideoFiles).setOnClickListener(this);
+        this.rootLayout.findViewById(R.id.llAudioFiles).setOnClickListener(this);
+    }
+
+    public void setTabChangedListener(TabChangedListener listener) {
+        this.tabChangedListener = listener;
+    }
+
+    public int getActiveTab() {
+        return this.activeTab;
     }
 
     @Override
     public void onClick(View view) {
         int id = view.getId();
-        if (null != this.activeTab) {
-            if (id == this.activeTab.getId()) {
-                return;
-            }
+        if (id == this.activeTabId) {
+            return;
         }
+
+        LinearLayout current = this.rootLayout.findViewById(this.activeTabId);
+        current.setBackgroundResource(R.drawable.shape_file_tab_normal);
+        ((TextView) current.findViewWithTag("98"))
+                .setTextColor(UIUtils.getColorByAttrId(R.attr.colorButtonSecondaryText));
+
+        this.activeTabId = id;
+
+        switch (id) {
+            case R.id.llAllFiles:
+                this.activeTab = TAB_ALL_FILES;
+                break;
+            case R.id.llImageFiles:
+                this.activeTab = TAB_IMAGE_FILES;
+                break;
+            case R.id.llDocFiles:
+                this.activeTab = TAB_DOC_FILES;
+                break;
+            case R.id.llVideoFiles:
+                this.activeTab = TAB_VIDEO_FILES;
+                break;
+            case R.id.llAudioFiles:
+                this.activeTab = TAB_AUDIO_FILES;
+                break;
+            default:
+                break;
+        }
+
+        view.setBackgroundResource(R.drawable.shape_file_tab_pressed);
+        ((TextView) view.findViewWithTag("98"))
+                .setTextColor(UIUtils.getColorByAttrId(R.attr.colorButtonPrimaryText));
+
+        this.tabChangedListener.onTabChanged(this.activeTab);
+    }
+
+    /**
+     * 标签变更监听器。
+     */
+    public interface TabChangedListener {
+        void onTabChanged(int tab);
     }
 }

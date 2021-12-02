@@ -32,15 +32,10 @@ import android.util.AttributeSet;
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 
-import com.zhy.autolayout.AutoFrameLayout;
-import com.zhy.autolayout.utils.AutoLayoutHelper;
-
 /**
  * 卡式。
  */
 public class AutoCardView extends CardView {
-
-    private final AutoLayoutHelper helper = new AutoLayoutHelper(this);
 
     public AutoCardView(@NonNull Context context) {
         super(context);
@@ -55,15 +50,7 @@ public class AutoCardView extends CardView {
     }
 
     @Override
-    public AutoFrameLayout.LayoutParams generateLayoutParams(AttributeSet attrs) {
-        return new AutoFrameLayout.LayoutParams(getContext(), attrs);
-    }
-
-    @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        if (!isInEditMode()) {
-            helper.adjustChildren();
-        }
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     }
 }

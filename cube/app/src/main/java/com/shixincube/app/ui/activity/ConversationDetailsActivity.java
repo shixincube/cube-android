@@ -68,8 +68,10 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
     private final static String TAG = ConversationDetailsActivity.class.getSimpleName();
 
     public final static int REQUEST_CREATE_OR_UPDATE_GROUP = 1000;
-    public final static int REQUEST_SET_GROUP_NAME = 1001;
-    public final static int REQUEST_SET_GROUP_NOTICE = 1002;
+    public final static int REQUEST_ADD_GROUP_MEMBER = 1001;
+    public final static int REQUEST_REMOVE_GROUP_MEMBER = 1002;
+    public final static int REQUEST_SET_GROUP_NAME = 1100;
+    public final static int REQUEST_SET_GROUP_NOTICE = 1200;
 
     public final static int RESULT_INVALIDATE = 2000;
     public final static int RESULT_DESTROY = 3000;
@@ -357,6 +359,13 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
             if (resultCode == RESULT_OK) {
                 // 创建群聊成功，结束当前界面
                 finish();
+            }
+        }
+        else if (requestCode == REQUEST_ADD_GROUP_MEMBER) {
+            if (resultCode == RESULT_OK) {
+                // 添加联系人
+                long[] idList = data.getLongArrayExtra("members");
+                
             }
         }
         else if (requestCode == REQUEST_SET_GROUP_NAME) {

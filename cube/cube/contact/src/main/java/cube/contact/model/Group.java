@@ -46,6 +46,9 @@ public class Group extends AbstractContact implements Comparator<Group> {
 
     private Long ownerId;
 
+    /**
+     * "我"是否是该群组的群主。
+     */
     private boolean isOwner;
 
     private long creation;

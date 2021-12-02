@@ -79,6 +79,7 @@
         <entry key="app/src/main/res/drawable/shape_conversation_func_pressed_bg.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/shape_corner_rect_solid_gray.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/shape_corner_rect_solid_white.xml" value="0.240234375" />
+        <entry key="app/src/main/res/drawable/shape_file_tab.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/shape_file_tab_normal.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/shape_file_tab_pressed.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/shape_horizontal_line.xml" value="0.20230263157894737" />
@@ -128,7 +129,7 @@
         <entry key="app/src/main/res/layout/emotion_tab.xml" value="0.18886612021857924" />
         <entry key="app/src/main/res/layout/fragment_contacts.xml" value="0.16325136612021857" />
         <entry key="app/src/main/res/layout/fragment_conversation.xml" value="0.16700819672131148" />
-        <entry key="app/src/main/res/layout/fragment_files.xml" value="0.5" />
+        <entry key="app/src/main/res/layout/fragment_files.xml" value="0.1" />
         <entry key="app/src/main/res/layout/fragment_profile.xml" value="0.1" />
         <entry key="app/src/main/res/layout/header_contacts.xml" value="0.15710382513661203" />
         <entry key="app/src/main/res/layout/header_group_operate.xml" value="0.19672131147540983" />
@@ -136,17 +137,17 @@
         <entry key="app/src/main/res/layout/include_toolbar.xml" value="0.2545289855072464" />
         <entry key="app/src/main/res/layout/item_contact.xml" value="0.1" />
         <entry key="app/src/main/res/layout/item_conversation.xml" value="0.5" />
-        <entry key="app/src/main/res/layout/item_file.xml" value="0.19228142076502733" />
+        <entry key="app/src/main/res/layout/item_file.xml" value="0.1" />
         <entry key="app/src/main/res/layout/item_group.xml" value="0.16939890710382513" />
         <entry key="app/src/main/res/layout/item_member_frame.xml" value="0.1" />
         <entry key="app/src/main/res/layout/item_member_selected.xml" value="0.17725409836065573" />
-        <entry key="app/src/main/res/layout/item_message_image_receive.xml" value="0.5" />
+        <entry key="app/src/main/res/layout/item_message_image_receive.xml" value="0.1" />
         <entry key="app/src/main/res/layout/item_message_image_send.xml" value="0.5" />
         <entry key="app/src/main/res/layout/item_message_item_receive.xml" value="0.5" />
         <entry key="app/src/main/res/layout/item_message_item_send.xml" value="0.5" />
         <entry key="app/src/main/res/layout/item_message_no_support.xml" value="0.18032786885245902" />
         <entry key="app/src/main/res/layout/item_message_notification.xml" value="0.1840846994535519" />
-        <entry key="app/src/main/res/layout/item_message_sticker_receive.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/item_message_sticker_receive.xml" value="0.5" />
         <entry key="app/src/main/res/layout/item_message_sticker_send.xml" value="0.5" />
         <entry key="app/src/main/res/layout/item_message_text_receive.xml" value="0.5" />
         <entry key="app/src/main/res/layout/item_message_text_send.xml" value="0.5" />

@@ -41,6 +41,8 @@
                 auto:corner_radius="0dp"/>
 
             <TextView
+                android:id="@+id/tvAllFiles"
+                android:tag="98"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
@@ -57,6 +59,7 @@
             android:layout_weight="0.5"/>
 
         <LinearLayout
+            android:id="@+id/llImageFiles"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
@@ -76,6 +79,8 @@
                 auto:corner_radius="0dp"/>
 
             <TextView
+                android:id="@+id/tvImageFiles"
+                android:tag="98"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
@@ -92,6 +97,7 @@
             android:layout_weight="0.5"/>
 
         <LinearLayout
+            android:id="@+id/llDocFiles"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
@@ -111,6 +117,8 @@
                 auto:corner_radius="0dp"/>
 
             <TextView
+                android:id="@+id/tvDocFiles"
+                android:tag="98"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
@@ -127,6 +135,7 @@
             android:layout_weight="0.5"/>
 
         <LinearLayout
+            android:id="@+id/llVideoFiles"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
@@ -146,6 +155,8 @@
                 auto:corner_radius="0dp"/>
 
             <TextView
+                android:id="@+id/tvVideoFiles"
+                android:tag="98"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
@@ -162,6 +173,7 @@
             android:layout_weight="0.5"/>
 
         <LinearLayout
+            android:id="@+id/llAudioFiles"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
@@ -181,6 +193,8 @@
                 auto:corner_radius="0dp"/>
 
             <TextView
+                android:id="@+id/tvAudioFiles"
+                android:tag="98"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"

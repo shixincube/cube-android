@@ -9,7 +9,6 @@
     <LinearLayout
         android:layout_width="170dp"
         android:layout_height="wrap_content"
-        android:background="@color/colorPrimaryDark"
         android:orientation="vertical"
         android:padding="0.5dp">
 
@@ -18,7 +17,6 @@
             android:layout_width="match_parent"
             android:layout_height="46dp"
             android:layout_margin="0.5dp"
-            android:background="@color/colorPrimary"
             android:drawableStart="@mipmap/ic_create_group_chat"
             android:drawablePadding="20dp"
             android:gravity="center_vertical"
@@ -32,7 +30,6 @@
             android:layout_width="match_parent"
             android:layout_height="46dp"
             android:layout_margin="0.5dp"
-            android:background="@color/colorPrimary"
             android:drawableStart="@mipmap/ic_add_contact"
             android:drawablePadding="20dp"
             android:gravity="center_vertical"

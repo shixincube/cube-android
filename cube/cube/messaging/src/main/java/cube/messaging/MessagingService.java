@@ -2768,19 +2768,6 @@ public class MessagingService extends Module {
         }
     }
 
-    private void execute(FailureHandler failureHandler, ModuleError error) {
-        if (failureHandler.isInMainThread()) {
-            executeOnMainThread(() -> {
-                failureHandler.handleFailure(this, error);
-            });
-        }
-        else {
-            execute(() -> {
-                failureHandler.handleFailure(this, error);
-            });
-        }
-    }
-
     /**
      * 从内存里找到对应 ID 的消息。
      *

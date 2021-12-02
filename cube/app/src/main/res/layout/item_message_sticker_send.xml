@@ -133,7 +133,7 @@
             android:focusableInTouchMode="false"
             android:src="@mipmap/avatar_default"
             auto:corner_radius="4dp"
-            auto:border_color="@color/line"
+            auto:border_color="@color/avatar"
             auto:border_width="1dp"/>
 
     </LinearLayout>

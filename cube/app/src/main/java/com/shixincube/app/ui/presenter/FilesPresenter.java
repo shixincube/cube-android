@@ -29,16 +29,36 @@ package com.shixincube.app.ui.presenter;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.FilesView;
+import com.shixincube.app.widget.FilesTabController;
 import com.shixincube.app.widget.adapter.AdapterForRecyclerView;
 
 /**
  * 文件清单。
  */
-public class FilesPresenter extends BasePresenter<FilesView> {
+public class FilesPresenter extends BasePresenter<FilesView> implements FilesTabController.TabChangedListener {
+
+    private FilesTabController tabController;
 
     private AdapterForRecyclerView adapter;
 
-    public FilesPresenter(BaseActivity activity) {
+    public FilesPresenter(BaseActivity activity, FilesTabController tabController) {
         super(activity);
+        this.tabController = tabController;
+        this.tabController.setTabChangedListener(this);
+    }
+
+    public void loadFiles() {
+        int tab = this.tabController.getActiveTab();
+        switch (tab) {
+            case FilesTabController.TAB_ALL_FILES:
+                break;
+            default:
+                break;
+        }
+    }
+
+    @Override
+    public void onTabChanged(int tab) {
+
     }
 }

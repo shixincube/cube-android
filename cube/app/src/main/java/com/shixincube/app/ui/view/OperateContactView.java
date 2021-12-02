@@ -34,7 +34,7 @@ import com.shixincube.app.widget.recyclerview.RecyclerView;
 /**
  * 创建群组。
  */
-public interface OperateGroupMemberView {
+public interface OperateContactView {
 
     RecyclerView getSelectedContactsView();
 

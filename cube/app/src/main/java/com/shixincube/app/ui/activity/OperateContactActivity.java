@@ -26,13 +26,14 @@
 
 package com.shixincube.app.ui.activity;
 
+import android.content.Intent;
 import android.view.View;
 import android.widget.Button;
 
 import com.shixincube.app.R;
 import com.shixincube.app.ui.base.BaseActivity;
-import com.shixincube.app.ui.presenter.OperateGroupMemberPresenter;
-import com.shixincube.app.ui.view.OperateGroupMemberView;
+import com.shixincube.app.ui.presenter.OperateContactPresenter;
+import com.shixincube.app.ui.view.OperateContactView;
 import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.recyclerview.RecyclerView;
 
@@ -47,7 +48,7 @@ import cube.engine.CubeEngine;
 /**
  * 创建群组。
  */
-public class OperateGroupMemberMemberActivity extends BaseActivity<OperateGroupMemberView, OperateGroupMemberPresenter> implements OperateGroupMemberView {
+public class OperateContactActivity extends BaseActivity<OperateContactView, OperateContactPresenter> implements OperateContactView {
 
     @BindView(R.id.rvSelectedContacts)
     RecyclerView selectedContactsView;
@@ -63,7 +64,7 @@ public class OperateGroupMemberMemberActivity extends BaseActivity<OperateGroupM
 
     private List<Contact> selectedMembers;
 
-    public OperateGroupMemberMemberActivity() {
+    public OperateContactActivity() {
         super();
         this.selectedMembers = new ArrayList<>();
     }
@@ -71,25 +72,30 @@ public class OperateGroupMemberMemberActivity extends BaseActivity<OperateGroupM
     @Override
     public void init() {
         long[] memberIdList = getIntent().getLongArrayExtra("memberIdList");
-        for (long id : memberIdList) {
-            Contact contact = CubeEngine.getInstance().getContactService().getContact(id);
-            this.selectedMembers.add(contact);
+        if (null != memberIdList) {
+            for (long id : memberIdList) {
+                Contact contact = CubeEngine.getInstance().getContactService().getContact(id);
+                this.selectedMembers.add(contact);
+            }
         }
 
         long groupId = getIntent().getLongExtra("groupId", 0);
         if (groupId > 0) {
             // 有群组信息，不是创建模式
             this.createMode = false;
+            this.group = CubeEngine.getInstance().getContactService().getGroup(groupId);
         }
     }
 
     @Override
     public void initView() {
+        setToolbarTitle(UIUtils.getString(R.string.select_contact));
+
         this.toolbarFuncButton.setVisibility(View.VISIBLE);
         this.toolbarFuncButton.setText(UIUtils.getString(R.string.complete));
         this.toolbarFuncButton.setEnabled(false);
 
-        this.headerView = View.inflate(this, R.layout.header_group_operate, null);
+        this.headerView = View.inflate(this, R.layout.header_operate_contact, null);
     }
 
     @Override
@@ -100,24 +106,34 @@ public class OperateGroupMemberMemberActivity extends BaseActivity<OperateGroupM
     @Override
     public void initListener() {
         this.toolbarFuncButton.setOnClickListener((view) -> {
-            if (this.createMode) {
+            if (createMode) {
                 // 创建群组
                 presenter.createGroupAndJump();
             }
             else {
-                // 添加群成员
+                // 管理群成员
+                Intent intent = new Intent();
+                List<Contact> list = presenter.getSelectedMembers();
+                long[] idList = new long[list.size()];
+                for (int i = 0; i < idList.length; ++i) {
+                    Contact member = list.get(i);;
+                    idList[i] = member.getId();
+                }
+                intent.putExtra("members", idList);
+                setResult(RESULT_OK, intent);
+                finish();
             }
         });
     }
 
     @Override
-    protected OperateGroupMemberPresenter createPresenter() {
-        return new OperateGroupMemberPresenter(this, this.selectedMembers, this.createMode);
+    protected OperateContactPresenter createPresenter() {
+        return new OperateContactPresenter(this, this.selectedMembers, this.createMode);
     }
 
     @Override
     protected int provideContentViewId() {
-        return R.layout.activity_operate_group_member;
+        return R.layout.activity_operate_contact;
     }
 
     @Override

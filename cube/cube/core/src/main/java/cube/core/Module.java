@@ -38,6 +38,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import cell.util.NetworkUtils;
 import cube.auth.AuthToken;
+import cube.core.handler.FailureHandler;
 import cube.util.LogUtils;
 import cube.util.Subject;
 
@@ -186,6 +187,19 @@ public abstract class Module extends Subject {
                 execute(task);
             }
         });
+    }
+
+    public void execute(FailureHandler failureHandler, ModuleError error) {
+        if (failureHandler.isInMainThread()) {
+            executeOnMainThread(() -> {
+                failureHandler.handleFailure(this, error);
+            });
+        }
+        else {
+            execute(() -> {
+                failureHandler.handleFailure(this, error);
+            });
+        }
     }
 
     protected void executeOnMainThread(Runnable task) {

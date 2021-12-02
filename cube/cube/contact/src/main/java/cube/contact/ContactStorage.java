@@ -376,7 +376,7 @@ public class ContactStorage extends AbstractStorage {
                 ContentValues member = new ContentValues();
                 member.put("`group`", group.id);
                 member.put("contact_id", memberId);
-                member.put("timestamp", group.getTimestamp());
+                member.put("timestamp", group.getLastActive());
                 db.insert("group_member", null, member);
             }
         }
@@ -390,6 +390,11 @@ public class ContactStorage extends AbstractStorage {
         }
     }
 
+    /**
+     * 更新群组基础数。
+     *
+     * @param group
+     */
     public void updateGroupProperty(Group group) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -409,12 +414,54 @@ public class ContactStorage extends AbstractStorage {
         this.closeWritableDatabase(db);
     }
 
+    /**
+     * 移除群组成员。
+     *
+     * @param bundle
+     */
     public void removeGroupMember(GroupBundle bundle) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         for (Long memberId : bundle.modifiedIdList) {
             db.delete("group_member", "`group`=? AND contact_id=?",
                     new String[]{ bundle.group.id.toString(), memberId.toString() });
+        }
+
+        this.closeWritableDatabase(db);
+    }
+
+    /**
+     * 添加群组成员。
+     *
+     * @param bundle
+     */
+    public void addGroupMember(GroupBundle bundle) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        for (Long memberId : bundle.modifiedIdList) {
+            Cursor cursor = db.query("group_member", new String[]{ "sn" },
+                    "`group`=? AND `contact_id`=?",
+                    new String[]{ bundle.group.id.toString(), memberId.toString() },
+                    null, null, null);
+            if (cursor.moveToFirst()) {
+                Long sn = cursor.getLong(0);
+                cursor.close();
+
+                ContentValues member = new ContentValues();
+                member.put("timestamp", bundle.group.getLastActive());
+                // update
+                db.update("group_member", member, "`sn`=?", new String[]{ sn.toString() });
+            }
+            else {
+                cursor.close();
+
+                ContentValues member = new ContentValues();
+                member.put("`group`", bundle.group.id);
+                member.put("contact_id", memberId);
+                member.put("timestamp", bundle.group.getLastActive());
+                // insert
+                db.insert("group_member", null, member);
+            }
         }
 
         this.closeWritableDatabase(db);

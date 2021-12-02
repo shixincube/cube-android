@@ -26,11 +26,15 @@
 
 package com.shixincube.app.ui.fragment;
 
+import android.view.View;
+import android.widget.LinearLayout;
+
 import com.shixincube.app.R;
 import com.shixincube.app.ui.activity.MainActivity;
 import com.shixincube.app.ui.base.BaseFragment;
 import com.shixincube.app.ui.presenter.FilesPresenter;
 import com.shixincube.app.ui.view.FilesView;
+import com.shixincube.app.widget.FilesTabController;
 import com.shixincube.app.widget.recyclerview.RecyclerView;
 
 import butterknife.BindView;
@@ -43,13 +47,33 @@ public class FilesFragment extends BaseFragment<FilesView, FilesPresenter> imple
     @BindView(R.id.rvFiles)
     RecyclerView filesView;
 
+    @BindView(R.id.llFileClassify)
+    LinearLayout fileClassifyTab;
+
+    private FilesTabController tabController;
+
     public FilesFragment() {
         super();
     }
 
     @Override
+    public void init() {
+        this.tabController = new FilesTabController();
+    }
+
+    @Override
+    public void initView(View rootView) {
+        this.tabController.bind(this.fileClassifyTab);
+    }
+
+    @Override
+    public void initData() {
+        this.presenter.loadFiles();
+    }
+
+    @Override
     protected FilesPresenter createPresenter() {
-        return new FilesPresenter((MainActivity) getActivity());
+        return new FilesPresenter((MainActivity) getActivity(), this.tabController);
     }
 
     @Override

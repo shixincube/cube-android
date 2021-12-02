@@ -33,7 +33,6 @@
         android:paddingTop="10dp">
 
         <!-- 头像 -->
-
         <com.shixincube.app.widget.AdvancedImageView
             android:id="@+id/ivAvatar"
             android:layout_width="40dp"
@@ -42,7 +41,7 @@
             android:focusableInTouchMode="false"
             android:src="@mipmap/avatar_default"
             auto:corner_radius="4dp"
-            auto:border_color="@color/line"
+            auto:border_color="@color/avatar"
             auto:border_width="1dp"/>
 
         <LinearLayout
@@ -58,7 +57,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="4dp"
                 android:text="@string/app_name"
-                android:textColor="@color/text_secondary"
+                android:textColor="?attr/colorTextSecondary"
                 android:textSize="12sp"
                 android:visibility="visible"/>
 

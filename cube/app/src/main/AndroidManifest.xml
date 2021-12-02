@@ -109,7 +109,7 @@
             android:screenOrientation="portrait">
         </activity>
         <activity
-            android:name=".ui.activity.OperateGroupMemberMemberActivity"
+            android:name=".ui.activity.OperateContactActivity"
             android:screenOrientation="portrait">
         </activity>
         <activity

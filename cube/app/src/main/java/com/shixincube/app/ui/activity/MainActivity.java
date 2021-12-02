@@ -26,6 +26,7 @@
 
 package com.shixincube.app.ui.activity;
 
+import android.content.Intent;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.ImageButton;
@@ -55,7 +56,7 @@ import butterknife.BindView;
  */
 public class MainActivity extends BaseActivity<MainView, MainPresenter> implements ViewPager.OnPageChangeListener, MainView {
 
-    private MainTabBar mainTabBar;
+    public final static int REQUEST_CREATE_GROUP_CONVERSATION = 1000;
 
     @BindView(R.id.ibPopupMenu)
     ImageButton popupMenuButton;
@@ -109,18 +110,14 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
     @BindView(R.id.tvProfileTextPressed)
     TextView profileTextPressed;
 
+    private MainTabBar mainTabBar;
+
     public MainActivity() {
         super();
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-    }
-
-    @Override
     public void init() {
-
     }
 
     @Override
@@ -176,16 +173,19 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
         View menuView = View.inflate(this, R.layout.menu_main, null);
         PopupWindow popupWindow = PopupWindowUtils.getPopupWindowAtLocation(menuView, getWindow().getDecorView(),
                 Gravity.TOP | Gravity.END,
-                UIUtils.dp2px(5), appBar.getHeight() + 30);
+                UIUtils.dp2px(5), appBar.getHeight() + UIUtils.dp2px(50));
         menuView.findViewById(R.id.tvCreateGroup).setOnClickListener((v) -> {
-            // 创建群聊
-            UIUtils.showToast(UIUtils.getString(R.string.developing));
             popupWindow.dismiss();
+
+            // 创建群聊
+            Intent intent = new Intent(this, OperateContactActivity.class);
+            startActivityForResult(intent, REQUEST_CREATE_GROUP_CONVERSATION);
         });
         menuView.findViewById(R.id.tvAddContact).setOnClickListener((v) -> {
+            popupWindow.dismiss();
+
             // 添加联系人
             jumpToActivity(AddContactActivity.class);
-            popupWindow.dismiss();
         });
     }
 
@@ -209,6 +209,22 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
                 break;
             default:
                 break;
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_CREATE_GROUP_CONVERSATION) {
+            if (resultCode == RESULT_OK) {
+                // 创建群组成功
+            }
         }
     }
 

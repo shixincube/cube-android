@@ -32,7 +32,7 @@ import com.bumptech.glide.Glide;
 import com.shixincube.app.R;
 import com.shixincube.app.ui.activity.ContactDetailsActivity;
 import com.shixincube.app.ui.activity.ConversationDetailsActivity;
-import com.shixincube.app.ui.activity.OperateGroupMemberMemberActivity;
+import com.shixincube.app.ui.activity.OperateContactActivity;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.ConversationDetailsView;
@@ -191,6 +191,10 @@ public class ConversationDetailsPresenter extends BasePresenter<ConversationDeta
             });
     }
 
+    public void addGroupMembers() {
+
+    }
+
     private void loadMembers() {
         this.members.clear();
 
@@ -200,8 +204,14 @@ public class ConversationDetailsPresenter extends BasePresenter<ConversationDeta
         }
         else if (this.conversation.getType() == ConversationType.Group) {
             this.members.addAll(this.conversation.getGroup().getMemberList());
-            this.members.add(new DummyContact("+"));
-            this.members.add(new DummyContact("-"));
+
+            if (this.conversation.getGroup().isOwner()) {
+                this.members.add(new DummyContact("+"));
+                this.members.add(new DummyContact("-"));
+            }
+            else {
+                this.members.add(new DummyContact("+"));
+            }
         }
     }
 
@@ -260,7 +270,7 @@ public class ConversationDetailsPresenter extends BasePresenter<ConversationDeta
                             selectedIdArray[i] = members.get(i).getId();
                         }
 
-                        Intent intent = new Intent(activity, OperateGroupMemberMemberActivity.class);
+                        Intent intent = new Intent(activity, OperateContactActivity.class);
                         intent.putExtra("memberIdList", selectedIdArray);
                         activity.startActivityForResult(intent, ConversationDetailsActivity.REQUEST_CREATE_OR_UPDATE_GROUP);
                     }
@@ -270,17 +280,35 @@ public class ConversationDetailsPresenter extends BasePresenter<ConversationDeta
                         showContactDetails(contact);
                     }
                 }
-                else {
-                    if (position == members.size() - 1) {
-                        // 点击 "-"
-                    }
-                    if (position == members.size() - 2) {
-                        // 点击 "+"
+                else if (conversation.getType() == ConversationType.Group) {
+                    if (conversation.getGroup().isOwner()) {
+                        if (position == members.size() - 1) {
+                            // 点击 "-"
+                        }
+                        else if (position == members.size() - 2) {
+                            // 点击 "+"
+                            Intent intent = new Intent(activity, OperateContactActivity.class);
+                            intent.putExtra("groupId", conversation.getGroup().getId().longValue());
+                            activity.startActivityForResult(intent, ConversationDetailsActivity.REQUEST_ADD_GROUP_MEMBER);
+                        }
+                        else {
+                            // 点击的是联系人
+                            Contact contact = members.get(position);
+                            showContactDetails(contact);
+                        }
                     }
                     else {
-                        // 点击的是联系人
-                        Contact contact = members.get(position);
-                        showContactDetails(contact);
+                        if (position == members.size() - 1) {
+                            // 点击 "+"
+                            Intent intent = new Intent(activity, OperateContactActivity.class);
+                            intent.putExtra("groupId", conversation.getGroup().getId().longValue());
+                            activity.startActivityForResult(intent, ConversationDetailsActivity.REQUEST_ADD_GROUP_MEMBER);
+                        }
+                        else {
+                            // 点击的是联系人
+                            Contact contact = members.get(position);
+                            showContactDetails(contact);
+                        }
                     }
                 }
             });

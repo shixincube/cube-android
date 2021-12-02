@@ -26,6 +26,9 @@
 
 package cube.core;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -34,12 +37,20 @@ import java.util.TimerTask;
 import java.util.Vector;
 
 import cube.core.model.Entity;
+import cube.core.model.TimeSortable;
 import cube.util.LogUtils;
 
 /**
- * 实体管理器，用于维护实体的生命周期。
+ * 实体内存生命周期检查器。
+ * 用于维护实体在内存里存储的生命周期。
+ * 当实体过期或者占用内存空间超过阀值时释放实体引用。
  */
 public final class EntityInspector extends TimerTask {
+
+    /**
+     * 最大内存阀值。
+     */
+    private long maxMemoryThreshold = 8 * 1024 * 1024;
 
     private Timer timer;
 
@@ -58,7 +69,7 @@ public final class EntityInspector extends TimerTask {
     public void start() {
         if (null == this.timer) {
             this.timer = new Timer();
-            this.timer.schedule(this, 30L * 1000L, 30L * 1000L);
+            this.timer.schedule(this, 60 * 1000, 60 * 1000);
         }
     }
 
@@ -112,20 +123,15 @@ public final class EntityInspector extends TimerTask {
         this.depositedListArray.remove(list);
     }
 
-    @Override
-    public void run() {
-        int count = 0;
-
-        long now = System.currentTimeMillis();
-
+    private void removeEntity(Entity current) {
         for (Map<? extends Object, ? extends Entity> map : this.depositedMapArray) {
             Iterator<? extends Map.Entry<? extends Object, ? extends Entity>> iter = map.entrySet().iterator();
             while (iter.hasNext()) {
                 Map.Entry<? extends Object, ? extends Entity> e = iter.next();
                 Entity entity = e.getValue();
-                if (now > entity.entityLifeExpiry) {
+                if (entity.equals(current)) {
                     iter.remove();
-                    ++count;
+                    return;
                 }
             }
         }
@@ -134,16 +140,79 @@ public final class EntityInspector extends TimerTask {
             Iterator<? extends Entity> iter = list.iterator();
             while (iter.hasNext()) {
                 Entity entity = iter.next();
-                if (now > entity.entityLifeExpiry) {
+                if (entity.equals(current)) {
                     iter.remove();
-                    ++count;
+                    return;
                 }
             }
         }
-
-        if (LogUtils.isDebugLevel()) {
-            LogUtils.d("EntityInspector", "Clear count: " + count);
-        }
     }
 
+    @Override
+    public void run() {
+        long size = 0;
+
+        ArrayList<Entity> entityList = new ArrayList<>();
+
+        for (Map<? extends Object, ? extends Entity> map : this.depositedMapArray) {
+            Iterator<? extends Map.Entry<? extends Object, ? extends Entity>> iter = map.entrySet().iterator();
+            while (iter.hasNext()) {
+                Map.Entry<? extends Object, ? extends Entity> e = iter.next();
+                Entity entity = e.getValue();
+                size += entity.getMemorySize();
+                entityList.add(entity);
+            }
+        }
+
+        for (List<? extends Entity> list : this.depositedListArray) {
+            Iterator<? extends Entity> iter = list.iterator();
+            while (iter.hasNext()) {
+                Entity entity = iter.next();
+                size += entity.getMemorySize();
+                entityList.add(entity);
+            }
+        }
+
+        if (size < this.maxMemoryThreshold) {
+            // 内存未超过阀值
+            entityList.clear();
+            return;
+        }
+
+        if (LogUtils.isDebugLevel()) {
+            LogUtils.d("EntityInspector", "Memory size: " + size);
+        }
+
+        // 按照超时时间排序
+        Collections.sort(entityList, new Comparator<TimeSortable>() {
+            @Override
+            public int compare(TimeSortable entity1, TimeSortable entity2) {
+                return (int) (entity1.getSortableTime() - entity2.getSortableTime());
+            }
+        });
+
+        // 计算需要删除哪些实体
+        int position = 0;
+        long delta = 0;
+        while (position < entityList.size()) {
+            Entity entity = entityList.get(position);
+            delta += entity.getMemorySize();
+            if (size - delta < this.maxMemoryThreshold) {
+                break;
+            }
+            ++position;
+        }
+
+        // 从时间戳最小的实体删除到 position 位置
+        for (int i = 0; i <= position; ++i) {
+            Entity entity = entityList.get(i);
+            this.removeEntity(entity);
+        }
+
+        entityList.clear();
+
+        if (LogUtils.isDebugLevel()) {
+            LogUtils.d("EntityInspector", "Clear " + (position + 1) + " entities");
+        }
+    }
 }

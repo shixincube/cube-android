@@ -207,6 +207,11 @@ public class ContactService extends Module {
         this.contactDataProvider = provider;
     }
 
+    /**
+     * 添加联系人分区监听。
+     *
+     * @param listener 指定监听器。
+     */
     public void addContactZoneListener(ContactZoneListener listener) {
         if (null == this.contactZoneListenerList) {
             this.contactZoneListenerList = new ArrayList<>();
@@ -217,6 +222,11 @@ public class ContactService extends Module {
         }
     }
 
+    /**
+     * 移除联系人分区监听器。
+     *
+     * @param listener 指定监听器。
+     */
     public void removeContactZoneListener(ContactZoneListener listener) {
         if (null != this.contactZoneListenerList) {
             this.contactZoneListenerList.remove(listener);
@@ -226,7 +236,7 @@ public class ContactService extends Module {
     /**
      * 签入指定联系人。
      *
-     * @param self
+     * @param self 指定"我"的联系人。
      * @param handler 该操作的回调句柄。
      * @return 如果返回 {@code false} 表示当前状态下不能进行该操作，请检查是否正确启动魔方。
      */
@@ -508,7 +518,7 @@ public class ContactService extends Module {
      * @param context 指定待修改的上下文数据。
      * @return 返回当前签入的联系人。
      */
-    public Self modifySelf(String name, JSONObject context) {
+    public Self modifySelf(@Nullable String name, @Nullable JSONObject context) {
         if (null == name && null == context) {
             return this.self;
         }
@@ -736,7 +746,6 @@ public class ContactService extends Module {
                     successHandler.handleContact(self);
                 });
             }
-
             return;
         }
 
@@ -756,43 +765,65 @@ public class ContactService extends Module {
                     successHandler.handleContact((Contact) abstractContact);
                 });
             }
-
             return;
         }
 
         // 从数据库读取
-        Contact contact = this.storage.readContact(contactId);
+        final Contact contact = this.storage.readContact(contactId);
         if (null != contact) {
-            // 在没有连接服务器或者数据有效时返回
-            if (!this.pipeline.isReady() || contact.isValid()) {
-                // 检查上下文
-                if (null == contact.getContext() && null != this.contactDataProvider) {
-                    contact.setContext(this.contactDataProvider.needContactContext(contact));
-                    if (null != contact.getContext()) {
-                        contact.resetLast(System.currentTimeMillis());
-                        this.storage.updateContactContext(contact);
-                    }
-                    this.storage.updateContactName(contact);
+            // 检查上下文
+            if (null == contact.getContext() && null != this.contactDataProvider) {
+                contact.setContext(this.contactDataProvider.needContactContext(contact));
+                if (null != contact.getContext()) {
+                    contact.resetLast(System.currentTimeMillis());
+                    this.storage.updateContactContext(contact);
                 }
-
-                // 写入缓存
-                this.cache.put(contactId, contact);
-
-                if (successHandler.isInMainThread()) {
-                    this.executeOnMainThread(() -> {
-                        successHandler.handleContact(contact);
-                    });
-                }
-                else {
-                    this.execute(() -> {
-                        successHandler.handleContact(contact);
-                    });
-                }
-
-                return;
             }
+
+            // 写入缓存
+            this.cache.put(contactId, contact);
+
+            if (successHandler.isInMainThread()) {
+                this.executeOnMainThread(() -> {
+                    successHandler.handleContact(contact);
+                });
+            }
+            else {
+                this.execute(() -> {
+                    successHandler.handleContact(contact);
+                });
+            }
+
+            if (!contact.isValid()) {
+                // 过期数据，从服务器更新
+                this.refreshContact(contact.id, new StableContactHandler() {
+                    @Override
+                    public void handleContact(Contact contact) {
+                        // Nothing
+                    }
+                }, new StableFailureHandler() {
+                    @Override
+                    public void handleFailure(Module module, ModuleError error) {
+                        // Nothing
+                    }
+                });
+            }
+
+            return;
         }
 
+        // 从服务器更新
+        this.refreshContact(contactId, successHandler, failureHandler);
+    }
+
+    /**
+     * 刷新联系人数据。
+     *
+     * @param contactId
+     * @param successHandler
+     * @param failureHandler
+     */
+    private void refreshContact(Long contactId, ContactHandler successHandler, FailureHandler failureHandler) {
         if (!this.pipeline.isReady()) {
             // 数据通道未就绪
             if (null != failureHandler) {
@@ -819,7 +850,6 @@ public class ContactService extends Module {
                         ModuleError error = new ModuleError(ContactService.NAME, packet.state.code);
                         execute(failureHandler, error);
                     }
-
                     return;
                 }
 
@@ -849,7 +879,7 @@ public class ContactService extends Module {
                         @Override
                         public void handleAppendix(Contact contact, ContactAppendix appendix) {
                             // 写入缓存
-                            cache.put(contactId, contact);
+                            cache.put(contact.id, contact);
 
                             if (successHandler.isInMainThread()) {
                                 executeOnMainThread(() -> {

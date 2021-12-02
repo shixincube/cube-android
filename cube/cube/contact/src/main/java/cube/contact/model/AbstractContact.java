@@ -29,6 +29,8 @@ package cube.contact.model;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.nio.charset.StandardCharsets;
+
 import cube.auth.AuthService;
 import cube.core.model.Entity;
 
@@ -46,11 +48,6 @@ public class AbstractContact extends Entity {
      * 联系人所属的域。
      */
     public final String domain;
-
-    /**
-     * 自定义数据，为应用程序提供关联其他数据对象的属性。
-     */
-    public Object customData = null;
 
     public AbstractContact(String name) {
         super();
@@ -110,6 +107,19 @@ public class AbstractContact extends Entity {
      */
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Override
+    public int getMemorySize() {
+        int size = super.getMemorySize();
+
+        // String + String
+        size += 8 + 8;
+
+        size += this.name.getBytes(StandardCharsets.UTF_8).length;
+        size += this.domain.getBytes(StandardCharsets.UTF_8).length;
+
+        return size;
     }
 
     @Override

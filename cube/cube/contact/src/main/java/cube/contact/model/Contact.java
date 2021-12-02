@@ -109,6 +109,8 @@ public class Contact extends AbstractContact {
     /**
      * 添加联系人使用的设备。
      *
+     * <b>Non-public API</b>
+     *
      * @param device 设备描述。
      */
     public void addDevice(Device device) {
@@ -120,6 +122,8 @@ public class Contact extends AbstractContact {
     /**
      * 移除联系人使用的设备。
      *
+     * <b>Non-public API</b>
+     *
      * @param device 设备描述。
      */
     public void removeDevice(Device device) {
@@ -129,7 +133,9 @@ public class Contact extends AbstractContact {
     /**
      * 设置附录。
      *
-     * @param appendix
+     * <b>Non-public API</b>
+     *
+     * @param appendix 指定附录。
      */
     public void setAppendix(ContactAppendix appendix) {
         this.appendix = appendix;
@@ -138,7 +144,7 @@ public class Contact extends AbstractContact {
     /**
      * 获取附录。
      *
-     * @return
+     * @return 返回附录实例。
      */
     public ContactAppendix getAppendix() {
         return this.appendix;
@@ -156,6 +162,21 @@ public class Contact extends AbstractContact {
 
         Contact other = (Contact) object;
         return other.id.equals(this.id) && other.domain.equals(this.domain);
+    }
+
+    @Override
+    public int getMemorySize() {
+        int size = super.getMemorySize();
+        // 本对象
+        size += 8 + 8 + 8;
+
+        
+
+        if (null != this.appendix) {
+            size += this.appendix.getMemorySize();
+        }
+
+        return size;
     }
 
     @Override

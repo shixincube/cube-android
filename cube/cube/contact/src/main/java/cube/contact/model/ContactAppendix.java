@@ -29,13 +29,16 @@ package cube.contact.model;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.nio.charset.StandardCharsets;
+
 import cube.contact.ContactService;
+import cube.core.model.Cacheable;
 import cube.util.JSONable;
 
 /**
  * 联系人附件。
  */
-public class ContactAppendix implements JSONable {
+public class ContactAppendix implements JSONable, Cacheable {
 
     private ContactService service;
 
@@ -52,6 +55,11 @@ public class ContactAppendix implements JSONable {
         }
     }
 
+    /**
+     * 获取该附录的联系人。
+     *
+     * @return 返回该附录的联系人。
+     */
     public Contact getContact() {
         return this.contact;
     }
@@ -59,7 +67,7 @@ public class ContactAppendix implements JSONable {
     /**
      * 设置该联系人的备注名。
      *
-     * @param remarkName
+     * @param remarkName 指定备注名。
      */
     public void setRemarkName(String remarkName) {
         this.remarkName = remarkName;
@@ -81,6 +89,15 @@ public class ContactAppendix implements JSONable {
      */
     public boolean hasRemarkName() {
         return (null != this.remarkName) && (this.remarkName.length() > 0);
+    }
+
+    @Override
+    public int getMemorySize() {
+        int base = 8 + 8 + 8 + 8;
+        if (this.hasRemarkName()) {
+            base += this.remarkName.getBytes(StandardCharsets.UTF_8).length;
+        }
+        return base;
     }
 
     @Override

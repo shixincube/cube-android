@@ -32,12 +32,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import cube.core.Kernel;
+import cube.core.model.Cacheable;
 import cube.util.JSONable;
 
 /**
  * 设备实体。
  */
-public class Device implements JSONable {
+public class Device implements JSONable, Cacheable {
 
     public final String name;
 
@@ -78,6 +79,12 @@ public class Device implements JSONable {
     @Override
     public int hashCode() {
         return this.name.hashCode() + this.platform.hashCode();
+    }
+
+    @Override
+    public int getMemorySize() {
+        int size = 8 + 8 + 8;
+        return size;
     }
 
     @Override

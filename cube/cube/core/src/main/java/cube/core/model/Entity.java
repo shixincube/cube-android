@@ -29,13 +29,15 @@ package cube.core.model;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.nio.charset.StandardCharsets;
+
 import cell.util.Utils;
 import cube.util.JSONable;
 
 /**
  * 信息实体对象。所有实体对象的基类。
  */
-public class Entity implements TimeSortable, JSONable {
+public class Entity implements JSONable, Cacheable, TimeSortable {
 
     public final static long LIFESPAN_IN_MSEC = 7L * 24L * 60L * 60L * 1000L;
 
@@ -155,24 +157,16 @@ public class Entity implements TimeSortable, JSONable {
     /**
      * 获取实体 ID 。
      *
-     * @return
+     * @return 返回实体 ID 。
      */
     public final Long getId() {
         return this.id;
     }
 
     /**
-     * {@inheritDoc}
-     */
-    @Override
-    public long getSortableTime() {
-        return this.timestamp;
-    }
-
-    /**
      * 获取数据的时间戳。
      *
-     * @return
+     * @return 返回数据的时间戳。
      */
     public long getTimestamp() {
         return this.timestamp;
@@ -181,7 +175,7 @@ public class Entity implements TimeSortable, JSONable {
     /**
      * 获取最近一次更新该实体数据的时间。
      *
-     * @return
+     * @return 返回最近一次更新该实体数据的时间。
      */
     public long getLast() {
         return this.last;
@@ -190,22 +184,38 @@ public class Entity implements TimeSortable, JSONable {
     /**
      * 获取该实体数据的到期时间。
      *
-     * @return
+     * @return 返回该实体数据的到期时间。
      */
     public long getExpiry() {
         return this.expiry;
     }
 
+    /**
+     * 重置最近一次更新时间。
+     *
+     * @param time 指定时间戳。
+     */
     public void resetLast(long time) {
         this.last = time;
         this.expiry = time + LIFESPAN_IN_MSEC;
     }
 
+    /**
+     * 重置有效期和最近一次更新时间。
+     *
+     * @param expiry 指定有效期。
+     * @param last 指定最近一次更新时间。
+     */
     public void resetExpiry(long expiry, long last) {
         this.last = last;
         this.expiry = expiry;
     }
 
+    /**
+     * 设置时间戳。
+     *
+     * @param timestamp 指定时间戳。
+     */
     public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
     }
@@ -219,10 +229,20 @@ public class Entity implements TimeSortable, JSONable {
         return this.expiry > System.currentTimeMillis();
     }
 
+    /**
+     * 设置上下文数据。
+     *
+     * @param context 指定上下文数据。
+     */
     public void setContext(JSONObject context) {
         this.context = context;
     }
 
+    /**
+     * 获取上下文数据。
+     *
+     * @return 返回上下文数据。
+     */
     public JSONObject getContext() {
         return this.context;
     }
@@ -239,6 +259,29 @@ public class Entity implements TimeSortable, JSONable {
         }
 
         return false;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int getMemorySize() {
+        // 对象头 + Long 引用 + long * 5 + JSONObject 引用
+        int base = 8 + 16 + 8 * 5 + 8;
+        if (null == this.context) {
+            return base;
+        }
+
+        String string = this.context.toString();
+        return base + string.getBytes(StandardCharsets.UTF_8).length;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public long getSortableTime() {
+        return this.entityLifeExpiry;
     }
 
     /**

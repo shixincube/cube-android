@@ -274,6 +274,8 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
                         inputContentView.clearFocus();
                         if (emotionLayout.isShown()) {
                             emojiButtonView.setImageResource(R.mipmap.message_tool_emotion);
+                            // 恢复输入法软键盘
+                            softwareKeyboard.showSoftInput();
                         }
                         else {
                             emojiButtonView.setImageResource(R.mipmap.message_tool_keyboard);

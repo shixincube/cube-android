@@ -29,6 +29,8 @@ package cube.messaging.model;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.nio.charset.StandardCharsets;
+
 import cube.auth.AuthService;
 import cube.contact.model.Contact;
 import cube.contact.model.Group;
@@ -189,6 +191,8 @@ public class Message extends Entity {
     /**
      * 构造函数。
      *
+     * <b>Non-public API</b>
+     *
      * @param id
      * @param timestamp
      * @param domain
@@ -221,6 +225,8 @@ public class Message extends Entity {
     /**
      * 构造函数。
      *
+     * <b>Non-public API</b>
+     *
      * @param message
      */
     public Message(Message message) {
@@ -244,10 +250,20 @@ public class Message extends Entity {
         this.service = message.service;
     }
 
+    /**
+     * <b>Non-public API</b>
+     *
+     * @return
+     */
     public long getOwner() {
         return this.owner;
     }
 
+    /**
+     * 获取消息发送人 ID 。
+     *
+     * @return 返回消息发送人 ID 。
+     */
     public long getFrom() {
         return this.from;
     }
@@ -255,12 +271,17 @@ public class Message extends Entity {
     /**
      * 获取消息发件人。
      *
-     * @return
+     * @return 返回消息发件人。
      */
     public Contact getSender() {
         return this.sender;
     }
 
+    /**
+     * 获取消息接收人 ID 。
+     *
+     * @return 返回消息接收人 ID 。
+     */
     public long getTo() {
         return this.to;
     }
@@ -268,25 +289,45 @@ public class Message extends Entity {
     /**
      * 获取消息收件人。
      *
-     * @return
+     * @return 返回消息收件人。
      */
     public Contact getReceiver() {
         return this.receiver;
     }
 
+    /**
+     * 获取消息来源。
+     *
+     * @return 返回消息来源。
+     */
     public long getSource() {
         return this.source;
     }
 
+    /**
+     * 获取消息来源的群组。
+     *
+     * @return 返回消息来源的群组。
+     */
     public Group getSourceGroup() {
         this.sourceGroup.entityLifeExpiry += 10000;
         return this.sourceGroup;
     }
 
+    /**
+     * 获取消息在服务器上的时间戳。
+     *
+     * @return 返回消息在服务器上的时间戳。
+     */
     public long getRemoteTimestamp() {
         return this.remoteTS;
     }
 
+    /**
+     * 获取消息在本地的时间戳。
+     *
+     * @return 消息在本地的时间戳。
+     */
     public long getLocalTimestamp() {
         return this.localTS;
     }
@@ -294,12 +335,19 @@ public class Message extends Entity {
     /**
      * 获取消息状态。
      *
-     * @return
+     * @return 返回消息状态。
+     * @see MessageState
      */
     public MessageState getState() {
         return this.state;
     }
 
+    /**
+     * 返回消息作用域。
+     *
+     * @return 返回消息作用域。
+     * @see MessageScope
+     */
     public int getScope() {
         return this.scope;
     }
@@ -307,12 +355,17 @@ public class Message extends Entity {
     /**
      * 获取消息默认摘要。
      *
-     * @return
+     * @return 返回消息默认摘要。
      */
     public String getSummary() {
         return this.summary;
     }
 
+    /**
+     * 获取当前消息会话的对端联系人。
+     *
+     * @return 返回当前消息会话的对端联系人。
+     */
     public Contact getPartner() {
         return this.selfTyper ? this.receiver : this.sender;
     }
@@ -324,20 +377,35 @@ public class Message extends Entity {
     /**
      * 获取消息负载。
      *
-     * @return
+     * @return 返回消息负载。
      */
     public JSONObject getPayload() {
         return this.payload;
     }
 
+    /**
+     * 获取消息的附件。
+     *
+     * @return 返回消息的附件。
+     */
     public FileAttachment getAttachment() {
         return this.attachment;
     }
 
+    /**
+     * 获取消息类型。
+     *
+     * @return 返回消息类型。
+     */
     public MessageType getType() {
         return this.type;
     }
 
+    /**
+     * 判断消息是否来自群组。
+     *
+     * @return 如果消息来自群组返回 {@code true} 。
+     */
     public boolean isFromGroup() {
         return this.source > 0;
     }
@@ -345,48 +413,90 @@ public class Message extends Entity {
     /**
      * 判断消息是否是当前账号撰写的。
      *
-     * @return
+     * @return 返回消息是否是当前账号撰写的。
      */
     public boolean isSelfTyper() {
         return this.selfTyper;
     }
 
+    /**
+     * 判断当前账号是否是该消息发送人。
+     *
+     * @return 当前账号是否是该消息发送人。
+     */
     public boolean isSender() {
         return this.selfTyper;
     }
 
+    /**
+     * <b>Non-public API</b>
+     * @param attachment
+     */
     public void setAttachment(FileAttachment attachment) {
         this.attachment = attachment;
     }
 
+    /**
+     * <b>Non-public API</b>
+     * @param value
+     */
     public void setSelfTyper(boolean value) {
         this.selfTyper = value;
     }
 
+    /**
+     * <b>Non-public API</b>
+     * @param sender
+     */
     public void setSender(Contact sender) {
         this.sender = sender;
     }
 
+    /**
+     * <b>Non-public API</b>
+     * @param receiver
+     */
     public void setReceiver(Contact receiver) {
         this.receiver = receiver;
     }
 
+    /**
+     * <b>Non-public API</b>
+     * @param group
+     */
     public void setSourceGroup(Group group) {
         this.sourceGroup = group;
     }
 
+    /**
+     * <b>Non-public API</b>
+     * @param state
+     */
     public void setState(MessageState state) {
         this.state = state;
     }
 
+    /**
+     * <b>Non-public API</b>
+     * @param timestamp
+     */
     public void setRemoteTS(long timestamp) {
         this.remoteTS = timestamp;
     }
 
+    /**
+     * <b>Non-public API</b>
+     * @param service
+     */
     public void setService(MessagingService service) {
         this.service = service;
     }
 
+    /**
+     * <b>Non-public API</b>
+     * @param loadHandler
+     * @param failureHandler
+     */
     public void loadAttachment(LoadAttachmentHandler loadHandler,
                                    FailureHandler failureHandler) {
         this.service.loadMessageAttachment(this, loadHandler, failureHandler);
@@ -395,12 +505,20 @@ public class Message extends Entity {
     /**
      * 是否是空消息。
      *
+     * <b>Non-public API</b>
+     *
      * @return
      */
     public boolean isEmpty() {
         return false;
     }
 
+    /**
+     * <b>Non-public API</b>
+     * @param owner
+     * @param to
+     * @param source
+     */
     public void assign(long owner, long to, long source) {
         this.owner = owner;
         this.from = owner;
@@ -429,6 +547,24 @@ public class Message extends Entity {
     @Override
     public int hashCode() {
         return this.id.hashCode();
+    }
+
+    @Override
+    public int getMemorySize() {
+        int size = super.getMemorySize();
+        size += 8 * 17;
+
+        size += this.domain.getBytes(StandardCharsets.UTF_8).length;
+
+        size += this.payload.toString().getBytes(StandardCharsets.UTF_8).length;
+
+        if (null != this.attachment) {
+            size += this.attachment.getMemorySize();
+        }
+
+        size += this.summary.getBytes(StandardCharsets.UTF_8).length;
+
+        return size;
     }
 
     @Override

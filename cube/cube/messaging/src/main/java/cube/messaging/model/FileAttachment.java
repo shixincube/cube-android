@@ -36,6 +36,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import cube.core.model.Cacheable;
 import cube.filestorage.model.FileAnchor;
 import cube.filestorage.model.FileLabel;
 import cube.util.JSONable;
@@ -43,7 +44,7 @@ import cube.util.JSONable;
 /**
  * 文件附件。
  */
-public class FileAttachment implements JSONable {
+public class FileAttachment implements JSONable, Cacheable {
 
     /**
      * 文件处理时的记录信息。
@@ -107,7 +108,8 @@ public class FileAttachment implements JSONable {
     /**
      * 获取文件实例。
      *
-     * @return
+     * @param index 指定索引。
+     * @return 返回指定索引处的文件实例。
      */
     public File getFile(int index) {
         File file = null;
@@ -128,9 +130,9 @@ public class FileAttachment implements JSONable {
     }
 
     /**
-     * 文件是否在本地存在。
+     * 优先文件是否在本地存在。
      *
-     * @return
+     * @return 如果在返回 {@code true} 。
      */
     public boolean existsPrefLocal() {
         return this.existsLocal(0);
@@ -142,9 +144,9 @@ public class FileAttachment implements JSONable {
     }
 
     /**
-     * 返回文件码。
+     * 获取优先文件码。
      *
-     * @return 返回文件码。
+     * @return 返回优先文件码。
      */
     public String getPrefFileCode() {
         return this.getFileCode(0);
@@ -163,9 +165,9 @@ public class FileAttachment implements JSONable {
     }
 
     /**
-     * 返回文件名。
+     * 获取优先文件名。
      *
-     * @return 返回文件名。
+     * @return 返回优先文件名。
      */
     public String getPrefFileName() {
         return this.getFileName(0);
@@ -183,15 +185,15 @@ public class FileAttachment implements JSONable {
         return null;
     }
 
+    /**
+     * 获取优先文件的类型。
+     *
+     * @return 返回优先文件的类型。
+     */
     public String getPrefFileType() {
         return this.getFileType(0);
     }
 
-    /**
-     * 获取文件类型。
-     *
-     * @return
-     */
     public String getFileType(int index) {
         if (index < this.anchorList.size()) {
             return this.anchorList.get(index).getExtension();
@@ -204,15 +206,15 @@ public class FileAttachment implements JSONable {
         return "unknown";
     }
 
+    /**
+     * 获取优先文件的大小。
+     *
+     * @return 返回优先文件的大小。
+     */
     public long getPrefFileSize() {
         return this.getFileSize(0);
     }
 
-    /**
-     * 获取文件大小。
-     *
-     * @return
-     */
     public long getFileSize(int index) {
         if (index < this.labelList.size()) {
             return this.labelList.get(index).getFileSize();
@@ -225,15 +227,15 @@ public class FileAttachment implements JSONable {
         return 0;
     }
 
+    /**
+     * 获取优先文件的最后一次修改时间戳。
+     *
+     * @return 返回优先文件的最后一次修改时间戳。
+     */
     public long getPrefFileLastModified() {
         return this.getFileLastModified(0);
     }
 
-    /**
-     * 获取文件最后一次修改时间戳。
-     *
-     * @return
-     */
     public long getFileLastModified(int index) {
         if (index < this.labelList.size()) {
             return this.labelList.get(index).getLastModified();
@@ -249,7 +251,7 @@ public class FileAttachment implements JSONable {
     /**
      * 获取文件的 URL 。
      *
-     * @return
+     * @return 返回文件的 URL 。
      */
     public String getPrefFileURL() {
         return this.getFileURL(0);
@@ -260,15 +262,15 @@ public class FileAttachment implements JSONable {
                 this.getFileLabel(index).getURL();
     }
 
+    /**
+     * 文件是否是图像类型文件。
+     *
+     * @return 如果是图片类型文件返回 {@code true} 。
+     */
     public boolean isPrefImageType() {
         return this.isImageType(0);
     }
 
-    /**
-     * 文件是否是图像类型文件。
-     *
-     * @return
-     */
     public boolean isImageType(int index) {
         String type = this.getFileType(index);
         if (type.equalsIgnoreCase("png")
@@ -356,6 +358,11 @@ public class FileAttachment implements JSONable {
         }
     }
 
+    /**
+     * 获取文件锚的数量。
+     *
+     * @return 返回文件锚的数量。
+     */
     public int numAnchors() {
         return this.anchorList.size();
     }
@@ -375,6 +382,11 @@ public class FileAttachment implements JSONable {
         this.labelList.add(label);
     }
 
+    /**
+     * <b>Non-public API</b>
+     * @param anchor
+     * @param label
+     */
     public void matchFileLabel(FileAnchor anchor, FileLabel label) {
         int index = this.anchorList.indexOf(anchor);
         if (index >= 0) {
@@ -386,6 +398,9 @@ public class FileAttachment implements JSONable {
         }
     }
 
+    /**
+     * <b>Non-public API</b>
+     */
     public void matchPrefFile(File file) {
         if (null == this.anchorList.get(0).getFile()) {
             this.anchorList.get(0).resetFile(file);
@@ -395,6 +410,10 @@ public class FileAttachment implements JSONable {
         }
     }
 
+    /**
+     * <b>Non-public API</b>
+     * @param attachment
+     */
     public void update(FileAttachment attachment) {
         for (int i = 0; i < attachment.labelList.size(); ++i) {
             FileLabel newLabel = attachment.labelList.get(i);
@@ -413,6 +432,21 @@ public class FileAttachment implements JSONable {
                 this.labelList.set(i, newLabel);
             }
         }
+    }
+
+    @Override
+    public int getMemorySize() {
+        int size = 8 * 3;
+
+        for (FileAnchor anchor : this.anchorList) {
+            size += anchor.getMemorySize();
+        }
+
+        for (FileLabel label : this.labelList) {
+            size += label.getMemorySize();
+        }
+
+        return size;
     }
 
     @Override

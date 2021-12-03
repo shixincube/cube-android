@@ -411,13 +411,10 @@ public class SoftwareKeyboard implements View.OnTouchListener, ViewTreeObserver.
     /**
      * 编辑框获取焦点，并显示软键盘
      */
-    private void showSoftInput() {
+    public void showSoftInput() {
         this.hostEditText.requestFocus();
-        this.hostEditText.post(new Runnable() {
-            @Override
-            public void run() {
-                inputManager.showSoftInput(hostEditText, 0);
-            }
+        this.hostEditText.post(() -> {
+            inputManager.showSoftInput(hostEditText, 0);
         });
     }
 

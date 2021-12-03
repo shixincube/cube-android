@@ -34,6 +34,7 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 import cube.core.model.Entity;
 import cube.filestorage.handler.DownloadFileHandler;
@@ -182,7 +183,7 @@ public class FileAnchor extends Entity {
     /**
      * 获取本地文件。
      *
-     * @return
+     * @return 返回本地文件。
      */
     public File getFile() {
         if (null != this.file) {
@@ -198,6 +199,8 @@ public class FileAnchor extends Entity {
 
     /**
      * 重置文件。
+     *
+     * <b>Non-public API</b>
      *
      * @param file
      */
@@ -218,7 +221,7 @@ public class FileAnchor extends Entity {
     /**
      * 获取文件访问 URL 。
      *
-     * @return
+     * @return 返回文件访问的 URL 。
      */
     public String getFileURL() {
         return this.fileURL;
@@ -241,7 +244,7 @@ public class FileAnchor extends Entity {
     /**
      * 获取文件名。
      *
-     * @return
+     * @return 返回文件名。
      */
     public String getFileName() {
         return this.fileName;
@@ -250,7 +253,7 @@ public class FileAnchor extends Entity {
     /**
      * 获取文件大小。
      *
-     * @return
+     * @return 返回文件大小。
      */
     public long getFileSize() {
         return this.fileSize;
@@ -259,7 +262,7 @@ public class FileAnchor extends Entity {
     /**
      * 获取文件最近一次修改时间。
      *
-     * @return
+     * @return 返回文件最后一次修改时间。
      */
     public long getLastModified() {
         return this.lastModified;
@@ -267,6 +270,8 @@ public class FileAnchor extends Entity {
 
     /**
      * 设置文件码。
+     *
+     * <b>Non-public API</b>
      *
      * @param fileCode
      */
@@ -277,30 +282,48 @@ public class FileAnchor extends Entity {
     /**
      * 获取文件码。
      *
-     * @return
+     * @return 返回文件码。
      */
     public String getFileCode() {
         return this.fileCode;
     }
 
+    /**
+     * <b>Non-public API</b>
+     * @param handler
+     */
     public void setUploadFileHandler(UploadFileHandler handler) {
         this.uploadHandler = handler;
     }
 
+    /**
+     * <b>Non-public API</b>
+     * @return
+     */
     public UploadFileHandler getUploadFileHandler() {
         return this.uploadHandler;
     }
 
+    /**
+     * <b>Non-public API</b>
+     * @param handler
+     */
     public void setDownloadFileHandler(DownloadFileHandler handler) {
         this.downloadHandler = handler;
     }
 
+    /**
+     * <b>Non-public API</b>
+     * @return
+     */
     public DownloadFileHandler getDownloadHandler() {
         return this.downloadHandler;
     }
 
     /**
      * 更新当前文件操作位置。
+     *
+     * <b>Non-public API</b>
      *
      * @param size
      */
@@ -311,6 +334,8 @@ public class FileAnchor extends Entity {
 
     /**
      * 重置当前文件操作位置。
+     *
+     * <b>Non-public API</b>
      *
      * @param newPosition
      * @return
@@ -324,7 +349,7 @@ public class FileAnchor extends Entity {
     /**
      * 获取余下待处理数据。
      *
-     * @return
+     * @return 返回余下待处理数据。
      */
     public long getRemaining() {
         return this.remaining;
@@ -333,7 +358,7 @@ public class FileAnchor extends Entity {
     /**
      * 通过计算数据处理大小判断是否已经处理完数据。
      *
-     * @return
+     * @return 如果以及处理结束返回 {@code true} 。
      */
     public boolean isFinish() {
         return this.position == this.fileSize;
@@ -341,6 +366,8 @@ public class FileAnchor extends Entity {
 
     /**
      * 绑定输入流。
+     *
+     * <b>Non-public API</b>
      *
      * @param inputStream
      */
@@ -350,6 +377,8 @@ public class FileAnchor extends Entity {
 
     /**
      * 关闭文件输入流。
+     *
+     * <b>Non-public API</b>
      */
     public void close() {
         if (null != this.inputStream) {
@@ -377,6 +406,26 @@ public class FileAnchor extends Entity {
         }
 
         return false;
+    }
+
+    @Override
+    public int getMemorySize() {
+        int size = super.getMemorySize();
+        size += 8 * 13;
+
+        if (null != this.filePath) {
+            size += this.filePath.getBytes(StandardCharsets.UTF_8).length;
+        }
+
+        size += this.fileName.getBytes(StandardCharsets.UTF_8).length;
+
+        size += this.fileCode.getBytes(StandardCharsets.UTF_8).length;
+
+        if (null != this.fileURL) {
+            size += this.fileURL.getBytes(StandardCharsets.UTF_8).length;
+        }
+
+        return size;
     }
 
     @Override

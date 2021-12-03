@@ -31,6 +31,8 @@ import android.os.Build;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.nio.charset.StandardCharsets;
+
 import cube.auth.AuthService;
 import cube.core.Kernel;
 import cube.core.model.Entity;
@@ -188,50 +190,110 @@ public class FileLabel extends Entity {
         }
     }
 
+    /**
+     * 获取文件所有人 ID 。
+     *
+     * @return 返回文件所有人 ID 。
+     */
     public Long getOwnerId() {
         return this.ownerId;
     }
 
+    /**
+     * 获取文件的文件码。
+     *
+     * @return 返回文件的文件码。
+     */
     public String getFileCode() {
         return this.fileCode;
     }
 
+    /**
+     * 获取文件在本地的存储路径。
+     *
+     * @return 返回文件的本地存放路径。
+     */
     public String getFilePath() {
         return this.filePath;
     }
 
+    /**
+     * 获取文件的原文件名。
+     *
+     * @return 返回文件的原文件名。
+     */
     public String getFileName() {
         return this.fileName;
     }
 
+    /**
+     * 获取文件的类型描述。
+     *
+     * @return 返回文件的类型描述。
+     */
     public String getFileType() {
         return this.fileType;
     }
 
+    /**
+     * 获取文件大小。
+     *
+     * @return 返回文件大小。
+     */
     public long getFileSize() {
         return this.fileSize;
     }
 
+    /**
+     * 获取文件最后一次修改时间。
+     *
+     * @return 返回文件最后一次修改时间。
+     */
     public long getLastModified() {
         return this.lastModified;
     }
 
+    /**
+     * 获取文件在服务器处理完成时间戳。
+     *
+     * @return 返回文件在服务器处理完成时间戳。
+     */
     public long getCompletedTime() {
         return this.completedTime;
     }
 
+    /**
+     * 获取文件的超期时间戳。
+     *
+     * @return 返回文件的超期时间戳。
+     */
     public long getExpiryTime() {
         return this.expiryTime;
     }
 
+    /**
+     * 获取文件的 MD5 散列码。
+     *
+     * @return 返回文件的 MD5 散列码。
+     */
     public String getMd5Code() {
         return this.md5Code;
     }
 
+    /**
+     * 获取文件的 SHA1 散列码。
+     *
+     * @return 返回文件的 SHA1 散列码。
+     */
     public String getSha1Code() {
         return this.sha1Code;
     }
 
+    /**
+     * 获取文件的 HTTP 访问 URL 串。
+     *
+     * @return 返回文件的 HTTP 访问 URL 串。
+     */
     public String getURL() {
         String url = this.fileURL;
         if (Build.SERIAL.contains("unknown")) {
@@ -242,6 +304,11 @@ public class FileLabel extends Entity {
         return url + "&token=" + Kernel.getDefault().getAuthToken().code + "&type=" + this.fileType;
     }
 
+    /**
+     * 获取文件的 HTTPS 访问 URL 串。
+     *
+     * @return 返回文件的 HTTPS 访问 URL 串。
+     */
     public String getSecureURL() {
         String url = this.fileSecureURL;
         if (Build.SERIAL.contains("unknown")) {
@@ -252,8 +319,44 @@ public class FileLabel extends Entity {
         return url + "&token=" + Kernel.getDefault().getAuthToken().code + "&type=" + this.fileType;
     }
 
+    /**
+     * <b>Non-public API</b>
+     * @param filePath
+     */
     public void setFilePath(String filePath) {
         this.filePath = filePath;
+    }
+
+    @Override
+    public int getMemorySize() {
+        int size = super.getMemorySize();
+
+        size += 8 * 14;
+
+        size += this.fileName.getBytes(StandardCharsets.UTF_8).length;
+        size += this.fileCode.getBytes(StandardCharsets.UTF_8).length;
+
+        if (null != this.filePath) {
+            size += this.filePath.getBytes(StandardCharsets.UTF_8).length;
+        }
+
+        size += this.fileType.getBytes(StandardCharsets.UTF_8).length;
+
+        if (null != this.md5Code) {
+            size += this.md5Code.getBytes(StandardCharsets.UTF_8).length;
+        }
+        if (null != this.sha1Code) {
+            size += this.sha1Code.getBytes(StandardCharsets.UTF_8).length;
+        }
+
+        if (null != this.fileURL) {
+            size += this.fileURL.getBytes(StandardCharsets.UTF_8).length;
+        }
+        if (null != this.fileSecureURL) {
+            size += this.fileSecureURL.getBytes(StandardCharsets.UTF_8).length;
+        }
+
+        return size;
     }
 
     @Override

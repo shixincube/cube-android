@@ -81,15 +81,31 @@ public class RemoveGroupMemberActivity extends BaseActivity implements CompoundB
     public void initListener() {
         this.toolbarFuncButton.setOnClickListener((view) -> {
             if (!selectedMembers.isEmpty()) {
-                long[] idList = new long[selectedMembers.size()];
-                for (int i = 0; i < idList.length; ++i) {
-                    idList[i] = selectedMembers.get(i);
-                }
+                showMaterialDialog(UIUtils.getString(R.string.remove_member),
+                        UIUtils.getString(R.string.are_you_sure_to_remove_members, selectedMembers.size()),
+                        UIUtils.getString(R.string.confirm),
+                        UIUtils.getString(R.string.cancel),
+                        new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                hideMaterialDialog();
 
-                Intent data = new Intent();
-                data.putExtra("members", idList);
-                setResult(RESULT_OK, data);
-                finish();
+                                long[] idList = new long[selectedMembers.size()];
+                                for (int i = 0; i < idList.length; ++i) {
+                                    idList[i] = selectedMembers.get(i);
+                                }
+
+                                Intent data = new Intent();
+                                data.putExtra("members", idList);
+                                setResult(RESULT_OK, data);
+                                finish();
+                            }
+                        }, new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                hideMaterialDialog();
+                            }
+                        });
             }
             else {
                 setResult(RESULT_CANCELED);

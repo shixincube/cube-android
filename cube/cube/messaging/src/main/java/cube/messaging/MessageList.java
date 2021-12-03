@@ -37,7 +37,7 @@ import cube.messaging.model.Message;
  * 消息列表。
  * 用于加速读取消息列表的速度。
  */
-class MessageList implements Comparator<Message> {
+public class MessageList implements Comparator<Message> {
 
     public final List<Message> messages = new Vector<>();
 
@@ -45,7 +45,7 @@ class MessageList implements Comparator<Message> {
 
     private long lifespan = 5L * 60L * 1000L;
 
-    MessageList() {
+    public MessageList() {
     }
 
     protected void reset(MessageListResult result) {

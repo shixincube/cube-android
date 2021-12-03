@@ -371,6 +371,18 @@ public class Conversation extends Entity {
     }
 
     @Override
+    public int getMemorySize() {
+        int size = super.getMemorySize();
+        size += 8 * 9;
+
+        if (null != this.recentMessage) {
+            size += this.recentMessage.getMemorySize();
+        }
+
+        return size;
+    }
+
+    @Override
     public JSONObject toJSON() {
         JSONObject json = super.toCompactJSON();
         try {

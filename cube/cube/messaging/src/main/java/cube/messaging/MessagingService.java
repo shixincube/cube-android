@@ -224,6 +224,7 @@ public class MessagingService extends Module {
 
         ThumbnailDownloadManager.getInstance().setExecutor(this.kernel.getExecutor());
 
+        this.kernel.getInspector().depositList(this.conversations);
         this.kernel.getInspector().depositMap(this.capsuleCache);
 
         return true;
@@ -237,6 +238,11 @@ public class MessagingService extends Module {
         this.dissolve();
 
         this.kernel.getInspector().withdrawMap(this.capsuleCache);
+        this.kernel.getInspector().withdrawList(this.conversations);
+
+        for (MessageList list : this.conversationMessageListMap.values()) {
+            this.kernel.getInspector().withdrawList(list.messages);
+        }
 
         this.contactService.detach(this.observer);
 
@@ -244,6 +250,9 @@ public class MessagingService extends Module {
 
         // 关闭存储
         this.storage.close();
+
+        this.conversations.clear();
+        this.conversationMessageListMap.clear();
     }
 
     @Override
@@ -416,9 +425,9 @@ public class MessagingService extends Module {
     /**
      * 创建关联群组的会话。
      *
-     * @param memberList
-     * @param successHandler
-     * @param failureHandler
+     * @param memberList 指定群成员列表
+     * @param successHandler 指定操作成功回调句柄。
+     * @param failureHandler 指定操作失败回调句柄。
      */
     public void createGroupConversation(List<Contact> memberList, ConversationHandler successHandler, FailureHandler failureHandler) {
         this.contactService.createGroup(memberList, new StableGroupHandler() {
@@ -515,7 +524,7 @@ public class MessagingService extends Module {
     }
 
     /**
-     * 销毁指定名称的会话。
+     * 销毁指定 ID 的会话。
      *
      * @param conversationId
      * @param successHandler
@@ -580,6 +589,9 @@ public class MessagingService extends Module {
         this.contactService.modifyGroupName(conversation.getGroup(), newName, new StableGroupHandler() {
             @Override
             public void handleGroup(Group group) {
+                // 更新内存寿命
+                conversation.entityLifeExpiry += LIFESPAN;
+
                 if (successHandler.isInMainThread()) {
                     executeOnMainThread(() -> {
                         successHandler.handleConversation(conversation);
@@ -691,6 +703,7 @@ public class MessagingService extends Module {
             for (Conversation conv : this.conversations) {
                 if (conv.id.longValue() == id.longValue()) {
                     conversation = conv;
+                    conversation.entityLifeExpiry += LIFESPAN;
                     break;
                 }
             }
@@ -795,6 +808,7 @@ public class MessagingService extends Module {
 
                     storage.updateMessage(message.id, message.getState(), responseMessage.getState());
                     message.setState(responseMessage.getState());
+                    message.entityLifeExpiry += LIFESPAN;
 
                     Conversation conversation = null;
                     if (!message.isSelfTyper() && !message.isFromGroup()) {
@@ -876,6 +890,8 @@ public class MessagingService extends Module {
      * @param failureHandler 指定故障回调句柄。
      */
     public void markRead(final Conversation conversation, ConversationHandler conversationHandler, FailureHandler failureHandler) {
+        conversation.entityLifeExpiry += LIFESPAN;
+
         if (conversation.getUnreadCount() == 0) {
             if (conversationHandler.isInMainThread()) {
                 executeOnMainThread(() -> {
@@ -1083,6 +1099,8 @@ public class MessagingService extends Module {
      * @param failureHandler 指定故障回调句柄。
      */
     public void focusOnConversation(Conversation conversation, ConversationHandler conversationHandler, FailureHandler failureHandler) {
+        conversation.entityLifeExpiry += LIFESPAN;
+
         ConversationState state = conversation.getState();
         if (ConversationState.Important == state) {
             if (conversationHandler.isInMainThread()) {
@@ -1157,6 +1175,8 @@ public class MessagingService extends Module {
      * @param failureHandler 指定故障回调句柄。
      */
     public void focusOutConversation(Conversation conversation, ConversationHandler conversationHandler, FailureHandler failureHandler) {
+        conversation.entityLifeExpiry += LIFESPAN;
+
         ConversationState state = conversation.getState();
         if (ConversationState.Normal == state) {
             if (conversationHandler.isInMainThread()) {
@@ -1202,6 +1222,8 @@ public class MessagingService extends Module {
 
         // 设置
         conversation.setReminded(remindedState);
+
+        conversation.entityLifeExpiry += LIFESPAN;
 
         this.updateConversation(conversation, new DefaultConversationHandler(false) {
             @Override
@@ -1324,7 +1346,7 @@ public class MessagingService extends Module {
         MessageList list = this.conversationMessageListMap.get(conversation.id);
         if (null != list) {
             // 延长实体寿命
-            list.extendLife(5L * 60L * 1000L);
+            list.extendLife(LIFESPAN);
 
             if (!list.messages.isEmpty()) {
                 final List<Message> resultList = new ArrayList<>(list.messages);
@@ -1353,6 +1375,9 @@ public class MessagingService extends Module {
             // 托管列表内的实体生命周期
             this.kernel.getInspector().depositList(list.messages);
         }
+
+        // 更新寿命
+        conversation.entityLifeExpiry += LIFESPAN;
 
         if (conversation.getType() == ConversationType.Contact) {
             MessageListResult result = this.storage.queryMessagesByReverseWithContact(conversation.getContact().getId(),
@@ -1412,6 +1437,8 @@ public class MessagingService extends Module {
 
             return;
         }
+
+        conversation.entityLifeExpiry += LIFESPAN;
 
         this.execute(() -> {
             // 从数据库查询
@@ -1613,6 +1640,8 @@ public class MessagingService extends Module {
      */
     public <T extends Message> void sendMessage(final Conversation conversation, final T message,
                             SendHandler<Conversation, T> sendHandler, FailureHandler failureHandler) {
+        conversation.entityLifeExpiry += LIFESPAN;
+
         // 检查会话状态
         if (conversation.getState() == ConversationState.Destroyed) {
             ModuleError error = new ModuleError(NAME, MessagingServiceState.ConversationDisabled.code);
@@ -1734,6 +1763,8 @@ public class MessagingService extends Module {
      * @param message 指定消息。
      */
     public void appendMessage(Conversation conversation, Message message) {
+        conversation.entityLifeExpiry += LIFESPAN;
+
         if (conversation.getType() == ConversationType.Contact) {
             this.appendMessage(conversation.getContact(), message);
             this.appendMessageToConversation(conversation.id, message);

@@ -29,15 +29,21 @@ package cube.filestorage.model;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import cube.auth.AuthService;
+import cube.core.handler.FailureHandler;
 import cube.core.model.Entity;
+import cube.filestorage.handler.FileItemListHandler;
 
 /**
  * 目录结构。
  */
 public class Directory extends Entity {
+    
+    private FileHierarchy hierarchy;
 
     /**
      * 父目录 ID 。
@@ -107,6 +113,8 @@ public class Directory extends Entity {
         this.parentId = parentId;
         this.last = lastTime;
         this.expiry = expiryTime;
+        this.children = new ConcurrentHashMap<>();
+        this.files = new ConcurrentHashMap<>();
     }
 
     public Directory(JSONObject json) throws JSONException {
@@ -127,6 +135,33 @@ public class Directory extends Entity {
         else {
             this.parentId = 0L;
         }
+
+        this.children = new ConcurrentHashMap<>();
+        this.files = new ConcurrentHashMap<>();
+    }
+
+    /**
+     * <b>Non-public API</b>
+     * @param hierarchy
+     */
+    protected void setHierarchy(FileHierarchy hierarchy) {
+        this.hierarchy = hierarchy;
+    }
+
+    protected Collection<Directory> getChildren() {
+        return this.children.values();
+    }
+
+    protected int countChildren() {
+        return this.children.size();
+    }
+
+    protected void addChildren(Directory directory) {
+        this.children.put(directory.id, directory);
+    }
+
+    protected void removeChildren(Directory directory) {
+        this.children.remove(directory.id);
     }
 
     /**
@@ -151,26 +186,50 @@ public class Directory extends Entity {
         return this.name;
     }
 
+    /**
+     *
+     * @return
+     */
     public long getCreation() {
         return this.creation;
     }
 
+    /**
+     *
+     * @return
+     */
     public long getLastModified() {
         return this.lastModified;
     }
 
+    /**
+     *
+     * @return
+     */
     public long getSize() {
         return this.size;
     }
 
+    /**
+     *
+     * @return
+     */
     public boolean isHidden() {
         return this.hidden;
     }
 
+    /**
+     *
+     * @return
+     */
     public int numDirs() {
         return this.numDirs;
     }
 
+    /**
+     *
+     * @return
+     */
     public int numFiles() {
         return this.numFiles;
     }
@@ -181,7 +240,11 @@ public class Directory extends Entity {
      * @return 如果当前目录是根目录返回 {@code true} 。
      */
     public boolean isRoot() {
-        return (null == this.parent);
+        return (this.parentId.longValue() == 0);
+    }
+
+    public void listFileItems(FileItemListHandler successHandler, FailureHandler failureHandler) {
+        this.hierarchy.listDirectories(this, successHandler, failureHandler);
     }
 
     @Override

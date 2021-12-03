@@ -47,6 +47,7 @@ import cube.contact.model.Self;
 import cube.core.Module;
 import cube.core.ModuleError;
 import cube.core.Packet;
+import cube.core.Pipeline;
 import cube.core.PipelineState;
 import cube.core.handler.FailureHandler;
 import cube.core.handler.PipelineHandler;
@@ -196,6 +197,11 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
      */
     public String getFileCachePath() {
         return this.fileCachePath;
+    }
+
+    @Override
+    public Pipeline getPipeline() {
+        return this.pipeline;
     }
 
     /**

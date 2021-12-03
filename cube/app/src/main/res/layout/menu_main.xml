@@ -38,6 +38,19 @@
             android:textColor="@color/popup_menu_text"
             android:textSize="14sp"/>
 
+        <TextView
+            android:id="@+id/tvFileUpload"
+            android:layout_width="match_parent"
+            android:layout_height="46dp"
+            android:layout_margin="0.5dp"
+            android:drawableStart="@mipmap/ic_file_upload"
+            android:drawablePadding="20dp"
+            android:gravity="center_vertical"
+            android:paddingStart="10dp"
+            android:text="@string/upload_file"
+            android:textColor="@color/popup_menu_text"
+            android:textSize="14sp"/>
+
     </LinearLayout>
 
 </com.shixincube.app.widget.AutoCardView>

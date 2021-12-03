@@ -177,8 +177,11 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
             case 0:
                 break;
             case 1:
+                menuView.findViewById(R.id.tvCreateGroup).setVisibility(View.GONE);
+                menuView.findViewById(R.id.tvAddContact).setVisibility(View.GONE);
                 break;
             case 2:
+                menuView.findViewById(R.id.tvFileUpload).setVisibility(View.GONE);
                 break;
             case 3:
                 break;
@@ -189,6 +192,7 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
         PopupWindow popupWindow = PopupWindowUtils.getPopupWindowAtLocation(menuView, getWindow().getDecorView(),
                 Gravity.TOP | Gravity.END,
                 UIUtils.dp2px(5), appBar.getHeight() + UIUtils.dp2px(40));
+
         menuView.findViewById(R.id.tvCreateGroup).setOnClickListener((v) -> {
             popupWindow.dismiss();
 
@@ -196,11 +200,16 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
             Intent intent = new Intent(this, OperateContactActivity.class);
             startActivityForResult(intent, REQUEST_CREATE_GROUP_CONVERSATION);
         });
+
         menuView.findViewById(R.id.tvAddContact).setOnClickListener((v) -> {
             popupWindow.dismiss();
 
             // 添加联系人
             jumpToActivity(AddContactActivity.class);
+        });
+
+        menuView.findViewById(R.id.tvFileUpload).setOnClickListener((v) -> {
+
         });
     }
 

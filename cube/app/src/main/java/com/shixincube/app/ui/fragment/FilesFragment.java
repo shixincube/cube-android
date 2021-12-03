@@ -28,6 +28,7 @@ package com.shixincube.app.ui.fragment;
 
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.shixincube.app.R;
 import com.shixincube.app.ui.activity.MainActivity;
@@ -44,11 +45,14 @@ import butterknife.BindView;
  */
 public class FilesFragment extends BaseFragment<FilesView, FilesPresenter> implements FilesView {
 
-    @BindView(R.id.rvFiles)
-    RecyclerView filesView;
-
     @BindView(R.id.llFileClassify)
     LinearLayout fileClassifyTab;
+
+    @BindView(R.id.tvPath)
+    TextView pathText;
+
+    @BindView(R.id.rvFiles)
+    RecyclerView filesView;
 
     private FilesTabController tabController;
 
@@ -79,5 +83,15 @@ public class FilesFragment extends BaseFragment<FilesView, FilesPresenter> imple
     @Override
     protected int provideContentViewId() {
         return R.layout.fragment_files;
+    }
+
+    @Override
+    public TextView getPathText() {
+        return this.pathText;
+    }
+
+    @Override
+    public RecyclerView getFileListView() {
+        return this.filesView;
     }
 }

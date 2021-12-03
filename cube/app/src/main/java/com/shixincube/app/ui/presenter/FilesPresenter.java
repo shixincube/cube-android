@@ -26,18 +26,29 @@
 
 package com.shixincube.app.ui.presenter;
 
+import com.shixincube.app.R;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.FilesView;
+import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.FilesTabController;
 import com.shixincube.app.widget.adapter.AdapterForRecyclerView;
+import com.shixincube.app.widget.adapter.ViewHolderForRecyclerView;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import cube.core.Module;
+import cube.core.ModuleError;
+import cube.core.handler.DefaultFailureHandler;
 import cube.engine.CubeEngine;
 import cube.engine.util.Future;
 import cube.engine.util.Promise;
 import cube.engine.util.PromiseFuture;
 import cube.engine.util.PromiseHandler;
+import cube.filestorage.handler.DefaultFileItemListHandler;
 import cube.filestorage.model.Directory;
+import cube.filestorage.model.FileItem;
 import cube.util.LogUtils;
 
 /**
@@ -49,7 +60,9 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
 
     private FilesTabController tabController;
 
-    private AdapterForRecyclerView adapter;
+    private List<FileItem> fileItemList;
+
+    private AdapterForRecyclerView<FileItem> adapter;
 
     private Directory currentDirectory;
 
@@ -57,6 +70,7 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
         super(activity);
         this.tabController = tabController;
         this.tabController.setTabChangedListener(this);
+        this.fileItemList = new ArrayList<>();
     }
 
     public void loadData() {
@@ -66,7 +80,9 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
         Promise.create(new PromiseHandler<Directory>() {
             @Override
             public void emit(PromiseFuture<Directory> promise) {
+                // 获取自己的根目录
                 Directory directory = CubeEngine.getInstance().getFileStorage().getSelfRoot();
+
                 if (null != directory) {
                     currentDirectory = directory;
                     promise.resolve(directory);
@@ -90,7 +106,14 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
 
     private void setAdapter() {
         if (null == this.adapter) {
+            this.adapter = new AdapterForRecyclerView<FileItem>(activity, this.fileItemList, R.layout.item_file) {
+                @Override
+                public void convert(ViewHolderForRecyclerView helper, FileItem item, int position) {
 
+                }
+            };
+
+            getView().getFileListView().setAdapter(this.adapter);
         }
     }
 
@@ -98,15 +121,37 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
         int tab = this.tabController.getActiveTab();
         switch (tab) {
             case FilesTabController.TAB_ALL_FILES:
+                // 显示路径
+                getView().getPathText().setText(getPathString());
+
+                // 获取文件项列表
+                this.currentDirectory.listFileItems(new DefaultFileItemListHandler(true) {
+                    @Override
+                    public void handleFileItemList(List<FileItem> itemList) {
+                        fileItemList.clear();
+                        fileItemList.addAll(itemList);
+                        adapter.notifyDataSetChangedWrapper();
+                    }
+                }, new DefaultFailureHandler(true) {
+                    @Override
+                    public void handleFailure(Module module, ModuleError error) {
+                        UIUtils.showToast(UIUtils.getString(R.string.operate_failure_with_code, error.code));
+                    }
+                });
                 break;
+
             case FilesTabController.TAB_IMAGE_FILES:
                 break;
+
             case FilesTabController.TAB_DOC_FILES:
                 break;
+
             case FilesTabController.TAB_VIDEO_FILES:
                 break;
+
             case FilesTabController.TAB_AUDIO_FILES:
                 break;
+
             default:
                 break;
         }
@@ -115,5 +160,25 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
     @Override
     public void onTabChanged(int tab) {
         this.filterFiles();
+    }
+
+    private String getPathString() {
+        if (null == this.currentDirectory) {
+            return "/";
+        }
+
+        if (this.currentDirectory.isRoot()) {
+            return "/";
+        }
+
+        StringBuilder buf = new StringBuilder();
+
+        Directory parent = null;
+        while ((parent = this.currentDirectory.getParent()) != null) {
+            buf.insert(0, parent.getName());
+            buf.insert(0, "/");
+        }
+
+        return buf.toString();
     }
 }

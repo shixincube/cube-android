@@ -9,6 +9,7 @@
 
     <!-- 工具栏 -->
     <string name="add_contact">添加联系人</string>
+    <string name="upload_file">上传文件</string>
     <string name="search">搜索</string>
     <string name="complete">完成</string>
     <string name="complete_with_count">完成(%1$d)</string>

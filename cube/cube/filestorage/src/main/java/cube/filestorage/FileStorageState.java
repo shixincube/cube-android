@@ -113,6 +113,11 @@ public enum FileStorageState {
     GetFileLabelFailed(105),
 
     /**
+     * 数据通道未就绪。
+     */
+    PipelineNotReady(106),
+
+    /**
      * 未知的状态。
      */
     Unknown(99);

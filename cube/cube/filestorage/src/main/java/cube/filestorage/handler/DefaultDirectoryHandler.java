@@ -24,41 +24,24 @@
  * SOFTWARE.
  */
 
-package cube.filestorage.model;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import cube.filestorage.FileStorage;
-import cube.filestorage.StructStorage;
+package cube.filestorage.handler;
 
 /**
- * 文件层级结构描述。
+ * 默认目录句柄。
  */
-public class FileHierarchy {
+public abstract class DefaultDirectoryHandler implements DirectoryHandler {
 
-    private final FileStorage service;
+    private boolean inMainThread = false;
 
-    private final StructStorage storage;
-
-    /**
-     * 当前层级的根目录。
-     */
-    private Directory root;
-
-    /**
-     * 当前层级包含的目录。
-     */
-    private Map<Long, Directory> directoryMap;
-
-    public FileHierarchy(FileStorage service, StructStorage storage, Directory root) {
-        this.service = service;
-        this.storage = storage;
-        this.root = root;
-        this.directoryMap = new HashMap<>();
+    public DefaultDirectoryHandler() {
     }
 
-    public Directory getRoot() {
-        return this.root;
+    public DefaultDirectoryHandler(boolean inMainThread) {
+        this.inMainThread = inMainThread;
+    }
+
+    @Override
+    public boolean isInMainThread() {
+        return this.inMainThread;
     }
 }

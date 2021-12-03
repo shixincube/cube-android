@@ -136,11 +136,11 @@ public class CubeEngine implements Observer {
     }
 
     public void suspend() {
-
+        this.kernel.suspend();
     }
 
     public void resume() {
-
+        this.kernel.resume();
     }
 
     public void warmup() {
@@ -148,6 +148,9 @@ public class CubeEngine implements Observer {
         // 预加载最近 10 个会话的消息，每个会话预加载 10 条
         this.getMessagingService().setPreloadConversationMessageNum(10, 10);
         this.getMessagingService().getRecentConversations();
+
+        // 加载当前联系人的根目录
+        this.getFileStorage().getSelfRoot();
     }
 
     /**

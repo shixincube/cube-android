@@ -171,9 +171,24 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
 
     private void onPopupMenuButtonClick(View view) {
         View menuView = View.inflate(this, R.layout.menu_main, null);
+
+        int item = contentViewPager.getCurrentItem();
+        switch (item) {
+            case 0:
+                break;
+            case 1:
+                break;
+            case 2:
+                break;
+            case 3:
+                break;
+            default:
+                break;
+        }
+
         PopupWindow popupWindow = PopupWindowUtils.getPopupWindowAtLocation(menuView, getWindow().getDecorView(),
                 Gravity.TOP | Gravity.END,
-                UIUtils.dp2px(5), appBar.getHeight() + UIUtils.dp2px(50));
+                UIUtils.dp2px(5), appBar.getHeight() + UIUtils.dp2px(40));
         menuView.findViewById(R.id.tvCreateGroup).setOnClickListener((v) -> {
             popupWindow.dismiss();
 

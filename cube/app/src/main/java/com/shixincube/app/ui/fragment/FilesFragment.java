@@ -68,7 +68,7 @@ public class FilesFragment extends BaseFragment<FilesView, FilesPresenter> imple
 
     @Override
     public void initData() {
-        this.presenter.loadFiles();
+        this.presenter.loadData();
     }
 
     @Override

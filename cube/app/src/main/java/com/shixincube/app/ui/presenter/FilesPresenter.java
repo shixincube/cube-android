@@ -32,14 +32,26 @@ import com.shixincube.app.ui.view.FilesView;
 import com.shixincube.app.widget.FilesTabController;
 import com.shixincube.app.widget.adapter.AdapterForRecyclerView;
 
+import cube.engine.CubeEngine;
+import cube.engine.util.Future;
+import cube.engine.util.Promise;
+import cube.engine.util.PromiseFuture;
+import cube.engine.util.PromiseHandler;
+import cube.filestorage.model.Directory;
+import cube.util.LogUtils;
+
 /**
  * 文件清单。
  */
 public class FilesPresenter extends BasePresenter<FilesView> implements FilesTabController.TabChangedListener {
 
+    private final static String TAG = FilesPresenter.class.getSimpleName();
+
     private FilesTabController tabController;
 
     private AdapterForRecyclerView adapter;
+
+    private Directory currentDirectory;
 
     public FilesPresenter(BaseActivity activity, FilesTabController tabController) {
         super(activity);
@@ -47,10 +59,53 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
         this.tabController.setTabChangedListener(this);
     }
 
-    public void loadFiles() {
+    public void loadData() {
+        setAdapter();
+
+        // 加载根文件夹
+        Promise.create(new PromiseHandler<Directory>() {
+            @Override
+            public void emit(PromiseFuture<Directory> promise) {
+                Directory directory = CubeEngine.getInstance().getFileStorage().getSelfRoot();
+                if (null != directory) {
+                    currentDirectory = directory;
+                    promise.resolve(directory);
+                }
+                else {
+                    promise.reject();
+                }
+            }
+        }).thenOnMainThread(new Future<Directory>() {
+            @Override
+            public void come(Directory data) {
+                filterFiles();
+            }
+        }).catchReject(new Future<Directory>() {
+            @Override
+            public void come(Directory data) {
+                LogUtils.w(TAG, "#loadData failed");
+            }
+        }).launch();
+    }
+
+    private void setAdapter() {
+        if (null == this.adapter) {
+
+        }
+    }
+
+    private void filterFiles() {
         int tab = this.tabController.getActiveTab();
         switch (tab) {
             case FilesTabController.TAB_ALL_FILES:
+                break;
+            case FilesTabController.TAB_IMAGE_FILES:
+                break;
+            case FilesTabController.TAB_DOC_FILES:
+                break;
+            case FilesTabController.TAB_VIDEO_FILES:
+                break;
+            case FilesTabController.TAB_AUDIO_FILES:
                 break;
             default:
                 break;
@@ -59,6 +114,6 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
 
     @Override
     public void onTabChanged(int tab) {
-
+        this.filterFiles();
     }
 }

@@ -39,6 +39,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.ConcurrentHashMap;
 
 import cube.contact.ContactService;
 import cube.contact.ContactServiceEvent;
@@ -47,10 +48,16 @@ import cube.core.Module;
 import cube.core.ModuleError;
 import cube.core.Packet;
 import cube.core.PipelineState;
+import cube.core.handler.FailureHandler;
 import cube.core.handler.PipelineHandler;
+import cube.core.handler.StableFailureHandler;
+import cube.filestorage.handler.DefaultDirectoryHandler;
+import cube.filestorage.handler.DirectoryHandler;
 import cube.filestorage.handler.DownloadFileHandler;
+import cube.filestorage.handler.MutableDirectory;
 import cube.filestorage.handler.StableFileLabelHandler;
 import cube.filestorage.handler.UploadFileHandler;
+import cube.filestorage.model.Directory;
 import cube.filestorage.model.FileAnchor;
 import cube.filestorage.model.FileHierarchy;
 import cube.filestorage.model.FileLabel;
@@ -66,6 +73,9 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
     public final static String NAME = "FileStorage";
 
     private final static String TAG = FileStorage.class.getSimpleName();
+
+    /** 阻塞调用方法的超时时间。 */
+    private final long blockingTimeout = 10 * 1000;
 
     private Self self;
 
@@ -89,10 +99,11 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
     /**
      * 文件层级管理器。
      */
-    private FileHierarchy fileHierarchy;
+    private ConcurrentHashMap<Long, FileHierarchy> fileHierarchyMap;
 
     public FileStorage() {
         super(NAME);
+        this.fileHierarchyMap = new ConcurrentHashMap<>();
     }
 
     @Override
@@ -132,8 +143,6 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
         if (null != this.self) {
             this.storage = new StructStorage();
             this.storage.open(getContext(), this.self.id, this.self.domain);
-
-            this.fileHierarchy = new FileHierarchy(this, this.storage, this.self.id);
         }
 
         this.uploadQueue = new UploadQueue(this, this.fileBlockSize);
@@ -194,9 +203,110 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
      *
      * @return 返回文件层级管理器。
      */
-    public FileHierarchy getFileHierarchy() {
-        return this.fileHierarchy;
+    public Directory getSelfRoot() {
+        if (null == this.self) {
+            return null;
+        }
+
+        FileHierarchy hierarchy = this.fileHierarchyMap.get(this.self.id);
+        if (null != hierarchy) {
+            return hierarchy.getRoot();
+        }
+
+        Directory directory = this.storage.readDirectory(this.self.id);
+        if (null != directory) {
+            hierarchy = new FileHierarchy(this, this.storage, directory);
+            this.fileHierarchyMap.put(this.self.id, hierarchy);
+            return hierarchy.getRoot();
+        }
+
+        MutableDirectory mutableDirectory = new MutableDirectory();
+
+        // 从服务器上更新
+        this.getRoot(this.self.id, new DefaultDirectoryHandler(false) {
+            @Override
+            public void handleDirectory(Directory directory) {
+                mutableDirectory.directory = directory;
+
+                synchronized (mutableDirectory) {
+                    mutableDirectory.notify();
+                }
+            }
+        }, new StableFailureHandler() {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                synchronized (mutableDirectory) {
+                    mutableDirectory.notify();
+                }
+            }
+        });
+
+        synchronized (mutableDirectory) {
+            try {
+                mutableDirectory.wait(this.blockingTimeout);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return mutableDirectory.directory;
     }
+
+    private void getRoot(Long id, DirectoryHandler successHandler, FailureHandler failureHandler) {
+        if (!this.pipeline.isReady()) {
+            ModuleError error = new ModuleError(NAME, FileStorageState.PipelineNotReady.code);
+            execute(failureHandler, error);
+            return;
+        }
+
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("id", id.longValue());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        Packet requestPacket = new Packet(FileStorageAction.GetRoot, payload);
+        this.pipeline.send(FileStorage.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    ModuleError error = new ModuleError(NAME, packet.state.code);
+                    execute(failureHandler, error);
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != FileStorageState.Ok.code) {
+                    ModuleError error = new ModuleError(NAME, stateCode);
+                    execute(failureHandler, error);
+                    return;
+                }
+
+                try {
+                    Directory directory = new Directory(packet.extractServiceData());
+                    FileHierarchy hierarchy = new FileHierarchy(FileStorage.this, storage, directory);
+                    fileHierarchyMap.put(id, hierarchy);
+
+                    // 更新数据库
+                    storage.writeDirectory(directory);
+
+                    if (successHandler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            successHandler.handleDirectory(directory);
+                        });
+                    }
+                    else {
+                        execute(() -> {
+                            successHandler.handleDirectory(directory);
+                        });
+                    }
+                } catch (JSONException e) {
+                    LogUtils.w(TAG, "#getRoot", e);
+                }
+            }
+        });
+    }
+
 
     /**
      * 上传到默认目录。
@@ -675,10 +785,6 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
             if (null == this.storage) {
                 this.storage = new StructStorage();
                 this.storage.open(getContext(), this.self.id, this.self.domain);
-            }
-
-            if (null == this.fileHierarchy) {
-                this.fileHierarchy = new FileHierarchy(this, this.storage, this.self.id);
             }
         }
     }

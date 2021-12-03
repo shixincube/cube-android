@@ -40,11 +40,6 @@ import cube.core.model.Entity;
 public class Directory extends Entity {
 
     /**
-     * 目录对应的层级描述。
-     */
-    private FileHierarchy hierarchy;
-
-    /**
      * 父目录 ID 。
      */
     private Long parentId;
@@ -100,7 +95,7 @@ public class Directory extends Entity {
     private Map<String, FileLabel> files;
 
     public Directory(Long id, String name, long creation, long lastModified, long size, boolean hidden, int numDirs, int numFiles,
-                     Long parentId) {
+                     Long parentId, long lastTime, long expiryTime) {
         super(id, creation);
         this.name = name;
         this.creation = creation;
@@ -110,6 +105,28 @@ public class Directory extends Entity {
         this.numDirs = numDirs;
         this.numFiles = numFiles;
         this.parentId = parentId;
+        this.last = lastTime;
+        this.expiry = expiryTime;
+    }
+
+    public Directory(JSONObject json) throws JSONException {
+        super(json);
+        this.name = json.getString("name");
+        this.creation = json.getLong("creation");
+        this.lastModified = json.getLong("lastModified");
+        this.size = json.getLong("size");
+        this.hidden = json.getBoolean("hidden");
+        this.timestamp = this.lastModified;
+
+        this.numDirs = json.getInt("numDirs");
+        this.numFiles = json.getInt("numFiles");
+
+        if (json.has("parentId")) {
+            this.parentId = json.getLong("parentId");
+        }
+        else {
+            this.parentId = 0L;
+        }
     }
 
     /**
@@ -121,6 +138,43 @@ public class Directory extends Entity {
         return this.parent;
     }
 
+    public Long getParentId() {
+        return this.parentId;
+    }
+
+    /**
+     * 获取目录名。
+     *
+     * @return 返回目录名。
+     */
+    public String getName() {
+        return this.name;
+    }
+
+    public long getCreation() {
+        return this.creation;
+    }
+
+    public long getLastModified() {
+        return this.lastModified;
+    }
+
+    public long getSize() {
+        return this.size;
+    }
+
+    public boolean isHidden() {
+        return this.hidden;
+    }
+
+    public int numDirs() {
+        return this.numDirs;
+    }
+
+    public int numFiles() {
+        return this.numFiles;
+    }
+
     /**
      * 是否是根目录。
      *
@@ -130,6 +184,7 @@ public class Directory extends Entity {
         return (null == this.parent);
     }
 
+    @Override
     public JSONObject toJSON() {
         JSONObject json = super.toCompactJSON();
         try {

@@ -142,8 +142,88 @@ public class StructStorage extends AbstractStorage {
         return fileLabel;
     }
 
+    /**
+     * 读取目录结构。
+     *
+     * @param dirId
+     * @return
+     */
     public Directory readDirectory(Long dirId) {
-        return null;
+        Directory directory = null;
+
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query("directory", new String[]{ "*" },
+                "id=?", new String[]{ dirId.toString() }, null, null, null);
+        if (cursor.moveToFirst()) {
+            directory = readDirectory(cursor);
+        }
+        cursor.close();
+
+        this.closeReadableDatabase(db);
+        return directory;
+    }
+
+    /**
+     * 写入目录结构。
+     *
+     * @param directory 指定目录。
+     */
+    public void writeDirectory(Directory directory) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        Cursor cursor = db.query("directory", new String[]{ "id" },
+                "id=?", new String[]{ directory.id.toString() }, null, null, null);
+        if (cursor.moveToFirst()) {
+            cursor.close();
+
+            ContentValues values = new ContentValues();
+            values.put("name", directory.getName());
+            values.put("creation", directory.getCreation());
+            values.put("last_modified", directory.getLastModified());
+            values.put("size", directory.getSize());
+            values.put("hidden", directory.isHidden() ? 1 : 0);
+            values.put("num_dirs", directory.numDirs());
+            values.put("num_files", directory.numFiles());
+            values.put("parent_id", directory.getParentId().longValue());
+            values.put("last", directory.getLast());
+            values.put("expiry", directory.getExpiry());
+            // update
+            db.update("directory", values, "id=?", new String[]{ directory.id.toString() });
+        }
+        else {
+            cursor.close();
+
+            ContentValues values = new ContentValues();
+            values.put("id", directory.id.longValue());
+            values.put("name", directory.getName());
+            values.put("creation", directory.getCreation());
+            values.put("last_modified", directory.getLastModified());
+            values.put("size", directory.getSize());
+            values.put("hidden", directory.isHidden() ? 1 : 0);
+            values.put("num_dirs", directory.numDirs());
+            values.put("num_files", directory.numFiles());
+            values.put("parent_id", directory.getParentId().longValue());
+            values.put("last", directory.getLast());
+            values.put("expiry", directory.getExpiry());
+            // insert
+            db.insert("directory", null, values);
+        }
+
+        this.closeWritableDatabase(db);
+    }
+
+    private void readHierarchy(Long dirId) {
+        /*
+        // 读取目录下的所有子结构
+        cursor = db.query("hierarchy", new String[]{ "dir_id", "file_code", "hidden" },
+                "parent_id=?", new String[]{ directory.id.toString() }, null, null, null);
+        while (cursor.moveToNext()) {
+            long dir = cursor.getLong(0);
+            String file = cursor.getString(1);
+            boolean hidden = cursor.getInt(2) == 1;
+        }
+        */
     }
 
     private FileLabel readFileLabel(Cursor cursor) {
@@ -173,7 +253,9 @@ public class StructStorage extends AbstractStorage {
                 cursor.getInt(cursor.getColumnIndex("hidden")) == 1,
                 cursor.getInt(cursor.getColumnIndex("num_dirs")),
                 cursor.getInt(cursor.getColumnIndex("num_files")),
-                cursor.getLong(cursor.getColumnIndex("parent_id")));
+                cursor.getLong(cursor.getColumnIndex("parent_id")),
+                cursor.getLong(cursor.getColumnIndex("last")),
+                cursor.getLong(cursor.getColumnIndex("expiry")));
     }
 
     @Override
@@ -182,7 +264,7 @@ public class StructStorage extends AbstractStorage {
         database.execSQL("CREATE TABLE IF NOT EXISTS `file_label` (`id` BIGINT PRIMARY KEY, `timestamp` BIGINT, `owner` BIGINT, `file_code` TEXT, `file_path` TEXT, `file_name` TEXT, `file_size` BIGINT, `last_modified` BIGINT, `completed_time` BIGINT, `expiry_time` BIGINT, `file_type` TEXT, `md5` TEXT, `sha1` TEXT, `file_url` TEXT, `file_secure_url` TEXT)");
 
         // 目录基本信息
-        database.execSQL("CREATE TABLE IF NOT EXISTS `directory` (`id` BIGINT PRIMARY KEY, `name` TEXT, `creation` BIGINT, `last_modified` BIGINT, `size` BIGINT, `hidden` INTEGER, `num_dirs` INTEGER, `num_files` INTEGER, `parent_id` BIGINT DEFAULT 0)");
+        database.execSQL("CREATE TABLE IF NOT EXISTS `directory` (`id` BIGINT PRIMARY KEY, `name` TEXT, `creation` BIGINT, `last_modified` BIGINT, `size` BIGINT, `hidden` INTEGER, `num_dirs` INTEGER, `num_files` INTEGER, `parent_id` BIGINT DEFAULT 0, `last` BIGINT DEFAULT 0, `expiry` BIGINT DEFAULT 0)");
 
         // 层级结构
         database.execSQL("CREATE TABLE IF NOT EXISTS `hierarchy` (`sn` BIGINT PRIMARY KEY, `parent_id` BIGINT, `dir_id` BIGINT DEFAULT 0, `file_code` TEXT DEFAULT NULL, `hidden` INTEGER DEFAULT 0)");

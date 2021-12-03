@@ -168,9 +168,11 @@ public class Contact extends AbstractContact {
     public int getMemorySize() {
         int size = super.getMemorySize();
         // 本对象
-        size += 8 + 8 + 8;
+        size += 8 + 8;
 
-        
+        for (Device device : this.devices) {
+            size += device.getMemorySize();
+        }
 
         if (null != this.appendix) {
             size += this.appendix.getMemorySize();

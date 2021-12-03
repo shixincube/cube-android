@@ -30,6 +30,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.nio.charset.StandardCharsets;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -229,7 +230,7 @@ public class ContactZone extends Entity {
     }
 
     /**
-     * 非公开方法。
+     * <b>Non-public API</b>
      *
      * @param participant
      */
@@ -241,7 +242,7 @@ public class ContactZone extends Entity {
     }
 
     /**
-     * 非公开方法。
+     * <b>Non-public API</b>
      *
      * @param participant
      */
@@ -253,7 +254,7 @@ public class ContactZone extends Entity {
      * 添加联系人。
      *
      * @param contact 指定联系人。
-     * @param postscript
+     * @param postscript 指定添加时的附言。
      * @param successHandler 指定操作成功回调句柄。
      * @param failureHandler 指定操作失败回调句柄。
      */
@@ -290,10 +291,10 @@ public class ContactZone extends Entity {
     /**
      * 修改参与人状态。
      *
-     * @param participant
-     * @param state
-     * @param successHandler
-     * @param failureHandler
+     * @param participant 指定参与人。
+     * @param state 指定状态。
+     * @param successHandler 指定操作成功回调句柄。
+     * @param failureHandler 指定操作失败回调句柄。
      */
     public void modifyParticipant(ContactZoneParticipant participant, ContactZoneParticipantState state,
                                   ContactZoneParticipantHandler successHandler,
@@ -304,10 +305,10 @@ public class ContactZone extends Entity {
     /**
      * 修改参与人状态。
      *
-     * @param participantId
-     * @param state
-     * @param successHandler
-     * @param failureHandler
+     * @param participantId 指定参与人 ID 。
+     * @param state 指定新的状态。
+     * @param successHandler 指定操作成功回调句柄。
+     * @param failureHandler 指定操作失败回调句柄。
      */
     public void modifyParticipant(Long participantId, ContactZoneParticipantState state,
                                   ContactZoneParticipantHandler successHandler,
@@ -324,9 +325,9 @@ public class ContactZone extends Entity {
     /**
      * 添加群组参与人到分区。
      *
-     * @param group
-     * @param successHandler
-     * @param failureHandler
+     * @param group 指定群组。
+     * @param successHandler 指定操作成功回调句柄。
+     * @param failureHandler 指定操作失败回调句柄。
      */
     public void addParticipant(Group group, ContactZoneHandler successHandler, FailureHandler failureHandler) {
         if (this.contains(group)) {
@@ -344,9 +345,9 @@ public class ContactZone extends Entity {
     /**
      * 从分区移除群组参与人。
      *
-     * @param group
-     * @param successHandler
-     * @param failureHandler
+     * @param group 指定群组。
+     * @param successHandler 指定操作成功回调句柄。
+     * @param failureHandler 指定操作失败回调句柄。
      */
     public void removeParticipant(Group group, ContactZoneHandler successHandler, FailureHandler failureHandler) {
         ContactZoneParticipant participant = this.getParticipant(group.id);
@@ -390,8 +391,20 @@ public class ContactZone extends Entity {
         return false;
     }
 
+    @Override
+    public int getMemorySize() {
+        int size = super.getMemorySize();
+        size += 8 * 7;
+        size += this.name.getBytes(StandardCharsets.UTF_8).length;
+        size += this.displayName.getBytes(StandardCharsets.UTF_8).length;
+        for (ContactZoneParticipant participant : this.participants) {
+            size += participant.getMemorySize();
+        }
+        return size;
+    }
+
     /**
-     * 名称拼写比较器。
+     * 名称比较器。
      */
     protected class NameComparator implements Comparator<ContactZoneParticipant> {
 

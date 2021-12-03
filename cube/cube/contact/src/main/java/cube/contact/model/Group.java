@@ -30,6 +30,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.nio.charset.StandardCharsets;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,8 +43,14 @@ import java.util.Locale;
  */
 public class Group extends AbstractContact implements Comparator<Group> {
 
+    /**
+     * 群组内核分类标签。
+     */
     private String tag;
 
+    /**
+     * 群主 ID 。
+     */
     private Long ownerId;
 
     /**
@@ -51,16 +58,34 @@ public class Group extends AbstractContact implements Comparator<Group> {
      */
     private boolean isOwner;
 
+    /**
+     * 创建时间。
+     */
     private long creation;
 
+    /**
+     * 最近一次数据更新时间。
+     */
     private long lastActive;
 
+    /**
+     * 群组状态描述。
+     */
     private GroupState state;
 
+    /**
+     * 成员 ID 列表。
+     */
     private List<Long> memberIdList;
 
+    /**
+     * 成员列表。
+     */
     private List<Contact> memberList;
 
+    /**
+     * 群组附录。
+     */
     private GroupAppendix appendix;
 
     public Group(Long ownerId, String name) {
@@ -103,6 +128,11 @@ public class Group extends AbstractContact implements Comparator<Group> {
         }
     }
 
+    /**
+     * 获取群组优先显示的名称。
+     *
+     * @return 返回群组优先显示的名称。
+     */
     public String getPriorityName() {
         if (null == this.appendix) {
             return this.name;
@@ -114,7 +144,7 @@ public class Group extends AbstractContact implements Comparator<Group> {
     /**
      * 获取群主。
      *
-     * @return
+     * @return 返回该群的群主。
      */
     public Contact getOwner() {
         if (null == this.memberList) {
@@ -130,42 +160,95 @@ public class Group extends AbstractContact implements Comparator<Group> {
         return null;
     }
 
+    /**
+     * 获取群主 ID 。
+     *
+     * @return 返回群主 ID 。
+     */
     public Long getOwnerId() {
         return this.ownerId;
     }
 
+    /**
+     * 判断"我"是不是该群的群主。
+     *
+     * @return 如果当前签入的联系人是群主返回 {@code true} 。
+     */
     public boolean isOwner() {
         return this.isOwner;
     }
 
+    /**
+     * 获取群组内核分类标签。
+     *
+     * <b>Non-public API</b>
+     *
+     * @return 返回群组内核分类标签。
+     */
     public String getTag() {
         return this.tag;
     }
 
+    /**
+     * 获取群组的创建时间。
+     *
+     * @return 返回群组的创建时间。
+     */
     public long getCreationTime() {
         return this.creation;
     }
 
+    /**
+     * 获取群组数据最近一次的更新时间。
+     *
+     * @return 返回群组数据最近一次的更新时间。
+     */
     public long getLastActive() {
         return this.lastActive;
     }
 
+    /**
+     * 获取群组所有成员的 ID 列表。
+     *
+     * @return 返回群组所有成员的 ID 列表。
+     */
     public List<Long> getMemberIdList() {
         return this.memberIdList;
     }
 
+    /**
+     * 获取群组状态。
+     *
+     * @return 返回群组状态。
+     */
     public GroupState getState() {
         return this.state;
     }
 
+    /**
+     * 获取群组的附录。
+     *
+     * @return 返回群组的附录。
+     */
     public GroupAppendix getAppendix() {
         return this.appendix;
     }
 
+    /**
+     * 当前群组的成员数量。
+     *
+     * @return 返回群组的成员数量。
+     */
     public int numMembers() {
         return this.memberIdList.size();
     }
 
+    /**
+     * 判断指定联系人是否是该群组成员。
+     *
+     * @param contact 指定联系人。
+     * @return 如果是该群组成员返回 {@code true} 。
+     */
     public boolean isMember(Contact contact) {
         for (Long id : this.memberIdList) {
             if (id.longValue() == contact.id.longValue()) {
@@ -176,12 +259,22 @@ public class Group extends AbstractContact implements Comparator<Group> {
         return false;
     }
 
+    /**
+     * <b>Non-public API</b>
+     *
+     * @param memberId
+     */
     public void addMember(Long memberId) {
         if (!this.memberIdList.contains(memberId)) {
             this.memberIdList.add(memberId);
         }
     }
 
+    /**
+     * <b>Non-public API</b>
+     *
+     * @param memberId
+     */
     public void removeMember(Long memberId) {
         this.memberIdList.remove(memberId);
         
@@ -196,6 +289,11 @@ public class Group extends AbstractContact implements Comparator<Group> {
         }
     }
 
+    /**
+     * 获取按照名称排序的成员列表。
+     *
+     * @return 返回按照名称排序的成员列表。
+     */
     public List<Contact> getOrderedMemberList() {
         if (null == this.memberList) {
             return null;
@@ -206,10 +304,20 @@ public class Group extends AbstractContact implements Comparator<Group> {
         return list;
     }
 
+    /**
+     * 获取群组成员列表。
+     *
+     * @return 返回群组成员列表。
+     */
     public List<Contact> getMemberList() {
         return this.memberList;
     }
 
+    /**
+     * 获取除群主外的其他成员列表。
+     *
+     * @return 返回群组成员列表。
+     */
     public List<Contact> getMemberListWithoutOwner() {
         List<Contact> list = new ArrayList<>(getMemberList());
         for (int i = 0; i < list.size(); ++i) {
@@ -222,6 +330,12 @@ public class Group extends AbstractContact implements Comparator<Group> {
         return list;
     }
 
+    /**
+     * 获取指定 ID 的群组成员。
+     *
+     * @param contactId 指定联系人 ID 。
+     * @return 返回联系人实例。
+     */
     public Contact getMember(Long contactId) {
         if (null == this.memberList) {
             return null;
@@ -236,23 +350,48 @@ public class Group extends AbstractContact implements Comparator<Group> {
         return null;
     }
 
+    /**
+     * <b>Non-public API</b>
+     *
+     * @param appendix
+     */
     public void setAppendix(GroupAppendix appendix) {
         this.appendix = appendix;
     }
 
+    /**
+     * <b>Non-public API</b>
+     *
+     * @param state
+     */
     public void setState(GroupState state) {
         this.state = state;
     }
 
+    /**
+     * <b>Non-public API</b>
+     *
+     * @param time
+     */
     public void setLastActive(long time) {
         this.lastActive = time;
         this.resetLast(time);
     }
 
+    /**
+     * <b>Non-public API</b>
+     *
+     * @param value
+     */
     public void setIsOwner(boolean value) {
         this.isOwner = value;
     }
 
+    /**
+     * <b>Non-public API</b>
+     *
+     * @param contact
+     */
     public void updateMember(Contact contact) {
         if (null == this.memberList) {
             this.memberList = new ArrayList<>();
@@ -272,6 +411,8 @@ public class Group extends AbstractContact implements Comparator<Group> {
     /**
      * 是否已填充数据。
      *
+     * <b>Non-public API</b>
+     *
      * @return
      */
     public boolean isFilled() {
@@ -279,12 +420,38 @@ public class Group extends AbstractContact implements Comparator<Group> {
             && (this.appendix.hasNotice() && null != this.appendix.getNoticeOperator()));
     }
 
+    /**
+     * 将指定群组的数据更新到当前群组实例。
+     *
+     * <b>Non-public API</b>
+     *
+     * @param source
+     */
     public void update(Group source) {
         this.ownerId = source.ownerId;
         this.tag = source.tag;
         this.name = source.name;
         this.state = source.state;
         this.lastActive = source.lastActive;
+    }
+
+    @Override
+    public int getMemorySize() {
+        int size = super.getMemorySize();
+        size += 8 * 8 + 1;
+
+        size += this.tag.getBytes(StandardCharsets.UTF_8).length;
+        size += 16 * this.memberIdList.size();
+
+        if (null != this.memberList) {
+            size += 8 * this.memberList.size();
+        }
+
+        if (null != this.appendix) {
+            size += this.appendix.getMemorySize();
+        }
+
+        return size;
     }
 
     @Override

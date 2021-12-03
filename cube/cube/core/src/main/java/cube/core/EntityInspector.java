@@ -54,6 +54,10 @@ public final class EntityInspector extends TimerTask {
 
     private Timer timer;
 
+    private long period = 5 * 60 * 1000;
+
+    private long lastTime = 0;
+
     private List<Map<? extends Object, ? extends Entity>> depositedMapArray;
 
     private List<List<? extends Entity>> depositedListArray;
@@ -69,7 +73,7 @@ public final class EntityInspector extends TimerTask {
     public void start() {
         if (null == this.timer) {
             this.timer = new Timer();
-            this.timer.schedule(this, 60 * 1000, 60 * 1000);
+            this.timer.schedule(this, this.period, this.period);
         }
     }
 
@@ -80,6 +84,16 @@ public final class EntityInspector extends TimerTask {
         if (null != this.timer) {
             this.timer.cancel();
             this.timer = null;
+        }
+    }
+
+    /**
+     * 检测定时器。
+     */
+    public void check() {
+        if (System.currentTimeMillis() - this.lastTime > this.period) {
+            this.stop();
+            this.start();
         }
     }
 
@@ -150,6 +164,8 @@ public final class EntityInspector extends TimerTask {
 
     @Override
     public void run() {
+        this.lastTime = System.currentTimeMillis();
+
         long size = 0;
 
         ArrayList<Entity> entityList = new ArrayList<>();
@@ -175,12 +191,15 @@ public final class EntityInspector extends TimerTask {
 
         if (size < this.maxMemoryThreshold) {
             // 内存未超过阀值
+            if (LogUtils.isDebugLevel()) {
+                LogUtils.d("EntityInspector", "Memory usage: " + size + "/" + this.maxMemoryThreshold);
+            }
             entityList.clear();
             return;
         }
 
         if (LogUtils.isDebugLevel()) {
-            LogUtils.d("EntityInspector", "Memory size: " + size);
+            LogUtils.d("EntityInspector", "Memory size: " + size + "/" + this.maxMemoryThreshold);
         }
 
         // 按照超时时间排序
@@ -196,6 +215,13 @@ public final class EntityInspector extends TimerTask {
         long delta = 0;
         while (position < entityList.size()) {
             Entity entity = entityList.get(position);
+
+            if (entity.getSortableTime() > this.lastTime) {
+                // 数据没有超期
+                --position;
+                break;
+            }
+
             delta += entity.getMemorySize();
             if (size - delta < this.maxMemoryThreshold) {
                 break;

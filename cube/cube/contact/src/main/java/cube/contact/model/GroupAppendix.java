@@ -30,18 +30,20 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
 import cube.contact.ContactService;
 import cube.contact.handler.GroupHandler;
 import cube.core.handler.FailureHandler;
+import cube.core.model.Cacheable;
 import cube.util.JSONable;
 
 /**
  * 群组附录。
  */
-public class GroupAppendix implements JSONable {
+public class GroupAppendix implements JSONable, Cacheable {
 
     private ContactService service;
 
@@ -269,8 +271,34 @@ public class GroupAppendix implements JSONable {
         this.service.updateAppendix(this, params, successHandler, failureHandler);
     }
 
+    /**
+     * <b>Non-public API</b>
+     *
+     * @param contact
+     */
     public void setNoticeOperator(Contact contact) {
         this.noticeOperator = contact;
+    }
+
+    @Override
+    public int getMemorySize() {
+        int size = 8 * 9 + 2;
+        size += this.notice.getBytes(StandardCharsets.UTF_8).length;
+        if (null != this.noticeOperator) {
+            size += this.noticeOperator.getMemorySize();
+        }
+
+        for (Map.Entry<Long, String> entry : this.memberRemarks.entrySet()) {
+            size += 16 + entry.getValue().getBytes(StandardCharsets.UTF_8).length;
+        }
+
+        size += this.remark.getBytes(StandardCharsets.UTF_8).length;
+
+        if (null != this.context) {
+            size += this.context.toString().getBytes(StandardCharsets.UTF_8).length;
+        }
+
+        return size;
     }
 
     @Override

@@ -31,6 +31,8 @@ import android.os.Build;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.nio.charset.StandardCharsets;
+
 import cube.core.Kernel;
 import cube.core.model.Cacheable;
 import cube.util.JSONable;
@@ -63,17 +65,16 @@ public class Device implements JSONable, Cacheable {
 
     @Override
     public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+
         if (null == object || !(object instanceof Device)) {
             return false;
         }
 
         Device other = (Device) object;
-        if (other.name.equals(this.name) && other.platform.equals(this.platform)) {
-            return true;
-        }
-        else {
-            return false;
-        }
+        return (other.name.equals(this.name) && other.platform.equals(this.platform));
     }
 
     @Override
@@ -84,6 +85,8 @@ public class Device implements JSONable, Cacheable {
     @Override
     public int getMemorySize() {
         int size = 8 + 8 + 8;
+        size += this.name.getBytes(StandardCharsets.UTF_8).length;
+        size += this.platform.getBytes(StandardCharsets.UTF_8).length;
         return size;
     }
 

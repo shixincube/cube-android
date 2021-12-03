@@ -667,19 +667,50 @@ public class ContactService extends Module {
 
         // 从缓存里读取
         AbstractContact abstractContact = this.cache.get(contactId);
-        if (null != abstractContact) {
-            if (!(abstractContact instanceof Contact)) {
-                return null;
-            }
-
+        if (null != abstractContact && abstractContact instanceof Contact) {
             // 更新缓存寿命
             abstractContact.entityLifeExpiry += LIFESPAN;
             return (Contact) abstractContact;
         }
 
+        // 从数据库读取
+        final Contact contact = this.storage.readContact(contactId);
+        if (null != contact) {
+            // 检查上下文
+            if (null == contact.getContext() && null != this.contactDataProvider) {
+                contact.setContext(this.contactDataProvider.needContactContext(contact));
+                if (null != contact.getContext()) {
+                    contact.resetLast(System.currentTimeMillis());
+                    this.storage.updateContactContext(contact);
+                }
+            }
+
+            // 写入缓存
+            this.cache.put(contactId, contact);
+
+            if (!contact.isValid()) {
+                execute(() -> {
+                    // 过期数据，从服务器更新
+                    this.refreshContact(contact.id, new StableContactHandler() {
+                        @Override
+                        public void handleContact(Contact contact) {
+                            // Nothing
+                        }
+                    }, new StableFailureHandler() {
+                        @Override
+                        public void handleFailure(Module module, ModuleError error) {
+                            // Nothing
+                        }
+                    });
+                });
+            }
+
+            return contact;
+        }
+
         final MutableContact mutableContact = new MutableContact();
 
-        this.getContact(contactId, new StableContactHandler() {
+        this.refreshContact(contactId, new StableContactHandler() {
             @Override
             public void handleContact(Contact contact) {
                 // 赋值
@@ -714,35 +745,22 @@ public class ContactService extends Module {
      *
      * @param contactId 指定联系人 ID 。
      * @param successHandler 成功获取到数据回调该句柄。
-     */
-    public void getContact(Long contactId, ContactHandler successHandler) {
-        this.getContact(contactId, successHandler, null);
-    }
-
-    /**
-     * 获取指定 ID 的联系人。
-     *
-     * @param contactId 指定联系人 ID 。
-     * @param successHandler 成功获取到数据回调该句柄。
      * @param failureHandler 获取数据时故障回调该句柄。该句柄可以设置为 {@code null} 值。
      */
     public void getContact(Long contactId, ContactHandler successHandler, FailureHandler failureHandler) {
         if (null == this.self) {
-            if (null != failureHandler) {
-                ModuleError error = new ModuleError(ContactService.NAME, ContactServiceState.IllegalOperation.code);
-                execute(failureHandler, error);
-            }
+            execute(failureHandler);
             return;
         }
 
         if (contactId.longValue() == this.self.id.longValue()) {
             if (successHandler.isInMainThread()) {
-                this.executeOnMainThread(() -> {
+                executeOnMainThread(() -> {
                     successHandler.handleContact(self);
                 });
             }
             else {
-                this.execute(() -> {
+                execute(() -> {
                     successHandler.handleContact(self);
                 });
             }
@@ -754,14 +772,13 @@ public class ContactService extends Module {
         if (null != abstractContact && abstractContact instanceof Contact) {
             // 更新缓存寿命
             abstractContact.entityLifeExpiry += LIFESPAN;
-
             if (successHandler.isInMainThread()) {
-                this.executeOnMainThread(() -> {
+                executeOnMainThread(() -> {
                     successHandler.handleContact((Contact) abstractContact);
                 });
             }
             else {
-                this.execute(() -> {
+                execute(() -> {
                     successHandler.handleContact((Contact) abstractContact);
                 });
             }
@@ -784,28 +801,30 @@ public class ContactService extends Module {
             this.cache.put(contactId, contact);
 
             if (successHandler.isInMainThread()) {
-                this.executeOnMainThread(() -> {
+                executeOnMainThread(() -> {
                     successHandler.handleContact(contact);
                 });
             }
             else {
-                this.execute(() -> {
+                execute(() -> {
                     successHandler.handleContact(contact);
                 });
             }
 
             if (!contact.isValid()) {
-                // 过期数据，从服务器更新
-                this.refreshContact(contact.id, new StableContactHandler() {
-                    @Override
-                    public void handleContact(Contact contact) {
-                        // Nothing
-                    }
-                }, new StableFailureHandler() {
-                    @Override
-                    public void handleFailure(Module module, ModuleError error) {
-                        // Nothing
-                    }
+                execute(() -> {
+                    // 过期数据，从服务器更新
+                    this.refreshContact(contact.id, new StableContactHandler() {
+                        @Override
+                        public void handleContact(Contact contact) {
+                            // Nothing
+                        }
+                    }, new StableFailureHandler() {
+                        @Override
+                        public void handleFailure(Module module, ModuleError error) {
+                            // Nothing
+                        }
+                    });
                 });
             }
 
@@ -826,10 +845,8 @@ public class ContactService extends Module {
     private void refreshContact(Long contactId, ContactHandler successHandler, FailureHandler failureHandler) {
         if (!this.pipeline.isReady()) {
             // 数据通道未就绪
-            if (null != failureHandler) {
-                ModuleError error = new ModuleError(NAME, ContactServiceState.NoNetwork.code);
-                execute(failureHandler, error);
-            }
+            ModuleError error = new ModuleError(NAME, ContactServiceState.NoNetwork.code);
+            execute(failureHandler, error);
             return;
         }
 
@@ -846,19 +863,15 @@ public class ContactService extends Module {
             @Override
             public void handleResponse(Packet packet) {
                 if (packet.state.code != PipelineState.Ok.code) {
-                    if (null != failureHandler) {
-                        ModuleError error = new ModuleError(ContactService.NAME, packet.state.code);
-                        execute(failureHandler, error);
-                    }
+                    ModuleError error = new ModuleError(ContactService.NAME, packet.state.code);
+                    execute(failureHandler, error);
                     return;
                 }
 
                 int stateCode = packet.extractServiceStateCode();
                 if (stateCode != ContactServiceState.Ok.code) {
-                    if (null != failureHandler) {
-                        ModuleError error = new ModuleError(ContactService.NAME, stateCode);
-                        execute(failureHandler, error);
-                    }
+                    ModuleError error = new ModuleError(ContactService.NAME, stateCode);
+                    execute(failureHandler, error);
                     return;
                 }
 
@@ -893,15 +906,13 @@ public class ContactService extends Module {
                     }, new StableFailureHandler() {
                         @Override
                         public void handleFailure(Module module, ModuleError error) {
-                            if (null != failureHandler) {
-                                if (failureHandler.isInMainThread()) {
-                                    executeOnMainThread(() -> {
-                                        failureHandler.handleFailure(module, error);
-                                    });
-                                }
-                                else {
+                            if (failureHandler.isInMainThread()) {
+                                executeOnMainThread(() -> {
                                     failureHandler.handleFailure(module, error);
-                                }
+                                });
+                            }
+                            else {
+                                failureHandler.handleFailure(module, error);
                             }
                         }
                     });
@@ -915,7 +926,7 @@ public class ContactService extends Module {
     /**
      * 获取默认的联系人分区。
      *
-     * @return
+     * @return 返回默认的联系人分区。
      */
     public ContactZone getDefaultContactZone() {
         if (null == this.self) {
@@ -1042,8 +1053,8 @@ public class ContactService extends Module {
     /**
      * 获取指定名称的联系人分区。
      *
-     * @param zoneName
-     * @return
+     * @param zoneName 指定分区名。
+     * @return 返回指定名称的联系人分区。
      */
     public ContactZone getContactZone(String zoneName) {
         if (this.defaultContactZoneName.equals(zoneName)) {
@@ -1065,6 +1076,29 @@ public class ContactService extends Module {
             this.fillContactZone(zone);
 
             this.zoneCache.put(zone.name, zone);
+
+            if (!zone.isValid()) {
+                // 已失效，更新数据
+                // 从服务器获取
+                final ContactZone curZone = zone;
+                execute(() -> {
+                    refreshContactZone(curZone, false, new StableContactZoneHandler() {
+                        @Override
+                        public void handleContactZone(ContactZone contactZone) {
+                            // 填充数据
+                            fillContactZone(contactZone);
+
+                            // 更新到缓存
+                            zoneCache.put(contactZone.name, contactZone);
+                        }
+                    }, new StableFailureHandler() {
+                        @Override
+                        public void handleFailure(Module module, ModuleError error) {
+                            LogUtils.w(TAG, "#getContactZone error : " + error.code);
+                        }
+                    });
+                });
+            }
         }
 
         return zone;
@@ -1073,36 +1107,27 @@ public class ContactService extends Module {
     /**
      * 获取指定的联系人分区。
      *
-     * @param zoneName
-     * @param successHandler
-     * @param failureHandler
+     * @param zoneName 指定分区名称。
+     * @param successHandler 指定操作成功回调句柄。
+     * @param failureHandler 指定操作失败回调句柄。
      */
     public void getContactZone(String zoneName, ContactZoneHandler successHandler, FailureHandler failureHandler) {
-        // 从数据库里读取
-        final ContactZone zone = this.storage.readContactZone(zoneName);
+        ContactZone zone = this.getContactZone(zoneName);
         if (null != zone) {
-            if (zone.isValid()) {
-                // 填充数据
-                this.fillContactZone(zone);
-
-                this.zoneCache.put(zone.name, zone);
-
-                // 回调
-                if (successHandler.isInMainThread()) {
-                    this.executeOnMainThread(() -> {
-                        successHandler.handleContactZone(zone);
-                    });
-                }
-                else {
-                    this.execute(() -> {
-                        successHandler.handleContactZone(zone);
-                    });
-                }
-                return;
+            if (successHandler.isInMainThread()) {
+                executeOnMainThread(() -> {
+                    successHandler.handleContactZone(zone);
+                });
             }
+            else {
+                execute(() -> {
+                    successHandler.handleContactZone(zone);
+                });
+            }
+            return;
         }
 
-        // 数据库没有数据或已经过期，从服务器获取
+        // 本地没有数据，从服务器更新
         ContactZone dummyZone = new ContactZone(this, 0L, zoneName, zoneName,
                 false, 0, ContactZoneState.Normal);
         // 从服务器获取
@@ -1111,6 +1136,9 @@ public class ContactService extends Module {
             public void handleContactZone(ContactZone contactZone) {
                 // 填充数据
                 fillContactZone(contactZone);
+
+                // 更新到缓存
+                zoneCache.put(contactZone.name, contactZone);
 
                 if (successHandler.isInMainThread()) {
                     executeOnMainThread(() -> {
@@ -1176,6 +1204,9 @@ public class ContactService extends Module {
                 // 更新到数据库
                 storage.writeContactZone(responseZone);
 
+                // 更新到缓存
+                zoneCache.put(responseZone.name, responseZone);
+
                 if (successHandler.isInMainThread()) {
                     executeOnMainThread(() -> {
                         successHandler.handleContactZone(responseZone);
@@ -1240,6 +1271,8 @@ public class ContactService extends Module {
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+
+            zone.entityLifeExpiry += LIFESPAN;
 
             // 移除
             zone.addParticipant(participant);
@@ -1320,6 +1353,8 @@ public class ContactService extends Module {
                 e.printStackTrace();
             }
 
+            zone.entityLifeExpiry += LIFESPAN;
+
             // 移除
             zone.removeParticipant(participant);
             zone.resetLast(timestamp);
@@ -1351,13 +1386,13 @@ public class ContactService extends Module {
     }
 
     /**
-     * 修改制定参与人的状态。
+     * 修改指定参与人的状态。
      *
-     * @param zone
-     * @param participant
-     * @param state
-     * @param successHandler
-     * @param failureHandler
+     * @param zone 指定分区。
+     * @param participant 指定分区的参与人。
+     * @param state 指定新的状态。
+     * @param successHandler 指定操作成功回调句柄。
+     * @param failureHandler 指定操作失败回调句柄。
      */
     public void modifyParticipant(ContactZone zone, ContactZoneParticipant participant, ContactZoneParticipantState state,
                                   ContactZoneParticipantHandler successHandler,
@@ -1381,6 +1416,8 @@ public class ContactService extends Module {
 
         // 如果状态相同，则返回成功
         if (state == currentState) {
+            zone.entityLifeExpiry += LIFESPAN;
+
             if (successHandler.isInMainThread()) {
                 executeOnMainThread(() -> {
                     successHandler.handleContactZoneParticipant(participant, zone);
@@ -1993,18 +2030,43 @@ public class ContactService extends Module {
         }
 
         // 从缓存里读取
-        AbstractContact abstractGroup = this.cache.get(groupId);
-        if (null != abstractGroup) {
-            if (!(abstractGroup instanceof Group)) {
-                return null;
+        AbstractContact abstractContact = this.cache.get(groupId);
+        if (null != abstractContact && abstractContact instanceof Group) {
+            // 更新缓存寿命
+            abstractContact.entityLifeExpiry += LIFESPAN;
+
+            Group group = (Group) abstractContact;
+            if (!group.isFilled()) {
+                fillGroup(group);
             }
 
-            // 更新缓存寿命
-            abstractGroup.entityLifeExpiry += LIFESPAN;
+            return group;
+        }
 
-            Group group = (Group) abstractGroup;
-            if (!group.isFilled()) {
-                this.fillGroup(group);
+        // 从数据库读取
+        Group group = this.storage.readGroup(groupId);
+        if (null != group) {
+            // 填充数据
+            this.fillGroup(group);
+
+            // 写入缓存
+            this.cache.put(groupId, group);
+
+            // 数据失效，进行更新
+            if (!group.isValid()) {
+                execute(() -> {
+                    refreshGroup(groupId, new StableGroupHandler() {
+                        @Override
+                        public void handleGroup(Group group) {
+                            // Nothing
+                        }
+                    }, new StableFailureHandler() {
+                        @Override
+                        public void handleFailure(Module module, ModuleError error) {
+                            // Nothing
+                        }
+                    });
+                });
             }
 
             return group;
@@ -2012,7 +2074,7 @@ public class ContactService extends Module {
 
         final MutableGroup mutableGroup = new MutableGroup();
 
-        this.getGroup(groupId, new StableGroupHandler() {
+        this.refreshGroup(groupId, new StableGroupHandler() {
             @Override
             public void handleGroup(Group group) {
                 mutableGroup.group = group;
@@ -2049,10 +2111,7 @@ public class ContactService extends Module {
      */
     public void getGroup(Long groupId, GroupHandler successHandler, FailureHandler failureHandler) {
         if (null == this.self) {
-            if (null != failureHandler) {
-                ModuleError error = new ModuleError(ContactService.NAME, ContactServiceState.IllegalOperation.code);
-                execute(failureHandler, error);
-            }
+            execute(failureHandler);
             return;
         }
 
@@ -2068,51 +2127,73 @@ public class ContactService extends Module {
             }
 
             if (successHandler.isInMainThread()) {
-                this.executeOnMainThread(() -> {
+                executeOnMainThread(() -> {
                     successHandler.handleGroup(group);
                 });
             }
             else {
-                this.execute(() -> {
+                execute(() -> {
                     successHandler.handleGroup(group);
                 });
             }
-
             return;
         }
 
         // 从数据库读取
         Group group = this.storage.readGroup(groupId);
         if (null != group) {
-            // 在没有连接服务器或者数据有效时返回
-            if (!this.pipeline.isReady() || group.isValid()) {
-                // 填充数据
-                this.fillGroup(group);
+            // 填充数据
+            this.fillGroup(group);
 
-                // 写入缓存
-                this.cache.put(groupId, group);
+            // 写入缓存
+            this.cache.put(groupId, group);
 
-                if (successHandler.isInMainThread()) {
-                    this.executeOnMainThread(() -> {
-                        successHandler.handleGroup(group);
-                    });
-                }
-                else {
-                    this.execute(() -> {
-                        successHandler.handleGroup(group);
-                    });
-                }
-
-                return;
+            if (successHandler.isInMainThread()) {
+                executeOnMainThread(() -> {
+                    successHandler.handleGroup(group);
+                });
             }
+            else {
+                execute(() -> {
+                    successHandler.handleGroup(group);
+                });
+            }
+
+            // 数据失效，进行更新
+            if (!group.isValid()) {
+                execute(() -> {
+                    refreshGroup(groupId, new StableGroupHandler() {
+                        @Override
+                        public void handleGroup(Group group) {
+                            // Nothing
+                        }
+                    }, new StableFailureHandler() {
+                        @Override
+                        public void handleFailure(Module module, ModuleError error) {
+                            // Nothing
+                        }
+                    });
+                });
+            }
+            return;
         }
 
+        // 从服务器更新
+        this.refreshGroup(groupId, successHandler, failureHandler);
+    }
+
+    /**
+     * 刷新群组。
+     *
+     * @param groupId 指定群组 ID 。
+     * @param successHandler 指定操作成功回调句柄。
+     * @param failureHandler 指定操作故障回调句柄。
+     */
+    private void refreshGroup(Long groupId, GroupHandler successHandler, FailureHandler failureHandler) {
         if (!this.pipeline.isReady()) {
             // 数据通道未就绪
-            if (null != failureHandler) {
-                ModuleError error = new ModuleError(NAME, ContactServiceState.NoNetwork.code);
-                execute(failureHandler, error);
-            }
+            ModuleError error = new ModuleError(NAME, ContactServiceState.NoNetwork.code);
+            execute(failureHandler, error);
             return;
         }
 
@@ -2129,19 +2210,15 @@ public class ContactService extends Module {
             @Override
             public void handleResponse(Packet packet) {
                 if (packet.state.code != PipelineState.Ok.code) {
-                    if (null != failureHandler) {
-                        ModuleError error = new ModuleError(ContactService.NAME, packet.state.code);
-                        execute(failureHandler, error);
-                    }
+                    ModuleError error = new ModuleError(ContactService.NAME, packet.state.code);
+                    execute(failureHandler, error);
                     return;
                 }
 
                 int stateCode = packet.extractServiceStateCode();
                 if (stateCode != ContactServiceState.Ok.code) {
-                    if (null != failureHandler) {
-                        ModuleError error = new ModuleError(ContactService.NAME, stateCode);
-                        execute(failureHandler, error);
-                    }
+                    ModuleError error = new ModuleError(ContactService.NAME, stateCode);
+                    execute(failureHandler, error);
                     return;
                 }
 
@@ -2175,15 +2252,13 @@ public class ContactService extends Module {
                     }, new StableFailureHandler() {
                         @Override
                         public void handleFailure(Module module, ModuleError error) {
-                            if (null != failureHandler) {
-                                if (failureHandler.isInMainThread()) {
-                                    executeOnMainThread(() -> {
-                                        failureHandler.handleFailure(module, error);
-                                    });
-                                }
-                                else {
+                            if (failureHandler.isInMainThread()) {
+                                executeOnMainThread(() -> {
                                     failureHandler.handleFailure(module, error);
-                                }
+                                });
+                            }
+                            else {
+                                failureHandler.handleFailure(module, error);
                             }
                         }
                     });
@@ -2197,10 +2272,12 @@ public class ContactService extends Module {
     /**
      * 更新指定参数的群组附录。
      *
-     * @param appendix
-     * @param params
-     * @param successHandler
-     * @param failureHandler
+     * <b>Non-public API</b>
+     *
+     * @param appendix 指定附录。
+     * @param params 指定更新参数
+     * @param successHandler 指定操作成功回调句柄。
+     * @param failureHandler 指定操作失败回调句柄。
      */
     public void updateAppendix(GroupAppendix appendix, JSONObject params, GroupHandler successHandler, FailureHandler failureHandler) {
         if (!this.pipeline.isReady()) {
@@ -2271,6 +2348,11 @@ public class ContactService extends Module {
         });
     }
 
+    /**
+     * <b>Non-public API</b>
+     *
+     * @param failureHandler
+     */
     public void execute(FailureHandler failureHandler) {
         ModuleError error = new ModuleError(NAME, ContactServiceState.IllegalOperation.code);
         this.execute(failureHandler, error);
@@ -2384,6 +2466,11 @@ public class ContactService extends Module {
         });
     }
 
+    /**
+     * 填写联系人分区里的实体数据。
+     *
+     * @param zone
+     */
     private synchronized void fillContactZone(final ContactZone zone) {
         for (ContactZoneParticipant participant : zone.getParticipants()) {
             if (participant.getType() == ContactZoneParticipantType.Contact) {
@@ -2410,6 +2497,11 @@ public class ContactService extends Module {
         }
     }
 
+    /**
+     * 填充群组实例数据。
+     *
+     * @param group
+     */
     private void fillGroup(final Group group) {
         for (Long memberId : group.getMemberIdList()) {
             if (null == group.getMember(memberId)) {

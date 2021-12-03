@@ -187,6 +187,9 @@ public class Kernel implements PipelineListener {
     }
 
     public void resume() {
+        // 缓存管理检测
+        this.inspector.check();
+
         if (this.working) {
             for (Module module : this.moduleMap.values()) {
                 module.resume();

@@ -78,6 +78,30 @@ public class FilesTabController implements View.OnClickListener {
         return this.activeTab;
     }
 
+    public void setUploadingNum(int num) {
+        TextView badge = (TextView) this.rootLayout.findViewById(R.id.llUploading)
+                .findViewById(R.id.tvBadgeUploadNum);
+        if (num > 0) {
+            badge.setVisibility(View.VISIBLE);
+            badge.setText(Integer.toString(num));
+        }
+        else {
+            badge.setVisibility(View.GONE);
+        }
+    }
+
+    public void setDownloadingNum(int num) {
+        TextView badge = (TextView) this.rootLayout.findViewById(R.id.llDownloading)
+                .findViewById(R.id.tvBadgeDownloadNum);
+        if (num > 0) {
+            badge.setVisibility(View.VISIBLE);
+            badge.setText(Integer.toString(num));
+        }
+        else {
+            badge.setVisibility(View.GONE);
+        }
+    }
+
     @Override
     public void onClick(View view) {
         int id = view.getId();

@@ -274,6 +274,14 @@ public class Directory extends Entity implements Comparator<FileItem> {
         return (this.parentId.longValue() == 0);
     }
 
+    public int numUploadingFiles() {
+        return this.hierarchy.getUploadingFiles().size();
+    }
+
+    public int numDownloadingFiles() {
+        return this.hierarchy.getDownloadingFiles().size();
+    }
+
     /**
      *
      * @param successHandler

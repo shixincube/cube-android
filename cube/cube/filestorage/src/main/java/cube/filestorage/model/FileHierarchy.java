@@ -89,13 +89,21 @@ public class FileHierarchy {
         this.root = root;
         this.root.setHierarchy(this);
         this.directoryMap = new HashMap<>();
+        this.uploadingFiles = new ArrayList<>();
+        this.downloadingFiles = new ArrayList<>();
     }
 
     public Directory getRoot() {
         return this.root;
     }
 
+    public List<FileAnchor> getUploadingFiles() {
+        return this.uploadingFiles;
+    }
 
+    public List<FileAnchor> getDownloadingFiles() {
+        return this.downloadingFiles;
+    }
 
     /**
      * 获取目录列表。
@@ -316,13 +324,19 @@ public class FileHierarchy {
      * @param failureHandler
      */
     protected void uploadFile(File file, Directory directory, FileUploadDirectoryHandler successHandler, FailureHandler failureHandler) {
+        FileAnchor anchor = new FileAnchor(file);
+
+        // 记录需要上传的文件
+        synchronized (this.uploadingFiles) {
+            this.uploadingFiles.add(anchor);
+        }
+
         if (!this.service.getPipeline().isReady()) {
             ModuleError error = new ModuleError(FileStorage.NAME, FileStorageState.PipelineNotReady.code);
             this.service.execute(failureHandler, error);
             return;
         }
 
-        FileAnchor anchor = new FileAnchor(file);
         // 第一步，上传文件
         this.service.uploadFile(anchor, new StableUploadFileHandler() {
             @Override
@@ -346,6 +360,10 @@ public class FileHierarchy {
 
             @Override
             public void handleSuccess(FileAnchor fileAnchor, FileLabel fileLabel) {
+                synchronized (uploadingFiles) {
+                    uploadingFiles.remove(anchor);
+                }
+
                 // 第二步，放置文件到目录
                 insertFile(fileLabel, directory, new DefaultDirectoryHandler(false) {
                     @Override

@@ -88,6 +88,10 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
                 if (null != directory) {
                     currentDirectory = directory;
                     promise.resolve(directory);
+
+                    // 更新正在上传和下载文件数量
+                    tabController.setUploadingNum(directory.numUploadingFiles());
+                    tabController.setDownloadingNum(directory.numDownloadingFiles());
                 }
                 else {
                     promise.reject();

@@ -108,7 +108,7 @@ public class MessagingService extends Module {
 
     private final static String TAG = MessagingService.class.getSimpleName();
 
-    private long retrospectDuration = 30l * 24l * 60l * 60000l;
+    private long retrospectDuration = 30 * 24 * 60 * 60000;
 
     private long blockTimeout = 3 * 60 * 1000;
 

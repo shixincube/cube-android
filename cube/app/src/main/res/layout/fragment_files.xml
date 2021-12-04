@@ -233,6 +233,28 @@
 
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/llNoFile"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <Button
+            android:id="@+id/btnUpload"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/strip_button_height"
+            android:layout_marginStart="@dimen/item_margin_start_and_end"
+            android:layout_marginEnd="@dimen/item_margin_start_and_end"
+            android:layout_gravity="center_vertical"
+            android:background="@drawable/selector_primary_button"
+            android:textColor="?attr/colorButtonPrimaryText"
+            android:text="@string/upload_file"/>
+
+    </LinearLayout>
+
     <com.shixincube.app.widget.recyclerview.RecyclerView
         android:id="@+id/rvFiles"
         android:layout_width="match_parent"

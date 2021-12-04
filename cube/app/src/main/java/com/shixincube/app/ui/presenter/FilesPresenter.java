@@ -26,6 +26,8 @@
 
 package com.shixincube.app.ui.presenter;
 
+import android.view.View;
+
 import com.shixincube.app.R;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
@@ -130,7 +132,16 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
                     public void handleFileItemList(List<FileItem> itemList) {
                         fileItemList.clear();
                         fileItemList.addAll(itemList);
-                        adapter.notifyDataSetChangedWrapper();
+
+                        if (fileItemList.isEmpty()) {
+                            getView().getNoFileLayout().setVisibility(View.VISIBLE);
+                            getView().getFileListView().setVisibility(View.GONE);
+                        }
+                        else {
+                            getView().getNoFileLayout().setVisibility(View.GONE);
+                            getView().getFileListView().setVisibility(View.VISIBLE);
+                            adapter.notifyDataSetChangedWrapper();
+                        }
                     }
                 }, new DefaultFailureHandler(true) {
                     @Override

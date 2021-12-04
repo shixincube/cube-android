@@ -29,19 +29,37 @@ package cube.filestorage.model;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.Collator;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import cube.auth.AuthService;
+import cube.core.Module;
+import cube.core.ModuleError;
 import cube.core.handler.FailureHandler;
+import cube.core.handler.StableFailureHandler;
 import cube.core.model.Entity;
+import cube.filestorage.handler.DefaultDirectoryListHandler;
+import cube.filestorage.handler.DefaultFileListHandler;
 import cube.filestorage.handler.FileItemListHandler;
+import cube.util.LogUtils;
 
 /**
  * 目录结构。
  */
-public class Directory extends Entity {
+public class Directory extends Entity implements Comparator<FileItem> {
+
+    private final static Collator sCollator = Collator.getInstance(Locale.CHINESE);
+
+    private final static String TAG = "Directory";
     
     private FileHierarchy hierarchy;
 
@@ -98,7 +116,7 @@ public class Directory extends Entity {
     /**
      * 包含的文件映射。
      */
-    private Map<String, FileLabel> files;
+    private List<FileLabel> files;
 
     public Directory(Long id, String name, long creation, long lastModified, long size, boolean hidden, int numDirs, int numFiles,
                      Long parentId, long lastTime, long expiryTime) {
@@ -114,7 +132,7 @@ public class Directory extends Entity {
         this.last = lastTime;
         this.expiry = expiryTime;
         this.children = new ConcurrentHashMap<>();
-        this.files = new ConcurrentHashMap<>();
+        this.files = new ArrayList<>();
     }
 
     public Directory(JSONObject json) throws JSONException {
@@ -137,7 +155,7 @@ public class Directory extends Entity {
         }
 
         this.children = new ConcurrentHashMap<>();
-        this.files = new ConcurrentHashMap<>();
+        this.files = new ArrayList<>();
     }
 
     /**
@@ -162,6 +180,16 @@ public class Directory extends Entity {
 
     protected void removeChildren(Directory directory) {
         this.children.remove(directory.id);
+    }
+
+    protected void addFile(FileLabel fileLabel) {
+        if (!this.files.contains(fileLabel)) {
+            this.files.add(fileLabel);
+        }
+    }
+
+    protected void removeFile(FileLabel fileLabel) {
+        this.files.remove(fileLabel);
     }
 
     /**
@@ -243,8 +271,112 @@ public class Directory extends Entity {
         return (this.parentId.longValue() == 0);
     }
 
+    /**
+     *
+     * @param successHandler
+     * @param failureHandler
+     */
     public void listFileItems(FileItemListHandler successHandler, FailureHandler failureHandler) {
-        this.hierarchy.listDirectories(this, successHandler, failureHandler);
+        final List<FileItem> result = new ArrayList<>();
+
+        AtomicBoolean gotDirs = new AtomicBoolean(false);
+        AtomicBoolean gotFiles = new AtomicBoolean(false);
+
+        // 读取子目录
+        if (this.numDirs == this.children.size()) {
+            for (Directory directory : this.children.values()) {
+                result.add(new FileItem(directory));
+            }
+
+            gotDirs.set(true);
+            if (gotFiles.get()) {
+                processList(result, successHandler);
+            }
+        }
+        else {
+            this.hierarchy.listDirectories(this, new DefaultDirectoryListHandler(false) {
+                @Override
+                public void handleDirectoryList(List<Directory> directoryList) {
+                    for (Directory directory : directoryList) {
+                        result.add(new FileItem(directory));
+                    }
+
+                    gotDirs.set(true);
+                    if (gotFiles.get()) {
+                        processList(result, successHandler);
+                    }
+                }
+            }, new StableFailureHandler() {
+                @Override
+                public void handleFailure(Module module, ModuleError error) {
+                    LogUtils.w(TAG, "#listDirectories failed : " + error.code);
+                    gotDirs.set(true);
+                    if (gotFiles.get()) {
+                        processList(result, successHandler);
+                    }
+                }
+            });
+        }
+
+        // 读取文件
+        if (this.numFiles == this.files.size()) {
+            for (FileLabel fileLabel : this.files) {
+                result.add(new FileItem(fileLabel));
+            }
+
+            gotFiles.set(true);
+            if (gotDirs.get()) {
+                processList(result, successHandler);
+            }
+        }
+        else {
+            int beginIndex = this.files.size();
+            int endIndex = beginIndex + 19;
+            this.hierarchy.listFiles(this, beginIndex, endIndex, new DefaultFileListHandler(false) {
+                @Override
+                public void handleFileList(List<FileLabel> fileList) {
+                    for (FileLabel fileLabel : fileList) {
+                        result.add(new FileItem(fileLabel));
+                    }
+
+                    gotFiles.set(true);
+                    if (gotDirs.get()) {
+                        processList(result, successHandler);
+                    }
+                }
+            }, new StableFailureHandler() {
+                @Override
+                public void handleFailure(Module module, ModuleError error) {
+                    LogUtils.w(TAG, "#listFiles failed : " + error.code);
+
+                    gotFiles.set(true);
+                    if (gotDirs.get()) {
+                        processList(result, successHandler);
+                    }
+                }
+            });
+        }
+    }
+
+    private void processList(List<FileItem> itemList, FileItemListHandler handler) {
+        // 分离目录和文件
+        List<FileItem> fileList = new ArrayList<>();
+        Iterator<FileItem> iter = itemList.iterator();
+        while (iter.hasNext()) {
+            FileItem item = iter.next();
+            if (item.type == FileItem.ItemType.File) {
+                fileList.add(item);
+                iter.remove();
+            }
+        }
+
+        // 排序
+        Collections.sort(fileList, this);
+        Collections.sort(itemList, this);
+
+        itemList.addAll(fileList);
+
+        this.hierarchy.handle(handler, itemList);
     }
 
     @Override
@@ -256,5 +388,10 @@ public class Directory extends Entity {
             e.printStackTrace();
         }
         return json;
+    }
+
+    @Override
+    public int compare(FileItem fileItem1, FileItem fileItem2) {
+        return sCollator.compare(fileItem1.getName(), fileItem2.getName());
     }
 }

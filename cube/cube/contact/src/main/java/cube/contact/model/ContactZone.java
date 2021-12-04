@@ -126,12 +126,14 @@ public class ContactZone extends Entity {
      * @return 返回已排序的参与人列表。
      */
     public List<ContactZoneParticipant> getOrderedParticipants() {
-        if (!this.ordered) {
-            this.ordered = true;
-            Collections.sort(this.participants, new NameComparator());
-        }
+        synchronized (this.participants) {
+            if (!this.ordered) {
+                this.ordered = true;
+                Collections.sort(this.participants, new NameComparator());
+            }
 
-        return this.participants;
+            return this.participants;
+        }
     }
 
     /**
@@ -150,9 +152,11 @@ public class ContactZone extends Entity {
      * @return
      */
     public ContactZoneParticipant getParticipant(Long id) {
-        for (ContactZoneParticipant participant : this.participants) {
-            if (participant.id.longValue() == id.longValue()) {
-                return participant;
+        synchronized (this.participants) {
+            for (ContactZoneParticipant participant : this.participants) {
+                if (participant.id.longValue() == id.longValue()) {
+                    return participant;
+                }
             }
         }
 
@@ -199,9 +203,11 @@ public class ContactZone extends Entity {
     public List<ContactZoneParticipant> getParticipantsByExcluding(ContactZoneParticipantState excludedState) {
         ArrayList<ContactZoneParticipant> list = new ArrayList<>();
 
-        for (ContactZoneParticipant participant : this.participants) {
-            if (participant.getState() != excludedState) {
-                list.add(participant);
+        synchronized (this.participants) {
+            for (ContactZoneParticipant participant : this.participants) {
+                if (participant.getState() != excludedState) {
+                    list.add(participant);
+                }
             }
         }
 
@@ -235,9 +241,11 @@ public class ContactZone extends Entity {
      * @param participant
      */
     public void addParticipant(ContactZoneParticipant participant) {
-        if (!this.participants.contains(participant)) {
-            this.participants.add(participant);
-            this.ordered = false;
+        synchronized (this.participants) {
+            if (!this.participants.contains(participant)) {
+                this.participants.add(participant);
+                this.ordered = false;
+            }
         }
     }
 
@@ -247,7 +255,9 @@ public class ContactZone extends Entity {
      * @param participant
      */
     public void removeParticipant(ContactZoneParticipant participant) {
-        this.participants.remove(participant);
+        synchronized (this.participants) {
+            this.participants.remove(participant);
+        }
     }
 
     /**
@@ -366,9 +376,11 @@ public class ContactZone extends Entity {
      * @return 如果该分区有该联系人返回 {@code true} ，否则返回 {@code false} 。
      */
     public boolean contains(Contact contact) {
-        for (ContactZoneParticipant participant : this.participants) {
-            if (participant.id.equals(contact.id)) {
-                return true;
+        synchronized (this.participants) {
+            for (ContactZoneParticipant participant : this.participants) {
+                if (participant.id.equals(contact.id)) {
+                    return true;
+                }
             }
         }
 
@@ -382,9 +394,11 @@ public class ContactZone extends Entity {
      * @return 如果该分区有该群组返回 {@code true} ，否则返回 {@code false} 。
      */
     public boolean contains(Group group) {
-        for (ContactZoneParticipant participant : this.participants) {
-            if (participant.id.equals(group.id)) {
-                return true;
+        synchronized (this.participants) {
+            for (ContactZoneParticipant participant : this.participants) {
+                if (participant.id.equals(group.id)) {
+                    return true;
+                }
             }
         }
 
@@ -397,8 +411,10 @@ public class ContactZone extends Entity {
         size += 8 * 7;
         size += this.name.getBytes(StandardCharsets.UTF_8).length;
         size += this.displayName.getBytes(StandardCharsets.UTF_8).length;
-        for (ContactZoneParticipant participant : this.participants) {
-            size += participant.getMemorySize();
+        synchronized (this.participants) {
+            for (ContactZoneParticipant participant : this.participants) {
+                size += participant.getMemorySize();
+            }
         }
         return size;
     }

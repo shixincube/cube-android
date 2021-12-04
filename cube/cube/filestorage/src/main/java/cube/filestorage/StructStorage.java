@@ -31,6 +31,9 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import cube.core.AbstractStorage;
 import cube.filestorage.model.Directory;
 import cube.filestorage.model.FileLabel;
@@ -78,7 +81,6 @@ public class StructStorage extends AbstractStorage {
             values.put("timestamp", fileLabel.getTimestamp());
             values.put("owner", fileLabel.getOwnerId());
             values.put("file_code", fileLabel.getFileCode());
-            values.put("file_path", fileLabel.getFilePath());
             values.put("file_name", fileLabel.getFileName());
             values.put("file_size", fileLabel.getFileSize());
             values.put("last_modified", fileLabel.getLastModified());
@@ -89,6 +91,11 @@ public class StructStorage extends AbstractStorage {
             values.put("sha1", fileLabel.getSha1Code());
             values.put("file_url", fileLabel.getURL());
             values.put("file_secure_url", fileLabel.getSecureURL());
+
+            if (null != fileLabel.getFilePath()) {
+                values.put("file_path", fileLabel.getFilePath());
+            }
+
             // update
             db.update("file_label", values,
                     "id=?", new String[]{ fileLabel.id.toString() });
@@ -101,7 +108,6 @@ public class StructStorage extends AbstractStorage {
             values.put("timestamp", fileLabel.getTimestamp());
             values.put("owner", fileLabel.getOwnerId());
             values.put("file_code", fileLabel.getFileCode());
-            values.put("file_path", fileLabel.getFilePath());
             values.put("file_name", fileLabel.getFileName());
             values.put("file_size", fileLabel.getFileSize());
             values.put("last_modified", fileLabel.getLastModified());
@@ -112,6 +118,11 @@ public class StructStorage extends AbstractStorage {
             values.put("sha1", fileLabel.getSha1Code());
             values.put("file_url", fileLabel.getURL());
             values.put("file_secure_url", fileLabel.getSecureURL());
+
+            if (null != fileLabel.getFilePath()) {
+                values.put("file_path", fileLabel.getFilePath());
+            }
+
             // insert
             db.insert("file_label", null, values);
         }
@@ -125,7 +136,7 @@ public class StructStorage extends AbstractStorage {
      * @param fileCode
      * @return
      */
-    public FileLabel readFileLabelByFileCode(String fileCode) {
+    public FileLabel readFileLabel(String fileCode) {
         FileLabel fileLabel = null;
 
         SQLiteDatabase db = this.getReadableDatabase();
@@ -135,8 +146,8 @@ public class StructStorage extends AbstractStorage {
         if (cursor.moveToFirst()) {
             fileLabel = readFileLabel(cursor);
         }
-
         cursor.close();
+
         this.closeReadableDatabase(db);
 
         return fileLabel;
@@ -162,6 +173,69 @@ public class StructStorage extends AbstractStorage {
 
         this.closeReadableDatabase(db);
         return directory;
+    }
+
+    /**
+     * 读取指定目录的子目录。
+     *
+     * @param parent
+     * @return
+     */
+    public List<Directory> readSubdirectories(Directory parent) {
+        List<Directory> result = new ArrayList<>();
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        List<Long> dirIdList = new ArrayList<>();
+        Cursor cursor = db.query("hierarchy", new String[]{ "dir_id" },
+                "parent_id=? AND dir_id<>0", new String[]{ parent.id.toString() },
+                null, null, null);
+        while (cursor.moveToNext()) {
+            Long dirId = cursor.getLong(0);
+            dirIdList.add(dirId);
+        }
+        cursor.close();
+        this.closeReadableDatabase(db);
+
+        // 读取目录
+        for (Long dirId : dirIdList) {
+            Directory dir = this.readDirectory(dirId);
+            if (null != dir) {
+                result.add(dir);
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * 读取目录下的文件记录。
+     *
+     * @param parent
+     * @return
+     */
+    public List<FileLabel> readFiles(Directory parent) {
+        List<FileLabel> result = new ArrayList<>();
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        List<String> codeList = new ArrayList<>();
+        Cursor cursor = db.query("hierarchy", new String[]{ "file_code" },
+                "parent_id=? AND dir_id=0", new String[]{ parent.id.toString() },
+                null, null, null);
+        while (cursor.moveToNext()) {
+            String fileCode = cursor.getString(0);
+            codeList.add(fileCode);
+        }
+        cursor.close();
+        this.closeReadableDatabase(db);
+
+        for (String fileCode : codeList) {
+            FileLabel fileLabel = this.readFileLabel(fileCode);
+            if (null != fileLabel) {
+                result.add(fileLabel);
+            }
+        }
+
+        return result;
     }
 
     /**
@@ -210,20 +284,59 @@ public class StructStorage extends AbstractStorage {
             db.insert("directory", null, values);
         }
 
+        // 存入结构
+        cursor = db.query("hierarchy", new String[]{ "sn" },
+                "parent_id=? AND dir_id=?", new String[]{
+                        directory.getParentId().toString(),
+                        directory.id.toString()
+                }, null, null, null);
+        if (cursor.moveToFirst()) {
+            cursor.close();
+        }
+        else {
+            cursor.close();
+
+            ContentValues values = new ContentValues();
+            values.put("parent_id", directory.getParentId());
+            values.put("dir_id", directory.id);
+            values.put("hidden", directory.isHidden() ? 1 : 0);
+            // insert
+            db.insert("hierarchy", null, values);
+        }
+
         this.closeWritableDatabase(db);
     }
 
-    private void readHierarchy(Long dirId) {
-        /*
-        // 读取目录下的所有子结构
-        cursor = db.query("hierarchy", new String[]{ "dir_id", "file_code", "hidden" },
-                "parent_id=?", new String[]{ directory.id.toString() }, null, null, null);
-        while (cursor.moveToNext()) {
-            long dir = cursor.getLong(0);
-            String file = cursor.getString(1);
-            boolean hidden = cursor.getInt(2) == 1;
+    /**
+     * 写入目录下的文件标签。
+     *
+     * @param directory
+     * @param fileLabel
+     */
+    public void writeFileLabel(Directory directory, FileLabel fileLabel) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.query("hierarchy", new String[]{ "sn" },
+                "parent_id=? AND file_code=?", new String[]{
+                        directory.id.toString(),
+                        fileLabel.getFileCode() },
+                null, null, null);
+        if (cursor.moveToFirst()) {
+            cursor.close();
         }
-        */
+        else {
+            cursor.close();
+
+            // 插入数据
+            ContentValues values = new ContentValues();
+            values.put("parent_id", directory.id);
+            values.put("file_code", fileLabel.getFileCode());
+            // insert
+            db.insert("hierarchy", null, values);
+        }
+        this.closeWritableDatabase(db);
+
+        // 写入文件标签
+        this.writeFileLabel(fileLabel);
     }
 
     private FileLabel readFileLabel(Cursor cursor) {
@@ -261,13 +374,13 @@ public class StructStorage extends AbstractStorage {
     @Override
     protected void onDatabaseCreate(SQLiteDatabase database) {
         // 本地文件记录
-        database.execSQL("CREATE TABLE IF NOT EXISTS `file_label` (`id` BIGINT PRIMARY KEY, `timestamp` BIGINT, `owner` BIGINT, `file_code` TEXT, `file_path` TEXT, `file_name` TEXT, `file_size` BIGINT, `last_modified` BIGINT, `completed_time` BIGINT, `expiry_time` BIGINT, `file_type` TEXT, `md5` TEXT, `sha1` TEXT, `file_url` TEXT, `file_secure_url` TEXT)");
+        database.execSQL("CREATE TABLE IF NOT EXISTS `file_label` (`id` BIGINT PRIMARY KEY, `timestamp` BIGINT, `owner` BIGINT, `file_code` TEXT, `file_path` TEXT DEFAULT NULL, `file_name` TEXT, `file_size` BIGINT, `last_modified` BIGINT, `completed_time` BIGINT, `expiry_time` BIGINT, `file_type` TEXT, `md5` TEXT, `sha1` TEXT, `file_url` TEXT, `file_secure_url` TEXT)");
 
         // 目录基本信息
         database.execSQL("CREATE TABLE IF NOT EXISTS `directory` (`id` BIGINT PRIMARY KEY, `name` TEXT, `creation` BIGINT, `last_modified` BIGINT, `size` BIGINT, `hidden` INTEGER, `num_dirs` INTEGER, `num_files` INTEGER, `parent_id` BIGINT DEFAULT 0, `last` BIGINT DEFAULT 0, `expiry` BIGINT DEFAULT 0)");
 
         // 层级结构
-        database.execSQL("CREATE TABLE IF NOT EXISTS `hierarchy` (`sn` BIGINT PRIMARY KEY, `parent_id` BIGINT, `dir_id` BIGINT DEFAULT 0, `file_code` TEXT DEFAULT NULL, `hidden` INTEGER DEFAULT 0)");
+        database.execSQL("CREATE TABLE IF NOT EXISTS `hierarchy` (`sn` INTEGER PRIMARY KEY AUTOINCREMENT, `parent_id` BIGINT, `dir_id` BIGINT DEFAULT 0, `file_code` TEXT DEFAULT NULL, `hidden` INTEGER DEFAULT 0)");
     }
 
     @Override

@@ -27,6 +27,7 @@
 package com.shixincube.app.ui.fragment;
 
 import android.view.View;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -50,6 +51,11 @@ public class FilesFragment extends BaseFragment<FilesView, FilesPresenter> imple
 
     @BindView(R.id.tvPath)
     TextView pathText;
+
+    @BindView(R.id.llNoFile)
+    LinearLayout noFileLayout;
+    @BindView(R.id.btnUpload)
+    Button uploadButton;
 
     @BindView(R.id.rvFiles)
     RecyclerView filesView;
@@ -76,6 +82,13 @@ public class FilesFragment extends BaseFragment<FilesView, FilesPresenter> imple
     }
 
     @Override
+    public void initListener() {
+        this.uploadButton.setOnClickListener((v) -> {
+            
+        });
+    }
+
+    @Override
     protected FilesPresenter createPresenter() {
         return new FilesPresenter((MainActivity) getActivity(), this.tabController);
     }
@@ -83,6 +96,11 @@ public class FilesFragment extends BaseFragment<FilesView, FilesPresenter> imple
     @Override
     protected int provideContentViewId() {
         return R.layout.fragment_files;
+    }
+
+    @Override
+    public LinearLayout getNoFileLayout() {
+        return this.noFileLayout;
     }
 
     @Override

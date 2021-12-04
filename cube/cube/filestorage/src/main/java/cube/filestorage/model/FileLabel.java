@@ -360,6 +360,25 @@ public class FileLabel extends Entity {
     }
 
     @Override
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+
+        if (null != object && object instanceof FileLabel) {
+            FileLabel other = (FileLabel) object;
+            return other.fileCode.equals(this.fileCode);
+        }
+
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return this.fileCode.hashCode();
+    }
+
+    @Override
     public JSONObject toJSON() {
         JSONObject json = super.toCompactJSON();
         try {

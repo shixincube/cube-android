@@ -205,6 +205,22 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
     }
 
     /**
+     * <b>Non-public API</b>
+     * @param task
+     */
+    public void executeHandler(Runnable task) {
+        super.execute(task);
+    }
+
+    /**
+     * <b>Non-public API</b>
+     * @param task
+     */
+    public void executeHandlerOnMainThread(Runnable task) {
+        super.executeOnMainThread(task);
+    }
+
+    /**
      * 获取文件层级管理器。
      *
      * @return 返回文件层级管理器。

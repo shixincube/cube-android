@@ -24,21 +24,17 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app.ui.view;
+package cube.filestorage.handler;
 
-import android.widget.LinearLayout;
-import android.widget.TextView;
+import java.util.List;
 
-import com.shixincube.app.widget.recyclerview.RecyclerView;
+import cube.core.handler.CallbackHandler;
+import cube.filestorage.model.FileLabel;
 
 /**
- * 文件清单界面。
+ * 文件列表句柄。
  */
-public interface FilesView {
+public interface FileListHandler extends CallbackHandler {
 
-    LinearLayout getNoFileLayout();
-
-    TextView getPathText();
-
-    RecyclerView getFileListView();
+    void handleFileList(List<FileLabel> fileList);
 }

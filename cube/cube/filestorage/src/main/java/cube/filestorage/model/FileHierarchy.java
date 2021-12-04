@@ -26,27 +26,36 @@
 
 package cube.filestorage.model;
 
+import androidx.annotation.Nullable;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import cube.core.Module;
 import cube.core.ModuleError;
 import cube.core.Packet;
 import cube.core.PipelineState;
 import cube.core.handler.FailureHandler;
 import cube.core.handler.PipelineHandler;
+import cube.core.handler.StableFailureHandler;
 import cube.filestorage.FileStorage;
 import cube.filestorage.FileStorageAction;
 import cube.filestorage.FileStorageState;
 import cube.filestorage.StructStorage;
+import cube.filestorage.handler.DefaultDirectoryHandler;
+import cube.filestorage.handler.DirectoryHandler;
 import cube.filestorage.handler.DirectoryListHandler;
 import cube.filestorage.handler.FileItemListHandler;
 import cube.filestorage.handler.FileListHandler;
+import cube.filestorage.handler.FileUploadDirectoryHandler;
+import cube.filestorage.handler.StableUploadFileHandler;
 import cube.util.LogUtils;
 
 /**
@@ -82,7 +91,10 @@ public class FileHierarchy {
         return this.root;
     }
 
+
+
     /**
+     * 获取目录列表。
      *
      * @param directory
      * @param successHandler
@@ -172,6 +184,7 @@ public class FileHierarchy {
     }
 
     /**
+     * 获取文件列表。
      *
      * @param directory
      * @param beginIndex
@@ -290,6 +303,123 @@ public class FileHierarchy {
         });
     }
 
+    /**
+     * 上传文件到指定目录。
+     *
+     * @param file
+     * @param directory
+     * @param successHandler
+     * @param failureHandler
+     */
+    protected void uploadFile(File file, Directory directory, FileUploadDirectoryHandler successHandler, FailureHandler failureHandler) {
+        if (!this.service.getPipeline().isReady()) {
+            ModuleError error = new ModuleError(FileStorage.NAME, FileStorageState.PipelineNotReady.code);
+            this.service.execute(failureHandler, error);
+            return;
+        }
+
+        FileAnchor anchor = new FileAnchor(file);
+        // 第一步，上传文件
+        this.service.uploadFile(anchor, new StableUploadFileHandler() {
+            @Override
+            public void handleStarted(FileAnchor anchor) {
+                // Nothing
+            }
+
+            @Override
+            public void handleProcessing(FileAnchor anchor) {
+                if (successHandler.isInMainThread()) {
+                    service.executeHandlerOnMainThread(() -> {
+                        successHandler.handleProgress(anchor, directory);
+                    });
+                }
+                else {
+                    service.executeHandler(() -> {
+                        successHandler.handleProgress(anchor, directory);
+                    });
+                }
+            }
+
+            @Override
+            public void handleSuccess(FileAnchor fileAnchor, FileLabel fileLabel) {
+                // 第二步，放置文件到目录
+                insertFile(fileLabel, directory, new DefaultDirectoryHandler(false) {
+                    @Override
+                    public void handleDirectory(Directory directory) {
+                        if (successHandler.isInMainThread()) {
+                            service.executeHandlerOnMainThread(() -> {
+                                successHandler.handleComplete(fileLabel, directory);
+                            });
+                        }
+                        else {
+                            service.executeHandler(() -> {
+                                successHandler.handleComplete(fileLabel, directory);
+                            });
+                        }
+                    }
+                }, new StableFailureHandler() {
+                    @Override
+                    public void handleFailure(Module module, ModuleError error) {
+                        service.execute(failureHandler, error);
+                    }
+                });
+            }
+
+            @Override
+            public void handleFailure(ModuleError error, @Nullable FileAnchor anchor) {
+                service.execute(failureHandler, error);
+            }
+        });
+    }
+
+    private void insertFile(FileLabel fileLabel, Directory directory, DirectoryHandler successHandler, FailureHandler failureHandler) {
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("root", this.root.id.longValue());
+            payload.put("dirId", directory.id.longValue());
+            payload.put("fileCode", fileLabel.getFileCode());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        Packet requestPacket = new Packet(FileStorageAction.InsertFile, payload);
+        this.service.getPipeline().send(FileStorage.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    ModuleError error = new ModuleError(FileStorage.NAME, packet.state.code);
+                    service.execute(failureHandler, error);
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != FileStorageState.Ok.code) {
+                    ModuleError error = new ModuleError(FileStorage.NAME, stateCode);
+                    service.execute(failureHandler, error);
+                    return;
+                }
+
+                JSONObject data = packet.extractServiceData();
+                try {
+                    // 更新数据
+                    Directory response = new Directory(data.getJSONObject("directory"));
+                    directory.update(response);
+                    directory.addFile(fileLabel);
+
+                    // 更新目录数据
+                    storage.writeDirectory(directory);
+                    // 更新文件数据
+                    storage.writeFileLabel(directory, fileLabel);
+                } catch (JSONException e) {
+                    LogUtils.w(TAG, "#insertFile", e);
+                }
+
+                service.executeHandler(() -> {
+                    successHandler.handleDirectory(directory);
+                });
+            }
+        });
+    }
+
     protected void handle(FileItemListHandler handler, List<FileItem> list) {
         if (handler.isInMainThread()) {
             this.service.executeHandlerOnMainThread(() -> {
@@ -299,6 +429,19 @@ public class FileHierarchy {
         else {
             this.service.executeHandler(() -> {
                 handler.handleFileItemList(list);
+            });
+        }
+    }
+
+    protected void handle(FailureHandler failureHandler, ModuleError error) {
+        if (failureHandler.isInMainThread()) {
+            this.service.executeHandlerOnMainThread(() -> {
+                failureHandler.handleFailure(this.service, error);
+            });
+        }
+        else {
+            this.service.executeHandler(() -> {
+                failureHandler.handleFailure(this.service, error);
             });
         }
     }

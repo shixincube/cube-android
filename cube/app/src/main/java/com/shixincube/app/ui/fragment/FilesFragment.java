@@ -26,6 +26,8 @@
 
 package com.shixincube.app.ui.fragment;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -38,6 +40,11 @@ import com.shixincube.app.ui.presenter.FilesPresenter;
 import com.shixincube.app.ui.view.FilesView;
 import com.shixincube.app.widget.FilesTabController;
 import com.shixincube.app.widget.recyclerview.RecyclerView;
+import com.shixincube.filepicker.Constant;
+import com.shixincube.filepicker.activity.NormalFilePickActivity;
+import com.shixincube.filepicker.filter.entity.NormalFile;
+
+import java.util.ArrayList;
 
 import butterknife.BindView;
 
@@ -45,6 +52,8 @@ import butterknife.BindView;
  * 文件清单。
  */
 public class FilesFragment extends BaseFragment<FilesView, FilesPresenter> implements FilesView {
+
+    public final static int REQUEST_FILE_PICKER = 2001;
 
     @BindView(R.id.llFileClassify)
     LinearLayout fileClassifyTab;
@@ -84,8 +93,26 @@ public class FilesFragment extends BaseFragment<FilesView, FilesPresenter> imple
     @Override
     public void initListener() {
         this.uploadButton.setOnClickListener((v) -> {
-            
+            Intent intent = new Intent(getActivity(), NormalFilePickActivity.class);
+            intent.putExtra(Constant.MAX_NUMBER, 9);
+            intent.putExtra(com.shixincube.filepicker.activity.BaseActivity.IS_NEED_FOLDER_LIST, true);
+            intent.putExtra(NormalFilePickActivity.SUFFIX,
+                    new String[] {"jpg", "jpeg", "png", "bmp",
+                            "xlsx", "xls", "doc", "docx", "ppt", "pptx", "pdf"});
+            startActivityForResult(intent, REQUEST_FILE_PICKER);
         });
+    }
+
+    @Override
+    public void onActivityResult(int responseCode, int resultCode, Intent data) {
+        super.onActivityResult(responseCode, resultCode, data);
+
+        if (responseCode == REQUEST_FILE_PICKER) {
+            if (resultCode == Activity.RESULT_OK) {
+                ArrayList<NormalFile> fileList = data.getParcelableArrayListExtra(Constant.RESULT_PICK_FILE);
+
+            }
+        }
     }
 
     @Override

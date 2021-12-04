@@ -29,6 +29,7 @@ package cube.filestorage.model;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -47,9 +48,11 @@ import cube.core.ModuleError;
 import cube.core.handler.FailureHandler;
 import cube.core.handler.StableFailureHandler;
 import cube.core.model.Entity;
+import cube.filestorage.FileStorage;
 import cube.filestorage.handler.DefaultDirectoryListHandler;
 import cube.filestorage.handler.DefaultFileListHandler;
 import cube.filestorage.handler.FileItemListHandler;
+import cube.filestorage.handler.FileUploadDirectoryHandler;
 import cube.util.LogUtils;
 
 /**
@@ -312,7 +315,7 @@ public class Directory extends Entity implements Comparator<FileItem> {
                     LogUtils.w(TAG, "#listDirectories failed : " + error.code);
                     gotDirs.set(true);
                     if (gotFiles.get()) {
-                        processList(result, successHandler);
+                        hierarchy.handle(failureHandler, new ModuleError(FileStorage.NAME, error.code));
                     }
                 }
             });
@@ -377,6 +380,27 @@ public class Directory extends Entity implements Comparator<FileItem> {
         itemList.addAll(fileList);
 
         this.hierarchy.handle(handler, itemList);
+    }
+
+    /**
+     * 上传文件。
+     *
+     * @param file
+     * @param successHandler
+     * @param failureHandler
+     */
+    public void uploadFile(File file, FileUploadDirectoryHandler successHandler, FailureHandler failureHandler) {
+        this.hierarchy.uploadFile(file, this, successHandler, failureHandler);
+    }
+
+    protected void update(Directory source) {
+        this.numFiles = source.numFiles;
+        this.numDirs = source.numDirs;
+        this.name = source.name;
+        this.lastModified = source.lastModified;
+        this.size = source.size;
+        this.hidden = source.hidden;
+        this.resetLast(System.currentTimeMillis());
     }
 
     @Override

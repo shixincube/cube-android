@@ -97,4 +97,12 @@ public class FileItem {
             return 0;
         }
     }
+
+    public Directory getDirectory() {
+        return this.directory;
+    }
+
+    public FileLabel getFileLabel() {
+        return this.fileLabel;
+    }
 }

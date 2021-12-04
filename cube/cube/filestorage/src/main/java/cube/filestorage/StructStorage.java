@@ -253,7 +253,6 @@ public class StructStorage extends AbstractStorage {
 
             ContentValues values = new ContentValues();
             values.put("name", directory.getName());
-            values.put("creation", directory.getCreation());
             values.put("last_modified", directory.getLastModified());
             values.put("size", directory.getSize());
             values.put("hidden", directory.isHidden() ? 1 : 0);

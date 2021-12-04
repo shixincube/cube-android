@@ -98,7 +98,8 @@ public class FilesFragment extends BaseFragment<FilesView, FilesPresenter> imple
             intent.putExtra(com.shixincube.filepicker.activity.BaseActivity.IS_NEED_FOLDER_LIST, true);
             intent.putExtra(NormalFilePickActivity.SUFFIX,
                     new String[] {"jpg", "jpeg", "png", "bmp",
-                            "xlsx", "xls", "doc", "docx", "ppt", "pptx", "pdf"});
+                            "xlsx", "xls", "doc", "docx", "ppt", "pptx",
+                            "pdf", "txt", "log"});
             startActivityForResult(intent, REQUEST_FILE_PICKER);
         });
     }
@@ -110,7 +111,11 @@ public class FilesFragment extends BaseFragment<FilesView, FilesPresenter> imple
         if (responseCode == REQUEST_FILE_PICKER) {
             if (resultCode == Activity.RESULT_OK) {
                 ArrayList<NormalFile> fileList = data.getParcelableArrayListExtra(Constant.RESULT_PICK_FILE);
-
+                if (!fileList.isEmpty()) {
+                    for (NormalFile file : fileList) {
+                        presenter.uploadFile(file.getPath());
+                    }
+                }
             }
         }
     }

@@ -5,213 +5,334 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <LinearLayout
-        android:id="@+id/llFileClassify"
+    <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="horizontal"
         android:paddingTop="12dp"
         android:paddingBottom="12dp"
-        android:background="?attr/colorTabBackground">
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:layout_weight="0.5"/>
+        android:gravity="center"
+        android:background="?attr/colorTabBackground"
+        android:layout_gravity="center_vertical"
+        android:scrollbars="none">
 
         <LinearLayout
-            android:id="@+id/llAllFiles"
-            android:layout_width="wrap_content"
+            android:id="@+id/llFileClassify"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:paddingTop="5dp"
-            android:paddingBottom="5dp"
-            android:paddingStart="14dp"
-            android:paddingEnd="14dp"
-            android:orientation="vertical"
-            android:background="@drawable/shape_file_tab_pressed">
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:background="?attr/colorTabBackground">
 
-            <com.shixincube.app.widget.AdvancedImageView
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:scaleType="centerCrop"
-                android:src="@mipmap/ic_folder"
-                android:gravity="center"
-                auto:corner_radius="0dp"/>
+            <View
+                android:layout_width="@dimen/item_margin_start_and_end"
+                android:layout_height="40dp"/>
 
-            <TextView
-                android:id="@+id/tvAllFiles"
-                android:tag="98"
-                android:layout_width="match_parent"
+            <LinearLayout
+                android:id="@+id/llAllFiles"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:gravity="center"
-                android:text="@string/all_files"
-                android:textColor="?attr/colorButtonPrimaryText"
-                android:textSize="11sp"/>
+                android:layout_gravity="center"
+                android:paddingTop="7dp"
+                android:paddingBottom="5dp"
+                android:orientation="vertical"
+                android:background="@drawable/shape_file_tab_pressed">
+
+                <com.shixincube.app.widget.AdvancedImageView
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_marginStart="@dimen/item_margin_start_and_end"
+                    android:layout_marginEnd="@dimen/item_margin_start_and_end"
+                    android:scaleType="centerCrop"
+                    android:src="@mipmap/ic_folder"
+                    android:gravity="center"
+                    auto:corner_radius="0dp"/>
+
+                <TextView
+                    android:id="@+id/tvAllFiles"
+                    android:tag="98"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center"
+                    android:text="@string/all_files"
+                    android:textColor="?attr/colorButtonPrimaryText"
+                    android:textSize="12sp"/>
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="@dimen/item_margin_start_and_end"
+                android:layout_height="40dp"/>
+
+            <LinearLayout
+                android:id="@+id/llImageFiles"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:paddingTop="7dp"
+                android:paddingBottom="5dp"
+                android:orientation="vertical"
+                android:background="@drawable/shape_file_tab_normal">
+
+                <com.shixincube.app.widget.AdvancedImageView
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_marginStart="@dimen/item_margin_start_and_end"
+                    android:layout_marginEnd="@dimen/item_margin_start_and_end"
+                    android:scaleType="centerCrop"
+                    android:src="@mipmap/ic_file_image"
+                    android:gravity="center"
+                    auto:corner_radius="0dp"/>
+
+                <TextView
+                    android:id="@+id/tvImageFiles"
+                    android:tag="98"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center"
+                    android:text="@string/file_image"
+                    android:textColor="?attr/colorButtonSecondaryText"
+                    android:textSize="12sp"/>
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="@dimen/item_margin_start_and_end"
+                android:layout_height="40dp"/>
+
+            <LinearLayout
+                android:id="@+id/llDocFiles"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:paddingTop="7dp"
+                android:paddingBottom="5dp"
+                android:orientation="vertical"
+                android:background="@drawable/shape_file_tab_normal">
+
+                <com.shixincube.app.widget.AdvancedImageView
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_marginStart="@dimen/item_margin_start_and_end"
+                    android:layout_marginEnd="@dimen/item_margin_start_and_end"
+                    android:scaleType="centerCrop"
+                    android:src="@mipmap/ic_file_docx"
+                    android:gravity="center"
+                    auto:corner_radius="0dp"/>
+
+                <TextView
+                    android:id="@+id/tvDocFiles"
+                    android:tag="98"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center"
+                    android:text="@string/file_doc"
+                    android:textColor="?attr/colorButtonSecondaryText"
+                    android:textSize="12sp"/>
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="@dimen/item_margin_start_and_end"
+                android:layout_height="40dp"/>
+
+            <LinearLayout
+                android:id="@+id/llVideoFiles"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:paddingTop="7dp"
+                android:paddingBottom="5dp"
+                android:orientation="vertical"
+                android:background="@drawable/shape_file_tab_normal">
+
+                <com.shixincube.app.widget.AdvancedImageView
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_marginStart="@dimen/item_margin_start_and_end"
+                    android:layout_marginEnd="@dimen/item_margin_start_and_end"
+                    android:scaleType="centerCrop"
+                    android:src="@mipmap/ic_file_video"
+                    android:gravity="center"
+                    auto:corner_radius="0dp"/>
+
+                <TextView
+                    android:id="@+id/tvVideoFiles"
+                    android:tag="98"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center"
+                    android:text="@string/file_video"
+                    android:textColor="?attr/colorButtonSecondaryText"
+                    android:textSize="12sp"/>
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="@dimen/item_margin_start_and_end"
+                android:layout_height="40dp"/>
+
+            <LinearLayout
+                android:id="@+id/llAudioFiles"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:paddingTop="7dp"
+                android:paddingBottom="5dp"
+                android:orientation="vertical"
+                android:background="@drawable/shape_file_tab_normal">
+
+                <com.shixincube.app.widget.AdvancedImageView
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_marginStart="@dimen/item_margin_start_and_end"
+                    android:layout_marginEnd="@dimen/item_margin_start_and_end"
+                    android:scaleType="centerCrop"
+                    android:src="@mipmap/ic_file_music"
+                    android:gravity="center"
+                    auto:corner_radius="0dp"/>
+
+                <TextView
+                    android:id="@+id/tvAudioFiles"
+                    android:tag="98"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center"
+                    android:text="@string/file_audio"
+                    android:textColor="?attr/colorButtonSecondaryText"
+                    android:textSize="12sp"/>
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="@dimen/item_margin_start_and_end"
+                android:layout_height="40dp"/>
+
+            <LinearLayout
+                android:id="@+id/llUploading"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:paddingBottom="5dp"
+                android:orientation="vertical"
+                android:background="@drawable/shape_file_tab_normal">
+
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <com.shixincube.app.widget.AdvancedImageView
+                        android:id="@+id/ivUploading"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:layout_marginTop="7dp"
+                        android:layout_marginStart="@dimen/item_margin_start_and_end"
+                        android:layout_marginEnd="@dimen/item_margin_start_and_end"
+                        android:gravity="center"
+                        android:scaleType="centerCrop"
+                        android:src="@mipmap/ic_file_task_upload"
+                        auto:corner_radius="0dp" />
+
+                    <TextView
+                        android:id="@+id/tvBadgeUploadNum"
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:layout_alignTop="@id/ivUploading"
+                        android:layout_alignEnd="@id/ivUploading"
+                        android:layout_marginTop="-4dp"
+                        android:layout_marginEnd="-7dp"
+                        android:background="@mipmap/badge_bg"
+                        android:gravity="center"
+                        android:textColor="@color/white"
+                        android:text="@string/number_1"
+                        android:textSize="10sp"
+                        android:visibility="gone" />
+
+                </RelativeLayout>
+
+                <TextView
+                    android:id="@+id/tvUploading"
+                    android:tag="98"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center"
+                    android:text="@string/file_uploading"
+                    android:textColor="?attr/colorButtonSecondaryText"
+                    android:textSize="12sp"/>
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="@dimen/item_margin_start_and_end"
+                android:layout_height="40dp"/>
+
+            <LinearLayout
+                android:id="@+id/llDownloading"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:paddingBottom="5dp"
+                android:orientation="vertical"
+                android:background="@drawable/shape_file_tab_normal">
+
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <com.shixincube.app.widget.AdvancedImageView
+                        android:id="@+id/ivDownloading"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:layout_marginTop="7dp"
+                        android:layout_marginStart="@dimen/item_margin_start_and_end"
+                        android:layout_marginEnd="@dimen/item_margin_start_and_end"
+                        android:scaleType="centerCrop"
+                        android:src="@mipmap/ic_file_task_download"
+                        android:gravity="center"
+                        auto:corner_radius="0dp"/>
+
+                    <TextView
+                        android:id="@+id/tvBadgeDownloadNum"
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:layout_alignTop="@id/ivDownloading"
+                        android:layout_alignEnd="@id/ivDownloading"
+                        android:layout_marginTop="-4dp"
+                        android:layout_marginEnd="-7dp"
+                        android:background="@mipmap/badge_bg"
+                        android:gravity="center"
+                        android:textColor="@color/white"
+                        android:text="@string/number_1"
+                        android:textSize="10sp"
+                        android:visibility="gone" />
+
+                </RelativeLayout>
+
+                <TextView
+                    android:id="@+id/tvDownloading"
+                    android:tag="98"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center"
+                    android:text="@string/file_downloading"
+                    android:textColor="?attr/colorButtonSecondaryText"
+                    android:textSize="12sp"/>
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="@dimen/item_margin_start_and_end"
+                android:layout_height="40dp"/>
 
         </LinearLayout>
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:layout_weight="0.5"/>
-
-        <LinearLayout
-            android:id="@+id/llImageFiles"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:paddingTop="5dp"
-            android:paddingBottom="5dp"
-            android:paddingStart="14dp"
-            android:paddingEnd="14dp"
-            android:orientation="vertical"
-            android:background="@drawable/shape_file_tab_normal">
-
-            <com.shixincube.app.widget.AdvancedImageView
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:scaleType="centerCrop"
-                android:src="@mipmap/ic_file_image"
-                android:gravity="center"
-                auto:corner_radius="0dp"/>
-
-            <TextView
-                android:id="@+id/tvImageFiles"
-                android:tag="98"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:gravity="center"
-                android:text="@string/file_image"
-                android:textColor="?attr/colorButtonSecondaryText"
-                android:textSize="11sp"/>
-
-        </LinearLayout>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:layout_weight="0.5"/>
-
-        <LinearLayout
-            android:id="@+id/llDocFiles"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:paddingTop="5dp"
-            android:paddingBottom="5dp"
-            android:paddingStart="14dp"
-            android:paddingEnd="14dp"
-            android:orientation="vertical"
-            android:background="@drawable/shape_file_tab_normal">
-
-            <com.shixincube.app.widget.AdvancedImageView
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:scaleType="centerCrop"
-                android:src="@mipmap/ic_file_docx"
-                android:gravity="center"
-                auto:corner_radius="0dp"/>
-
-            <TextView
-                android:id="@+id/tvDocFiles"
-                android:tag="98"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:gravity="center"
-                android:text="@string/file_doc"
-                android:textColor="?attr/colorButtonSecondaryText"
-                android:textSize="11sp"/>
-
-        </LinearLayout>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:layout_weight="0.5"/>
-
-        <LinearLayout
-            android:id="@+id/llVideoFiles"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:paddingTop="5dp"
-            android:paddingBottom="5dp"
-            android:paddingStart="14dp"
-            android:paddingEnd="14dp"
-            android:orientation="vertical"
-            android:background="@drawable/shape_file_tab_normal">
-
-            <com.shixincube.app.widget.AdvancedImageView
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:scaleType="centerCrop"
-                android:src="@mipmap/ic_file_video"
-                android:gravity="center"
-                auto:corner_radius="0dp"/>
-
-            <TextView
-                android:id="@+id/tvVideoFiles"
-                android:tag="98"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:gravity="center"
-                android:text="@string/file_video"
-                android:textColor="?attr/colorButtonSecondaryText"
-                android:textSize="11sp"/>
-
-        </LinearLayout>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:layout_weight="0.5"/>
-
-        <LinearLayout
-            android:id="@+id/llAudioFiles"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:paddingTop="5dp"
-            android:paddingBottom="5dp"
-            android:paddingStart="14dp"
-            android:paddingEnd="14dp"
-            android:orientation="vertical"
-            android:background="@drawable/shape_file_tab_normal">
-
-            <com.shixincube.app.widget.AdvancedImageView
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:scaleType="centerCrop"
-                android:src="@mipmap/ic_file_music"
-                android:gravity="center"
-                auto:corner_radius="0dp"/>
-
-            <TextView
-                android:id="@+id/tvAudioFiles"
-                android:tag="98"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:gravity="center"
-                android:text="@string/file_audio"
-                android:textColor="?attr/colorButtonSecondaryText"
-                android:textSize="11sp"/>
-
-        </LinearLayout>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:layout_weight="0.5"/>
-
-    </LinearLayout>
-
+    </HorizontalScrollView>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -251,7 +372,8 @@
             android:layout_gravity="center_vertical"
             android:background="@drawable/selector_primary_button"
             android:textColor="?attr/colorButtonPrimaryText"
-            android:text="@string/upload_file"/>
+            android:text="@string/upload_file"
+            android:textSize="16sp"/>
 
     </LinearLayout>
 

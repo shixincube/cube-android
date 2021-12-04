@@ -74,8 +74,12 @@ public class FileHierarchy {
      */
     private Directory root;
 
+    private List<FileAnchor> uploadingFiles;
+
+    private List<FileAnchor> downloadingFiles;
+
     /**
-     * 当前层级包含的目录。
+     * 包含的目录。
      */
     private Map<Long, Directory> directoryMap;
 

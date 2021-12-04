@@ -106,6 +106,25 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
         }).launch();
     }
 
+    public void uploadFile(String filepath) {
+//        this.currentDirectory.uploadFile(new File(filepath), new DefaultFileUploadDirectoryHandler(true) {
+//            @Override
+//            public void handleProgress(FileAnchor fileAnchor, Directory directory) {
+//
+//            }
+//
+//            @Override
+//            public void handleComplete(FileLabel fileLabel, Directory directory) {
+//
+//            }
+//        }, new DefaultFailureHandler(true) {
+//            @Override
+//            public void handleFailure(Module module, ModuleError error) {
+//
+//            }
+//        });
+    }
+
     private void setAdapter() {
         if (null == this.adapter) {
             this.adapter = new AdapterForRecyclerView<FileItem>(activity, this.fileItemList, R.layout.item_file) {

@@ -116,12 +116,12 @@ public class FileHierarchy {
      */
     protected void listDirectories(Directory directory, DirectoryListHandler successHandler, FailureHandler failureHandler) {
         List<Directory> subdirectories = this.storage.readSubdirectories(directory);
-        if (subdirectories.size() == directory.numDirs()) {
-            for (Directory child : subdirectories) {
-                // 添加
-                directory.addChild(child);
-            }
+        for (Directory child : subdirectories) {
+            // 添加
+            directory.addChild(child);
+        }
 
+        if (subdirectories.size() == directory.numDirs()) {
             if (successHandler.isInMainThread()) {
                 this.service.executeHandlerOnMainThread(() -> {
                     successHandler.handleDirectoryList(subdirectories);

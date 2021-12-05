@@ -27,6 +27,7 @@
 package com.shixincube.app.ui.presenter;
 
 import android.view.View;
+import android.view.ViewGroup;
 
 import com.shixincube.app.R;
 import com.shixincube.app.ui.base.BaseActivity;
@@ -36,6 +37,8 @@ import com.shixincube.app.util.DateUtils;
 import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.FilesTabController;
 import com.shixincube.app.widget.adapter.AdapterForRecyclerView;
+import com.shixincube.app.widget.adapter.OnItemClickListener;
+import com.shixincube.app.widget.adapter.ViewHolder;
 import com.shixincube.app.widget.adapter.ViewHolderForRecyclerView;
 
 import java.io.File;
@@ -156,19 +159,40 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
                         helper.setImageResource(R.id.ivFileIcon, UIUtils.getFileIcon(item.getFileLabel().getFileType()));
                         helper.setText(R.id.tvName, item.getName());
                         helper.setText(R.id.tvDate, DateUtils.formatYMDHM(item.getLastModified()));
+                        helper.setViewVisibility(R.id.cbSelector, View.VISIBLE);
                     }
                     else if (item.type == FileItem.ItemType.Directory) {
                         helper.setImageResource(R.id.ivFileIcon, R.mipmap.ic_file_folder);
                         helper.setText(R.id.tvName, item.getName());
                         helper.setText(R.id.tvDate, DateUtils.formatYMDHM(item.getLastModified()));
+                        helper.setViewVisibility(R.id.cbSelector, View.VISIBLE);
                     }
                     else if (item.type == FileItem.ItemType.ParentDirectory) {
                         helper.setImageResource(R.id.ivFileIcon, R.mipmap.ic_file_parent);
                         helper.setText(R.id.tvName, "");
                         helper.setText(R.id.tvDate, "");
+                        helper.setViewVisibility(R.id.cbSelector, View.GONE);
                     }
                 }
             };
+
+            this.adapter.setOnItemClickListener(new OnItemClickListener() {
+                @Override
+                public void onItemClick(ViewHolder helper, ViewGroup parent, View itemView, int position) {
+                    FileItem fileItem = fileItemList.get(position);
+                    if (fileItem.type == FileItem.ItemType.ParentDirectory) {
+                        currentDirectory = fileItem.getDirectory();
+                        refreshData();
+                    }
+                    else if (fileItem.type == FileItem.ItemType.Directory) {
+                        currentDirectory = fileItem.getDirectory();
+                        refreshData();
+                    }
+                    else if (fileItem.type == FileItem.ItemType.File) {
+                        UIUtils.showToast(UIUtils.getString(R.string.developing));
+                    }
+                }
+            });
 
             getView().getFileListView().setAdapter(this.adapter);
         }
@@ -194,7 +218,7 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
 
                         fileItemList.addAll(itemList);
 
-                        if (fileItemList.isEmpty()) {
+                        if (fileItemList.isEmpty() && !currentDirectory.hasParent()) {
                             getView().getNoFileLayout().setVisibility(View.VISIBLE);
                             getView().getFileListView().setVisibility(View.GONE);
                         }
@@ -265,10 +289,14 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
 
         StringBuilder buf = new StringBuilder();
 
-        Directory parent = null;
-        while ((parent = this.currentDirectory.getParent()) != null) {
-            buf.insert(0, parent.getName());
+        Directory directory = this.currentDirectory;
+        while (null != directory) {
+            buf.insert(0, directory.getName());
             buf.insert(0, "/");
+            directory = directory.getParent();
+            if (null == directory || directory.isRoot()) {
+                break;
+            }
         }
 
         return buf.toString();

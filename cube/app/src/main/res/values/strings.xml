@@ -9,6 +9,7 @@
 
     <!-- 工具栏 -->
     <string name="add_contact">添加联系人</string>
+    <string name="new_dir">新建文件夹</string>
     <string name="upload_file">上传文件</string>
     <string name="search">搜索</string>
     <string name="complete">完成</string>
@@ -78,8 +79,11 @@
     <string name="file_doc">文档</string>
     <string name="file_video">视频</string>
     <string name="file_audio">音频</string>
+    <string name="file_transmitting">正在传输</string>
     <string name="file_uploading">正在上传</string>
     <string name="file_downloading">正在下载</string>
+    <string name="file_new_dir">新建文件夹</string>
+    <string name="please_enter_folder_name">请输入文件夹名称：</string>
 
     <!-- 个人信息 -->
     <string name="my_nickname">我的名称</string>

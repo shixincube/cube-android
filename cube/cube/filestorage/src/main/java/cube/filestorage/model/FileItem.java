@@ -44,7 +44,12 @@ public class FileItem {
         /**
          * 文件。
          */
-        File
+        File,
+
+        /**
+         * 父目录。
+         */
+        ParentDirectory,
     }
 
     /**
@@ -74,6 +79,16 @@ public class FileItem {
         this.directory = null;
     }
 
+    protected FileItem(Directory directory, ItemType type) {
+        this.type = type;
+        this.directory = directory;
+        this.fileLabel = null;
+    }
+
+    public ItemType getType() {
+        return this.type;
+    }
+
     public String getName() {
         if (this.type == ItemType.Directory) {
             return this.directory.getName();
@@ -91,7 +106,7 @@ public class FileItem {
             return this.directory.getLastModified();
         }
         else if (this.type == ItemType.File) {
-            return this.fileLabel.getLastModified();
+            return this.fileLabel.getCompletedTime();
         }
         else {
             return 0;
@@ -104,5 +119,15 @@ public class FileItem {
 
     public FileLabel getFileLabel() {
         return this.fileLabel;
+    }
+
+    /**
+     * 创建父目录。
+     *
+     * @param parent
+     * @return
+     */
+    public static FileItem createParentDirectory(Directory parent) {
+        return new FileItem(parent, ItemType.ParentDirectory);
     }
 }

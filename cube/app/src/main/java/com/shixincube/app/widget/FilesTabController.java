@@ -43,8 +43,7 @@ public class FilesTabController implements View.OnClickListener {
     public final static int TAB_DOC_FILES = 3;
     public final static int TAB_VIDEO_FILES = 4;
     public final static int TAB_AUDIO_FILES = 5;
-    public final static int TAB_UPLOADING_FILES = 6;
-    public final static int TAB_DOWNLOADING_FILES = 7;
+    public final static int TAB_TRANSMITTING_FILES = 6;
 
     private LinearLayout rootLayout;
 
@@ -66,8 +65,7 @@ public class FilesTabController implements View.OnClickListener {
         this.rootLayout.findViewById(R.id.llDocFiles).setOnClickListener(this);
         this.rootLayout.findViewById(R.id.llVideoFiles).setOnClickListener(this);
         this.rootLayout.findViewById(R.id.llAudioFiles).setOnClickListener(this);
-        this.rootLayout.findViewById(R.id.llUploading).setOnClickListener(this);
-        this.rootLayout.findViewById(R.id.llDownloading).setOnClickListener(this);
+        this.rootLayout.findViewById(R.id.llTransmitting).setOnClickListener(this);
     }
 
     public void setTabChangedListener(TabChangedListener listener) {
@@ -78,21 +76,9 @@ public class FilesTabController implements View.OnClickListener {
         return this.activeTab;
     }
 
-    public void setUploadingNum(int num) {
-        TextView badge = (TextView) this.rootLayout.findViewById(R.id.llUploading)
-                .findViewById(R.id.tvBadgeUploadNum);
-        if (num > 0) {
-            badge.setVisibility(View.VISIBLE);
-            badge.setText(Integer.toString(num));
-        }
-        else {
-            badge.setVisibility(View.GONE);
-        }
-    }
-
-    public void setDownloadingNum(int num) {
-        TextView badge = (TextView) this.rootLayout.findViewById(R.id.llDownloading)
-                .findViewById(R.id.tvBadgeDownloadNum);
+    public void setTransmittingNum(int num) {
+        TextView badge = this.rootLayout.findViewById(R.id.llTransmitting)
+                .findViewById(R.id.tvBadgeTransmitting);
         if (num > 0) {
             badge.setVisibility(View.VISIBLE);
             badge.setText(Integer.toString(num));
@@ -132,11 +118,8 @@ public class FilesTabController implements View.OnClickListener {
             case R.id.llAudioFiles:
                 this.activeTab = TAB_AUDIO_FILES;
                 break;
-            case R.id.llUploading:
-                this.activeTab = TAB_UPLOADING_FILES;
-                break;
-            case R.id.llDownloading:
-                this.activeTab = TAB_DOWNLOADING_FILES;
+            case R.id.llTransmitting:
+                this.activeTab = TAB_TRANSMITTING_FILES;
                 break;
             default:
                 break;

@@ -25,12 +25,13 @@
 
             <!-- 图标/头像 -->
             <com.shixincube.app.widget.AdvancedImageView
-                android:id="@+id/ivFileAvatar"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
+                android:id="@+id/ivFileIcon"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
                 android:layout_centerInParent="true"
+                android:scaleType="centerCrop"
                 android:src="@mipmap/avatar_default"
-                auto:corner_radius="4dp" />
+                auto:corner_radius="2dp" />
 
         </RelativeLayout>
 
@@ -53,7 +54,7 @@
                     android:id="@+id/tvName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="@dimen/item_margin_top_and_bottom"
+                    android:layout_marginBottom="8dp"
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:text="@string/app_name"

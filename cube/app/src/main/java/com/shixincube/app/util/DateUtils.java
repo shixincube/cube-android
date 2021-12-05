@@ -43,8 +43,8 @@ public class DateUtils {
         date.setTimeInMillis(timestamp);
 
         StringBuilder buf = new StringBuilder();
-        buf.append(date.get(Calendar.YEAR)).append(".");
-        buf.append(date.get(Calendar.MONTH) + 1).append(".");
+        buf.append(date.get(Calendar.YEAR)).append("-");
+        buf.append(date.get(Calendar.MONTH) + 1).append("-");
         buf.append(date.get(Calendar.DATE)).append(" ");
         buf.append(String.format(Locale.ROOT, "%02d", date.get(Calendar.HOUR_OF_DAY))).append(":");
         buf.append(String.format(Locale.ROOT, "%02d", date.get(Calendar.MINUTE)));

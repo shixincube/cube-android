@@ -32,11 +32,13 @@ import com.shixincube.app.R;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.FilesView;
+import com.shixincube.app.util.DateUtils;
 import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.FilesTabController;
 import com.shixincube.app.widget.adapter.AdapterForRecyclerView;
 import com.shixincube.app.widget.adapter.ViewHolderForRecyclerView;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,8 +51,11 @@ import cube.engine.util.Promise;
 import cube.engine.util.PromiseFuture;
 import cube.engine.util.PromiseHandler;
 import cube.filestorage.handler.DefaultFileItemListHandler;
+import cube.filestorage.handler.DefaultFileUploadDirectoryHandler;
 import cube.filestorage.model.Directory;
+import cube.filestorage.model.FileAnchor;
 import cube.filestorage.model.FileItem;
+import cube.filestorage.model.FileLabel;
 import cube.util.LogUtils;
 
 /**
@@ -66,6 +71,8 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
 
     private AdapterForRecyclerView<FileItem> adapter;
 
+    private Directory rootDirectory;
+
     private Directory currentDirectory;
 
     public FilesPresenter(BaseActivity activity, FilesTabController tabController) {
@@ -73,6 +80,10 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
         this.tabController = tabController;
         this.tabController.setTabChangedListener(this);
         this.fileItemList = new ArrayList<>();
+    }
+
+    public Directory getCurrentDirectory() {
+        return this.currentDirectory;
     }
 
     public void loadData() {
@@ -83,15 +94,15 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
             @Override
             public void emit(PromiseFuture<Directory> promise) {
                 // 获取自己的根目录
-                Directory directory = CubeEngine.getInstance().getFileStorage().getSelfRoot();
+                rootDirectory = CubeEngine.getInstance().getFileStorage().getSelfRoot();
 
-                if (null != directory) {
-                    currentDirectory = directory;
-                    promise.resolve(directory);
+                if (null != rootDirectory) {
+                    currentDirectory = rootDirectory;
+                    promise.resolve(rootDirectory);
 
                     // 更新正在上传和下载文件数量
-                    tabController.setUploadingNum(directory.numUploadingFiles());
-                    tabController.setDownloadingNum(directory.numDownloadingFiles());
+                    tabController.setTransmittingNum(rootDirectory.numUploadingFiles()
+                            + rootDirectory.numDownloadingFiles());
                 }
                 else {
                     promise.reject();
@@ -100,7 +111,7 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
         }).thenOnMainThread(new Future<Directory>() {
             @Override
             public void come(Directory data) {
-                filterFiles();
+                refreshData();
             }
         }).catchReject(new Future<Directory>() {
             @Override
@@ -111,22 +122,28 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
     }
 
     public void uploadFile(String filepath) {
-//        this.currentDirectory.uploadFile(new File(filepath), new DefaultFileUploadDirectoryHandler(true) {
-//            @Override
-//            public void handleProgress(FileAnchor fileAnchor, Directory directory) {
-//
-//            }
-//
-//            @Override
-//            public void handleComplete(FileLabel fileLabel, Directory directory) {
-//
-//            }
-//        }, new DefaultFailureHandler(true) {
-//            @Override
-//            public void handleFailure(Module module, ModuleError error) {
-//
-//            }
-//        });
+        this.tabController.setTransmittingNum(this.rootDirectory.numUploadingFiles()
+                + rootDirectory.numDownloadingFiles() + 1);
+
+        this.currentDirectory.uploadFile(new File(filepath), new DefaultFileUploadDirectoryHandler(true) {
+            @Override
+            public void handleProgress(FileAnchor fileAnchor, Directory directory) {
+                // Nothing
+            }
+
+            @Override
+            public void handleComplete(FileLabel fileLabel, Directory directory) {
+                LogUtils.d(TAG, "#uploadFile - handleComplete : " + fileLabel.getFileName());
+                tabController.setTransmittingNum(rootDirectory.numUploadingFiles()
+                        + rootDirectory.numDownloadingFiles());
+                refreshData();
+            }
+        }, new DefaultFailureHandler(true) {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                UIUtils.showToast(UIUtils.getString(R.string.operate_failure_with_code, error.code));
+            }
+        });
     }
 
     private void setAdapter() {
@@ -134,7 +151,21 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
             this.adapter = new AdapterForRecyclerView<FileItem>(activity, this.fileItemList, R.layout.item_file) {
                 @Override
                 public void convert(ViewHolderForRecyclerView helper, FileItem item, int position) {
-
+                    if (item.type == FileItem.ItemType.File) {
+                        helper.setImageResource(R.id.ivFileIcon, UIUtils.getFileIcon(item.getFileLabel().getFileType()));
+                        helper.setText(R.id.tvName, item.getName());
+                        helper.setText(R.id.tvDate, DateUtils.formatYMDHM(item.getLastModified()));
+                    }
+                    else if (item.type == FileItem.ItemType.Directory) {
+                        helper.setImageResource(R.id.ivFileIcon, R.mipmap.ic_file_folder);
+                        helper.setText(R.id.tvName, item.getName());
+                        helper.setText(R.id.tvDate, DateUtils.formatYMDHM(item.getLastModified()));
+                    }
+                    else if (item.type == FileItem.ItemType.ParentDirectory) {
+                        helper.setImageResource(R.id.ivFileIcon, R.mipmap.ic_file_parent);
+                        helper.setText(R.id.tvName, "");
+                        helper.setText(R.id.tvDate, "");
+                    }
                 }
             };
 
@@ -142,7 +173,7 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
         }
     }
 
-    private void filterFiles() {
+    private void refreshData() {
         int tab = this.tabController.getActiveTab();
         switch (tab) {
             case FilesTabController.TAB_ALL_FILES:
@@ -154,6 +185,12 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
                     @Override
                     public void handleFileItemList(List<FileItem> itemList) {
                         fileItemList.clear();
+
+                        if (currentDirectory.hasParent()) {
+                            FileItem parent = FileItem.createParentDirectory(currentDirectory.getParent());
+                            fileItemList.add(parent);
+                        }
+
                         fileItemList.addAll(itemList);
 
                         if (fileItemList.isEmpty()) {
@@ -193,7 +230,7 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
 
     @Override
     public void onTabChanged(int tab) {
-        this.filterFiles();
+        this.refreshData();
     }
 
     private String getPathString() {

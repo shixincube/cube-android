@@ -17,7 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="46dp"
             android:layout_margin="0.5dp"
-            android:drawableStart="@mipmap/ic_create_group_chat"
+            android:drawableStart="@mipmap/popup_create_group_chat"
             android:drawablePadding="20dp"
             android:gravity="center_vertical"
             android:paddingStart="10dp"
@@ -30,7 +30,7 @@
             android:layout_width="match_parent"
             android:layout_height="46dp"
             android:layout_margin="0.5dp"
-            android:drawableStart="@mipmap/ic_add_contact"
+            android:drawableStart="@mipmap/popup_add_contact"
             android:drawablePadding="20dp"
             android:gravity="center_vertical"
             android:paddingStart="10dp"
@@ -39,11 +39,24 @@
             android:textSize="14sp"/>
 
         <TextView
+            android:id="@+id/tvNewDir"
+            android:layout_width="match_parent"
+            android:layout_height="46dp"
+            android:layout_margin="0.5dp"
+            android:drawableStart="@mipmap/popup_new_directory"
+            android:drawablePadding="20dp"
+            android:gravity="center_vertical"
+            android:paddingStart="10dp"
+            android:text="@string/new_dir"
+            android:textColor="@color/popup_menu_text"
+            android:textSize="14sp"/>
+
+        <TextView
             android:id="@+id/tvFileUpload"
             android:layout_width="match_parent"
             android:layout_height="46dp"
             android:layout_margin="0.5dp"
-            android:drawableStart="@mipmap/ic_file_upload"
+            android:drawableStart="@mipmap/popup_file_upload"
             android:drawablePadding="20dp"
             android:gravity="center_vertical"
             android:paddingStart="10dp"

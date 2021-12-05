@@ -120,6 +120,10 @@ public class FilesFragment extends BaseFragment<FilesView, FilesPresenter> imple
         }
     }
 
+    public FilesPresenter getPresenter() {
+        return this.presenter;
+    }
+
     @Override
     protected FilesPresenter createPresenter() {
         return new FilesPresenter((MainActivity) getActivity(), this.tabController);

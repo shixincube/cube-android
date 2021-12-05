@@ -213,7 +213,7 @@
                 android:layout_height="40dp"/>
 
             <LinearLayout
-                android:id="@+id/llUploading"
+                android:id="@+id/llTransmitting"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
@@ -226,7 +226,7 @@
                     android:layout_height="wrap_content">
 
                     <com.shixincube.app.widget.AdvancedImageView
-                        android:id="@+id/ivUploading"
+                        android:id="@+id/ivTransmitting"
                         android:layout_width="30dp"
                         android:layout_height="30dp"
                         android:layout_marginTop="7dp"
@@ -234,15 +234,15 @@
                         android:layout_marginEnd="@dimen/item_margin_start_and_end"
                         android:gravity="center"
                         android:scaleType="centerCrop"
-                        android:src="@mipmap/ic_file_task_upload"
+                        android:src="@mipmap/ic_file_transmitting"
                         auto:corner_radius="0dp" />
 
                     <TextView
-                        android:id="@+id/tvBadgeUploadNum"
+                        android:id="@+id/tvBadgeTransmitting"
                         android:layout_width="14dp"
                         android:layout_height="14dp"
-                        android:layout_alignTop="@id/ivUploading"
-                        android:layout_alignEnd="@id/ivUploading"
+                        android:layout_alignTop="@id/ivTransmitting"
+                        android:layout_alignEnd="@id/ivTransmitting"
                         android:layout_marginTop="-4dp"
                         android:layout_marginEnd="-7dp"
                         android:background="@mipmap/badge_bg"
@@ -255,72 +255,13 @@
                 </RelativeLayout>
 
                 <TextView
-                    android:id="@+id/tvUploading"
+                    android:id="@+id/tvTransmitting"
                     android:tag="98"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:gravity="center"
-                    android:text="@string/file_uploading"
-                    android:textColor="?attr/colorButtonSecondaryText"
-                    android:textSize="12sp"/>
-
-            </LinearLayout>
-
-            <View
-                android:layout_width="@dimen/item_margin_start_and_end"
-                android:layout_height="40dp"/>
-
-            <LinearLayout
-                android:id="@+id/llDownloading"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:paddingBottom="5dp"
-                android:orientation="vertical"
-                android:background="@drawable/shape_file_tab_normal">
-
-                <RelativeLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
-
-                    <com.shixincube.app.widget.AdvancedImageView
-                        android:id="@+id/ivDownloading"
-                        android:layout_width="30dp"
-                        android:layout_height="30dp"
-                        android:layout_marginTop="7dp"
-                        android:layout_marginStart="@dimen/item_margin_start_and_end"
-                        android:layout_marginEnd="@dimen/item_margin_start_and_end"
-                        android:scaleType="centerCrop"
-                        android:src="@mipmap/ic_file_task_download"
-                        android:gravity="center"
-                        auto:corner_radius="0dp"/>
-
-                    <TextView
-                        android:id="@+id/tvBadgeDownloadNum"
-                        android:layout_width="14dp"
-                        android:layout_height="14dp"
-                        android:layout_alignTop="@id/ivDownloading"
-                        android:layout_alignEnd="@id/ivDownloading"
-                        android:layout_marginTop="-4dp"
-                        android:layout_marginEnd="-7dp"
-                        android:background="@mipmap/badge_bg"
-                        android:gravity="center"
-                        android:textColor="@color/white"
-                        android:text="@string/number_1"
-                        android:textSize="10sp"
-                        android:visibility="gone" />
-
-                </RelativeLayout>
-
-                <TextView
-                    android:id="@+id/tvDownloading"
-                    android:tag="98"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:gravity="center"
-                    android:text="@string/file_downloading"
+                    android:text="@string/file_transmitting"
                     android:textColor="?attr/colorButtonSecondaryText"
                     android:textSize="12sp"/>
 

@@ -175,12 +175,14 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
         int item = contentViewPager.getCurrentItem();
         switch (item) {
             case 0:
+                menuView.findViewById(R.id.tvNewDir).setVisibility(View.GONE);
                 break;
             case 1:
                 menuView.findViewById(R.id.tvCreateGroup).setVisibility(View.GONE);
                 menuView.findViewById(R.id.tvAddContact).setVisibility(View.GONE);
                 break;
             case 2:
+                menuView.findViewById(R.id.tvNewDir).setVisibility(View.GONE);
                 menuView.findViewById(R.id.tvFileUpload).setVisibility(View.GONE);
                 break;
             case 3:
@@ -208,8 +210,15 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
             jumpToActivity(AddContactActivity.class);
         });
 
-        menuView.findViewById(R.id.tvFileUpload).setOnClickListener((v) -> {
+        menuView.findViewById(R.id.tvNewDir).setOnClickListener((v) -> {
+            popupWindow.dismiss();
 
+            // 新建文件夹
+            jumpToActivity(NewDirectoryActivity.class);
+        });
+
+        menuView.findViewById(R.id.tvFileUpload).setOnClickListener((v) -> {
+            popupWindow.dismiss();
         });
     }
 

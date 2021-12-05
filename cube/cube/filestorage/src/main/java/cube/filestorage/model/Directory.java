@@ -179,6 +179,7 @@ public class Directory extends Entity implements Comparator<FileItem> {
 
     protected void addChildren(Directory directory) {
         this.children.put(directory.id, directory);
+        directory.setParent(this);
     }
 
     protected void removeChildren(Directory directory) {
@@ -206,6 +207,14 @@ public class Directory extends Entity implements Comparator<FileItem> {
 
     public Long getParentId() {
         return this.parentId;
+    }
+
+    protected void setParent(Directory parent) {
+        this.parentId = parentId;
+    }
+
+    public boolean hasParent() {
+        return (null != this.parent);
     }
 
     /**

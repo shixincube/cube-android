@@ -322,7 +322,7 @@
         android:id="@+id/rvFiles"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        auto:rv_divider_color="@color/line"
+        auto:rv_divider_color="@color/transparent"
         auto:rv_divider_size="1dp"/>
 
 </LinearLayout>

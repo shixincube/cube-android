@@ -11,9 +11,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:background="?attr/colorBackground"
         android:paddingStart="@dimen/item_margin_start_and_end"
         android:paddingEnd="@dimen/item_margin_start_and_end"
+        android:background="?attr/colorBackground"
         android:orientation="horizontal">
 
         <RelativeLayout
@@ -26,8 +26,8 @@
             <!-- 图标/头像 -->
             <com.shixincube.app.widget.AdvancedImageView
                 android:id="@+id/ivFileIcon"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:layout_centerInParent="true"
                 android:scaleType="centerCrop"
                 android:src="@mipmap/avatar_default"
@@ -36,10 +36,10 @@
         </RelativeLayout>
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/item_margin_start_and_end"
-            android:layout_marginEnd="@dimen/item_margin_start_and_end"
+            android:layout_marginStart="@dimen/option_item_margin_start"
+            android:layout_weight="1"
             android:gravity="center_vertical"
             android:orientation="vertical">
 
@@ -54,7 +54,7 @@
                     android:id="@+id/tvName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
+                    android:layout_marginBottom="6dp"
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:text="@string/app_name"
@@ -76,11 +76,18 @@
 
         </LinearLayout>
 
-        <CheckBox
-            android:id="@+id/cbSelector"
-            style="@style/CustomCheckboxTheme"
+        <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/item_margin_start_and_end">
+
+            <CheckBox
+                android:id="@+id/cbSelector"
+                style="@style/CustomCheckboxTheme"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+        </LinearLayout>
 
     </LinearLayout>
 

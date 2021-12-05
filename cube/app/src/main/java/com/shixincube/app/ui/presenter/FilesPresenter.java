@@ -50,6 +50,7 @@ import cube.engine.util.Future;
 import cube.engine.util.Promise;
 import cube.engine.util.PromiseFuture;
 import cube.engine.util.PromiseHandler;
+import cube.filestorage.DirectoryListener;
 import cube.filestorage.handler.DefaultFileItemListHandler;
 import cube.filestorage.handler.DefaultFileUploadDirectoryHandler;
 import cube.filestorage.model.Directory;
@@ -61,7 +62,7 @@ import cube.util.LogUtils;
 /**
  * 文件清单。
  */
-public class FilesPresenter extends BasePresenter<FilesView> implements FilesTabController.TabChangedListener {
+public class FilesPresenter extends BasePresenter<FilesView> implements FilesTabController.TabChangedListener, DirectoryListener {
 
     private final static String TAG = FilesPresenter.class.getSimpleName();
 
@@ -200,8 +201,9 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
                         else {
                             getView().getNoFileLayout().setVisibility(View.GONE);
                             getView().getFileListView().setVisibility(View.VISIBLE);
-                            adapter.notifyDataSetChangedWrapper();
                         }
+
+                        adapter.notifyDataSetChangedWrapper();
                     }
                 }, new DefaultFailureHandler(true) {
                     @Override
@@ -223,6 +225,9 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
             case FilesTabController.TAB_AUDIO_FILES:
                 break;
 
+            case FilesTabController.TAB_TRANSMITTING_FILES:
+                break;
+
             default:
                 break;
         }
@@ -231,6 +236,22 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
     @Override
     public void onTabChanged(int tab) {
         this.refreshData();
+    }
+
+    @Override
+    public void onNewDirectory(Directory newDirectory) {
+        int tab = this.tabController.getActiveTab();
+        if (tab == FilesTabController.TAB_ALL_FILES) {
+            this.refreshData();
+        }
+    }
+
+    @Override
+    public void onDeleteDirectory(Directory deletedDirectory) {
+        int tab = this.tabController.getActiveTab();
+        if (tab == FilesTabController.TAB_ALL_FILES) {
+            this.refreshData();
+        }
     }
 
     private String getPathString() {

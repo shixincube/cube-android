@@ -47,6 +47,7 @@ import cube.core.handler.PipelineHandler;
 import cube.core.handler.StableFailureHandler;
 import cube.filestorage.FileStorage;
 import cube.filestorage.FileStorageAction;
+import cube.filestorage.FileStorageEvent;
 import cube.filestorage.FileStorageState;
 import cube.filestorage.StructStorage;
 import cube.filestorage.handler.DefaultDirectoryHandler;
@@ -57,6 +58,7 @@ import cube.filestorage.handler.FileListHandler;
 import cube.filestorage.handler.FileUploadDirectoryHandler;
 import cube.filestorage.handler.StableUploadFileHandler;
 import cube.util.LogUtils;
+import cube.util.ObservableEvent;
 
 /**
  * 文件层级结构描述。
@@ -117,7 +119,7 @@ public class FileHierarchy {
         if (subdirectories.size() == directory.numDirs()) {
             for (Directory child : subdirectories) {
                 // 添加
-                directory.addChildren(child);
+                directory.addChild(child);
             }
 
             if (successHandler.isInMainThread()) {
@@ -170,7 +172,7 @@ public class FileHierarchy {
                     for (int i = 0; i < array.length(); ++i) {
                         Directory dir = new Directory(array.getJSONObject(i));
                         // 添加子目录
-                        directory.addChildren(dir);
+                        directory.addChild(dir);
 
                         list.add(dir);
 
@@ -438,6 +440,80 @@ public class FileHierarchy {
                 service.executeHandler(() -> {
                     successHandler.handleDirectory(directory);
                 });
+            }
+        });
+    }
+
+    /**
+     * 新建目录。
+     *
+     * @param workingDirectory
+     * @param directoryName
+     * @param successHandler
+     * @param failureHandler
+     */
+    protected void newDirectory(Directory workingDirectory, String directoryName, DirectoryHandler successHandler, FailureHandler failureHandler) {
+        if (!this.service.getPipeline().isReady()) {
+            ModuleError error = new ModuleError(FileStorage.NAME, FileStorageState.PipelineNotReady.code);
+            this.service.execute(failureHandler, error);
+            return;
+        }
+
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("root", this.root.id.longValue());
+            payload.put("workingId", workingDirectory.id.longValue());
+            payload.put("dirName", directoryName);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        Packet requestPacket = new Packet(FileStorageAction.NewDir, payload);
+        this.service.getPipeline().send(FileStorage.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    ModuleError error = new ModuleError(FileStorage.NAME, packet.state.code);
+                    error.data = workingDirectory;
+                    service.execute(failureHandler, error);
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != FileStorageState.Ok.code) {
+                    ModuleError error = new ModuleError(FileStorage.NAME, stateCode);
+                    error.data = workingDirectory;
+                    service.execute(failureHandler, error);
+                    return;
+                }
+
+                try {
+                    Directory newDirectory = new Directory(packet.extractServiceData());
+                    workingDirectory.addChild(newDirectory);
+
+                    workingDirectory.resetLast(System.currentTimeMillis());
+                    workingDirectory.setNumDirs(workingDirectory.numDirs() + 1);
+
+                    storage.writeDirectory(workingDirectory);
+                    storage.writeDirectory(newDirectory);
+
+                    if (successHandler.isInMainThread()) {
+                        service.executeHandlerOnMainThread(() -> {
+                            successHandler.handleDirectory(newDirectory);
+                        });
+                    }
+                    else {
+                        service.executeHandler(() -> {
+                            successHandler.handleDirectory(newDirectory);
+                        });
+                    }
+
+                    service.executeHandler(() -> {
+                        ObservableEvent event = new ObservableEvent(FileStorageEvent.NewDirectory, newDirectory);
+                        service.notifyObservers(event);
+                    });
+                } catch (JSONException e) {
+                    LogUtils.w(TAG, "#newDirectory", e);
+                }
             }
         });
     }

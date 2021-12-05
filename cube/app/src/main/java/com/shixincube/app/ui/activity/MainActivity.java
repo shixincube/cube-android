@@ -219,6 +219,9 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
 
         menuView.findViewById(R.id.tvFileUpload).setOnClickListener((v) -> {
             popupWindow.dismiss();
+
+            // 选取上传文件
+            FragmentFactory.getInstance().getFilesFragment().pickFile();
         });
     }
 

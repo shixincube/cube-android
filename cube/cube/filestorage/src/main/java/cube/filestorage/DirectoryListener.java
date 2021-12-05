@@ -26,56 +26,24 @@
 
 package cube.filestorage;
 
+import cube.filestorage.model.Directory;
+
 /**
- * 文件存储事件。
+ * 目录监听器。
  */
-public final class FileStorageEvent {
+public interface DirectoryListener {
 
     /**
-     * 正在进行文件上传。
+     * 当有新建目录时该方法被回调。
+     *
+     * @param newDirectory
      */
-    public final static String Uploading = "Uploading";
+    void onNewDirectory(Directory newDirectory);
 
     /**
-     * 文件上传完成。
+     * 当有目录被删除时该方法被回调。
+     *
+     * @param deletedDirectory
      */
-    public final static String UploadCompleted = "UploadCompleted";
-
-    /**
-     * 文件上传失败。
-     */
-    public final static String UploadFailed = "UploadFailed";
-
-    /**
-     * 正在进行文件下载。
-     */
-    public final static String Downloading = "Downloading";
-
-    /**
-     * 文件下载完成。
-     */
-    public final static String DownloadCompleted = "DownloadCompleted";
-
-    /**
-     * 文件下载失败。
-     */
-    public final static String DownloadFailed = "DownloadFailed";
-
-    /**
-     * 文件已更新。
-     */
-    public final static String FileUpdated = "FileUpdated";
-
-    /**
-     * 新建目录。
-     */
-    public final static String NewDirectory= "NewDirectory";
-
-    /**
-     * 删除目录。
-     */
-    public final static String DeleteDirectory= "DeleteDirectory";
-
-    private FileStorageEvent() {
-    }
+    void onDeleteDirectory(Directory deletedDirectory);
 }

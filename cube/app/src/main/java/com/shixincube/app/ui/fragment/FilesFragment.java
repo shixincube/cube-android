@@ -47,6 +47,7 @@ import com.shixincube.filepicker.filter.entity.NormalFile;
 import java.util.ArrayList;
 
 import butterknife.BindView;
+import cube.engine.CubeEngine;
 
 /**
  * 文件清单。
@@ -87,20 +88,14 @@ public class FilesFragment extends BaseFragment<FilesView, FilesPresenter> imple
 
     @Override
     public void initData() {
+        CubeEngine.getInstance().getFileStorage().addDirectoryListener(this.presenter);
         this.presenter.loadData();
     }
 
     @Override
     public void initListener() {
         this.uploadButton.setOnClickListener((v) -> {
-            Intent intent = new Intent(getActivity(), NormalFilePickActivity.class);
-            intent.putExtra(Constant.MAX_NUMBER, 9);
-            intent.putExtra(com.shixincube.filepicker.activity.BaseActivity.IS_NEED_FOLDER_LIST, true);
-            intent.putExtra(NormalFilePickActivity.SUFFIX,
-                    new String[] {"jpg", "jpeg", "png", "bmp",
-                            "xlsx", "xls", "doc", "docx", "ppt", "pptx",
-                            "pdf", "txt", "log"});
-            startActivityForResult(intent, REQUEST_FILE_PICKER);
+            pickFile();
         });
     }
 
@@ -120,8 +115,26 @@ public class FilesFragment extends BaseFragment<FilesView, FilesPresenter> imple
         }
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        CubeEngine.getInstance().getFileStorage().removeDirectoryListener(this.presenter);
+    }
+
     public FilesPresenter getPresenter() {
         return this.presenter;
+    }
+
+    public void pickFile() {
+        Intent intent = new Intent(getActivity(), NormalFilePickActivity.class);
+        intent.putExtra(Constant.MAX_NUMBER, 9);
+        intent.putExtra(com.shixincube.filepicker.activity.BaseActivity.IS_NEED_FOLDER_LIST, true);
+        intent.putExtra(NormalFilePickActivity.SUFFIX,
+                new String[] {"jpg", "jpeg", "png", "bmp",
+                        "xlsx", "xls", "doc", "docx", "ppt", "pptx",
+                        "pdf", "txt", "log"});
+        startActivityForResult(intent, REQUEST_FILE_PICKER);
     }
 
     @Override

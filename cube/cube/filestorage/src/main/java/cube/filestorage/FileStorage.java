@@ -39,6 +39,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import cube.contact.ContactService;
@@ -102,9 +104,15 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
      */
     private ConcurrentHashMap<Long, FileHierarchy> fileHierarchyMap;
 
+    /**
+     * 目录事件监听。
+     */
+    private List<DirectoryListener> directoryListeners;
+
     public FileStorage() {
         super(NAME);
         this.fileHierarchyMap = new ConcurrentHashMap<>();
+        this.directoryListeners = new ArrayList<>();
     }
 
     @Override
@@ -218,6 +226,20 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
      */
     public void executeHandlerOnMainThread(Runnable task) {
         super.executeOnMainThread(task);
+    }
+
+    public void addDirectoryListener(DirectoryListener listener) {
+        synchronized (this.directoryListeners) {
+            if (!this.directoryListeners.contains(listener)) {
+                this.directoryListeners.add(listener);
+            }
+        }
+    }
+
+    public void removeDirectoryListener(DirectoryListener listener) {
+        synchronized (this.directoryListeners) {
+            this.directoryListeners.remove(listener);
+        }
     }
 
     /**
@@ -808,6 +830,26 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
                 this.storage = new StructStorage();
                 this.storage.open(getContext(), this.self.id, this.self.domain);
             }
+        }
+    }
+
+    @Override
+    public void notifyObservers(ObservableEvent event) {
+        super.notifyObservers(event);
+
+        if (FileStorageEvent.NewDirectory.equals(event.name)) {
+            executeOnMainThread(() -> {
+                for (DirectoryListener listener : directoryListeners) {
+                    listener.onNewDirectory((Directory) event.getData());
+                }
+            });
+        }
+        else if (FileStorageEvent.DeleteDirectory.equals(event.name)) {
+            executeOnMainThread(() -> {
+                for (DirectoryListener listener : directoryListeners) {
+                    listener.onDeleteDirectory((Directory) event.getData());
+                }
+            });
         }
     }
 

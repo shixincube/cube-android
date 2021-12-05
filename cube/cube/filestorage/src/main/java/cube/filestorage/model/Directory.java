@@ -51,6 +51,7 @@ import cube.core.model.Entity;
 import cube.filestorage.FileStorage;
 import cube.filestorage.handler.DefaultDirectoryListHandler;
 import cube.filestorage.handler.DefaultFileListHandler;
+import cube.filestorage.handler.DirectoryHandler;
 import cube.filestorage.handler.FileItemListHandler;
 import cube.filestorage.handler.FileUploadDirectoryHandler;
 import cube.util.LogUtils;
@@ -177,12 +178,12 @@ public class Directory extends Entity implements Comparator<FileItem> {
         return this.children.size();
     }
 
-    protected void addChildren(Directory directory) {
+    protected void addChild(Directory directory) {
         this.children.put(directory.id, directory);
         directory.setParent(this);
     }
 
-    protected void removeChildren(Directory directory) {
+    protected void removeChild(Directory directory) {
         this.children.remove(directory.id);
     }
 
@@ -194,6 +195,10 @@ public class Directory extends Entity implements Comparator<FileItem> {
 
     protected void removeFile(FileLabel fileLabel) {
         this.files.remove(fileLabel);
+    }
+
+    protected void setNumDirs(int num) {
+        this.numDirs = num;
     }
 
     /**
@@ -283,10 +288,20 @@ public class Directory extends Entity implements Comparator<FileItem> {
         return (this.parentId.longValue() == 0);
     }
 
+    /**
+     * 返回正在上传的文件数量。
+     *
+     * @return 返回正在上传的文件数量。
+     */
     public int numUploadingFiles() {
         return this.hierarchy.getUploadingFiles().size();
     }
 
+    /**
+     * 返回正在下载的文件数量。
+     *
+     * @return 返回正在下载的文件数量。
+     */
     public int numDownloadingFiles() {
         return this.hierarchy.getDownloadingFiles().size();
     }
@@ -306,6 +321,10 @@ public class Directory extends Entity implements Comparator<FileItem> {
         if (this.numDirs == this.children.size()) {
             for (Directory directory : this.children.values()) {
                 result.add(new FileItem(directory));
+            }
+
+            if (LogUtils.isDebugLevel()) {
+                LogUtils.d(TAG, "#listFileItems - (" + this.name + ") same dir num: " + this.numDirs);
             }
 
             gotDirs.set(true);
@@ -342,6 +361,10 @@ public class Directory extends Entity implements Comparator<FileItem> {
         if (this.numFiles == this.files.size()) {
             for (FileLabel fileLabel : this.files) {
                 result.add(new FileItem(fileLabel));
+            }
+
+            if (LogUtils.isDebugLevel()) {
+                LogUtils.d(TAG, "#listFileItems - (" + this.name + ") same file num: " + this.numFiles);
             }
 
             gotFiles.set(true);
@@ -408,6 +431,17 @@ public class Directory extends Entity implements Comparator<FileItem> {
      */
     public void uploadFile(File file, FileUploadDirectoryHandler successHandler, FailureHandler failureHandler) {
         this.hierarchy.uploadFile(file, this, successHandler, failureHandler);
+    }
+
+    /**
+     * 新建文件夹。
+     *
+     * @param directoryName
+     * @param successHandler
+     * @param failureHandler
+     */
+    public void newDirectory(String directoryName, DirectoryHandler successHandler, FailureHandler failureHandler) {
+        this.hierarchy.newDirectory(this, directoryName, successHandler, failureHandler);
     }
 
     protected void update(Directory source) {

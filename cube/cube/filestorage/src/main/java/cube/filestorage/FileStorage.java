@@ -851,6 +851,13 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
                 }
             });
         }
+        else if (FileStorageEvent.RenameDirectory.equals(event.name)) {
+            executeOnMainThread(() -> {
+                for (DirectoryListener listener : directoryListeners) {
+                    listener.onRenameDirectory((Directory) event.getData());
+                }
+            });
+        }
     }
 
     interface PostTask {

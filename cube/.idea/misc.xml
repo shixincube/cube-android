@@ -4,6 +4,7 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="../../../../../../../layout/custom_preview.xml" value="0.31927083333333334" />
+        <entry key="../../../../../.gradle/caches/transforms-3/d76f35a08c08216004feed386d7db8d0/transformed/appcompat-1.2.0/res/layout/support_simple_spinner_dropdown_item.xml" value="0.19569672131147542" />
         <entry key="app/camerapicker/src/main/res/drawable/ic_camera.xml" value="0.240234375" />
         <entry key="app/camerapicker/src/main/res/drawable/ic_flash_auto.xml" value="0.240234375" />
         <entry key="app/camerapicker/src/main/res/drawable/ic_flash_off.xml" value="0.240234375" />
@@ -156,6 +157,7 @@
         <entry key="app/src/main/res/layout/item_new_contact.xml" value="0.1" />
         <entry key="app/src/main/res/layout/item_no_support_message.xml" value="0.1598360655737705" />
         <entry key="app/src/main/res/layout/item_notification.xml" value="0.5" />
+        <entry key="app/src/main/res/layout/item_spinner_dropdown.xml" value="0.19569672131147542" />
         <entry key="app/src/main/res/layout/item_spinner_file_order.xml" value="0.16598360655737704" />
         <entry key="app/src/main/res/layout/item_text_receive.xml" value="0.16393442622950818" />
         <entry key="app/src/main/res/layout/item_text_send.xml" value="0.1" />

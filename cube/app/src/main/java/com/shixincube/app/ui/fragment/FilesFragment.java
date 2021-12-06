@@ -95,7 +95,7 @@ public class FilesFragment extends BaseFragment<FilesView, FilesPresenter> imple
 
         String[] items = getResources().getStringArray(R.array.file_display_order);
         ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), R.layout.item_spinner_file_order, items);
-        adapter.setDropDownViewResource(R.layout.support_simple_spinner_dropdown_item);
+        adapter.setDropDownViewResource(R.layout.item_spinner_dropdown);
         this.displayOrderSpinner.setAdapter(adapter);
     }
 
@@ -140,7 +140,9 @@ public class FilesFragment extends BaseFragment<FilesView, FilesPresenter> imple
         }
         else if (responseCode == REQUEST_RENAME_DIR) {
             if (resultCode == Activity.RESULT_OK) {
+                String dirName = data.getStringExtra("preloadContent");
                 String newName = data.getStringExtra("content");
+                presenter.rename(dirName, newName);
             }
         }
     }
@@ -169,7 +171,7 @@ public class FilesFragment extends BaseFragment<FilesView, FilesPresenter> imple
 
     @Override
     protected FilesPresenter createPresenter() {
-        return new FilesPresenter((MainActivity) getActivity(), this.tabController);
+        return new FilesPresenter((MainActivity) getActivity(), this, this.tabController);
     }
 
     @Override

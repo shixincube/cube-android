@@ -38,7 +38,6 @@ import com.shixincube.app.ui.activity.TextInputActivity;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.fragment.FilesFragment;
-import com.shixincube.app.ui.fragment.FragmentFactory;
 import com.shixincube.app.ui.view.FilesView;
 import com.shixincube.app.util.DateUtils;
 import com.shixincube.app.util.UIUtils;
@@ -62,6 +61,7 @@ import cube.engine.util.Promise;
 import cube.engine.util.PromiseFuture;
 import cube.engine.util.PromiseHandler;
 import cube.filestorage.DirectoryListener;
+import cube.filestorage.handler.DefaultDirectoryHandler;
 import cube.filestorage.handler.DefaultFileItemListHandler;
 import cube.filestorage.handler.DefaultFileUploadDirectoryHandler;
 import cube.filestorage.model.Directory;
@@ -77,6 +77,8 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
 
     private final static String TAG = FilesPresenter.class.getSimpleName();
 
+    private FilesFragment fragment;
+
     private FilesTabController tabController;
 
     private List<FileItem> fileItemList;
@@ -87,15 +89,16 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
 
     private Directory currentDirectory;
 
-    public FilesPresenter(BaseActivity activity, FilesTabController tabController) {
+    public FilesPresenter(BaseActivity activity, FilesFragment fragment, FilesTabController tabController) {
         super(activity);
+        this.fragment = fragment;
         this.tabController = tabController;
         this.tabController.setTabChangedListener(this);
         this.fileItemList = new ArrayList<>();
     }
 
     private FilesFragment getFragment() {
-        return FragmentFactory.getInstance().getFilesFragment();
+        return this.fragment;
     }
 
     public Directory getCurrentDirectory() {
@@ -137,6 +140,11 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
         }).launch();
     }
 
+    /**
+     * 上传文件到当前文件夹。
+     *
+     * @param filepath
+     */
     public void uploadFile(String filepath) {
         this.tabController.setTransmittingNum(this.rootDirectory.numUploadingFiles()
                 + rootDirectory.numDownloadingFiles() + 1);
@@ -157,6 +165,35 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
         }, new DefaultFailureHandler(true) {
             @Override
             public void handleFailure(Module module, ModuleError error) {
+                UIUtils.showToast(UIUtils.getString(R.string.operate_failure_with_code, error.code));
+            }
+        });
+    }
+
+    /**
+     * 重命名当前文件夹。
+     *
+     * @param newName
+     */
+    public void rename(String dirName, String newName) {
+        activity.showWaitingDialog(UIUtils.getString(R.string.please_wait_a_moment));
+
+        Directory directory = this.currentDirectory.getSubdirectory(dirName);
+        if (null == directory) {
+            activity.hideWaitingDialog();
+            LogUtils.w(TAG, "Can NOT find subdirectory: " + dirName);
+            return;
+        }
+
+        directory.renameDirectory(newName, new DefaultDirectoryHandler(true) {
+            @Override
+            public void handleDirectory(Directory directory) {
+                activity.hideWaitingDialog();
+            }
+        }, new DefaultFailureHandler(true) {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                activity.hideWaitingDialog();
                 UIUtils.showToast(UIUtils.getString(R.string.operate_failure_with_code, error.code));
             }
         });
@@ -341,6 +378,14 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
 
     @Override
     public void onDeleteDirectory(Directory deletedDirectory) {
+        int tab = this.tabController.getActiveTab();
+        if (tab == FilesTabController.TAB_ALL_FILES) {
+            this.refreshData();
+        }
+    }
+
+    @Override
+    public void onRenameDirectory(Directory directory) {
         int tab = this.tabController.getActiveTab();
         if (tab == FilesTabController.TAB_ALL_FILES) {
             this.refreshData();

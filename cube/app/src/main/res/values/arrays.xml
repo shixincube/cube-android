@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="file_display_order">
-        <item> ↓ 按照修改时间 </item>
-        <item> ↑ 按照修改时间 </item>
-        <item> ↓ 按照文件名称 </item>
-        <item> ↑ 按照文件名称 </item>
+        <item>↓ 按照修改时间</item>
+        <item>↑ 按照修改时间</item>
+        <item>↓ 按照文件名称</item>
+        <item>↑ 按照文件名称</item>
     </string-array>
 </resources>

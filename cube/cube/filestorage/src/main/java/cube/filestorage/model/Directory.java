@@ -439,6 +439,22 @@ public class Directory extends Entity implements Comparator<FileItem> {
     }
 
     /**
+     * 获取指定名称的子目录。
+     *
+     * @param dirName
+     * @return
+     */
+    public Directory getSubdirectory(String dirName) {
+        for (Directory directory : this.children.values()) {
+            if (directory.getName().equals(dirName)) {
+                return directory;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * 新建文件夹。
      *
      * @param directoryName

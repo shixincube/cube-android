@@ -46,4 +46,11 @@ public interface DirectoryListener {
      * @param deletedDirectory
      */
     void onDeleteDirectory(Directory deletedDirectory);
+
+    /**
+     * 当有目录被重命名时该方法被回调。
+     *
+     * @param directory
+     */
+    void onRenameDirectory(Directory directory);
 }

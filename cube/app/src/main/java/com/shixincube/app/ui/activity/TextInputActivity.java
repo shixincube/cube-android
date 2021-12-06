@@ -58,6 +58,8 @@ public class TextInputActivity extends BaseActivity {
     @BindView(R.id.etContent)
     EditText contentEditText;
 
+    private String preloadContent = "";
+
     /**
      * 允许输入的最小长度。
      */
@@ -85,6 +87,7 @@ public class TextInputActivity extends BaseActivity {
         else {
             this.contentEditText.setText(content);
             this.submitButton.setEnabled(true);
+            this.preloadContent = content;
         }
 
         boolean multiline = getIntent().getBooleanExtra("multiline", false);
@@ -110,6 +113,7 @@ public class TextInputActivity extends BaseActivity {
         this.submitButton.setOnClickListener((view) -> {
             Intent data = new Intent();
             data.putExtra("content", contentEditText.getText().toString());
+            data.putExtra("preloadContent", preloadContent);
             setResult(RESULT_OK, data);
             finish();
         });

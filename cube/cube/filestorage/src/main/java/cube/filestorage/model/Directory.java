@@ -449,6 +449,17 @@ public class Directory extends Entity implements Comparator<FileItem> {
         this.hierarchy.newDirectory(this, directoryName, successHandler, failureHandler);
     }
 
+    /**
+     * 重命名文件夹。
+     *
+     * @param newName
+     * @param successHandler
+     * @param failureHandler
+     */
+    public void renameDirectory(String newName, DirectoryHandler successHandler, FailureHandler failureHandler) {
+        this.hierarchy.renameDirectory(this, newName, successHandler, failureHandler);
+    }
+
     protected void update(Directory source) {
         this.numFiles = source.numFiles;
         this.numDirs = source.numDirs;

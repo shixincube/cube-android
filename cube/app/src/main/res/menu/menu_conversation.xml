@@ -2,15 +2,15 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/menu_set_top"
+        android:id="@+id/menuSetTop"
         android:title="@string/conv_top"/>
 
     <item
-        android:id="@+id/menu_cancel_top"
+        android:id="@+id/menuCancelTop"
         android:title="@string/conv_top_cancel"/>
 
     <item
-        android:id="@+id/menu_delete_conversation"
+        android:id="@+id/menuDeleteConversation"
         android:title="@string/conv_delete"/>
 
 </menu>

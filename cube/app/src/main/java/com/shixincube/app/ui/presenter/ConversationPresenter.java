@@ -185,7 +185,7 @@ public class ConversationPresenter extends BasePresenter<ConversationView> imple
                     menu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                         @Override
                         public boolean onMenuItemClick(MenuItem menuItem) {
-                            if (menuItem.getItemId() == R.id.menu_set_top) {
+                            if (menuItem.getItemId() == R.id.menuSetTop) {
                                 CubeEngine.getInstance().getMessagingService().focusOnConversation(item.conversation, new DefaultConversationHandler(true) {
                                     @Override
                                     public void handleConversation(Conversation conversation) {
@@ -198,7 +198,7 @@ public class ConversationPresenter extends BasePresenter<ConversationView> imple
                                     }
                                 });
                             }
-                            else if (menuItem.getItemId() == R.id.menu_cancel_top) {
+                            else if (menuItem.getItemId() == R.id.menuCancelTop) {
                                 CubeEngine.getInstance().getMessagingService().focusOutConversation(item.conversation, new DefaultConversationHandler(true) {
                                     @Override
                                     public void handleConversation(Conversation conversation) {
@@ -211,7 +211,7 @@ public class ConversationPresenter extends BasePresenter<ConversationView> imple
                                     }
                                 });
                             }
-                            else if (menuItem.getItemId() == R.id.menu_delete_conversation) {
+                            else if (menuItem.getItemId() == R.id.menuDeleteConversation) {
                                 CubeEngine.getInstance().getMessagingService().deleteConversation(item.conversation, new DefaultConversationHandler(true) {
                                     @Override
                                     public void handleConversation(Conversation conversation) {

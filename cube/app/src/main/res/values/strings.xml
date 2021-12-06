@@ -84,6 +84,11 @@
     <string name="file_downloading">正在下载</string>
     <string name="file_new_dir">新建文件夹</string>
     <string name="please_enter_folder_name">请输入文件夹名称：</string>
+    <string name="file_rename_dir">重命名文件夹</string>
+    <string name="file_delete_dir">删除文件夹</string>
+    <string name="file_delete">删除文件</string>
+    <string name="file_move">移动文件</string>
+    <string name="file_download">下载文件</string>
 
     <!-- 个人信息 -->
     <string name="my_nickname">我的名称</string>

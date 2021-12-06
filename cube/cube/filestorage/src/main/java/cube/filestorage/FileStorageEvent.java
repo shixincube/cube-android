@@ -76,6 +76,11 @@ public final class FileStorageEvent {
      */
     public final static String DeleteDirectory= "DeleteDirectory";
 
+    /**
+     * 重命名目录。
+     */
+    public final static String RenameDirectory = "RenameDirectory";
+
     private FileStorageEvent() {
     }
 }

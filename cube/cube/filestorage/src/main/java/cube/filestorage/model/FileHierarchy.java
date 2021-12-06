@@ -518,6 +518,78 @@ public class FileHierarchy {
         });
     }
 
+    /**
+     * 重命名目录。
+     *
+     * @param workingDirectory
+     * @param directoryName
+     * @param successHandler
+     * @param failureHandler
+     */
+    protected void renameDirectory(Directory workingDirectory, String directoryName, DirectoryHandler successHandler, FailureHandler failureHandler) {
+        if (!this.service.getPipeline().isReady()) {
+            ModuleError error = new ModuleError(FileStorage.NAME, FileStorageState.PipelineNotReady.code);
+            this.service.execute(failureHandler, error);
+            return;
+        }
+
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("root", this.root.id.longValue());
+            payload.put("workingId", workingDirectory.id.longValue());
+            payload.put("dirName", directoryName);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        Packet requestPacket = new Packet(FileStorageAction.RenameDir, payload);
+        this.service.getPipeline().send(FileStorage.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    ModuleError error = new ModuleError(FileStorage.NAME, packet.state.code);
+                    error.data = workingDirectory;
+                    service.execute(failureHandler, error);
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != FileStorageState.Ok.code) {
+                    ModuleError error = new ModuleError(FileStorage.NAME, stateCode);
+                    error.data = workingDirectory;
+                    service.execute(failureHandler, error);
+                    return;
+                }
+
+                try {
+                    Directory response = new Directory(packet.extractServiceData());
+                    workingDirectory.update(response);
+
+                    workingDirectory.resetLast(System.currentTimeMillis());
+
+                    storage.writeDirectory(workingDirectory);
+
+                    if (successHandler.isInMainThread()) {
+                        service.executeHandlerOnMainThread(() -> {
+                            successHandler.handleDirectory(workingDirectory);
+                        });
+                    }
+                    else {
+                        service.executeHandler(() -> {
+                            successHandler.handleDirectory(workingDirectory);
+                        });
+                    }
+
+                    service.executeHandler(() -> {
+                        ObservableEvent event = new ObservableEvent(FileStorageEvent.RenameDirectory, workingDirectory);
+                        service.notifyObservers(event);
+                    });
+                } catch (JSONException e) {
+                    LogUtils.w(TAG, "#newDirectory", e);
+                }
+            }
+        });
+    }
+
     protected void handle(FileItemListHandler handler, List<FileItem> list) {
         if (handler.isInMainThread()) {
             this.service.executeHandlerOnMainThread(() -> {

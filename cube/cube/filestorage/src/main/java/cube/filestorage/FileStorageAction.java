@@ -72,6 +72,11 @@ public final class FileStorageAction {
     public final static String DeleteDir = "deleteDir";
 
     /**
+     * 重命名目录。
+     */
+    public final static String  RenameDir = "renameDir";
+
+    /**
      * 删除文件。
      */
     public final static String DeleteFile = "deleteFile";

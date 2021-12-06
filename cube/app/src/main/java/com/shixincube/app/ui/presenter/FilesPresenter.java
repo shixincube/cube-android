@@ -26,18 +26,26 @@
 
 package com.shixincube.app.ui.presenter;
 
+import android.content.Intent;
+import android.view.Gravity;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.PopupMenu;
 
 import com.shixincube.app.R;
+import com.shixincube.app.ui.activity.TextInputActivity;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
+import com.shixincube.app.ui.fragment.FilesFragment;
+import com.shixincube.app.ui.fragment.FragmentFactory;
 import com.shixincube.app.ui.view.FilesView;
 import com.shixincube.app.util.DateUtils;
 import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.FilesTabController;
 import com.shixincube.app.widget.adapter.AdapterForRecyclerView;
 import com.shixincube.app.widget.adapter.OnItemClickListener;
+import com.shixincube.app.widget.adapter.OnItemLongClickListener;
 import com.shixincube.app.widget.adapter.ViewHolder;
 import com.shixincube.app.widget.adapter.ViewHolderForRecyclerView;
 
@@ -84,6 +92,10 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
         this.tabController = tabController;
         this.tabController.setTabChangedListener(this);
         this.fileItemList = new ArrayList<>();
+    }
+
+    private FilesFragment getFragment() {
+        return FragmentFactory.getInstance().getFilesFragment();
     }
 
     public Directory getCurrentDirectory() {
@@ -176,6 +188,7 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
                 }
             };
 
+            // 点击
             this.adapter.setOnItemClickListener(new OnItemClickListener() {
                 @Override
                 public void onItemClick(ViewHolder helper, ViewGroup parent, View itemView, int position) {
@@ -191,6 +204,62 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
                     else if (fileItem.type == FileItem.ItemType.File) {
                         UIUtils.showToast(UIUtils.getString(R.string.developing));
                     }
+                }
+            });
+
+            // 长按
+            this.adapter.setOnItemLongClickListener(new OnItemLongClickListener() {
+                @Override
+                public boolean onItemLongClick(ViewHolder helper, ViewGroup parent, View itemView, int position) {
+                    FileItem fileItem = fileItemList.get(position);
+                    if (fileItem.type == FileItem.ItemType.ParentDirectory) {
+                        // "回到上一级"不显示菜单
+                        return true;
+                    }
+
+                    // 显示在文件名下面
+                    PopupMenu menu = new PopupMenu(activity, itemView.findViewById(R.id.tvName), Gravity.CENTER);
+                    menu.getMenuInflater().inflate(R.menu.menu_file, menu.getMenu());
+
+                    if (fileItem.type == FileItem.ItemType.File) {
+                        menu.getMenu().getItem(0).setVisible(false);
+                        menu.getMenu().getItem(1).setVisible(false);
+                    }
+                    else if (fileItem.type == FileItem.ItemType.Directory) {
+                        menu.getMenu().getItem(2).setVisible(false);
+                        menu.getMenu().getItem(3).setVisible(false);
+                        menu.getMenu().getItem(4).setVisible(false);
+                    }
+
+                    menu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                        @Override
+                        public boolean onMenuItemClick(MenuItem menuItem) {
+                            if (menuItem.getItemId() == R.id.menuRename) {
+                                Intent intent = new Intent(activity, TextInputActivity.class);
+                                intent.putExtra("title", UIUtils.getString(R.string.file_rename_dir));
+                                intent.putExtra("minLength", 1);
+                                intent.putExtra("content", fileItem.getName());
+                                getFragment().startActivityForResult(intent, FilesFragment.REQUEST_RENAME_DIR);
+                            }
+                            else if (menuItem.getItemId() == R.id.menuDeleteDir) {
+
+                            }
+                            else if (menuItem.getItemId() == R.id.menuDownloadFile) {
+
+                            }
+                            else if (menuItem.getItemId() == R.id.menuMoveFile) {
+
+                            }
+                            else if (menuItem.getItemId() == R.id.menuDeleteFile) {
+
+                            }
+
+                            return true;
+                        }
+                    });
+
+                    menu.show();
+                    return true;
                 }
             });
 

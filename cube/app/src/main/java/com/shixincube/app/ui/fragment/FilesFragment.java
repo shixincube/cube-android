@@ -59,6 +59,8 @@ public class FilesFragment extends BaseFragment<FilesView, FilesPresenter> imple
 
     public final static int REQUEST_FILE_PICKER = 2001;
 
+    public final static int REQUEST_RENAME_DIR = 2101;
+
     @BindView(R.id.llFileClassify)
     LinearLayout fileClassifyTab;
 
@@ -134,6 +136,11 @@ public class FilesFragment extends BaseFragment<FilesView, FilesPresenter> imple
                         presenter.uploadFile(file.getPath());
                     }
                 }
+            }
+        }
+        else if (responseCode == REQUEST_RENAME_DIR) {
+            if (resultCode == Activity.RESULT_OK) {
+                String newName = data.getStringExtra("content");
             }
         }
     }

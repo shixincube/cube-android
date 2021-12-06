@@ -29,8 +29,11 @@ package com.shixincube.app.ui.fragment;
 import android.app.Activity;
 import android.content.Intent;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.shixincube.app.R;
@@ -67,6 +70,9 @@ public class FilesFragment extends BaseFragment<FilesView, FilesPresenter> imple
     @BindView(R.id.btnUpload)
     Button uploadButton;
 
+    @BindView(R.id.spDisplayOrder)
+    Spinner displayOrderSpinner;
+
     @BindView(R.id.rvFiles)
     RecyclerView filesView;
 
@@ -84,6 +90,11 @@ public class FilesFragment extends BaseFragment<FilesView, FilesPresenter> imple
     @Override
     public void initView(View rootView) {
         this.tabController.bind(this.fileClassifyTab);
+
+        String[] items = getResources().getStringArray(R.array.file_display_order);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), R.layout.item_spinner_file_order, items);
+        adapter.setDropDownViewResource(R.layout.support_simple_spinner_dropdown_item);
+        this.displayOrderSpinner.setAdapter(adapter);
     }
 
     @Override
@@ -96,6 +107,18 @@ public class FilesFragment extends BaseFragment<FilesView, FilesPresenter> imple
     public void initListener() {
         this.uploadButton.setOnClickListener((v) -> {
             pickFile();
+        });
+
+        this.displayOrderSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
         });
     }
 

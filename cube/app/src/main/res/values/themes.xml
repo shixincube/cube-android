@@ -2,9 +2,12 @@
     <!-- Base application theme. -->
     <style name="CubeTheme" parent="Theme.MaterialComponents.NoActionBar.Bridge">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/colorPrimary</item>
+        <!-- item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryVariant">@color/colorPrimaryDark</item>
-        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorOnPrimary">@color/white</item -->
+        <item name="colorPrimary">@color/background</item>
+        <item name="colorPrimaryVariant">@color/background_accent</item>
+        <item name="colorOnPrimary">@color/text</item>
         <!-- Secondary brand color. -->
         <item name="colorSecondary">@color/theme_blue_dark</item>
         <item name="colorSecondaryVariant">@color/theme_blue_light</item>

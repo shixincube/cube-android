@@ -61,6 +61,8 @@ import kr.co.namee.permissiongen.PermissionGen;
  */
 public class SplashActivity extends BaseActivity {
 
+    private final static String TAG = SplashActivity.class.getSimpleName();
+
     @BindView(R.id.accountLayout)
     RelativeLayout accountView;
 
@@ -217,14 +219,20 @@ public class SplashActivity extends BaseActivity {
         Explorer.getInstance().login(tokenCode, device)
                 .subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.io())
+                .doOnError(error -> {
+                    LogUtils.w(TAG, "#login - login", error);
+                })
                 .subscribe(loginResponse -> {
-                    LogUtils.i(SplashActivity.class.getSimpleName(),
+                    LogUtils.i(TAG,
                             "Login expire: " + (new Date(loginResponse.expire).toString()));
                 });
 
         Explorer.getInstance().getAccountInfo(tokenCode)
                 .subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.io())
+                .doOnError(error -> {
+                    LogUtils.w(TAG, "#login - getAccountInfo", error);
+                })
                 .subscribe(accountInfoResponse -> {
                     // 更新本地数据
                     AccountHelper.getInstance().updateCurrentAccount(accountInfoResponse.name,

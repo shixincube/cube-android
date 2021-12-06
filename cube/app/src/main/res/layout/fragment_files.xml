@@ -275,25 +275,7 @@
 
     </HorizontalScrollView>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/colorThemeBackground"
-        android:padding="8dp"
-        android:orientation="vertical">
-
-        <!-- 当前路径 -->
-        <TextView
-            android:id="@+id/tvPath"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:maxLines="2"
-            android:ellipsize="middle"
-            android:text="@string/app_name"
-            android:textColor="?attr/colorTextSecondary"
-            android:textSize="12sp"/>
-
-    </LinearLayout>
+    <View style="?attr/styleLine"/>
 
     <LinearLayout
         android:id="@+id/llNoFile"
@@ -315,6 +297,47 @@
             android:textColor="?attr/colorButtonPrimaryText"
             android:text="@string/upload_file"
             android:textSize="16sp"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorThemeBackground"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:paddingStart="@dimen/item_margin_start_and_end"
+        android:paddingEnd="@dimen/item_margin_start_and_end"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/item_margin_top_and_bottom"
+            android:orientation="horizontal">
+
+            <Spinner
+                android:id="@+id/spDisplayOrder"
+                style="@style/CustomSpinner"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:spinnerMode="dropdown"
+                android:drawSelectorOnTop="true"
+                android:textSize="14sp"/>
+
+        </LinearLayout>
+
+        <!-- 当前路径 -->
+        <TextView
+            android:id="@+id/tvPath"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxLines="2"
+            android:ellipsize="middle"
+            android:text="@string/app_name"
+            android:textColor="?attr/colorTextSecondary"
+            android:textSize="12sp"/>
 
     </LinearLayout>
 

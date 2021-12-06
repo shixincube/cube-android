@@ -4,7 +4,7 @@
     android:id="@+id/flRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/colorThemeBackground"
+    android:background="?attr/selectorOptionItem"
     android:orientation="vertical">
 
     <LinearLayout
@@ -23,14 +23,14 @@
             android:layout_marginBottom="@dimen/item_margin_top_and_bottom"
             android:layout_marginTop="@dimen/item_margin_top_and_bottom">
 
-            <!-- 图标/头像 -->
+            <!-- 图标 -->
             <com.shixincube.app.widget.AdvancedImageView
                 android:id="@+id/ivFileIcon"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:layout_centerInParent="true"
                 android:scaleType="centerCrop"
-                android:src="@mipmap/avatar_default"
+                android:src="@mipmap/ic_file"
                 auto:corner_radius="2dp" />
 
         </RelativeLayout>
@@ -81,6 +81,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/item_margin_start_and_end">
 
+            <!-- 选择 -->
             <CheckBox
                 android:id="@+id/cbSelector"
                 style="@style/CustomCheckboxTheme"

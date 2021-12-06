@@ -38,8 +38,15 @@
         <item name="android:background">?attr/colorThemeBackground</item>
     </style>
 
-    <!-- 自定义CheckBox样式 -->
+    <!-- 自定义 CheckBox 样式 -->
     <style name="CustomCheckboxTheme" parent="@android:style/Widget.CompoundButton.CheckBox">
         <item name="android:button">@drawable/checkbox_style</item>
+    </style>
+
+    <!-- 自定义 Spinner 样式 -->
+    <style name="CustomSpinner">
+        <item name="android:background">?attr/colorThemeBackground</item>
+        <item name="android:textColor">?attr/colorText</item>
+        <item name="android:textColorHint">?attr/colorText</item>
     </style>
 </resources>

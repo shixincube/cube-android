@@ -5,6 +5,10 @@
     <color name="gray">#FFD9D9D9</color>
     <color name="transparent">#00000000</color>
 
+    <color name="colorPrimary">#393A3F</color>
+    <color name="colorPrimaryDark">#303135</color>
+    <color name="colorAccent">#7E7E7E</color>
+
     <color name="warning">#FCCE0B</color>
     <color name="danger">#E64340</color>
     <color name="danger_stroke">#D54A47</color>
@@ -116,10 +120,6 @@
     <color name="purple_700">#FF3700B3</color>
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
-
-    <color name="colorPrimary">#393A3F</color>
-    <color name="colorPrimaryDark">#303135</color>
-    <color name="colorAccent">#7e7e7e</color>
 
     <color name="main">#26AAFD</color>
     <color name="main_bg0">#f0f0f0</color>

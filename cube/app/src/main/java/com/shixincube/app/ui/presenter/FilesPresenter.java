@@ -63,7 +63,7 @@ import cube.engine.util.PromiseHandler;
 import cube.filestorage.DirectoryListener;
 import cube.filestorage.handler.DefaultDirectoryHandler;
 import cube.filestorage.handler.DefaultFileItemListHandler;
-import cube.filestorage.handler.DefaultFileUploadDirectoryHandler;
+import cube.filestorage.handler.DefaultDirectoryFileUploadHandler;
 import cube.filestorage.model.Directory;
 import cube.filestorage.model.FileAnchor;
 import cube.filestorage.model.FileItem;
@@ -149,7 +149,7 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
         this.tabController.setTransmittingNum(this.rootDirectory.numUploadingFiles()
                 + rootDirectory.numDownloadingFiles() + 1);
 
-        this.currentDirectory.uploadFile(new File(filepath), new DefaultFileUploadDirectoryHandler(true) {
+        this.currentDirectory.uploadFile(new File(filepath), new DefaultDirectoryFileUploadHandler(true) {
             @Override
             public void handleProgress(FileAnchor fileAnchor, Directory directory) {
                 // Nothing
@@ -197,6 +197,81 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
                 UIUtils.showToast(UIUtils.getString(R.string.operate_failure_with_code, error.code));
             }
         });
+    }
+
+    /**
+     * 删除目录。
+     *
+     * @param directory
+     */
+    public void deleteDirectory(Directory directory) {
+        Runnable deleteTask = () -> {
+            activity.showWaitingDialog(UIUtils.getString(R.string.please_wait_a_moment));
+
+            currentDirectory.deleteDirectory(directory, true, new DefaultDirectoryHandler(true) {
+                @Override
+                public void handleDirectory(Directory directory) {
+                    activity.hideWaitingDialog();
+                }
+            }, new DefaultFailureHandler(true) {
+                @Override
+                public void handleFailure(Module module, ModuleError error) {
+                    activity.hideWaitingDialog();
+                    UIUtils.showToast(UIUtils.getString(R.string.operate_failure_with_code, error.code));
+                }
+            });
+        };
+
+        if (directory.isEmpty()) {
+            // 空文件夹直接删除
+            deleteTask.run();
+            return;
+        }
+
+        // 提示用户是否确认删除
+        activity.showMaterialDialog(UIUtils.getString(R.string.file_delete_dir),
+                UIUtils.getString(R.string.tip_delete_directory, directory.getName()),
+                UIUtils.getString(R.string.sure),
+                UIUtils.getString(R.string.cancel),
+                (view) -> {
+                    activity.hideMaterialDialog();
+                    deleteTask.run();
+                }, (view) -> {
+                    activity.hideMaterialDialog();
+                });
+    }
+
+    /**
+     * 删除文件。
+     *
+     * @param fileLabel
+     */
+    public void deleteFile(FileLabel fileLabel) {
+        activity.showMaterialDialog(UIUtils.getString(R.string.file_delete),
+                UIUtils.getString(R.string.tip_delete_file, fileLabel.getFileName()),
+                UIUtils.getString(R.string.sure),
+                UIUtils.getString(R.string.cancel),
+                (view) -> {
+                    activity.hideMaterialDialog();
+
+                    activity.showWaitingDialog(UIUtils.getString(R.string.please_wait_a_moment));
+
+                    currentDirectory.deleteFile(fileLabel, new DefaultDirectoryHandler(true) {
+                        @Override
+                        public void handleDirectory(Directory directory) {
+                            activity.hideWaitingDialog();
+                            refreshData();
+                        }
+                    }, new DefaultFailureHandler(true) {
+                        @Override
+                        public void handleFailure(Module module, ModuleError error) {
+                            activity.hideWaitingDialog();
+                            UIUtils.showToast(UIUtils.getString(R.string.operate_failure_with_code, error.code));
+                        }
+                    });
+                }, (view) -> {
+                    activity.hideMaterialDialog();
+                });
     }
 
     private void setAdapter() {
@@ -279,16 +354,16 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
                                 getFragment().startActivityForResult(intent, FilesFragment.REQUEST_RENAME_DIR);
                             }
                             else if (menuItem.getItemId() == R.id.menuDeleteDir) {
-
+                                deleteDirectory(fileItem.getDirectory());
                             }
                             else if (menuItem.getItemId() == R.id.menuDownloadFile) {
-
+                                UIUtils.showToast(UIUtils.getString(R.string.developing));
                             }
                             else if (menuItem.getItemId() == R.id.menuMoveFile) {
-
+                                UIUtils.showToast(UIUtils.getString(R.string.developing));
                             }
                             else if (menuItem.getItemId() == R.id.menuDeleteFile) {
-
+                                deleteFile(fileItem.getFileLabel());
                             }
 
                             return true;

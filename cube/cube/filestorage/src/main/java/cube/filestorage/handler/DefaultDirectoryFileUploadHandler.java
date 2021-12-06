@@ -29,14 +29,14 @@ package cube.filestorage.handler;
 /**
  * 默认文件上传到目录句柄。
  */
-public abstract class DefaultFileUploadDirectoryHandler implements FileUploadDirectoryHandler {
+public abstract class DefaultDirectoryFileUploadHandler implements DirectoryFileUploadHandler {
 
     private boolean inMainThread = false;
 
-    public DefaultFileUploadDirectoryHandler() {
+    public DefaultDirectoryFileUploadHandler() {
     }
 
-    public DefaultFileUploadDirectoryHandler(boolean inMainThread) {
+    public DefaultDirectoryFileUploadHandler(boolean inMainThread) {
         this.inMainThread = inMainThread;
     }
 

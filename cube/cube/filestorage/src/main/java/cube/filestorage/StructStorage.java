@@ -307,6 +307,46 @@ public class StructStorage extends AbstractStorage {
     }
 
     /**
+     * 删除目录。
+     *
+     * @param directory
+     */
+    public void deleteDirectory(Directory directory) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        // delete
+        db.delete("directory", "id=?", new String[]{
+                directory.id.toString()
+        });
+
+        // delete
+        db.delete("hierarchy", "dir_id=? OR parent_id=?", new String[]{
+                directory.id.toString(),
+                directory.id.toString()
+        });
+
+        this.closeWritableDatabase(db);
+    }
+
+    /**
+     * 删除指定目录下的文件。
+     *
+     * @param directory
+     * @param fileLabel
+     */
+    public void deleteFile(Directory directory, FileLabel fileLabel) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        // delete
+        db.delete("hierarchy", "dir_id=? AND file_code=?", new String[]{
+                directory.id.toString(),
+                fileLabel.getFileCode()
+        });
+
+        this.closeWritableDatabase(db);
+    }
+
+    /**
      * 写入目录下的文件标签。
      *
      * @param directory

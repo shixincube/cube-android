@@ -51,9 +51,10 @@ import cube.core.model.Entity;
 import cube.filestorage.FileStorage;
 import cube.filestorage.handler.DefaultDirectoryListHandler;
 import cube.filestorage.handler.DefaultFileListHandler;
+import cube.filestorage.handler.DirectoryFileDownloadHandler;
 import cube.filestorage.handler.DirectoryHandler;
 import cube.filestorage.handler.FileItemListHandler;
-import cube.filestorage.handler.FileUploadDirectoryHandler;
+import cube.filestorage.handler.DirectoryFileUploadHandler;
 import cube.util.LogUtils;
 
 /**
@@ -312,9 +313,19 @@ public class Directory extends Entity implements Comparator<FileItem> {
     }
 
     /**
+     * 是否是空目录。
      *
-     * @param successHandler
-     * @param failureHandler
+     * @return 如果目录下面既没有子目录也没有文件返回 {@code true} 。
+     */
+    public boolean isEmpty() {
+        return (this.numDirs == 0 && this.numFiles == 0);
+    }
+
+    /**
+     * 列举当前目录下的所有子目录和文件。
+     *
+     * @param successHandler 指定操作成功回调句柄。
+     * @param failureHandler 指定操作失败回调句柄。
      */
     public void listFileItems(FileItemListHandler successHandler, FailureHandler failureHandler) {
         final List<FileItem> result = new ArrayList<>();
@@ -430,19 +441,42 @@ public class Directory extends Entity implements Comparator<FileItem> {
     /**
      * 上传文件。
      *
-     * @param file
+     * @param file 指定文件。
+     * @param successHandler 指定操作成功回调句柄。
+     * @param failureHandler 指定操作失败回调句柄。
+     */
+    public void uploadFile(File file, DirectoryFileUploadHandler successHandler, FailureHandler failureHandler) {
+        this.hierarchy.uploadFile(file, this, successHandler, failureHandler);
+    }
+
+    /**
+     * 下载文件。
+     *
+     * @param fileLabel
+     * @param outputFile
      * @param successHandler
      * @param failureHandler
      */
-    public void uploadFile(File file, FileUploadDirectoryHandler successHandler, FailureHandler failureHandler) {
-        this.hierarchy.uploadFile(file, this, successHandler, failureHandler);
+    public void downloadFile(FileLabel fileLabel, File outputFile, DirectoryFileDownloadHandler successHandler, FailureHandler failureHandler) {
+
+    }
+
+    /**
+     * 删除指定文件。
+     *
+     * @param fileLabel 指定文件标签。
+     * @param successHandler 指定操作成功回调句柄。
+     * @param failureHandler 指定操作失败回调句柄。
+     */
+    public void deleteFile(FileLabel fileLabel, DirectoryHandler successHandler, FailureHandler failureHandler) {
+        this.hierarchy.deleteFile(this, fileLabel, successHandler, failureHandler);
     }
 
     /**
      * 获取指定名称的子目录。
      *
-     * @param dirName
-     * @return
+     * @param dirName 指定子目录名。
+     * @return 返回目录实例。
      */
     public Directory getSubdirectory(String dirName) {
         for (Directory directory : this.children.values()) {
@@ -457,20 +491,32 @@ public class Directory extends Entity implements Comparator<FileItem> {
     /**
      * 新建文件夹。
      *
-     * @param directoryName
-     * @param successHandler
-     * @param failureHandler
+     * @param directoryName 指定新文件夹名。
+     * @param successHandler 指定操作成功回调句柄。
+     * @param failureHandler 指定操作失败回调句柄。
      */
     public void newDirectory(String directoryName, DirectoryHandler successHandler, FailureHandler failureHandler) {
         this.hierarchy.newDirectory(this, directoryName, successHandler, failureHandler);
     }
 
     /**
+     * 删除指定的子目录。如果目录是非空目录则不会被删除。
+     *
+     * @param subdirectory 指定待删除的子目录。
+     * @param recursive 指定是否递归删除指定目录下的所有目录和文件。
+     * @param successHandler 指定操作成功回调句柄。
+     * @param failureHandler 指定操作失败回调句柄。
+     */
+    public void deleteDirectory(Directory subdirectory, boolean recursive, DirectoryHandler successHandler, FailureHandler failureHandler) {
+        this.hierarchy.deleteDirectory(this, subdirectory, recursive, successHandler, failureHandler);
+    }
+
+    /**
      * 重命名文件夹。
      *
-     * @param newName
-     * @param successHandler
-     * @param failureHandler
+     * @param newName 指定目录的新名称。
+     * @param successHandler 指定操作成功回调句柄。
+     * @param failureHandler 指定操作失败回调句柄。
      */
     public void renameDirectory(String newName, DirectoryHandler successHandler, FailureHandler failureHandler) {
         this.hierarchy.renameDirectory(this, newName, successHandler, failureHandler);

@@ -69,17 +69,22 @@ public final class FileStorageEvent {
     /**
      * 新建目录。
      */
-    public final static String NewDirectory= "NewDirectory";
+    public final static String NewDirectory = "NewDirectory";
 
     /**
      * 删除目录。
      */
-    public final static String DeleteDirectory= "DeleteDirectory";
+    public final static String DeleteDirectory = "DeleteDirectory";
 
     /**
      * 重命名目录。
      */
     public final static String RenameDirectory = "RenameDirectory";
+
+    /**
+     * 删除文件。
+     */
+    public final static String DeleteFile = "DeleteFile";
 
     private FileStorageEvent() {
     }

@@ -55,7 +55,7 @@ import cube.filestorage.handler.DirectoryHandler;
 import cube.filestorage.handler.DirectoryListHandler;
 import cube.filestorage.handler.FileItemListHandler;
 import cube.filestorage.handler.FileListHandler;
-import cube.filestorage.handler.FileUploadDirectoryHandler;
+import cube.filestorage.handler.DirectoryFileUploadHandler;
 import cube.filestorage.handler.StableUploadFileHandler;
 import cube.util.LogUtils;
 import cube.util.ObservableEvent;
@@ -325,7 +325,7 @@ public class FileHierarchy {
      * @param successHandler
      * @param failureHandler
      */
-    protected void uploadFile(File file, Directory directory, FileUploadDirectoryHandler successHandler, FailureHandler failureHandler) {
+    protected void uploadFile(File file, Directory directory, DirectoryFileUploadHandler successHandler, FailureHandler failureHandler) {
         FileAnchor anchor = new FileAnchor(file);
 
         // 记录需要上传的文件
@@ -445,6 +445,94 @@ public class FileHierarchy {
     }
 
     /**
+     * 删除指定目录下的文件。
+     *
+     * @param workingDirectory
+     * @param fileLabel
+     * @param successHandler
+     * @param failureHandler
+     */
+    protected void deleteFile(Directory workingDirectory, FileLabel fileLabel, DirectoryHandler successHandler, FailureHandler failureHandler) {
+        if (!this.service.getPipeline().isReady()) {
+            ModuleError error = new ModuleError(FileStorage.NAME, FileStorageState.PipelineNotReady.code);
+            this.service.execute(failureHandler, error);
+            return;
+        }
+
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("root", this.root.id.longValue());
+            payload.put("workingId", workingDirectory.id.longValue());
+
+            JSONArray fileList = new JSONArray();
+            fileList.put(fileLabel.getFileCode());
+            payload.put("fileList", fileList);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        Packet requestPacket = new Packet(FileStorageAction.DeleteFile, payload);
+        this.service.getPipeline().send(FileStorage.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    ModuleError error = new ModuleError(FileStorage.NAME, packet.state.code);
+                    error.data = workingDirectory;
+                    service.execute(failureHandler, error);
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != FileStorageState.Ok.code) {
+                    ModuleError error = new ModuleError(FileStorage.NAME, stateCode);
+                    error.data = workingDirectory;
+                    service.execute(failureHandler, error);
+                    return;
+                }
+
+                try {
+                    JSONObject data = packet.extractServiceData();
+
+                    ArrayList<FileLabel> fileLabelList = new ArrayList<>();
+                    JSONArray deletedList = data.getJSONArray("deletedList");
+                    for (int i = 0; i < deletedList.length(); ++i) {
+                        FileLabel label = new FileLabel(deletedList.getJSONObject(i));
+                        fileLabelList.add(label);
+                    }
+
+                    for (FileLabel label : fileLabelList) {
+                        workingDirectory.removeFile(label);
+                        storage.deleteFile(workingDirectory, label);
+                    }
+                    fileLabelList.clear();
+
+                    Directory response = new Directory(data.getJSONObject("workingDir"));
+                    workingDirectory.update(response);
+
+                    storage.writeDirectory(workingDirectory);
+
+                    if (successHandler.isInMainThread()) {
+                        service.executeHandlerOnMainThread(() -> {
+                            successHandler.handleDirectory(workingDirectory);
+                        });
+                    }
+                    else {
+                        service.executeHandler(() -> {
+                            successHandler.handleDirectory(workingDirectory);
+                        });
+                    }
+
+                    service.executeHandler(() -> {
+                        ObservableEvent event = new ObservableEvent(FileStorageEvent.DeleteFile, workingDirectory);
+                        service.notifyObservers(event);
+                    });
+                } catch (JSONException e) {
+                    LogUtils.w(TAG, "#deleteFile", e);
+                }
+            }
+        });
+    }
+
+    /**
      * 新建目录。
      *
      * @param workingDirectory
@@ -519,14 +607,15 @@ public class FileHierarchy {
     }
 
     /**
-     * 重命名目录。
+     * 删除指定目录。
      *
      * @param workingDirectory
-     * @param directoryName
+     * @param targetDirectory
+     * @param recursive
      * @param successHandler
      * @param failureHandler
      */
-    protected void renameDirectory(Directory workingDirectory, String directoryName, DirectoryHandler successHandler, FailureHandler failureHandler) {
+    protected void deleteDirectory(Directory workingDirectory, Directory targetDirectory, boolean recursive, DirectoryHandler successHandler, FailureHandler failureHandler) {
         if (!this.service.getPipeline().isReady()) {
             ModuleError error = new ModuleError(FileStorage.NAME, FileStorageState.PipelineNotReady.code);
             this.service.execute(failureHandler, error);
@@ -537,17 +626,22 @@ public class FileHierarchy {
         try {
             payload.put("root", this.root.id.longValue());
             payload.put("workingId", workingDirectory.id.longValue());
-            payload.put("dirName", directoryName);
+
+            JSONArray dirIdArray = new JSONArray();
+            dirIdArray.put(targetDirectory.id.longValue());
+            payload.put("dirList", dirIdArray);
+
+            payload.put("recursive", recursive);
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        Packet requestPacket = new Packet(FileStorageAction.RenameDir, payload);
+        Packet requestPacket = new Packet(FileStorageAction.DeleteDir, payload);
         this.service.getPipeline().send(FileStorage.NAME, requestPacket, new PipelineHandler() {
             @Override
             public void handleResponse(Packet packet) {
                 if (packet.state.code != PipelineState.Ok.code) {
                     ModuleError error = new ModuleError(FileStorage.NAME, packet.state.code);
-                    error.data = workingDirectory;
+                    error.data = targetDirectory;
                     service.execute(failureHandler, error);
                     return;
                 }
@@ -555,16 +649,27 @@ public class FileHierarchy {
                 int stateCode = packet.extractServiceStateCode();
                 if (stateCode != FileStorageState.Ok.code) {
                     ModuleError error = new ModuleError(FileStorage.NAME, stateCode);
-                    error.data = workingDirectory;
+                    error.data = targetDirectory;
                     service.execute(failureHandler, error);
                     return;
                 }
 
                 try {
-                    Directory response = new Directory(packet.extractServiceData());
+                    JSONObject data = packet.extractServiceData();
+
+                    ArrayList<Directory> directoryList = new ArrayList<>();
+                    JSONArray deletedList = data.getJSONArray("deletedList");
+                    for (int i = 0; i < deletedList.length(); ++i) {
+                        directoryList.add(new Directory(deletedList.getJSONObject(i)));
+                    }
+
+                    Directory response = new Directory(data.getJSONObject("workingDir"));
                     workingDirectory.update(response);
 
-                    workingDirectory.resetLast(System.currentTimeMillis());
+                    for (Directory deleted : directoryList) {
+                        workingDirectory.removeChild(deleted);
+                        storage.deleteDirectory(deleted);
+                    }
 
                     storage.writeDirectory(workingDirectory);
 
@@ -580,11 +685,81 @@ public class FileHierarchy {
                     }
 
                     service.executeHandler(() -> {
-                        ObservableEvent event = new ObservableEvent(FileStorageEvent.RenameDirectory, workingDirectory);
+                        ObservableEvent event = new ObservableEvent(FileStorageEvent.DeleteDirectory, workingDirectory);
                         service.notifyObservers(event);
                     });
                 } catch (JSONException e) {
-                    LogUtils.w(TAG, "#newDirectory", e);
+                    LogUtils.w(TAG, "#deleteDirectory", e);
+                }
+            }
+        });
+    }
+
+    /**
+     * 重命名目录。
+     *
+     * @param targetDirectory
+     * @param directoryName
+     * @param successHandler
+     * @param failureHandler
+     */
+    protected void renameDirectory(Directory targetDirectory, String directoryName, DirectoryHandler successHandler, FailureHandler failureHandler) {
+        if (!this.service.getPipeline().isReady()) {
+            ModuleError error = new ModuleError(FileStorage.NAME, FileStorageState.PipelineNotReady.code);
+            this.service.execute(failureHandler, error);
+            return;
+        }
+
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("root", this.root.id.longValue());
+            payload.put("workingId", targetDirectory.id.longValue());
+            payload.put("dirName", directoryName);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        Packet requestPacket = new Packet(FileStorageAction.RenameDir, payload);
+        this.service.getPipeline().send(FileStorage.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    ModuleError error = new ModuleError(FileStorage.NAME, packet.state.code);
+                    error.data = targetDirectory;
+                    service.execute(failureHandler, error);
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != FileStorageState.Ok.code) {
+                    ModuleError error = new ModuleError(FileStorage.NAME, stateCode);
+                    error.data = targetDirectory;
+                    service.execute(failureHandler, error);
+                    return;
+                }
+
+                try {
+                    Directory response = new Directory(packet.extractServiceData());
+                    targetDirectory.update(response);
+
+                    storage.writeDirectory(targetDirectory);
+
+                    if (successHandler.isInMainThread()) {
+                        service.executeHandlerOnMainThread(() -> {
+                            successHandler.handleDirectory(targetDirectory);
+                        });
+                    }
+                    else {
+                        service.executeHandler(() -> {
+                            successHandler.handleDirectory(targetDirectory);
+                        });
+                    }
+
+                    service.executeHandler(() -> {
+                        ObservableEvent event = new ObservableEvent(FileStorageEvent.RenameDirectory, targetDirectory);
+                        service.notifyObservers(event);
+                    });
+                } catch (JSONException e) {
+                    LogUtils.w(TAG, "#renameDirectory", e);
                 }
             }
         });

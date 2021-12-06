@@ -26,29 +26,22 @@
 
 package cube.filestorage.handler;
 
-import cube.core.handler.CallbackHandler;
-import cube.filestorage.model.Directory;
-import cube.filestorage.model.FileAnchor;
-import cube.filestorage.model.FileLabel;
-
 /**
- * 文件上传到目录句柄。
+ * 默认文件下载到本地句柄。
  */
-public interface FileUploadDirectoryHandler extends CallbackHandler {
+public abstract class DefaultDirectoryFileDownloadHandler implements DirectoryFileDownloadHandler {
 
-    /**
-     * 正在上传文件。
-     *
-     * @param fileAnchor
-     * @param directory
-     */
-    void handleProgress(FileAnchor fileAnchor, Directory directory);
+    private boolean inMainThread = false;
 
-    /**
-     * 已经上传完成。
-     *
-     * @param fileLabel
-     * @param directory
-     */
-    void handleComplete(FileLabel fileLabel, Directory directory);
+    public DefaultDirectoryFileDownloadHandler() {
+    }
+
+    public DefaultDirectoryFileDownloadHandler(boolean inMainThread) {
+        this.inMainThread = inMainThread;
+    }
+
+    @Override
+    public boolean isInMainThread() {
+        return this.inMainThread;
+    }
 }

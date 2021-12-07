@@ -26,6 +26,7 @@
 
 package cube.filestorage.model;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -161,6 +162,28 @@ public class Directory extends Entity implements Comparator<FileItem> {
 
         this.children = new ConcurrentHashMap<>();
         this.files = new ArrayList<>();
+
+        if (json.has("parent")) {
+            this.parent = new Directory(json.getJSONObject("parent"));
+        }
+
+        if (json.has("children")) {
+            JSONArray array = json.getJSONArray("children");
+            for (int i = 0; i < array.length(); ++i) {
+                JSONObject data = array.getJSONObject(i);
+                Directory directory = new Directory(data);
+                this.addChild(directory);
+            }
+        }
+
+        if (json.has("files")) {
+            JSONArray array = json.getJSONArray("files");
+            for (int i = 0; i < array.length(); ++i) {
+                JSONObject data = array.getJSONObject(i);
+                FileLabel fileLabel = new FileLabel(data);
+                this.addFile(fileLabel);
+            }
+        }
     }
 
     /**
@@ -534,9 +557,47 @@ public class Directory extends Entity implements Comparator<FileItem> {
 
     @Override
     public JSONObject toJSON() {
-        JSONObject json = super.toCompactJSON();
+        JSONObject json = this.toCompactJSON();
         try {
             json.put("domain", AuthService.getDomain());
+
+            if (null != this.parent) {
+                json.put("parent", this.parent.toCompactJSON());
+            }
+
+            if (!this.children.isEmpty()) {
+                JSONArray childrenArray = new JSONArray();
+                for (Directory directory : this.children.values()) {
+                    childrenArray.put(directory.toJSON());
+                }
+                json.put("children", childrenArray);
+            }
+
+            if (!this.files.isEmpty()) {
+                JSONArray fileArray = new JSONArray();
+                for (FileLabel fileLabel : this.files) {
+                    fileArray.put(fileLabel.toJSON());
+                }
+                json.put("files", fileArray);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return json;
+    }
+
+    @Override
+    public JSONObject toCompactJSON() {
+        JSONObject json = super.toCompactJSON();
+        try {
+            json.put("name", this.name);
+            json.put("creation", this.creation);
+            json.put("lastModified", this.lastModified);
+            json.put("size", this.size);
+            json.put("hidden", this.hidden);
+            json.put("numDirs", this.numDirs);
+            json.put("numFiles", this.numFiles);
+            json.put("parentId", this.parentId.longValue());
         } catch (JSONException e) {
             e.printStackTrace();
         }

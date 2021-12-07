@@ -37,6 +37,8 @@ import java.util.List;
 import cube.core.AbstractStorage;
 import cube.filestorage.model.Directory;
 import cube.filestorage.model.FileLabel;
+import cube.filestorage.model.TrashDirectory;
+import cube.filestorage.model.TrashFile;
 
 /**
  * 文件存储服务的数据存储。
@@ -378,6 +380,59 @@ public class StructStorage extends AbstractStorage {
         this.writeFileLabel(fileLabel);
     }
 
+    /**
+     * 写入废弃文件夹。
+     *
+     * @param trashDirectory
+     */
+    public void writeTrashDirectory(TrashDirectory trashDirectory) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put("parent_id", trashDirectory.getDirectory().getParentId().longValue());
+        values.put("timestamp", trashDirectory.getTimestamp());
+        values.put("original_id", trashDirectory.getDirectory().id.longValue());
+        values.put("data", trashDirectory.toJSON().toString());
+
+        Cursor cursor = db.query("recyclebin", new String[]{ "id" },
+                "id=?", new String[]{
+                        trashDirectory.id.toString()
+                }, null, null, null);
+        if (cursor.moveToFirst()) {
+            cursor.close();
+
+            // update
+            db.update("recyclebin", values, "id=?", new String[]{
+                    trashDirectory.id.toString()
+            });
+        }
+        else {
+            cursor.close();
+
+            values.put("id", trashDirectory.id.longValue());
+            // insert
+            db.insert("recyclebin", null, values);
+        }
+
+        this.closeWritableDatabase(db);
+    }
+
+    /**
+     * 写入废弃文件。
+     */
+    public void writeTrashFile(TrashFile trashFile) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        // `id` BIGINT PRIMARY KEY, `parent_id` BIGINT, `timestamp` BIGINT, `original_id` BIGINT DEFAULT 0, `file_code` TEXT DEFAULT NULL, `data` TEXT DEFAULT NULL
+
+        ContentValues values = new ContentValues();
+        values.put("parent_id", trashFile.getParent().id.longValue());
+        values.put("timestamp", trashFile.getTimestamp());
+        values.put("file_code", trashFile.getFileLabel().getFileCode());
+        values.put("data", trashFile.toJSON().toString());
+
+        this.closeWritableDatabase(db);
+    }
+
     private FileLabel readFileLabel(Cursor cursor) {
         return new FileLabel(cursor.getLong(cursor.getColumnIndex("id")),
                 cursor.getLong(cursor.getColumnIndex("timestamp")),
@@ -420,6 +475,9 @@ public class StructStorage extends AbstractStorage {
 
         // 层级结构
         database.execSQL("CREATE TABLE IF NOT EXISTS `hierarchy` (`sn` INTEGER PRIMARY KEY AUTOINCREMENT, `parent_id` BIGINT, `dir_id` BIGINT DEFAULT 0, `file_code` TEXT DEFAULT NULL, `hidden` INTEGER DEFAULT 0)");
+
+        // 回收站
+        database.execSQL("CREATE TABLE IF NOT EXISTS `recyclebin` (`id` BIGINT PRIMARY KEY, `parent_id` BIGINT, `timestamp` BIGINT, `original_id` BIGINT DEFAULT 0, `file_code` TEXT DEFAULT NULL, `data` TEXT DEFAULT NULL)");
     }
 
     @Override

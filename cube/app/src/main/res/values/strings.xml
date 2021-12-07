@@ -79,6 +79,7 @@
     <string name="file_doc">文档</string>
     <string name="file_video">视频</string>
     <string name="file_audio">音频</string>
+    <string name="file_trash">回收站</string>
     <string name="file_transmitting">正在传输</string>
     <string name="file_uploading">正在上传</string>
     <string name="file_downloading">正在下载</string>

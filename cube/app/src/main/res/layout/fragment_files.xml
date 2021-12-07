@@ -213,6 +213,43 @@
                 android:layout_height="40dp"/>
 
             <LinearLayout
+                android:id="@+id/llTrash"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:paddingTop="7dp"
+                android:paddingBottom="5dp"
+                android:orientation="vertical"
+                android:background="@drawable/shape_file_tab_normal">
+
+                <com.shixincube.app.widget.AdvancedImageView
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_marginStart="@dimen/item_margin_start_and_end"
+                    android:layout_marginEnd="@dimen/item_margin_start_and_end"
+                    android:scaleType="centerCrop"
+                    android:src="@mipmap/ic_file_trash"
+                    android:gravity="center"
+                    auto:corner_radius="0dp"/>
+
+                <TextView
+                    android:id="@+id/tvTrash"
+                    android:tag="98"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center"
+                    android:text="@string/file_trash"
+                    android:textColor="?attr/colorButtonSecondaryText"
+                    android:textSize="12sp"/>
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="@dimen/item_margin_start_and_end"
+                android:layout_height="40dp"/>
+
+            <LinearLayout
                 android:id="@+id/llTransmitting"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

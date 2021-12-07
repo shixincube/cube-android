@@ -43,7 +43,8 @@ public class FilesTabController implements View.OnClickListener {
     public final static int TAB_DOC_FILES = 3;
     public final static int TAB_VIDEO_FILES = 4;
     public final static int TAB_AUDIO_FILES = 5;
-    public final static int TAB_TRANSMITTING_FILES = 6;
+    public final static int TAB_TRASH_FILES = 6;
+    public final static int TAB_TRANSMITTING_FILES = 7;
 
     private LinearLayout rootLayout;
 
@@ -65,6 +66,7 @@ public class FilesTabController implements View.OnClickListener {
         this.rootLayout.findViewById(R.id.llDocFiles).setOnClickListener(this);
         this.rootLayout.findViewById(R.id.llVideoFiles).setOnClickListener(this);
         this.rootLayout.findViewById(R.id.llAudioFiles).setOnClickListener(this);
+        this.rootLayout.findViewById(R.id.llTrash).setOnClickListener(this);
         this.rootLayout.findViewById(R.id.llTransmitting).setOnClickListener(this);
     }
 
@@ -117,6 +119,9 @@ public class FilesTabController implements View.OnClickListener {
                 break;
             case R.id.llAudioFiles:
                 this.activeTab = TAB_AUDIO_FILES;
+                break;
+            case R.id.llTrash:
+                this.activeTab = TAB_TRASH_FILES;
                 break;
             case R.id.llTransmitting:
                 this.activeTab = TAB_TRANSMITTING_FILES;

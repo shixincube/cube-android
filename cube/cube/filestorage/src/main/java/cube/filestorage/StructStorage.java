@@ -31,6 +31,9 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -391,7 +394,7 @@ public class StructStorage extends AbstractStorage {
         ContentValues values = new ContentValues();
         values.put("parent_id", trashDirectory.getDirectory().getParentId().longValue());
         values.put("timestamp", trashDirectory.getTimestamp());
-        values.put("original_id", trashDirectory.getDirectory().id.longValue());
+        values.put("dir_id", trashDirectory.getDirectory().id.longValue());
         values.put("data", trashDirectory.toJSON().toString());
 
         Cursor cursor = db.query("recyclebin", new String[]{ "id" },
@@ -418,11 +421,36 @@ public class StructStorage extends AbstractStorage {
     }
 
     /**
+     * 读取已废弃的目录。
+     *
+     * @return
+     */
+    public List<TrashDirectory> readTrashDirectories() {
+        List<TrashDirectory> list = new ArrayList<>();
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query("recyclebin", new String[]{ "data" },
+                "dir_id<>0", null, null, null, "timestamp");
+        while (cursor.moveToNext()) {
+            String jsonString = cursor.getString(0);
+            try {
+                TrashDirectory trashDirectory = new TrashDirectory(new JSONObject(jsonString));
+                list.add(trashDirectory);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        cursor.close();
+        this.closeReadableDatabase(db);
+
+        return list;
+    }
+
+    /**
      * 写入废弃文件。
      */
     public void writeTrashFile(TrashFile trashFile) {
         SQLiteDatabase db = this.getWritableDatabase();
-        // `id` BIGINT PRIMARY KEY, `parent_id` BIGINT, `timestamp` BIGINT, `original_id` BIGINT DEFAULT 0, `file_code` TEXT DEFAULT NULL, `data` TEXT DEFAULT NULL
 
         ContentValues values = new ContentValues();
         values.put("parent_id", trashFile.getParent().id.longValue());
@@ -430,7 +458,49 @@ public class StructStorage extends AbstractStorage {
         values.put("file_code", trashFile.getFileLabel().getFileCode());
         values.put("data", trashFile.toJSON().toString());
 
+        Cursor cursor = db.query("recyclebin", new String[]{ "id" },
+                "id=?", new String[]{ trashFile.id.toString() }, null, null, null);
+        if (cursor.moveToFirst()) {
+            cursor.close();
+
+            // update
+            db.update("recyclebin", values, "id=?", new String[]{ trashFile.id.toString() });
+        }
+        else {
+            cursor.close();
+
+            values.put("id", trashFile.id.longValue());
+            // insert
+            db.insert("recyclebin", null, values);
+        }
+
         this.closeWritableDatabase(db);
+    }
+
+    /**
+     * 读取已废弃的文件。
+     *
+     * @return
+     */
+    public List<TrashFile> readTrashFiles() {
+        List<TrashFile> list = new ArrayList<>();
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query("recyclebin", new String[]{ "data" },
+                "dir_id=0", null, null, null, "timestamp");
+        while (cursor.moveToNext()) {
+            String jsonString = cursor.getString(0);
+            try {
+                TrashFile trashFile = new TrashFile(new JSONObject(jsonString));
+                list.add(trashFile);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        cursor.close();
+        this.closeReadableDatabase(db);
+
+        return list;
     }
 
     private FileLabel readFileLabel(Cursor cursor) {
@@ -477,7 +547,7 @@ public class StructStorage extends AbstractStorage {
         database.execSQL("CREATE TABLE IF NOT EXISTS `hierarchy` (`sn` INTEGER PRIMARY KEY AUTOINCREMENT, `parent_id` BIGINT, `dir_id` BIGINT DEFAULT 0, `file_code` TEXT DEFAULT NULL, `hidden` INTEGER DEFAULT 0)");
 
         // 回收站
-        database.execSQL("CREATE TABLE IF NOT EXISTS `recyclebin` (`id` BIGINT PRIMARY KEY, `parent_id` BIGINT, `timestamp` BIGINT, `original_id` BIGINT DEFAULT 0, `file_code` TEXT DEFAULT NULL, `data` TEXT DEFAULT NULL)");
+        database.execSQL("CREATE TABLE IF NOT EXISTS `recyclebin` (`id` BIGINT PRIMARY KEY, `parent_id` BIGINT, `timestamp` BIGINT, `dir_id` BIGINT DEFAULT 0, `file_code` TEXT DEFAULT NULL, `data` TEXT DEFAULT NULL)");
     }
 
     @Override

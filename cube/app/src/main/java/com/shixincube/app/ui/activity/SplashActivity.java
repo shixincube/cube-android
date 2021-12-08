@@ -227,16 +227,20 @@ public class SplashActivity extends BaseActivity {
                             "Login expire: " + (new Date(loginResponse.expire).toString()));
                 });
 
-        Explorer.getInstance().getAccountInfo(tokenCode)
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.io())
-                .doOnError(error -> {
-                    LogUtils.w(TAG, "#login - getAccountInfo", error);
-                })
-                .subscribe(accountInfoResponse -> {
-                    // 更新本地数据
-                    AccountHelper.getInstance().updateCurrentAccount(accountInfoResponse.name,
-                            accountInfoResponse.avatar);
-                });
+        try {
+            Explorer.getInstance().getAccountInfo(tokenCode)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(Schedulers.io())
+                    .doOnError(error -> {
+                        LogUtils.w(TAG, "#login - getAccountInfo", error);
+                    })
+                    .subscribe(accountInfoResponse -> {
+                        // 更新本地数据
+                        AccountHelper.getInstance().updateCurrentAccount(accountInfoResponse.name,
+                                accountInfoResponse.avatar);
+                    });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

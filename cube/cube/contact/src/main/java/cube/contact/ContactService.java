@@ -2842,7 +2842,7 @@ public class ContactService extends Module {
         this.listContactZones(timestamp, new ContactZoneListHandler() {
             @Override
             public void handleList(List<ContactZone> list) {
-                LogUtils.d(ContactService.class.getSimpleName(), "#listContactZones");
+                LogUtils.d(TAG, "#listContactZones : " + list.size());
 
                 for (ContactZone contactZone : list) {
                     if (contactZone.name.equals(defaultContactZoneName)) {
@@ -2879,7 +2879,7 @@ public class ContactService extends Module {
         this.listGroups(beginning, now, new DefaultCompletionHandler(false) {
             @Override
             public void handleCompletion(Module module) {
-                LogUtils.d(ContactService.class.getSimpleName(), "#listGroups");
+                LogUtils.d(TAG, "#listGroups");
                 gotGroups.value = true;
                 completion.handleCompletion(null);
             }
@@ -2889,7 +2889,7 @@ public class ContactService extends Module {
         this.listBlockList(new ContactListHandler() {
             @Override
             public void handleList(List<Contact> contactList) {
-                LogUtils.d(ContactService.class.getSimpleName(), "#listBlockList");
+                LogUtils.d(TAG, "#listBlockList");
                 gotBlockList.value = true;
                 completion.handleCompletion(null);
             }

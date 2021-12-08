@@ -212,9 +212,13 @@ public class Directory extends Entity implements Comparator<FileItem> {
         this.children.remove(directory.id);
     }
 
-    protected void addFile(FileLabel fileLabel) {
+    protected boolean addFile(FileLabel fileLabel) {
         if (!this.files.contains(fileLabel)) {
             this.files.add(fileLabel);
+            return true;
+        }
+        else {
+            return false;
         }
     }
 

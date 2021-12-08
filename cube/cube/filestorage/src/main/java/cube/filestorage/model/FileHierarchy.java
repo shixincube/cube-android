@@ -292,9 +292,9 @@ public class FileHierarchy {
                     for (int i = 0; i < array.length(); ++i) {
                         FileLabel fileLabel = new FileLabel(array.getJSONObject(i));
                         // 添加文件
-                        directory.addFile(fileLabel);
-
-                        list.add(fileLabel);
+                        if (directory.addFile(fileLabel)) {
+                            list.add(fileLabel);
+                        }
 
                         // 更新数据库
                         storage.writeFileLabel(directory, fileLabel);

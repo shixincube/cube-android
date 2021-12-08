@@ -79,7 +79,7 @@ public class ContactsPresenter extends BasePresenter<ContactsView> implements Co
         this.contacts = new ArrayList<>();
     }
 
-    public void loadContacts() {
+    public synchronized void loadContacts() {
         this.setAdapter();
 
         // 从引擎获取默认的联系人分区
@@ -88,20 +88,22 @@ public class ContactsPresenter extends BasePresenter<ContactsView> implements Co
             public void emit(PromiseFuture<ContactZone> promise) {
                 ContactZone contactZone = CubeEngine.getInstance().getContactService().getDefaultContactZone();
 
-                if (null != contactZone) {
-                    // 排序
-                    contacts.clear();
+                synchronized (contacts) {
+                    if (null != contactZone) {
+                        // 排序
+                        contacts.clear();
 
-                    List<Contact> contactList = contactZone.getParticipantContacts(ContactZoneParticipantState.Normal);
-                    for (Contact contact : contactList) {
-                        Account.setNameSpelling(contact);
-                        contacts.add(contact);
+                        List<Contact> contactList = contactZone.getParticipantContacts(ContactZoneParticipantState.Normal);
+                        for (Contact contact : contactList) {
+                            Account.setNameSpelling(contact);
+                            contacts.add(contact);
+                        }
+
+                        promise.resolve(contactZone);
                     }
-
-                    promise.resolve(contactZone);
-                }
-                else {
-                    promise.reject();
+                    else {
+                        promise.reject();
+                    }
                 }
             }
         }).thenOnMainThread(new Future<ContactZone>() {

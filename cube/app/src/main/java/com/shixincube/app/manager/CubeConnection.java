@@ -99,7 +99,13 @@ public class CubeConnection implements ServiceConnection {
                     if (null != successHandler) {
                         successHandler.run();
                     }
-                }, null, failureHandler);
+                }, () -> {
+                    // Nothing
+                }, () -> {
+                    if (null != failureHandler) {
+                        failureHandler.run();
+                    }
+                });
             }
 
             @Override
@@ -153,30 +159,22 @@ public class CubeConnection implements ServiceConnection {
                     @Override
                     public void handleSuccess(ContactService service, Self self) {
                         LogUtils.i(AppConsts.TAG, "SignIn success");
-                        if (null != successHandler) {
-                            successHandler.run();
-                        }
+                        successHandler.run();
                     }
 
                     @Override
                     public void handleFailure(ContactService service, ModuleError error) {
                         LogUtils.i(AppConsts.TAG, "SignIn failure");
-                        if (null != failureHandler) {
-                            failureHandler.run();
-                        }
+                        failureHandler.run();
                     }
                 });
 
                 if (!result) {
-                    if (null != failureHandler) {
-                        failureHandler.run();
-                    }
+                    failureHandler.run();
                     LogUtils.w(AppConsts.TAG, "SignIn error");
                 }
                 else {
-                    if (null != startedHandler) {
-                        startedHandler.run();
-                    }
+                    startedHandler.run();
                 }
             }
         }).launch();

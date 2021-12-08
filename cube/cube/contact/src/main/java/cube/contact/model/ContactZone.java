@@ -88,7 +88,7 @@ public class ContactZone extends Entity {
             for (int i = 0, len = array.length(); i < len; ++i) {
                 JSONObject data = array.getJSONObject(i);
                 ContactZoneParticipant participant = new ContactZoneParticipant(data);
-                this.participants.add(participant);
+                this.addParticipant(participant);
             }
         }
     }

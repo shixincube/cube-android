@@ -146,6 +146,10 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
      * @param filepath
      */
     public void uploadFile(String filepath) {
+        if (null == this.currentDirectory) {
+            return;
+        }
+
         this.tabController.setTransmittingNum(this.rootDirectory.numUploadingFiles()
                 + rootDirectory.numDownloadingFiles() + 1);
 
@@ -399,6 +403,10 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
     }
 
     private void refreshData() {
+        if (null == this.currentDirectory) {
+            return;
+        }
+
         int tab = this.tabController.getActiveTab();
         switch (tab) {
             case FilesTabController.TAB_ALL_FILES:

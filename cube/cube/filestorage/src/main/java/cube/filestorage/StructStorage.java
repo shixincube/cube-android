@@ -343,7 +343,7 @@ public class StructStorage extends AbstractStorage {
         SQLiteDatabase db = this.getWritableDatabase();
 
         // delete
-        db.delete("hierarchy", "dir_id=? AND file_code=?", new String[]{
+        db.delete("hierarchy", "parent_id=? AND file_code=?", new String[]{
                 directory.id.toString(),
                 fileLabel.getFileCode()
         });

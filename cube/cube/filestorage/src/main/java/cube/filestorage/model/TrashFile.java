@@ -48,8 +48,8 @@ public class TrashFile extends Entity {
 
     public TrashFile(JSONObject json) throws JSONException {
         super(json);
+        this.fileLabel = new FileLabel(json.getJSONObject("file"));
         this.parent = new Directory(json.getJSONObject("parent"));
-        this.fileLabel = new FileLabel(json.getJSONObject("fileLabel"));
     }
 
     public Directory getParent() {
@@ -65,7 +65,7 @@ public class TrashFile extends Entity {
         JSONObject json = super.toJSON();
         try {
             json.put("parent", this.parent.toCompactJSON());
-            json.put("fileLabel", this.fileLabel.toJSON());
+            json.put("file", this.fileLabel.toJSON());
         } catch (JSONException e) {
             e.printStackTrace();
         }

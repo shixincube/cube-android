@@ -167,8 +167,8 @@ public class Directory extends Entity implements Comparator<FileItem> {
             this.parent = new Directory(json.getJSONObject("parent"));
         }
 
-        if (json.has("children")) {
-            JSONArray array = json.getJSONArray("children");
+        if (json.has("dirs")) {
+            JSONArray array = json.getJSONArray("dirs");
             for (int i = 0; i < array.length(); ++i) {
                 JSONObject data = array.getJSONObject(i);
                 Directory directory = new Directory(data);
@@ -570,7 +570,7 @@ public class Directory extends Entity implements Comparator<FileItem> {
                 for (Directory directory : this.children.values()) {
                     childrenArray.put(directory.toJSON());
                 }
-                json.put("children", childrenArray);
+                json.put("dirs", childrenArray);
             }
 
             if (!this.files.isEmpty()) {

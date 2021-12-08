@@ -26,10 +26,12 @@
 
 package cube.filestorage.model;
 
+import cube.core.model.TimeSortable;
+
 /**
  * 文件项。
  */
-public class FileItem {
+public class FileItem implements TimeSortable {
 
     /**
      * 项目类型。
@@ -50,6 +52,16 @@ public class FileItem {
          * 父目录。
          */
         ParentDirectory,
+
+        /**
+         * 废弃目录。
+         */
+        TrashDirectory,
+
+        /**
+         * 废弃文件。
+         */
+        TrashFile
     }
 
     /**
@@ -67,22 +79,54 @@ public class FileItem {
      */
     public final FileLabel fileLabel;
 
+    /**
+     * 废弃的目录实例。
+     */
+    public final TrashDirectory trashDirectory;
+
+    /**
+     * 废弃的文件实例。
+     */
+    public final TrashFile trashFile;
+
     public FileItem(Directory directory) {
         this.type = ItemType.Directory;
         this.directory = directory;
         this.fileLabel = null;
+        this.trashDirectory = null;
+        this.trashFile = null;
     }
 
     public FileItem(FileLabel fileLabel) {
         this.type = ItemType.File;
         this.fileLabel = fileLabel;
         this.directory = null;
+        this.trashDirectory = null;
+        this.trashFile = null;
+    }
+
+    public FileItem(TrashDirectory trashDirectory) {
+        this.type = ItemType.TrashDirectory;
+        this.trashDirectory = trashDirectory;
+        this.trashFile = null;
+        this.directory = null;
+        this.fileLabel = null;
+    }
+
+    public FileItem(TrashFile trashFile) {
+        this.type = ItemType.TrashFile;
+        this.trashFile = trashFile;
+        this.trashDirectory = null;
+        this.directory = null;
+        this.fileLabel = null;
     }
 
     protected FileItem(Directory directory, ItemType type) {
         this.type = type;
         this.directory = directory;
         this.fileLabel = null;
+        this.trashDirectory = null;
+        this.trashFile = null;
     }
 
     public ItemType getType() {
@@ -95,6 +139,12 @@ public class FileItem {
         }
         else if (this.type == ItemType.File) {
             return this.fileLabel.getFileName();
+        }
+        else if (this.type == ItemType.TrashDirectory) {
+            return this.trashDirectory.getDirectory().getName();
+        }
+        else if (this.type == ItemType.TrashFile) {
+            return this.trashFile.getFileLabel().getFileName();
         }
         else {
             return "";
@@ -109,16 +159,59 @@ public class FileItem {
             return this.fileLabel.getCompletedTime();
         }
         else {
-            return 0;
+            return this.getSortableTime();
         }
     }
 
     public Directory getDirectory() {
-        return this.directory;
+        if (null != this.directory) {
+            return this.directory;
+        }
+        else if (null != this.trashDirectory) {
+            return this.trashDirectory.getDirectory();
+        }
+
+        return null;
     }
 
     public FileLabel getFileLabel() {
-        return this.fileLabel;
+        if (null != this.fileLabel) {
+            return this.fileLabel;
+        }
+        else if (null != this.trashFile) {
+            return this.trashFile.getFileLabel();
+        }
+
+        return null;
+    }
+
+    public TrashDirectory getTrashDirectory() {
+        return this.trashDirectory;
+    }
+
+    public TrashFile getTrashFile() {
+        return this.trashFile;
+    }
+
+    @Override
+    public long getSortableTime() {
+        if (this.type == ItemType.Directory) {
+            return this.directory.getLastModified();
+        }
+        else if (this.type == ItemType.File) {
+            return this.fileLabel.getCompletedTime();
+        }
+        else if (this.type == ItemType.ParentDirectory) {
+            return this.directory.getLastModified();
+        }
+        else if (this.type == ItemType.TrashDirectory) {
+            return this.trashDirectory.getTimestamp();
+        }
+        else if (this.type == ItemType.TrashFile) {
+            return this.trashFile.getTimestamp();
+        }
+
+        return 0;
     }
 
     /**

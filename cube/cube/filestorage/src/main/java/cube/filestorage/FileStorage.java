@@ -32,6 +32,7 @@ import android.util.MutableInt;
 
 import androidx.annotation.Nullable;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -40,6 +41,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -57,13 +61,17 @@ import cube.core.handler.StableFailureHandler;
 import cube.filestorage.handler.DefaultDirectoryHandler;
 import cube.filestorage.handler.DirectoryHandler;
 import cube.filestorage.handler.DownloadFileHandler;
+import cube.filestorage.handler.FileItemListHandler;
 import cube.filestorage.handler.MutableDirectory;
 import cube.filestorage.handler.StableFileLabelHandler;
 import cube.filestorage.handler.UploadFileHandler;
 import cube.filestorage.model.Directory;
 import cube.filestorage.model.FileAnchor;
 import cube.filestorage.model.FileHierarchy;
+import cube.filestorage.model.FileItem;
 import cube.filestorage.model.FileLabel;
+import cube.filestorage.model.TrashDirectory;
+import cube.filestorage.model.TrashFile;
 import cube.util.LogUtils;
 import cube.util.ObservableEvent;
 import cube.util.Observer;
@@ -108,6 +116,11 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
      * 目录事件监听。
      */
     private List<DirectoryListener> directoryListeners;
+
+    /**
+     * 废弃的文件项。
+     */
+    private LinkedList<FileItem> trashItems;
 
     public FileStorage() {
         super(NAME);
@@ -173,6 +186,13 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
         if (null != this.storage) {
             this.storage.close();
             this.storage = null;
+        }
+
+        this.fileHierarchyMap.clear();
+
+        if (null != this.trashItems) {
+            this.trashItems.clear();
+            this.trashItems = null;
         }
     }
 
@@ -351,6 +371,196 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
         });
     }
 
+    /**
+     * 获取当前联系人的所有废弃文件项。包括废弃的目录和文件。
+     *
+     * @param handler 指定操作回调句柄。
+     */
+    public void getSelfTrashFileItems(FileItemListHandler handler) {
+        if (null == this.trashItems) {
+            this.trashItems = new LinkedList<>();
+
+            execute(() -> {
+                List<TrashDirectory> directoryList = storage.readTrashDirectories();
+                for (TrashDirectory directory : directoryList) {
+                    FileItem item = new FileItem(directory);
+                    synchronized (trashItems) {
+                        trashItems.add(item);
+                    }
+                }
+
+                List<TrashFile> fileList = storage.readTrashFiles();
+                for (TrashFile file : fileList) {
+                    FileItem item = new FileItem(file);
+                    synchronized (trashItems) {
+                        trashItems.add(item);
+                    }
+                }
+
+                if (!trashItems.isEmpty()) {
+                    synchronized (trashItems) {
+                        Collections.sort(trashItems, new Comparator<FileItem>() {
+                            @Override
+                            public int compare(FileItem fileItem1, FileItem fileItem2) {
+                                return (int) (fileItem2.getSortableTime() - fileItem1.getSortableTime());
+                            }
+                        });
+                    }
+
+                    if (handler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            handler.handleFileItemList(trashItems);
+                        });
+                    }
+                    else {
+                        execute(() -> {
+                            handler.handleFileItemList(trashItems);
+                        });
+                    }
+                }
+
+                List<FileItem> resultList = new ArrayList<>();
+
+                int beginIndex = trashItems.size();
+                int endIndex = beginIndex + 19;
+                List<FileItem> result = refreshTrashFiles(this.self.id, beginIndex, endIndex);
+                while (!result.isEmpty()) {
+                    // 添加结果
+                    resultList.addAll(result);
+                    if (result.size() < (endIndex - beginIndex + 1)) {
+                        // 数量少于目标数量，结束
+                        break;
+                    }
+                    beginIndex = endIndex + 1;
+                    endIndex = beginIndex + 19;
+                    result = refreshTrashFiles(this.self.id, beginIndex, endIndex);
+                }
+
+                if (trashItems.isEmpty()) {
+                    synchronized (trashItems) {
+                        // 更新内存
+                        trashItems.addAll(resultList);
+
+                        Collections.sort(trashItems, new Comparator<FileItem>() {
+                            @Override
+                            public int compare(FileItem fileItem1, FileItem fileItem2) {
+                                return (int) (fileItem2.getSortableTime() - fileItem1.getSortableTime());
+                            }
+                        });
+                    }
+
+                    if (handler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            handler.handleFileItemList(trashItems);
+                        });
+                    }
+                    else {
+                        execute(() -> {
+                            handler.handleFileItemList(trashItems);
+                        });
+                    }
+                }
+                else {
+                    synchronized (trashItems) {
+                        // 更新内存
+                        trashItems.addAll(resultList);
+
+                        Collections.sort(trashItems, new Comparator<FileItem>() {
+                            @Override
+                            public int compare(FileItem fileItem1, FileItem fileItem2) {
+                                return (int) (fileItem2.getSortableTime() - fileItem1.getSortableTime());
+                            }
+                        });
+                    }
+                }
+            });
+        }
+        else {
+            if (handler.isInMainThread()) {
+                executeOnMainThread(() -> {
+                    handler.handleFileItemList(trashItems);
+                });
+            }
+            else {
+                execute(() -> {
+                    handler.handleFileItemList(trashItems);
+                });
+            }
+        }
+    }
+
+    private List<FileItem> refreshTrashFiles(Long rootId, int beginIndex, int endIndex) {
+        List<FileItem> result = new ArrayList<>();
+
+        if (!this.pipeline.isReady()) {
+            return result;
+        }
+
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("root", rootId.longValue());
+            payload.put("begin", beginIndex);
+            payload.put("end", endIndex);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        Packet requestPacket = new Packet(FileStorageAction.ListTrash, payload);
+        this.pipeline.send(FileStorage.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    synchronized (result) {
+                        result.notify();
+                    }
+                    return;
+                }
+
+                if (packet.extractServiceStateCode() != FileStorageState.Ok.code) {
+                    synchronized (result) {
+                        result.notify();
+                    }
+                    return;
+                }
+
+                try {
+                    JSONArray array = packet.extractServiceData().getJSONArray("list");
+                    for (int i = 0; i < array.length(); ++i) {
+                        JSONObject trashJSON = array.getJSONObject(i);
+                        if (trashJSON.has("directory")) {
+                            TrashDirectory trashDirectory = new TrashDirectory(trashJSON);
+                            FileItem item = new FileItem(trashDirectory);
+                            result.add(item);
+
+                            storage.writeTrashDirectory(trashDirectory);
+                        }
+                        else if (trashJSON.has("file")) {
+                            TrashFile trashFile = new TrashFile(trashJSON);
+                            FileItem item = new FileItem(trashFile);
+                            result.add(item);
+
+                            storage.writeTrashFile(trashFile);
+                        }
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                synchronized (result) {
+                    result.notify();
+                }
+            }
+        });
+
+        synchronized (result) {
+            try {
+                result.wait(this.blockingTimeout);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return result;
+    }
 
     /**
      * 上传到默认目录。
@@ -840,14 +1050,24 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
         if (FileStorageEvent.NewDirectory.equals(event.name)) {
             executeOnMainThread(() -> {
                 for (DirectoryListener listener : directoryListeners) {
-                    listener.onNewDirectory((Directory) event.getData());
+                    listener.onNewDirectory((Directory) event.getData(), (Directory) event.getSecondaryData());
                 }
             });
         }
         else if (FileStorageEvent.DeleteDirectory.equals(event.name)) {
+            // 将被删除的目录存入回收站
+            TrashDirectory trashDirectory = new TrashDirectory((Directory) event.getSecondaryData());
+            this.storage.writeTrashDirectory(trashDirectory);
+
+            if (null != this.trashItems) {
+                synchronized (this.trashItems) {
+                    this.trashItems.addFirst(new FileItem(trashDirectory));
+                }
+            }
+
             executeOnMainThread(() -> {
                 for (DirectoryListener listener : directoryListeners) {
-                    listener.onDeleteDirectory((Directory) event.getData());
+                    listener.onDeleteDirectory((Directory) event.getData(), (Directory) event.getSecondaryData());
                 }
             });
         }
@@ -857,6 +1077,17 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
                     listener.onRenameDirectory((Directory) event.getData());
                 }
             });
+        }
+        else if (FileStorageEvent.DeleteFile.equals(event.name)) {
+            // 将被删除的文件存入回收站
+            TrashFile trashFile = new TrashFile((Directory) event.getData(), (FileLabel) event.getSecondaryData());
+            this.storage.writeTrashFile(trashFile);
+
+            if (null != this.trashItems) {
+                synchronized (this.trashItems) {
+                    this.trashItems.addFirst(new FileItem(trashFile));
+                }
+            }
         }
     }
 

@@ -42,6 +42,11 @@ public class ObservableEvent {
     protected Object data;
 
     /**
+     * 次要事件数据。
+     */
+    protected Object secondaryData;
+
+    /**
      * 事件发生时的主题。
      */
     protected Subject subject;
@@ -61,6 +66,12 @@ public class ObservableEvent {
         this.data = data;
     }
 
+    public ObservableEvent(String name, Object data, Object secondaryData) {
+        this.name = name;
+        this.data = data;
+        this.secondaryData = secondaryData;
+    }
+
     public Subject getSubject() {
         return this.subject;
     }
@@ -71,5 +82,9 @@ public class ObservableEvent {
 
     public Object getData() {
         return this.data;
+    }
+
+    public Object getSecondaryData() {
+        return this.secondaryData;
     }
 }

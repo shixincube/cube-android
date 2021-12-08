@@ -522,7 +522,7 @@ public class FileHierarchy {
                     }
 
                     service.executeHandler(() -> {
-                        ObservableEvent event = new ObservableEvent(FileStorageEvent.DeleteFile, workingDirectory);
+                        ObservableEvent event = new ObservableEvent(FileStorageEvent.DeleteFile, workingDirectory, fileLabel);
                         service.notifyObservers(event);
                     });
                 } catch (JSONException e) {
@@ -596,7 +596,7 @@ public class FileHierarchy {
                     }
 
                     service.executeHandler(() -> {
-                        ObservableEvent event = new ObservableEvent(FileStorageEvent.NewDirectory, newDirectory);
+                        ObservableEvent event = new ObservableEvent(FileStorageEvent.NewDirectory, workingDirectory, newDirectory);
                         service.notifyObservers(event);
                     });
                 } catch (JSONException e) {
@@ -685,7 +685,7 @@ public class FileHierarchy {
                     }
 
                     service.executeHandler(() -> {
-                        ObservableEvent event = new ObservableEvent(FileStorageEvent.DeleteDirectory, workingDirectory);
+                        ObservableEvent event = new ObservableEvent(FileStorageEvent.DeleteDirectory, workingDirectory, targetDirectory);
                         service.notifyObservers(event);
                     });
                 } catch (JSONException e) {

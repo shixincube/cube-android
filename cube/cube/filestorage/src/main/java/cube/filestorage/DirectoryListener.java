@@ -36,16 +36,18 @@ public interface DirectoryListener {
     /**
      * 当有新建目录时该方法被回调。
      *
+     * @param workingDirectory
      * @param newDirectory
      */
-    void onNewDirectory(Directory newDirectory);
+    void onNewDirectory(Directory workingDirectory, Directory newDirectory);
 
     /**
      * 当有目录被删除时该方法被回调。
      *
+     * @param workingDirectory
      * @param deletedDirectory
      */
-    void onDeleteDirectory(Directory deletedDirectory);
+    void onDeleteDirectory(Directory workingDirectory, Directory deletedDirectory);
 
     /**
      * 当有目录被重命名时该方法被回调。

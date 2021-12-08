@@ -61,9 +61,9 @@ import cube.engine.util.Promise;
 import cube.engine.util.PromiseFuture;
 import cube.engine.util.PromiseHandler;
 import cube.filestorage.DirectoryListener;
+import cube.filestorage.handler.DefaultDirectoryFileUploadHandler;
 import cube.filestorage.handler.DefaultDirectoryHandler;
 import cube.filestorage.handler.DefaultFileItemListHandler;
-import cube.filestorage.handler.DefaultDirectoryFileUploadHandler;
 import cube.filestorage.model.Directory;
 import cube.filestorage.model.FileAnchor;
 import cube.filestorage.model.FileItem;
@@ -297,6 +297,18 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
                         helper.setText(R.id.tvDate, "");
                         helper.setViewVisibility(R.id.cbSelector, View.GONE);
                     }
+                    else if (item.type == FileItem.ItemType.TrashDirectory) {
+                        helper.setImageResource(R.id.ivFileIcon, R.mipmap.ic_file_folder);
+                        helper.setText(R.id.tvName, item.getName());
+                        helper.setText(R.id.tvDate, DateUtils.formatYMDHM(item.getLastModified()));
+                        helper.setViewVisibility(R.id.cbSelector, View.VISIBLE);
+                    }
+                    else if (item.type == FileItem.ItemType.TrashFile) {
+                        helper.setImageResource(R.id.ivFileIcon, UIUtils.getFileIcon(item.getFileLabel().getFileType()));
+                        helper.setText(R.id.tvName, item.getName());
+                        helper.setText(R.id.tvDate, DateUtils.formatYMDHM(item.getLastModified()));
+                        helper.setViewVisibility(R.id.cbSelector, View.VISIBLE);
+                    }
                 }
             };
 
@@ -338,6 +350,13 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
                         menu.getMenu().getItem(1).setVisible(false);
                     }
                     else if (fileItem.type == FileItem.ItemType.Directory) {
+                        menu.getMenu().getItem(2).setVisible(false);
+                        menu.getMenu().getItem(3).setVisible(false);
+                        menu.getMenu().getItem(4).setVisible(false);
+                    }
+                    else {
+                        menu.getMenu().getItem(0).setVisible(false);
+                        menu.getMenu().getItem(1).setVisible(false);
                         menu.getMenu().getItem(2).setVisible(false);
                         menu.getMenu().getItem(3).setVisible(false);
                         menu.getMenu().getItem(4).setVisible(false);
@@ -430,6 +449,26 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
             case FilesTabController.TAB_AUDIO_FILES:
                 break;
 
+            case FilesTabController.TAB_TRASH_FILES:
+                getView().getPathText().setText(UIUtils.getString(R.string.file_trash));
+
+                getView().getNoFileLayout().setVisibility(View.GONE);
+                getView().getFileListView().setVisibility(View.VISIBLE);
+
+                CubeEngine.getInstance().getFileStorage().getSelfTrashFileItems(new DefaultFileItemListHandler(true) {
+                    @Override
+                    public void handleFileItemList(List<FileItem> itemList) {
+                        fileItemList.clear();
+
+                        fileItemList.addAll(itemList);
+
+                        adapter.notifyDataSetChangedWrapper();
+
+                        getView().getPathText().setText(UIUtils.getString(R.string.tip_recyclebin_trash_num, itemList.size()));
+                    }
+                });
+                break;
+
             case FilesTabController.TAB_TRANSMITTING_FILES:
                 break;
 
@@ -444,7 +483,7 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
     }
 
     @Override
-    public void onNewDirectory(Directory newDirectory) {
+    public void onNewDirectory(Directory workingDirectory, Directory newDirectory) {
         int tab = this.tabController.getActiveTab();
         if (tab == FilesTabController.TAB_ALL_FILES) {
             this.refreshData();
@@ -452,7 +491,7 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
     }
 
     @Override
-    public void onDeleteDirectory(Directory deletedDirectory) {
+    public void onDeleteDirectory(Directory workingDirectory, Directory deletedDirectory) {
         int tab = this.tabController.getActiveTab();
         if (tab == FilesTabController.TAB_ALL_FILES) {
             this.refreshData();

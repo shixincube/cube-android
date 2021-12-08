@@ -2514,7 +2514,7 @@ public class ContactService extends Module {
 
         group.setIsOwner(group.getOwnerId().equals(this.self.id));
 
-        if (group.getAppendix().hasNotice()) {
+        if (null != group.getAppendix() && group.getAppendix().hasNotice()) {
             group.getAppendix().setNoticeOperator(this.getContact(group.getAppendix().getNoticeOperatorId()));
         }
     }

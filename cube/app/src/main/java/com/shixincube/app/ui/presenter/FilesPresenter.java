@@ -352,8 +352,20 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
                     if (fileItem.type == FileItem.ItemType.File) {
                         menu.getMenu().getItem(0).setVisible(false);
                         menu.getMenu().getItem(1).setVisible(false);
+                        menu.getMenu().getItem(5).setVisible(false);
+                        menu.getMenu().getItem(6).setVisible(false);
                     }
                     else if (fileItem.type == FileItem.ItemType.Directory) {
+                        menu.getMenu().getItem(2).setVisible(false);
+                        menu.getMenu().getItem(3).setVisible(false);
+                        menu.getMenu().getItem(4).setVisible(false);
+                        menu.getMenu().getItem(5).setVisible(false);
+                        menu.getMenu().getItem(6).setVisible(false);
+                    }
+                    else if (fileItem.type == FileItem.ItemType.TrashDirectory ||
+                        fileItem.type == FileItem.ItemType.TrashFile) {
+                        menu.getMenu().getItem(0).setVisible(false);
+                        menu.getMenu().getItem(1).setVisible(false);
                         menu.getMenu().getItem(2).setVisible(false);
                         menu.getMenu().getItem(3).setVisible(false);
                         menu.getMenu().getItem(4).setVisible(false);
@@ -364,6 +376,8 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
                         menu.getMenu().getItem(2).setVisible(false);
                         menu.getMenu().getItem(3).setVisible(false);
                         menu.getMenu().getItem(4).setVisible(false);
+                        menu.getMenu().getItem(5).setVisible(false);
+                        menu.getMenu().getItem(6).setVisible(false);
                     }
 
                     menu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
@@ -387,6 +401,12 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
                             }
                             else if (menuItem.getItemId() == R.id.menuDeleteFile) {
                                 deleteFile(fileItem.getFileLabel());
+                            }
+                            else if (menuItem.getItemId() == R.id.menuRestoreTrash) {
+
+                            }
+                            else if (menuItem.getItemId() == R.id.menuEraseTrash) {
+
                             }
 
                             return true;

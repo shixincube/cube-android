@@ -489,6 +489,10 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
         }
     }
 
+    public void restoreTrash(TrashDirectory trashDirectory, DirectoryHandler successHandler, FailureHandler failureHandler) {
+
+    }
+
     private List<FileItem> refreshTrashFiles(Long rootId, int beginIndex, int endIndex) {
         List<FileItem> result = new ArrayList<>();
 

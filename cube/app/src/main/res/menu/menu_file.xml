@@ -21,4 +21,12 @@
         android:id="@+id/menuDeleteFile"
         android:title="@string/file_delete"/>
 
+    <item
+        android:id="@+id/menuRestoreTrash"
+        android:title="@string/file_restore_trash"/>
+
+    <item
+        android:id="@+id/menuEraseTrash"
+        android:title="@string/file_erase_trash"/>
+
 </menu>

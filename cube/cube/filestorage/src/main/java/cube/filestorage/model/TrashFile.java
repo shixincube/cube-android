@@ -41,7 +41,7 @@ public class TrashFile extends Entity {
     private FileLabel fileLabel;
 
     public TrashFile(Directory parent, FileLabel fileLabel) {
-        super();
+        super(fileLabel.id);
         this.parent = parent;
         this.fileLabel = fileLabel;
     }

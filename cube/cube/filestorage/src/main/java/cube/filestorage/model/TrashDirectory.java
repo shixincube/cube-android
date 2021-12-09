@@ -39,7 +39,7 @@ public class TrashDirectory extends Entity {
     private Directory directory;
 
     public TrashDirectory(Directory directory) {
-        super();
+        super(directory.id);
         this.directory = directory;
     }
 

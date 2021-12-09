@@ -490,7 +490,24 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
     }
 
     public void restoreTrash(TrashDirectory trashDirectory, DirectoryHandler successHandler, FailureHandler failureHandler) {
+        if (!this.pipeline.isReady()) {
+            ModuleError error = new ModuleError(FileStorage.NAME, FileStorageState.PipelineNotReady.code);
+            this.execute(failureHandler, error);
+            return;
+        }
 
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("root", this.getSelfRoot().id.longValue());
+
+            JSONArray array = new JSONArray();
+            array.put(trashDirectory.getId().longValue());
+            payload.put("list", array);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        Packet requestPacket = new Packet(FileStorageAction.RestoreTrash, payload);
+        
     }
 
     private List<FileItem> refreshTrashFiles(Long rootId, int beginIndex, int endIndex) {

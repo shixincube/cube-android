@@ -32,6 +32,8 @@ import org.json.JSONObject;
 import java.nio.charset.StandardCharsets;
 
 import cube.contact.ContactService;
+import cube.contact.handler.ContactAppendixHandler;
+import cube.core.handler.FailureHandler;
 import cube.core.model.Cacheable;
 import cube.util.JSONable;
 
@@ -65,15 +67,6 @@ public class ContactAppendix implements JSONable, Cacheable {
     }
 
     /**
-     * 设置该联系人的备注名。
-     *
-     * @param remarkName 指定备注名。
-     */
-    public void setRemarkName(String remarkName) {
-        this.remarkName = remarkName;
-    }
-
-    /**
      * 获取备注名。
      *
      * @return 返回备注名。
@@ -83,12 +76,39 @@ public class ContactAppendix implements JSONable, Cacheable {
     }
 
     /**
+     * <b>Non-public API</b>
+     *
+     * @param remarkName
+     */
+    public void setRemarkName(String remarkName) {
+        this.remarkName = remarkName;
+    }
+
+    /**
      * 是否设置了配置名。
      *
      * @return 如果设置了备注名返回 {@code true} 。
      */
     public boolean hasRemarkName() {
         return (null != this.remarkName) && (this.remarkName.length() > 0);
+    }
+
+    /**
+     * 修改该联系人的备注名。
+     *
+     * @param remarkName 指定备注名。
+     * @param successHandler 指定操作成功句柄。
+     * @param failureHandler 指定操作失败句柄。
+     */
+    public void modifyRemarkName(String remarkName, ContactAppendixHandler successHandler, FailureHandler failureHandler) {
+        if (null != this.remarkName && this.remarkName.equals(remarkName)) {
+            this.service.execute(failureHandler);
+            return;
+        }
+
+        this.remarkName = remarkName;
+
+        this.service.updateAppendix(this, successHandler, failureHandler);
     }
 
     @Override

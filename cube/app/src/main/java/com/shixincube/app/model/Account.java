@@ -32,6 +32,8 @@ import com.shixincube.app.util.PinyinUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Locale;
+
 import cube.contact.model.Contact;
 import cube.util.JSONable;
 
@@ -140,7 +142,7 @@ public class Account implements JSONable {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        return pinyin;
+        return pinyin.toUpperCase(Locale.ROOT);
     }
 
     @Override

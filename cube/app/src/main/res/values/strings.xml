@@ -108,8 +108,8 @@
     <string name="modify_name">修改名称</string>
 
     <!-- 用户信息 -->
-    <string name="nickname_colon">名称：%1$s</string>
-    <string name="set_remark_and_tag">备注和标签</string>
+    <string name="nickname_colon">昵称：%1$s</string>
+    <string name="remark_and_tag">备注和标签</string>
     <string name="signature">个性签名</string>
     <string name="postscript">附言</string>
     <string name="send_message">发消息</string>
@@ -122,6 +122,8 @@
     <string name="not_find_contact">该用户不存在</string>
     <string name="search_condition_error">请输入正确的搜索内容</string>
     <string name="not_allow_add_to_contacts">对方不允许添加联系人</string>
+    <string name="remark_name">备注名</string>
+    <string name="set_remark_and_tag">设置备注和标签</string>
 
     <!-- 群组信息 -->
     <string name="group_name">群组名称</string>

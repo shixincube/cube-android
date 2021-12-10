@@ -148,7 +148,7 @@
             android:focusable="true"
             android:clickable="true"
             android:layout_marginTop="20dp"
-            auto:start_text="@string/set_remark_and_tag"
+            auto:start_text="@string/remark_and_tag"
             auto:start_text_margin_left="@dimen/item_margin_start_and_end"
             auto:end_src="@mipmap/indicator"
             auto:end_image_margin_right="@dimen/item_margin_start_and_end"/>
@@ -296,7 +296,7 @@
                     auto:start_image_margin_left="20dp"
                     auto:start_image_margin_right="18dp"
                     auto:start_src="@mipmap/ic_contact_remark"
-                    auto:start_text="@string/set_remark_and_tag"
+                    auto:start_text="@string/remark_and_tag"
                     auto:start_text_color="?attr/colorText"
                     android:visibility="gone"/>
 

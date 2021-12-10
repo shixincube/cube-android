@@ -433,12 +433,12 @@ public class ContactZone extends Entity {
         @Override
         public int compare(ContactZoneParticipant participant1, ContactZoneParticipant participant2) {
             if (null != participant1.getContact() && null != participant2.getContact()) {
-                return this.collator.compare(participant1.getContact().getPriorityName(),
-                        participant2.getContact().getPriorityName());
+                return this.collator.compare(participant1.getContact().getPriorityName().toUpperCase(Locale.ROOT),
+                        participant2.getContact().getPriorityName().toUpperCase(Locale.ROOT));
             }
             else if (null != participant1.getGroup() && null != participant2.getGroup()) {
-                return this.collator.compare(participant1.getGroup().getPriorityName(),
-                        participant2.getGroup().getPriorityName());
+                return this.collator.compare(participant1.getGroup().getPriorityName().toUpperCase(Locale.ROOT),
+                        participant2.getGroup().getPriorityName().toUpperCase(Locale.ROOT));
             }
             else {
                 return 0;

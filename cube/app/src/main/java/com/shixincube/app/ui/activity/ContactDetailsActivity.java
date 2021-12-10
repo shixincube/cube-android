@@ -68,6 +68,7 @@ public class ContactDetailsActivity extends BaseActivity<ContactDetailsView, Con
     public final static int MODE_PENDING_CONTACT = 3;
 
     public final static int REQUEST_POSTSCRIPT = 1001;
+    public final static int REQUEST_SET_REMARK_AND_TAG = 1002;
 
     public final static int RESULT_REMOVE = 101;
     public final static int RESULT_ADD = 102;
@@ -230,6 +231,13 @@ public class ContactDetailsActivity extends BaseActivity<ContactDetailsView, Con
             hideMenu();
         });
 
+        // 设置标签和备注
+        this.remarkAndTagItem.setOnClickListener((view) -> {
+            Intent intent = new Intent(this, RemarkTagActivity.class);
+            intent.putExtra("contactId", this.contact.getId().longValue());
+            startActivityForResult(intent, REQUEST_SET_REMARK_AND_TAG);
+        });
+
         // 删除按钮
         this.deleteItemView.setOnClickListener((view) -> {
             hideMenu();
@@ -315,6 +323,13 @@ public class ContactDetailsActivity extends BaseActivity<ContactDetailsView, Con
                                         null);
                             }
                         });
+            }
+        }
+        else if (requestCode == REQUEST_SET_REMARK_AND_TAG) {
+            if (resultCode == RESULT_OK) {
+                // 更新
+                this.nameView.setText(this.contact.getPriorityName());
+                this.nickNameView.setText(UIUtils.getString(R.string.nickname_colon, this.contact.getName()));
             }
         }
     }

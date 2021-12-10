@@ -41,6 +41,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import cube.auth.AuthToken;
+import cube.contact.handler.ContactAppendixHandler;
 import cube.contact.handler.ContactHandler;
 import cube.contact.handler.ContactListHandler;
 import cube.contact.handler.ContactZoneHandler;
@@ -2285,6 +2286,80 @@ public class ContactService extends Module {
     }
 
     /**
+     * 更新联系人附录。
+     *
+     * <b>Non-public API</b>
+     *
+     * @param appendix
+     * @param successHandler
+     * @param failureHandler
+     */
+    public void updateAppendix(ContactAppendix appendix, ContactAppendixHandler successHandler, FailureHandler failureHandler) {
+        if (!this.pipeline.isReady()) {
+            ModuleError error = new ModuleError(NAME, ContactServiceState.NoNetwork.code);
+            error.data = appendix;
+            execute(failureHandler, error);
+            return;
+        }
+
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("contactId", appendix.getContact().id.longValue());
+            payload.put("remarkName", appendix.hasRemarkName() ? appendix.getRemarkName() : "");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        Packet requestPacket = new Packet(ContactServiceAction.UpdateAppendix, payload);
+        this.pipeline.send(ContactService.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    ModuleError error = new ModuleError(NAME, packet.state.code);
+                    error.data = appendix;
+                    execute(failureHandler, error);
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != ContactServiceState.Ok.code) {
+                    ModuleError error = new ModuleError(NAME, stateCode);
+                    error.data = appendix;
+                    execute(failureHandler, error);
+                    return;
+                }
+
+                JSONObject data = packet.extractServiceData();
+                try {
+                    String remarkName = data.getString("remarkName");
+                    System.out.println("XJW : " + remarkName);
+                    appendix.setRemarkName(remarkName);
+
+                    // 更新数据库
+                    storage.writeAppendix(appendix);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                if (successHandler.isInMainThread()) {
+                    executeOnMainThread(() -> {
+                        successHandler.handleAppendix(appendix.getContact(), appendix);
+                    });
+                }
+                else {
+                    execute(() -> {
+                        successHandler.handleAppendix(appendix.getContact(), appendix);
+                    });
+                }
+
+                execute(() -> {
+                    ObservableEvent event = new ObservableEvent(ContactServiceEvent.ContactUpdated, appendix.getContact());
+                    notifyObservers(event);
+                });
+            }
+        });
+    }
+
+    /**
      * 更新指定参数的群组附录。
      *
      * <b>Non-public API</b>
@@ -2747,6 +2822,16 @@ public class ContactService extends Module {
                         }
                     });
                 });
+            }
+            else if (ContactServiceEvent.ContactUpdated.equals(event.getName())) {
+                Contact contact = (Contact) event.getData();
+                if (this.defaultContactZone.contains(contact)) {
+                    executeOnMainThread(() -> {
+                        for (ContactZoneListener listener : contactZoneListenerList) {
+                            listener.onContactZoneUpdated(defaultContactZone, ContactService.this);
+                        }
+                    });
+                }
             }
         }
     }

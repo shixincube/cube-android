@@ -51,6 +51,7 @@ import cube.messaging.extension.ImageMessage;
 import cube.messaging.extension.NotificationMessage;
 import cube.messaging.model.Message;
 import cube.messaging.model.MessageState;
+import cube.messaging.model.MessageType;
 
 /**
  * 消息面板数据适配器。
@@ -153,20 +154,22 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
         }
 
         if (item.isSelfTyper()) {
-            if (item.getState() == MessageState.Read) {
-                helper.setViewVisibility(R.id.llRead, View.VISIBLE);
-                TextView textView = helper.getView(R.id.tvRead);
-                textView.setText(UIUtils.getString(R.string.message_read));
-                textView.setTextColor(UIUtils.getColorByAttrId(R.attr.colorTextSecondary));
-            }
-            else if (item.getState() == MessageState.Sent) {
-                helper.setViewVisibility(R.id.llRead, View.VISIBLE);
-                TextView textView = helper.getView(R.id.tvRead);
-                textView.setText(UIUtils.getString(R.string.message_unread));
-                textView.setTextColor(UIUtils.getColor(R.color.warning));
-            }
-            else {
-                helper.setViewVisibility(R.id.llRead, View.GONE);
+            if (item.getType() != MessageType.Notification) {
+                if (item.getState() == MessageState.Read) {
+                    helper.setViewVisibility(R.id.llRead, View.VISIBLE);
+                    TextView textView = helper.getView(R.id.tvRead);
+                    textView.setText(UIUtils.getString(R.string.message_read));
+                    textView.setTextColor(UIUtils.getColorByAttrId(R.attr.colorTextSecondary));
+                }
+                else if (item.getState() == MessageState.Sent) {
+                    helper.setViewVisibility(R.id.llRead, View.VISIBLE);
+                    TextView textView = helper.getView(R.id.tvRead);
+                    textView.setText(UIUtils.getString(R.string.message_unread));
+                    textView.setTextColor(UIUtils.getColor(R.color.warning));
+                }
+                else {
+                    helper.setViewVisibility(R.id.llRead, View.GONE);
+                }
             }
         }
     }

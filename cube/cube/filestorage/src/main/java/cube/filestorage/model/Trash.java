@@ -29,41 +29,56 @@ package cube.filestorage.model;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import cube.core.model.Entity;
+
 /**
- * 废弃的文件。
+ * 可废弃的实体。
  */
-public class TrashFile extends Trash {
+public abstract class Trash extends Entity {
 
-    private Directory parent;
+    private long rootId;
 
-    private FileLabel fileLabel;
-
-    public TrashFile(Directory parent, FileLabel fileLabel) {
-        super(parent.getRoot().id, fileLabel.id);
-        this.parent = parent;
-        this.fileLabel = fileLabel;
+    public Trash(long rootId, Long id) {
+        super(id);
+        this.rootId = rootId;
     }
 
-    public TrashFile(JSONObject json) throws JSONException {
+    public Trash(JSONObject json) throws JSONException {
         super(json);
-        this.fileLabel = new FileLabel(json.getJSONObject("file"));
-        this.parent = new Directory(json.getJSONObject("parent"));
+        if (json.has("rootId")) {
+            this.rootId = json.getLong("rootId");
+        }
     }
 
-    public Directory getParent() {
-        return this.parent;
+    public long getRootId() {
+        return this.rootId;
     }
 
-    public FileLabel getFileLabel() {
-        return this.fileLabel;
+    public void setRootId(long rootId) {
+        this.rootId = rootId;
+    }
+
+    @Override
+    public long getSortableTime() {
+        return this.timestamp;
     }
 
     @Override
     public JSONObject toJSON() {
         JSONObject json = super.toJSON();
         try {
-            json.put("parent", this.parent.toCompactJSON());
-            json.put("file", this.fileLabel.toJSON());
+            json.put("rootId", this.rootId);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return json;
+    }
+
+    @Override
+    public JSONObject toCompactJSON() {
+        JSONObject json = super.toCompactJSON();
+        try {
+            json.put("rootId", this.rootId);
         } catch (JSONException e) {
             e.printStackTrace();
         }

@@ -33,7 +33,7 @@ import cube.messaging.model.Conversation;
 /**
  * 消息模块最近事件监听器。
  */
-public interface MessagingRecentEventListener {
+public interface ConversationEventListener {
 
     /**
      * 当有相关会话更新时该方法被回调。

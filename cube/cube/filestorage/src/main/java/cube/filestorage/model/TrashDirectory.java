@@ -29,17 +29,15 @@ package cube.filestorage.model;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import cube.core.model.Entity;
-
 /**
  * 废弃的目录。
  */
-public class TrashDirectory extends Entity {
+public class TrashDirectory extends Trash {
 
     private Directory directory;
 
-    public TrashDirectory(Directory directory) {
-        super(directory.id);
+    public TrashDirectory(long rootId, Directory directory) {
+        super(rootId, directory.id);
         this.directory = directory;
     }
 

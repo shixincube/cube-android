@@ -36,14 +36,22 @@ import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.MainView;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 import cube.engine.CubeEngine;
 import cube.engine.CubeService;
+import cube.messaging.MessagingServiceEvent;
 import cube.util.LogUtils;
+import cube.util.ObservableEvent;
+import cube.util.Observer;
 
 /**
  * 主界面。
  */
-public class MainPresenter extends BasePresenter<MainView> {
+public class MainPresenter extends BasePresenter<MainView> implements Observer {
+
+    private Timer timer;
 
     public MainPresenter(BaseActivity activity) {
         super(activity);
@@ -68,5 +76,43 @@ public class MainPresenter extends BasePresenter<MainView> {
             Intent intent = new Intent(activity, CubeService.class);
             activity.bindService(intent, connection, BIND_AUTO_CREATE);
         });
+    }
+
+    public void monitorConversation() {
+        CubeEngine.getInstance().getMessagingService().attachWithName(MessagingServiceEvent.RemoteConversationsCompleted,
+                this);
+        // 设置超时操作
+        if (null == this.timer) {
+            this.timer = new Timer();
+            this.timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    CubeApp.getMainThreadHandler().post(() -> {
+                        closeWaiting();
+                    });
+                }
+            }, 10 * 1000);
+        }
+    }
+
+    @Override
+    public void update(ObservableEvent event) {
+        CubeApp.getMainThreadHandler().post(() -> {
+            closeWaiting();
+        });
+    }
+
+    private void closeWaiting() {
+        if (activity.isWaitingDialogShown()) {
+            activity.hideWaitingDialog();
+        }
+
+        if (null != this.timer) {
+            this.timer.cancel();
+            this.timer = null;
+        }
+
+        CubeEngine.getInstance().getMessagingService().detachWithName(MessagingServiceEvent.RemoteConversationsCompleted,
+                this);
     }
 }

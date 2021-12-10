@@ -124,7 +124,7 @@ public class MessagingService extends Module {
 
     private FileProcessor fileProcessor;
 
-    private MessagingRecentEventListener recentEventListener;
+    private ConversationEventListener conversationEventListener;
 
     private Map<Long, List<MessageEventListener>> conversationMessageListeners;
 
@@ -266,12 +266,12 @@ public class MessagingService extends Module {
     }
 
     /**
-     * 设置消息服务最近事件监听器。
+     * 设置会话事件监听器。
      *
      * @param listener 监听器。
      */
-    public void setRecentEventListener(MessagingRecentEventListener listener) {
-        this.recentEventListener = listener;
+    public void setConversationEventListener(ConversationEventListener listener) {
+        this.conversationEventListener = listener;
     }
 
     /**
@@ -2641,12 +2641,16 @@ public class MessagingService extends Module {
                         }
 
                         // 回调更新列表
-                        if (null != recentEventListener) {
+                        if (null != conversationEventListener) {
                             executeOnMainThread(() -> {
-                                recentEventListener.onConversationListUpdated(getRecentConversations(), MessagingService.this);
+                                conversationEventListener.onConversationListUpdated(getRecentConversations(), MessagingService.this);
                             });
                         }
                     }
+
+                    // 触发 RemoteConversationsCompleted 事件
+                    ObservableEvent event = new ObservableEvent(MessagingServiceEvent.RemoteConversationsCompleted);
+                    notifyObservers(event);
                 });
             }
         });
@@ -2746,9 +2750,9 @@ public class MessagingService extends Module {
             }
         }
         else if (MessagingServiceEvent.ConversationUpdated.equals(eventName)) {
-            if (null != this.recentEventListener) {
+            if (null != this.conversationEventListener) {
                 executeOnMainThread(() -> {
-                    recentEventListener.onConversationUpdated((Conversation) event.getData(), this);
+                    conversationEventListener.onConversationUpdated((Conversation) event.getData(), this);
                 });
             }
         }

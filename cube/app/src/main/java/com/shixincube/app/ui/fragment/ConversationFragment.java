@@ -79,7 +79,7 @@ public class ConversationFragment extends BaseFragment<ConversationView, Convers
     public void onDestroy() {
         super.onDestroy();
 
-        CubeEngine.getInstance().getMessagingService().setRecentEventListener(null);
+        CubeEngine.getInstance().getMessagingService().setConversationEventListener(null);
         CubeEngine.getInstance().getMessagingService().detachWithName(MessagingServiceEvent.Ready, this);
     }
 
@@ -95,7 +95,7 @@ public class ConversationFragment extends BaseFragment<ConversationView, Convers
             this.first.set(false);
         }
 
-        CubeEngine.getInstance().getMessagingService().setRecentEventListener(this.presenter);
+        CubeEngine.getInstance().getMessagingService().setConversationEventListener(this.presenter);
     }
 
     @Override

@@ -118,6 +118,8 @@ public class ContactService extends Module {
 
     protected Self self;
 
+    protected boolean firstSignIn;
+
     private ContactZone defaultContactZone;
 
     private ContactZone defaultGroupZone;
@@ -140,6 +142,7 @@ public class ContactService extends Module {
         this.signInReady = new AtomicBoolean(false);
         this.cache = new ConcurrentHashMap<>();
         this.zoneCache = new ConcurrentHashMap<>();
+        this.firstSignIn = false;
     }
 
     @Override
@@ -278,6 +281,9 @@ public class ContactService extends Module {
 
         // 设置 Self
         this.self = self;
+
+        // 判断是否首次签入
+        this.firstSignIn = !this.storage.existsContact(self.id);
 
         if (!this.pipeline.isReady()) {
             // 数据通道未就绪从数据库读取数据
@@ -500,6 +506,15 @@ public class ContactService extends Module {
         });
 
         return true;
+    }
+
+    /**
+     * 判断当前签入的联系人是否是首次签入。
+     *
+     * @return 如果是首次签入返回 {@code true} 。
+     */
+    public boolean isFirstSignIn() {
+        return this.firstSignIn;
     }
 
     /**

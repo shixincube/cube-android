@@ -24,49 +24,24 @@
  * SOFTWARE.
  */
 
-package cube.filestorage.model;
-
-import org.json.JSONException;
-import org.json.JSONObject;
+package cube.filestorage.handler;
 
 /**
- * 废弃的文件。
+ * 默认废弃数据句柄。
  */
-public class TrashFile extends Trash {
+public abstract class DefaultTrashHandler implements TrashHandler {
 
-    private Directory parent;
+    private boolean inMainThread = false;
 
-    private FileLabel fileLabel;
-
-    public TrashFile(Directory parent, FileLabel fileLabel) {
-        super(parent.getRoot().id, fileLabel.id);
-        this.parent = parent;
-        this.fileLabel = fileLabel;
+    public DefaultTrashHandler() {
     }
 
-    public TrashFile(JSONObject json) throws JSONException {
-        super(json);
-        this.fileLabel = new FileLabel(json.getJSONObject("file"));
-        this.parent = new Directory(json.getJSONObject("parent"));
-    }
-
-    public Directory getParent() {
-        return this.parent;
-    }
-
-    public FileLabel getFileLabel() {
-        return this.fileLabel;
+    public DefaultTrashHandler(boolean inMainThread) {
+        this.inMainThread = inMainThread;
     }
 
     @Override
-    public JSONObject toJSON() {
-        JSONObject json = super.toJSON();
-        try {
-            json.put("parent", this.parent.toCompactJSON());
-            json.put("file", this.fileLabel.toJSON());
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return json;
+    public boolean isInMainThread() {
+        return this.inMainThread;
     }
 }

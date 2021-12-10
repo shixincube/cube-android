@@ -243,6 +243,10 @@ public class Directory extends Entity implements Comparator<FileItem> {
         return this.parentId;
     }
 
+    public Directory getRoot() {
+        return this.hierarchy.getRoot();
+    }
+
     protected void setParent(Directory parent) {
         if (parent == this || this.id.longValue() == parent.id.longValue()) {
             return;

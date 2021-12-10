@@ -76,6 +76,28 @@ public class ContactStorage extends AbstractStorage {
     }
 
     /**
+     * 联系人是否存在。
+     *
+     * @param contactId
+     * @return
+     */
+    public boolean existsContact(Long contactId) {
+        boolean result = false;
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query("contact", new String[]{ "id" },
+                "id=?", new String[]{ contactId.toString() }, null, null, null);
+        if (cursor.moveToFirst()) {
+            result = true;
+        }
+        cursor.close();
+
+        this.closeReadableDatabase(db);
+
+        return result;
+    }
+
+    /**
      * 读取联系人数据。
      *
      * @param contactId

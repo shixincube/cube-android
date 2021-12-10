@@ -64,10 +64,12 @@ import cube.filestorage.DirectoryListener;
 import cube.filestorage.handler.DefaultDirectoryFileUploadHandler;
 import cube.filestorage.handler.DefaultDirectoryHandler;
 import cube.filestorage.handler.DefaultFileItemListHandler;
+import cube.filestorage.handler.DefaultTrashHandler;
 import cube.filestorage.model.Directory;
 import cube.filestorage.model.FileAnchor;
 import cube.filestorage.model.FileItem;
 import cube.filestorage.model.FileLabel;
+import cube.filestorage.model.Trash;
 import cube.util.LogUtils;
 
 /**
@@ -278,6 +280,22 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
                 });
     }
 
+    public void eraseTrash(FileItem item) {
+        CubeEngine.getInstance().getFileStorage().eraseTrash(
+                (item.type == FileItem.ItemType.TrashFile) ? item.getTrashFile() : item.getTrashDirectory(),
+                new DefaultTrashHandler(true) {
+                    @Override
+                    public void handleTrash(Trash trash) {
+                        adapter.notifyDataSetChangedWrapper();
+                    }
+                }, new DefaultFailureHandler(true) {
+                    @Override
+                    public void handleFailure(Module module, ModuleError error) {
+                        UIUtils.showToast(UIUtils.getString(R.string.operate_failure_with_code, error.code));
+                    }
+                });
+    }
+
     private void setAdapter() {
         if (null == this.adapter) {
             this.adapter = new AdapterForRecyclerView<FileItem>(activity, this.fileItemList, R.layout.item_file) {
@@ -406,7 +424,7 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
 
                             }
                             else if (menuItem.getItemId() == R.id.menuEraseTrash) {
-
+                                eraseTrash(fileItem);
                             }
 
                             return true;

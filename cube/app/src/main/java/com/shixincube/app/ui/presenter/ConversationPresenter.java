@@ -60,7 +60,7 @@ import cube.engine.util.Future;
 import cube.engine.util.Promise;
 import cube.engine.util.PromiseFuture;
 import cube.engine.util.PromiseHandler;
-import cube.messaging.MessagingRecentEventListener;
+import cube.messaging.ConversationEventListener;
 import cube.messaging.MessagingService;
 import cube.messaging.handler.DefaultConversationHandler;
 import cube.messaging.model.Conversation;
@@ -72,7 +72,7 @@ import cube.util.LogUtils;
 /**
  * 最近消息会话。
  */
-public class ConversationPresenter extends BasePresenter<ConversationView> implements MessagingRecentEventListener {
+public class ConversationPresenter extends BasePresenter<ConversationView> implements ConversationEventListener {
 
     private final static String TAG = ConversationPresenter.class.getSimpleName();
 

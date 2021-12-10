@@ -97,6 +97,11 @@ public final class MessagingServiceEvent {
     public final static String ConversationUpdated = "ConversationUpdated";
 
     /**
+     * 与服务器完成会话同步。
+     */
+    public final static String RemoteConversationsCompleted = "RemoteConversationsCompleted";
+
+    /**
      * 消息处理故障。
      */
     public final static String Fault = "Fault";

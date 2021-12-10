@@ -155,6 +155,10 @@ public abstract class BaseActivity<V, T extends BasePresenter<V>> extends AppCom
         }
     }
 
+    public boolean isWaitingDialogShown() {
+        return (null != this.dialogForWaiting);
+    }
+
     public void showMaterialDialog(String title, String message, String positiveText, String negativeText,
                                              View.OnClickListener positiveButtonClickListener,
                                              View.OnClickListener negativeButtonClickListener) {

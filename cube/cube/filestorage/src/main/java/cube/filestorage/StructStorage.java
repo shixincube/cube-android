@@ -40,6 +40,7 @@ import java.util.List;
 import cube.core.AbstractStorage;
 import cube.filestorage.model.Directory;
 import cube.filestorage.model.FileLabel;
+import cube.filestorage.model.Trash;
 import cube.filestorage.model.TrashDirectory;
 import cube.filestorage.model.TrashFile;
 
@@ -501,6 +502,18 @@ public class StructStorage extends AbstractStorage {
         this.closeReadableDatabase(db);
 
         return list;
+    }
+
+    /**
+     * 删除废弃文件。
+     *
+     * @param trash
+     */
+    public void deleteTrash(Trash trash) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        // delete
+        db.delete("recyclebin", "id=?", new String[]{ trash.id.toString() });
+        this.closeWritableDatabase(db);
     }
 
     private FileLabel readFileLabel(Cursor cursor) {

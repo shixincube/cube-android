@@ -64,12 +64,14 @@ import cube.filestorage.handler.DownloadFileHandler;
 import cube.filestorage.handler.FileItemListHandler;
 import cube.filestorage.handler.MutableDirectory;
 import cube.filestorage.handler.StableFileLabelHandler;
+import cube.filestorage.handler.TrashHandler;
 import cube.filestorage.handler.UploadFileHandler;
 import cube.filestorage.model.Directory;
 import cube.filestorage.model.FileAnchor;
 import cube.filestorage.model.FileHierarchy;
 import cube.filestorage.model.FileItem;
 import cube.filestorage.model.FileLabel;
+import cube.filestorage.model.Trash;
 import cube.filestorage.model.TrashDirectory;
 import cube.filestorage.model.TrashFile;
 import cube.util.LogUtils;
@@ -120,11 +122,12 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
     /**
      * 废弃的文件项。
      */
-    private LinkedList<FileItem> trashItems;
+    private ConcurrentHashMap<Long, LinkedList<FileItem>> trashItemMap;
 
     public FileStorage() {
         super(NAME);
         this.fileHierarchyMap = new ConcurrentHashMap<>();
+        this.trashItemMap = new ConcurrentHashMap<>();
         this.directoryListeners = new ArrayList<>();
     }
 
@@ -189,11 +192,7 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
         }
 
         this.fileHierarchyMap.clear();
-
-        if (null != this.trashItems) {
-            this.trashItems.clear();
-            this.trashItems = null;
-        }
+        this.trashItemMap.clear();
     }
 
     @Override
@@ -268,6 +267,20 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
      * @return 返回文件层级管理器。
      */
     public Directory getSelfRoot() {
+        int count = 500;
+        while (null == this.self) {
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            --count;
+            if (count <= 0) {
+                break;
+            }
+        }
+
         if (null == this.self) {
             return null;
         }
@@ -377,10 +390,28 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
      * @param handler 指定操作回调句柄。
      */
     public void getSelfTrashFileItems(FileItemListHandler handler) {
-        if (null == this.trashItems) {
-            this.trashItems = new LinkedList<>();
+        if (null == this.getSelfRoot()) {
+            if (handler.isInMainThread()) {
+                executeOnMainThread(() -> {
+                    handler.handleFileItemList(new ArrayList<>());
+                });
+            }
+            else {
+                execute(() -> {
+                    handler.handleFileItemList(new ArrayList<>());
+                });
+            }
+            return;
+        }
+
+        final LinkedList<FileItem> trashItemList = this.trashItemMap.get(this.getSelfRoot().id);
+        if (null == trashItemList) {
+            LinkedList<FileItem> newList = new LinkedList<>();
+            this.trashItemMap.put(this.getSelfRoot().id, newList);
 
             execute(() -> {
+                LinkedList<FileItem> trashItems = this.trashItemMap.get(this.getSelfRoot().id);
+
                 List<TrashDirectory> directoryList = storage.readTrashDirectories();
                 for (TrashDirectory directory : directoryList) {
                     FileItem item = new FileItem(directory);
@@ -478,18 +509,111 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
         else {
             if (handler.isInMainThread()) {
                 executeOnMainThread(() -> {
-                    handler.handleFileItemList(trashItems);
+                    handler.handleFileItemList(trashItemList);
                 });
             }
             else {
                 execute(() -> {
-                    handler.handleFileItemList(trashItems);
+                    handler.handleFileItemList(trashItemList);
                 });
             }
         }
     }
 
-    public void restoreTrash(TrashDirectory trashDirectory, DirectoryHandler successHandler, FailureHandler failureHandler) {
+    private void removeTrashCache(Trash trash) {
+        LinkedList<FileItem> trashItems = this.trashItemMap.get(trash.getRootId());
+        if (null != trashItems) {
+            synchronized (trashItems) {
+                for (int i = 0; i < trashItems.size(); ++i) {
+                    FileItem item = trashItems.get(i);
+
+                    if (item.type == FileItem.ItemType.TrashDirectory &&
+                        trash instanceof TrashDirectory) {
+                        if (item.getTrashDirectory().id.longValue() == trash.id.longValue()) {
+                            trashItems.remove(i);
+                            break;
+                        }
+                    }
+                    else if (item.type == FileItem.ItemType.TrashFile &&
+                        trash instanceof TrashFile) {
+                        if (item.getTrashFile().id.longValue() == trash.id.longValue()) {
+                            trashItems.remove(i);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void addTrashCache(Long rootId, FileItem item) {
+        LinkedList<FileItem> trashItems = this.trashItemMap.get(rootId);
+        if (null != trashItems) {
+            synchronized (trashItems) {
+                trashItems.addFirst(item);
+            }
+        }
+    }
+
+    public void eraseTrash(Trash trash, TrashHandler successHandler, FailureHandler failureHandler) {
+        if (!this.pipeline.isReady()) {
+            // 移除缓存
+            this.removeTrashCache(trash);
+            // 从数据库里删除
+            this.storage.deleteTrash(trash);
+
+            ModuleError error = new ModuleError(FileStorage.NAME, FileStorageState.PipelineNotReady.code);
+            execute(failureHandler, error);
+            return;
+        }
+
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("root", trash.getRootId());
+
+            JSONArray array = new JSONArray();
+            array.put(trash.id.longValue());
+            payload.put("list", array);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        Packet requestPacket = new Packet(FileStorageAction.EraseTrash, payload);
+        this.pipeline.send(FileStorage.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    ModuleError error = new ModuleError(FileStorage.NAME, packet.state.code);
+                    execute(failureHandler, error);
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != FileStorageState.Ok.code) {
+                    ModuleError error = new ModuleError(FileStorage.NAME, stateCode);
+                    execute(failureHandler, error);
+                    return;
+                }
+
+                // 移除缓存
+                removeTrashCache(trash);
+                // 从数据库里删除
+                storage.deleteTrash(trash);
+
+                if (successHandler.isInMainThread()) {
+                    executeOnMainThread(() -> {
+                        successHandler.handleTrash(trash);
+                    });
+                }
+                else {
+                    execute(() -> {
+                        successHandler.handleTrash(trash);
+                    });
+                }
+            }
+        });
+    }
+
+    public void restoreTrash(Trash trash, DirectoryHandler successHandler, FailureHandler failureHandler) {
         if (!this.pipeline.isReady()) {
             ModuleError error = new ModuleError(FileStorage.NAME, FileStorageState.PipelineNotReady.code);
             this.execute(failureHandler, error);
@@ -501,13 +625,52 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
             payload.put("root", this.getSelfRoot().id.longValue());
 
             JSONArray array = new JSONArray();
-            array.put(trashDirectory.getId().longValue());
+            array.put(trash.getId().longValue());
             payload.put("list", array);
         } catch (JSONException e) {
             e.printStackTrace();
         }
         Packet requestPacket = new Packet(FileStorageAction.RestoreTrash, payload);
-        
+        this.pipeline.send(FileStorage.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    ModuleError error = new ModuleError(FileStorage.NAME, packet.state.code);
+                    execute(failureHandler, error);
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != FileStorageState.Ok.code) {
+                    ModuleError error = new ModuleError(FileStorage.NAME, stateCode);
+                    execute(failureHandler, error);
+                    return;
+                }
+
+                JSONObject data = packet.extractServiceData();
+                try {
+                    JSONArray successList = data.getJSONArray("successList");
+                    JSONArray failureList = data.getJSONArray("failureList");
+
+                    for (int i = 0; i < successList.length(); ++i) {
+                        JSONObject trashJSON = successList.getJSONObject(i);
+                        if (trashJSON.has("directory")) {
+
+                        }
+                        else if (trashJSON.has("file")) {
+
+                        }
+
+                        // 移除缓存
+                        removeTrashCache(trash);
+                        // 从数据库里删除
+                        storage.deleteTrash(trash);
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     private List<FileItem> refreshTrashFiles(Long rootId, int beginIndex, int endIndex) {
@@ -549,6 +712,7 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
                         JSONObject trashJSON = array.getJSONObject(i);
                         if (trashJSON.has("directory")) {
                             TrashDirectory trashDirectory = new TrashDirectory(trashJSON);
+                            trashDirectory.setRootId(rootId);
                             FileItem item = new FileItem(trashDirectory);
                             result.add(item);
 
@@ -556,6 +720,7 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
                         }
                         else if (trashJSON.has("file")) {
                             TrashFile trashFile = new TrashFile(trashJSON);
+                            trashFile.setRootId(rootId);
                             FileItem item = new FileItem(trashFile);
                             result.add(item);
 
@@ -1076,19 +1241,18 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
             });
         }
         else if (FileStorageEvent.DeleteDirectory.equals(event.name)) {
+            Directory workingDirectory = (Directory) event.getData();
             // 将被删除的目录存入回收站
-            TrashDirectory trashDirectory = new TrashDirectory((Directory) event.getSecondaryData());
+            TrashDirectory trashDirectory = new TrashDirectory(workingDirectory.getRoot().id,
+                    (Directory) event.getSecondaryData());
             this.storage.writeTrashDirectory(trashDirectory);
 
-            if (null != this.trashItems) {
-                synchronized (this.trashItems) {
-                    this.trashItems.addFirst(new FileItem(trashDirectory));
-                }
-            }
+            // 添加到缓存
+            this.addTrashCache(workingDirectory.getRoot().id, new FileItem(trashDirectory));
 
             executeOnMainThread(() -> {
                 for (DirectoryListener listener : directoryListeners) {
-                    listener.onDeleteDirectory((Directory) event.getData(), (Directory) event.getSecondaryData());
+                    listener.onDeleteDirectory(workingDirectory, (Directory) event.getSecondaryData());
                 }
             });
         }
@@ -1104,11 +1268,8 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
             TrashFile trashFile = new TrashFile((Directory) event.getData(), (FileLabel) event.getSecondaryData());
             this.storage.writeTrashFile(trashFile);
 
-            if (null != this.trashItems) {
-                synchronized (this.trashItems) {
-                    this.trashItems.addFirst(new FileItem(trashFile));
-                }
-            }
+            // 添加到缓存
+            this.addTrashCache(trashFile.getParent().getRoot().id, new FileItem(trashFile));
         }
     }
 

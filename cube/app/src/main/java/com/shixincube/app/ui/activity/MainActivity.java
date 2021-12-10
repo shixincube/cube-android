@@ -50,6 +50,12 @@ import com.shixincube.app.widget.MainTabBar;
 import java.util.ArrayList;
 
 import butterknife.BindView;
+import cube.engine.CubeEngine;
+import cube.engine.util.Future;
+import cube.engine.util.Promise;
+import cube.engine.util.PromiseFuture;
+import cube.engine.util.PromiseHandler;
+import cube.util.LogUtils;
 
 /**
  * 主界面。
@@ -152,6 +158,22 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
 
     @Override
     public void initData() {
+        Promise.create(new PromiseHandler<Boolean>() {
+            @Override
+            public void emit(PromiseFuture<Boolean> promise) {
+                boolean first = CubeEngine.getInstance().getContactService().isFirstSignIn();
+                promise.resolve(first);
+            }
+        }).thenOnMainThread(new Future<Boolean>() {
+            @Override
+            public void come(Boolean data) {
+                if (data.booleanValue()) {
+                    LogUtils.d("MainActivity", "First sign-in");
+                    presenter.monitorConversation();
+                    showWaitingDialog(UIUtils.getString(R.string.please_wait_a_moment));
+                }
+            }
+        }).launch();
     }
 
     @Override

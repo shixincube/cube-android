@@ -230,6 +230,10 @@ public class Directory extends Entity implements Comparator<FileItem> {
         this.numDirs = num;
     }
 
+    protected void setNumFiles(int num) {
+        this.numFiles = num;
+    }
+
     /**
      * 获取父目录。
      *

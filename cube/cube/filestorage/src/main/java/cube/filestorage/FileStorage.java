@@ -63,6 +63,7 @@ import cube.filestorage.handler.DirectoryHandler;
 import cube.filestorage.handler.DownloadFileHandler;
 import cube.filestorage.handler.FileItemListHandler;
 import cube.filestorage.handler.MutableDirectory;
+import cube.filestorage.handler.SearchResultHandler;
 import cube.filestorage.handler.StableFileLabelHandler;
 import cube.filestorage.handler.TrashHandler;
 import cube.filestorage.handler.UploadFileHandler;
@@ -71,6 +72,8 @@ import cube.filestorage.model.FileAnchor;
 import cube.filestorage.model.FileHierarchy;
 import cube.filestorage.model.FileItem;
 import cube.filestorage.model.FileLabel;
+import cube.filestorage.model.SearchFilter;
+import cube.filestorage.model.SearchResultItem;
 import cube.filestorage.model.Trash;
 import cube.filestorage.model.TrashDirectory;
 import cube.filestorage.model.TrashFile;
@@ -329,6 +332,13 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
         return mutableDirectory.directory;
     }
 
+    /**
+     * 获取指定 ID 的根目录。
+     *
+     * @param id
+     * @param successHandler
+     * @param failureHandler
+     */
     private void getRoot(Long id, DirectoryHandler successHandler, FailureHandler failureHandler) {
         if (!this.pipeline.isReady()) {
             ModuleError error = new ModuleError(NAME, FileStorageState.PipelineNotReady.code);
@@ -385,6 +395,93 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
     }
 
     /**
+     * 搜索当前联系的文件。该方法会遍历所有子目录。
+     *
+     * @param filter
+     * @param handler
+     */
+    public void searchSelfFile(SearchFilter filter, SearchResultHandler handler) {
+        if (!this.pipeline.isReady()) {
+            if (handler.isInMainThread()) {
+                executeOnMainThread(() -> {
+                    handler.handleSearchResult(new ArrayList<>());
+                });
+            }
+            else {
+                execute(() -> {
+                    handler.handleSearchResult(new ArrayList<>());
+                });
+            }
+            return;
+        }
+
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("root", this.self.id.longValue());
+            payload.put("filter", filter.toJSON());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        Packet requestPacket = new Packet(FileStorageAction.SearchFile, payload);
+        this.pipeline.send(FileStorage.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    if (handler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            handler.handleSearchResult(new ArrayList<>());
+                        });
+                    }
+                    else {
+                        execute(() -> {
+                            handler.handleSearchResult(new ArrayList<>());
+                        });
+                    }
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != FileStorageState.Ok.code) {
+                    if (handler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            handler.handleSearchResult(new ArrayList<>());
+                        });
+                    }
+                    else {
+                        execute(() -> {
+                            handler.handleSearchResult(new ArrayList<>());
+                        });
+                    }
+                    return;
+                }
+
+                try {
+                    List<SearchResultItem> itemList = new ArrayList<>();
+
+                    JSONArray result = packet.extractServiceData().getJSONArray("result");
+                    for (int i = 0, len = result.length(); i < len; ++i) {
+                        SearchResultItem item = new SearchResultItem(result.getJSONObject(i));
+                        itemList.add(item);
+                    }
+
+                    if (handler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            handler.handleSearchResult(itemList);
+                        });
+                    }
+                    else {
+                        execute(() -> {
+                            handler.handleSearchResult(itemList);
+                        });
+                    }
+                } catch (JSONException e) {
+                    LogUtils.w(TAG, "#searchSelfFile", e);
+                }
+            }
+        });
+    }
+
+    /**
      * 获取当前联系人的所有废弃文件项。包括废弃的目录和文件。
      *
      * @param handler 指定操作回调句柄。
@@ -430,12 +527,8 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
 
                 if (!trashItems.isEmpty()) {
                     synchronized (trashItems) {
-                        Collections.sort(trashItems, new Comparator<FileItem>() {
-                            @Override
-                            public int compare(FileItem fileItem1, FileItem fileItem2) {
-                                return (int) (fileItem2.getSortableTime() - fileItem1.getSortableTime());
-                            }
-                        });
+                        // 排序
+                        sortFileItemsBySortableTime(trashItems);
                     }
 
                     if (handler.isInMainThread()) {
@@ -472,12 +565,8 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
                         // 更新内存
                         trashItems.addAll(resultList);
 
-                        Collections.sort(trashItems, new Comparator<FileItem>() {
-                            @Override
-                            public int compare(FileItem fileItem1, FileItem fileItem2) {
-                                return (int) (fileItem2.getSortableTime() - fileItem1.getSortableTime());
-                            }
-                        });
+                        // 排序
+                        sortFileItemsBySortableTime(trashItems);
                     }
 
                     if (handler.isInMainThread()) {
@@ -496,12 +585,8 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
                         // 更新内存
                         trashItems.addAll(resultList);
 
-                        Collections.sort(trashItems, new Comparator<FileItem>() {
-                            @Override
-                            public int compare(FileItem fileItem1, FileItem fileItem2) {
-                                return (int) (fileItem2.getSortableTime() - fileItem1.getSortableTime());
-                            }
-                        });
+                        // 排序
+                        sortFileItemsBySortableTime(trashItems);
                     }
                 }
             });
@@ -518,6 +603,15 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
                 });
             }
         }
+    }
+
+    private void sortFileItemsBySortableTime(List<FileItem> list) {
+        Collections.sort(list, new Comparator<FileItem>() {
+            @Override
+            public int compare(FileItem fileItem1, FileItem fileItem2) {
+                return (int) (fileItem2.getSortableTime() - fileItem1.getSortableTime());
+            }
+        });
     }
 
     private void removeTrashCache(Trash trash) {
@@ -555,6 +649,13 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
         }
     }
 
+    /**
+     * 抹除指定的废弃数据。
+     *
+     * @param trash 指定废弃的数据。
+     * @param successHandler
+     * @param failureHandler
+     */
     public void eraseTrash(Trash trash, TrashHandler successHandler, FailureHandler failureHandler) {
         if (!this.pipeline.isReady()) {
             // 移除缓存
@@ -613,7 +714,14 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
         });
     }
 
-    public void restoreTrash(Trash trash, DirectoryHandler successHandler, FailureHandler failureHandler) {
+    /**
+     * 恢复废弃的数据。
+     *
+     * @param trash 指定待恢复数据。
+     * @param successHandler
+     * @param failureHandler
+     */
+    public void restoreTrash(Trash trash, TrashHandler successHandler, FailureHandler failureHandler) {
         if (!this.pipeline.isReady()) {
             ModuleError error = new ModuleError(FileStorage.NAME, FileStorageState.PipelineNotReady.code);
             this.execute(failureHandler, error);
@@ -652,25 +760,65 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
                     JSONArray successList = data.getJSONArray("successList");
                     JSONArray failureList = data.getJSONArray("failureList");
 
+                    Long rootId = trash.getRootId();
+
                     for (int i = 0; i < successList.length(); ++i) {
                         JSONObject trashJSON = successList.getJSONObject(i);
                         if (trashJSON.has("directory")) {
-
+                            TrashDirectory trashDirectory = new TrashDirectory(trashJSON);
+                            trashDirectory.setRootId(rootId);
+                            // 恢复数据
+                            restoreTrash(trashDirectory);
                         }
                         else if (trashJSON.has("file")) {
-
+                            TrashFile trashFile = new TrashFile(trashJSON);
+                            trashFile.setRootId(rootId);
+                            // 恢复数据
+                            restoreTrash(trashFile);
                         }
+                    }
 
-                        // 移除缓存
-                        removeTrashCache(trash);
-                        // 从数据库里删除
-                        storage.deleteTrash(trash);
+                    // 移除缓存
+                    removeTrashCache(trash);
+                    // 从数据库里删除
+                    storage.deleteTrash(trash);
+
+                    if (successHandler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            successHandler.handleTrash(trash);
+                        });
+                    }
+                    else {
+                        execute(() -> {
+                            successHandler.handleTrash(trash);
+                        });
                     }
                 } catch (JSONException e) {
-                    e.printStackTrace();
+                    LogUtils.w(TAG, "#restoreTrash", e);
                 }
             }
         });
+    }
+
+    private void restoreTrash(Trash trash) {
+        if (trash instanceof TrashFile) {
+            TrashFile trashFile = (TrashFile) trash;
+            Directory parent = trashFile.getParent();
+
+            FileHierarchy hierarchy = this.fileHierarchyMap.get(trashFile.getRootId());
+            if (null != hierarchy) {
+                if (hierarchy.restoreFileLabel(parent.id, trashFile.getFileLabel())) {
+                    this.storage.writeFileLabel(parent, trashFile.getFileLabel());
+                }
+            }
+        }
+        else if (trash instanceof TrashDirectory) {
+            TrashDirectory trashDirectory = (TrashDirectory) trash;
+            FileHierarchy hierarchy = this.fileHierarchyMap.get(trashDirectory.getRootId());
+            if (null != hierarchy) {
+                hierarchy.restoreDirectory(trashDirectory.getDirectory());
+            }
+        }
     }
 
     private List<FileItem> refreshTrashFiles(Long rootId, int beginIndex, int endIndex) {

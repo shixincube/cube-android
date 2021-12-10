@@ -24,40 +24,24 @@
  * SOFTWARE.
  */
 
-package cube.filestorage.model;
-
-import org.json.JSONException;
-import org.json.JSONObject;
+package cube.filestorage.handler;
 
 /**
- * 废弃的目录。
+ * 搜索结果句柄。
  */
-public class TrashDirectory extends Trash {
+public abstract class DefaultSearchResultHandler implements SearchResultHandler {
 
-    private Directory directory;
+    private boolean inMainThread = false;
 
-    public TrashDirectory(long rootId, Directory directory) {
-        super(rootId, directory.id);
-        this.directory = directory;
+    public DefaultSearchResultHandler() {
     }
 
-    public TrashDirectory(JSONObject json) throws JSONException {
-        super(json);
-        this.directory = new Directory(json.getJSONObject("directory"));
-    }
-
-    public Directory getDirectory() {
-        return this.directory;
+    public DefaultSearchResultHandler(boolean inMainThread) {
+        this.inMainThread = inMainThread;
     }
 
     @Override
-    public JSONObject toJSON() {
-        JSONObject json = super.toJSON();
-        try {
-            json.put("directory", this.directory.toJSON());
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return json;
+    public boolean isInMainThread() {
+        return this.inMainThread;
     }
 }

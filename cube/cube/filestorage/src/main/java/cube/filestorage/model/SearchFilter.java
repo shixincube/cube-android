@@ -26,38 +26,76 @@
 
 package cube.filestorage.model;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import cube.util.JSONable;
+
 /**
- * 废弃的目录。
+ * 文件搜索过滤器。
  */
-public class TrashDirectory extends Trash {
+public class SearchFilter implements JSONable {
 
-    private Directory directory;
+    private int beginIndex;
+    private int endIndex;
+    private List<String> typeList;
 
-    public TrashDirectory(long rootId, Directory directory) {
-        super(rootId, directory.id);
-        this.directory = directory;
+    public SearchFilter() {
+        this.beginIndex = 0;
+        this.endIndex = 99;
+        this.typeList = new ArrayList<>();
     }
 
-    public TrashDirectory(JSONObject json) throws JSONException {
-        super(json);
-        this.directory = new Directory(json.getJSONObject("directory"));
+    public SearchFilter(String[] types) {
+        this.beginIndex = 0;
+        this.endIndex = 99;
+        this.typeList = new ArrayList<>();
+        setTypes(types);
     }
 
-    public Directory getDirectory() {
-        return this.directory;
+    public void setRange(int beginIndex, int endIndex) {
+        this.beginIndex = beginIndex;
+        this.endIndex = endIndex;
+    }
+
+    public void addType(String type) {
+        if (!this.typeList.contains(type)) {
+            this.typeList.add(type);
+        }
+    }
+
+    public void setTypes(String[] types) {
+        for (String type : types) {
+            this.addType(type);
+        }
     }
 
     @Override
     public JSONObject toJSON() {
-        JSONObject json = super.toJSON();
+        JSONObject json = new JSONObject();
         try {
-            json.put("directory", this.directory.toJSON());
+            json.put("begin", this.beginIndex);
+            json.put("end", this.endIndex);
+
+            if (!this.typeList.isEmpty()) {
+                JSONArray array = new JSONArray();
+                for (String type : this.typeList) {
+                    array.put(type);
+                }
+                json.put("type", array);
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }
         return json;
+    }
+
+    @Override
+    public JSONObject toCompactJSON() {
+        return this.toJSON();
     }
 }

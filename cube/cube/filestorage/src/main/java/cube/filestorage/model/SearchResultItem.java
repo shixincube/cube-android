@@ -30,34 +30,27 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * 废弃的目录。
+ * 搜索结果。
  */
-public class TrashDirectory extends Trash {
+public class SearchResultItem {
 
     private Directory directory;
+    private FileLabel fileLabel;
 
-    public TrashDirectory(long rootId, Directory directory) {
-        super(rootId, directory.id);
-        this.directory = directory;
-    }
-
-    public TrashDirectory(JSONObject json) throws JSONException {
-        super(json);
+    public SearchResultItem(JSONObject json) throws JSONException {
         this.directory = new Directory(json.getJSONObject("directory"));
+        this.fileLabel = new FileLabel(json.getJSONObject("file"));
     }
 
     public Directory getDirectory() {
         return this.directory;
     }
 
-    @Override
-    public JSONObject toJSON() {
-        JSONObject json = super.toJSON();
-        try {
-            json.put("directory", this.directory.toJSON());
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return json;
+    public FileLabel getFileLabel() {
+        return this.fileLabel;
+    }
+
+    public FileItem toFileItem() {
+        return new FileItem(this.fileLabel);
     }
 }

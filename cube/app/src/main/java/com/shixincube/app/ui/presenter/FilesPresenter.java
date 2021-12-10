@@ -64,11 +64,14 @@ import cube.filestorage.DirectoryListener;
 import cube.filestorage.handler.DefaultDirectoryFileUploadHandler;
 import cube.filestorage.handler.DefaultDirectoryHandler;
 import cube.filestorage.handler.DefaultFileItemListHandler;
+import cube.filestorage.handler.DefaultSearchResultHandler;
 import cube.filestorage.handler.DefaultTrashHandler;
 import cube.filestorage.model.Directory;
 import cube.filestorage.model.FileAnchor;
 import cube.filestorage.model.FileItem;
 import cube.filestorage.model.FileLabel;
+import cube.filestorage.model.SearchFilter;
+import cube.filestorage.model.SearchResultItem;
 import cube.filestorage.model.Trash;
 import cube.util.LogUtils;
 
@@ -78,6 +81,11 @@ import cube.util.LogUtils;
 public class FilesPresenter extends BasePresenter<FilesView> implements FilesTabController.TabChangedListener, DirectoryListener {
 
     private final static String TAG = FilesPresenter.class.getSimpleName();
+
+    private final static String[] sImageTypes = new String[]{ "png", "jpg", "jpeg", "bmp", "webp", "gif" };
+    private final static String[] sDocTypes = new String[]{ "doc", "docx", "pdf", "ppt", "pptx", "xls", "xlsx" };
+    private final static String[] sVideoTypes = new String[]{ "mp4", "avi", "mov", "rm", "rmvb", "3gp", "mkv", "mpg", "mpeg" };
+    private final static String[] sAudioTypes = new String[]{ "mp3", "wav", "wma", "amr", "flac", "ogg", "mid", "aac", "raw" };
 
     private FilesFragment fragment;
 
@@ -280,13 +288,18 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
                 });
     }
 
+    /**
+     * 抹除数据。
+     *
+     * @param item
+     */
     public void eraseTrash(FileItem item) {
         CubeEngine.getInstance().getFileStorage().eraseTrash(
                 (item.type == FileItem.ItemType.TrashFile) ? item.getTrashFile() : item.getTrashDirectory(),
                 new DefaultTrashHandler(true) {
                     @Override
                     public void handleTrash(Trash trash) {
-                        adapter.notifyDataSetChangedWrapper();
+                        refreshData();
                     }
                 }, new DefaultFailureHandler(true) {
                     @Override
@@ -294,6 +307,31 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
                         UIUtils.showToast(UIUtils.getString(R.string.operate_failure_with_code, error.code));
                     }
                 });
+    }
+
+    /**
+     * 恢复数据。
+     *
+     * @param item
+     */
+    public void restoreTrash(FileItem item) {
+        CubeEngine.getInstance().getFileStorage().restoreTrash(
+                (item.type == FileItem.ItemType.TrashFile) ? item.getTrashFile() : item.getTrashDirectory(),
+                new DefaultTrashHandler(true) {
+                    @Override
+                    public void handleTrash(Trash trash) {
+                        refreshData();
+                    }
+                }, new DefaultFailureHandler(true) {
+                    @Override
+                    public void handleFailure(Module module, ModuleError error) {
+                        UIUtils.showToast(UIUtils.getString(R.string.operate_failure_with_code, error.code));
+                    }
+                });
+    }
+
+    public void filterFile(String[] types) {
+
     }
 
     private void setAdapter() {
@@ -421,7 +459,7 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
                                 deleteFile(fileItem.getFileLabel());
                             }
                             else if (menuItem.getItemId() == R.id.menuRestoreTrash) {
-
+                                restoreTrash(fileItem);
                             }
                             else if (menuItem.getItemId() == R.id.menuEraseTrash) {
                                 eraseTrash(fileItem);
@@ -484,15 +522,107 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
                 break;
 
             case FilesTabController.TAB_IMAGE_FILES:
+                activity.showWaitingDialog(UIUtils.getString(R.string.please_wait_a_moment));
+
+                // 显示内容提示
+                getView().getPathText().setText(UIUtils.getString(R.string.file_image));
+
+                getView().getNoFileLayout().setVisibility(View.GONE);
+                getView().getFileListView().setVisibility(View.VISIBLE);
+
+                CubeEngine.getInstance().getFileStorage().searchSelfFile(new SearchFilter(sImageTypes),
+                        new DefaultSearchResultHandler(true) {
+                    @Override
+                    public void handleSearchResult(List<SearchResultItem> resultItems) {
+                        fileItemList.clear();
+
+                        for (SearchResultItem item : resultItems) {
+                            fileItemList.add(item.toFileItem());
+                        }
+
+                        adapter.notifyDataSetChangedWrapper();
+
+                        activity.hideWaitingDialog();
+                    }
+                });
                 break;
 
             case FilesTabController.TAB_DOC_FILES:
+                activity.showWaitingDialog(UIUtils.getString(R.string.please_wait_a_moment));
+
+                // 显示内容提示
+                getView().getPathText().setText(UIUtils.getString(R.string.file_doc));
+
+                getView().getNoFileLayout().setVisibility(View.GONE);
+                getView().getFileListView().setVisibility(View.VISIBLE);
+
+                CubeEngine.getInstance().getFileStorage().searchSelfFile(new SearchFilter(sDocTypes),
+                        new DefaultSearchResultHandler(true) {
+                            @Override
+                            public void handleSearchResult(List<SearchResultItem> resultItems) {
+                                fileItemList.clear();
+
+                                for (SearchResultItem item : resultItems) {
+                                    fileItemList.add(item.toFileItem());
+                                }
+
+                                adapter.notifyDataSetChangedWrapper();
+
+                                activity.hideWaitingDialog();
+                            }
+                        });
                 break;
 
             case FilesTabController.TAB_VIDEO_FILES:
+                activity.showWaitingDialog(UIUtils.getString(R.string.please_wait_a_moment));
+
+                // 显示内容提示
+                getView().getPathText().setText(UIUtils.getString(R.string.file_video));
+
+                getView().getNoFileLayout().setVisibility(View.GONE);
+                getView().getFileListView().setVisibility(View.VISIBLE);
+
+                CubeEngine.getInstance().getFileStorage().searchSelfFile(new SearchFilter(sVideoTypes),
+                        new DefaultSearchResultHandler(true) {
+                            @Override
+                            public void handleSearchResult(List<SearchResultItem> resultItems) {
+                                fileItemList.clear();
+
+                                for (SearchResultItem item : resultItems) {
+                                    fileItemList.add(item.toFileItem());
+                                }
+
+                                adapter.notifyDataSetChangedWrapper();
+
+                                activity.hideWaitingDialog();
+                            }
+                        });
                 break;
 
             case FilesTabController.TAB_AUDIO_FILES:
+                activity.showWaitingDialog(UIUtils.getString(R.string.please_wait_a_moment));
+
+                // 显示内容提示
+                getView().getPathText().setText(UIUtils.getString(R.string.file_audio));
+
+                getView().getNoFileLayout().setVisibility(View.GONE);
+                getView().getFileListView().setVisibility(View.VISIBLE);
+
+                CubeEngine.getInstance().getFileStorage().searchSelfFile(new SearchFilter(sAudioTypes),
+                        new DefaultSearchResultHandler(true) {
+                            @Override
+                            public void handleSearchResult(List<SearchResultItem> resultItems) {
+                                fileItemList.clear();
+
+                                for (SearchResultItem item : resultItems) {
+                                    fileItemList.add(item.toFileItem());
+                                }
+
+                                adapter.notifyDataSetChangedWrapper();
+
+                                activity.hideWaitingDialog();
+                            }
+                        });
                 break;
 
             case FilesTabController.TAB_TRASH_FILES:
@@ -516,6 +646,10 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
                 break;
 
             case FilesTabController.TAB_TRANSMITTING_FILES:
+                getView().getPathText().setText(UIUtils.getString(R.string.file_transmitting));
+
+                // TODO
+
                 break;
 
             default:

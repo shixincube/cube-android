@@ -51,11 +51,11 @@ import cube.filestorage.FileStorageEvent;
 import cube.filestorage.FileStorageState;
 import cube.filestorage.StructStorage;
 import cube.filestorage.handler.DefaultDirectoryHandler;
+import cube.filestorage.handler.DirectoryFileUploadHandler;
 import cube.filestorage.handler.DirectoryHandler;
 import cube.filestorage.handler.DirectoryListHandler;
 import cube.filestorage.handler.FileItemListHandler;
 import cube.filestorage.handler.FileListHandler;
-import cube.filestorage.handler.DirectoryFileUploadHandler;
 import cube.filestorage.handler.StableUploadFileHandler;
 import cube.util.LogUtils;
 import cube.util.ObservableEvent;
@@ -105,6 +105,103 @@ public class FileHierarchy {
 
     public List<FileAnchor> getDownloadingFiles() {
         return this.downloadingFiles;
+    }
+
+    public Directory retrieve(Long directoryId) {
+        // 深度遍历
+        return this.retrieve(this.root, directoryId.longValue());
+    }
+
+    private Directory retrieve(Directory current, long directoryId) {
+        if (current.id.longValue() == directoryId) {
+            return current;
+        }
+
+        // 遍历子目录
+        Directory target = retrieveChildren(current, directoryId);
+        return target;
+    }
+
+    private Directory retrieveChildren(Directory parent, long directoryId) {
+        for (Directory child : parent.getChildren()) {
+            Directory target = retrieve(child, directoryId);
+            if (null != target) {
+                return target;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * 恢复文件。
+     *
+     * @param parentId
+     * @param fileLabel
+     * @return
+     */
+    public boolean restoreFileLabel(Long parentId, FileLabel fileLabel) {
+        Directory directory = this.retrieve(parentId);
+        if (null != directory) {
+            if (directory.addFile(fileLabel)) {
+                directory.setNumDirs(directory.numFiles() + 1);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * 恢复目录。
+     *
+     * @param directory
+     */
+    public void restoreDirectory(Directory directory) {
+        Directory parent = this.retrieve(directory.getParentId());
+        if (null == parent) {
+            return;
+        }
+
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("root", this.root.id.longValue());
+            payload.put("id", parent.id.longValue());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        Packet requestPacket = new Packet(FileStorageAction.ListDirs, payload);
+        this.service.getPipeline().send(FileStorage.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != FileStorageState.Ok.code) {
+                    return;
+                }
+
+                JSONObject data = packet.extractServiceData();
+                try {
+                    List<Directory> list = new ArrayList<>();
+                    JSONArray array = data.getJSONArray("list");
+                    for (int i = 0; i < array.length(); ++i) {
+                        Directory dir = new Directory(array.getJSONObject(i));
+                        // 添加子目录
+                        parent.addChild(dir);
+
+                        list.add(dir);
+
+                        // 写入存储
+                        storage.writeDirectory(dir);
+                    }
+                } catch (JSONException e) {
+                    LogUtils.w(TAG, "#listDirectories", e);
+                }
+            }
+        });
     }
 
     /**

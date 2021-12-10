@@ -2331,7 +2331,6 @@ public class ContactService extends Module {
                 JSONObject data = packet.extractServiceData();
                 try {
                     String remarkName = data.getString("remarkName");
-                    System.out.println("XJW : " + remarkName);
                     appendix.setRemarkName(remarkName);
 
                     // 更新数据库

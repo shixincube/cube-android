@@ -540,6 +540,15 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
                             fileItemList.add(item.toFileItem());
                         }
 
+                        if (fileItemList.isEmpty()) {
+                            getView().getFileListView().setVisibility(View.GONE);
+                            getView().getNotFindTipText().setVisibility(View.VISIBLE);
+                        }
+                        else {
+                            getView().getFileListView().setVisibility(View.VISIBLE);
+                            getView().getNotFindTipText().setVisibility(View.GONE);
+                        }
+
                         adapter.notifyDataSetChangedWrapper();
 
                         activity.hideWaitingDialog();
@@ -558,19 +567,28 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
 
                 CubeEngine.getInstance().getFileStorage().searchSelfFile(new SearchFilter(sDocTypes),
                         new DefaultSearchResultHandler(true) {
-                            @Override
-                            public void handleSearchResult(List<SearchResultItem> resultItems) {
-                                fileItemList.clear();
+                    @Override
+                    public void handleSearchResult(List<SearchResultItem> resultItems) {
+                        fileItemList.clear();
 
-                                for (SearchResultItem item : resultItems) {
-                                    fileItemList.add(item.toFileItem());
-                                }
+                        for (SearchResultItem item : resultItems) {
+                            fileItemList.add(item.toFileItem());
+                        }
 
-                                adapter.notifyDataSetChangedWrapper();
+                        if (fileItemList.isEmpty()) {
+                            getView().getFileListView().setVisibility(View.GONE);
+                            getView().getNotFindTipText().setVisibility(View.VISIBLE);
+                        }
+                        else {
+                            getView().getFileListView().setVisibility(View.VISIBLE);
+                            getView().getNotFindTipText().setVisibility(View.GONE);
+                        }
 
-                                activity.hideWaitingDialog();
-                            }
-                        });
+                        adapter.notifyDataSetChangedWrapper();
+
+                        activity.hideWaitingDialog();
+                    }
+                });
                 break;
 
             case FilesTabController.TAB_VIDEO_FILES:
@@ -584,19 +602,28 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
 
                 CubeEngine.getInstance().getFileStorage().searchSelfFile(new SearchFilter(sVideoTypes),
                         new DefaultSearchResultHandler(true) {
-                            @Override
-                            public void handleSearchResult(List<SearchResultItem> resultItems) {
-                                fileItemList.clear();
+                    @Override
+                    public void handleSearchResult(List<SearchResultItem> resultItems) {
+                        fileItemList.clear();
 
-                                for (SearchResultItem item : resultItems) {
-                                    fileItemList.add(item.toFileItem());
-                                }
+                        for (SearchResultItem item : resultItems) {
+                            fileItemList.add(item.toFileItem());
+                        }
 
-                                adapter.notifyDataSetChangedWrapper();
+                        if (fileItemList.isEmpty()) {
+                            getView().getFileListView().setVisibility(View.GONE);
+                            getView().getNotFindTipText().setVisibility(View.VISIBLE);
+                        }
+                        else {
+                            getView().getFileListView().setVisibility(View.VISIBLE);
+                            getView().getNotFindTipText().setVisibility(View.GONE);
+                        }
 
-                                activity.hideWaitingDialog();
-                            }
-                        });
+                        adapter.notifyDataSetChangedWrapper();
+
+                        activity.hideWaitingDialog();
+                    }
+                });
                 break;
 
             case FilesTabController.TAB_AUDIO_FILES:
@@ -610,19 +637,28 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
 
                 CubeEngine.getInstance().getFileStorage().searchSelfFile(new SearchFilter(sAudioTypes),
                         new DefaultSearchResultHandler(true) {
-                            @Override
-                            public void handleSearchResult(List<SearchResultItem> resultItems) {
-                                fileItemList.clear();
+                    @Override
+                    public void handleSearchResult(List<SearchResultItem> resultItems) {
+                        fileItemList.clear();
 
-                                for (SearchResultItem item : resultItems) {
-                                    fileItemList.add(item.toFileItem());
-                                }
+                        for (SearchResultItem item : resultItems) {
+                            fileItemList.add(item.toFileItem());
+                        }
 
-                                adapter.notifyDataSetChangedWrapper();
+                        if (fileItemList.isEmpty()) {
+                            getView().getFileListView().setVisibility(View.GONE);
+                            getView().getNotFindTipText().setVisibility(View.VISIBLE);
+                        }
+                        else {
+                            getView().getFileListView().setVisibility(View.VISIBLE);
+                            getView().getNotFindTipText().setVisibility(View.GONE);
+                        }
 
-                                activity.hideWaitingDialog();
-                            }
-                        });
+                        adapter.notifyDataSetChangedWrapper();
+
+                        activity.hideWaitingDialog();
+                    }
+                });
                 break;
 
             case FilesTabController.TAB_TRASH_FILES:
@@ -637,6 +673,15 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
                         fileItemList.clear();
 
                         fileItemList.addAll(itemList);
+
+                        if (fileItemList.isEmpty()) {
+                            getView().getFileListView().setVisibility(View.GONE);
+                            getView().getNotFindTipText().setVisibility(View.VISIBLE);
+                        }
+                        else {
+                            getView().getFileListView().setVisibility(View.VISIBLE);
+                            getView().getNotFindTipText().setVisibility(View.GONE);
+                        }
 
                         adapter.notifyDataSetChangedWrapper();
 

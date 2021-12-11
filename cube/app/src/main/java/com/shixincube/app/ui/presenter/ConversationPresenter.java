@@ -215,7 +215,7 @@ public class ConversationPresenter extends BasePresenter<ConversationView> imple
                                 CubeEngine.getInstance().getMessagingService().deleteConversation(item.conversation, new DefaultConversationHandler(true) {
                                     @Override
                                     public void handleConversation(Conversation conversation) {
-                                        UIUtils.showToast(UIUtils.getString(R.string.tip_conv_deleted));
+//                                        UIUtils.showToast(UIUtils.getString(R.string.tip_conv_deleted));
                                         loadConversations();
                                     }
                                 }, new DefaultFailureHandler(true) {

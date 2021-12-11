@@ -41,4 +41,6 @@ public interface FilesView {
     TextView getPathText();
 
     RecyclerView getFileListView();
+
+    TextView getNotFindTipText();
 }

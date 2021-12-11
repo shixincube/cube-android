@@ -78,6 +78,9 @@ public class FilesFragment extends BaseFragment<FilesView, FilesPresenter> imple
     @BindView(R.id.rvFiles)
     RecyclerView filesView;
 
+    @BindView(R.id.tvTipNotFind)
+    TextView tipNotFindText;
+
     private FilesTabController tabController;
 
     public FilesFragment() {
@@ -192,5 +195,10 @@ public class FilesFragment extends BaseFragment<FilesView, FilesPresenter> imple
     @Override
     public RecyclerView getFileListView() {
         return this.filesView;
+    }
+
+    @Override
+    public TextView getNotFindTipText() {
+        return this.tipNotFindText;
     }
 }

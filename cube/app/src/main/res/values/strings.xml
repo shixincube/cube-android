@@ -95,6 +95,7 @@
     <string name="file_restore_trash">放回原处</string>
     <string name="tip_delete_directory">您确认要删除文件夹 %1$s 吗？如果确认删除将同时删除文件夹下的所有文件！</string>
     <string name="tip_delete_file">您确认要删除文件 %1$s 吗？</string>
+    <string name="tip_can_not_find_files">没有找到文件</string>
 
     <!-- 个人信息 -->
     <string name="my_nickname">我的名称</string>

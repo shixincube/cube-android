@@ -33,8 +33,21 @@ import org.webrtc.PeerConnection;
  */
 public class RTCDevice {
 
+    public final static String MODE_RECEIVE_ONLY = "recvonly";
+    public final static String MODE_SEND_ONLY = "sendonly";
+    public final static String MODE_BIDIRECTION = "sendrecv";
+
+    private long sn;
+
+    /**
+     * 模式。
+     */
+    private String mode;
+
     private PeerConnection pc;
 
-    public RTCDevice() {
+    public RTCDevice(String mode) {
+        this.sn = cell.util.Utils.generateUnsignedSerialNumber();
+        this.mode = mode;
     }
 }

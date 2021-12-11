@@ -27,29 +27,28 @@
 package cube.multipointcomm.util;
 
 /**
- * 视频画面尺寸描述。
+ * 媒体约束。
  */
-public enum VideoDimension {
+public class MediaConstraint {
 
-    QVGA(320, 240)
+    /**
+     * 是否使用 Video 设备。
+     */
+    public final boolean videoEnabled;
 
+    /**
+     * 是否使用 Audio 设备。
+     */
+    public final boolean audioEnabled;
 
-    ;
-
-    public final int width;
-
-    public final int height;
-
-    VideoDimension(int width, int height) {
-        this.width = width;
-        this.height = height;
-    }
-
-    public int getWidth() {
-        return this.width;
-    }
-
-    public int getHeight() {
-        return this.height;
+    /**
+     * 构造函数。
+     *
+     * @param videoEnabled 是否使用 Video 设备。
+     * @param audioEnabled 是否使用 Audio 设备。
+     */
+    public MediaConstraint(boolean videoEnabled, boolean audioEnabled) {
+        this.videoEnabled = videoEnabled;
+        this.audioEnabled = audioEnabled;
     }
 }

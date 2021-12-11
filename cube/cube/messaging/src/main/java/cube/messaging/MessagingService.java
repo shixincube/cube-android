@@ -1438,6 +1438,7 @@ public class MessagingService extends Module {
             return;
         }
 
+        // 更新寿命
         conversation.entityLifeExpiry += LIFESPAN;
 
         this.execute(() -> {

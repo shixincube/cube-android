@@ -137,6 +137,15 @@ public class ContactZone extends Entity {
     }
 
     /**
+     * 重置排序。
+     */
+    public void resetOrder() {
+        if (this.ordered) {
+            Collections.sort(this.participants, new NameComparator());
+        }
+    }
+
+    /**
      * 返回参与人列表。
      *
      * @return 返回参与人列表。

@@ -397,7 +397,7 @@
         android:gravity="center_horizontal"
         android:text="@string/tip_can_not_find_files"
         android:textColor="?attr/colorTextSecondary"
-        android:textSize="18sp"
+        android:textSize="16sp"
         android:visibility="gone"/>
 
 </LinearLayout>

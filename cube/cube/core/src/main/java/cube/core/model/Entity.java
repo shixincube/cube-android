@@ -39,7 +39,7 @@ import cube.util.JSONable;
  */
 public class Entity implements JSONable, Cacheable, TimeSortable {
 
-    public final static long LIFESPAN_IN_MSEC = 7L * 24L * 60L * 60L * 1000L;
+    public final static long LIFESPAN_IN_MSEC = 7 * 24 * 60 * 60 * 1000;
 
     /**
      * 实体 ID 。
@@ -98,7 +98,7 @@ public class Entity implements JSONable, Cacheable, TimeSortable {
     public Entity(Long id) {
         this.id = id;
         this.entityCreation = System.currentTimeMillis();
-        this.entityLifeExpiry = this.entityCreation + 5L * 60L * 1000L;
+        this.entityLifeExpiry = this.entityCreation + 5 * 60 * 1000;
         this.timestamp = this.entityCreation;
         this.last = this.timestamp;
         this.expiry = this.last + LIFESPAN_IN_MSEC;
@@ -113,7 +113,7 @@ public class Entity implements JSONable, Cacheable, TimeSortable {
     public Entity(Long id, long timestamp) {
         this.id = id;
         this.entityCreation = System.currentTimeMillis();
-        this.entityLifeExpiry = this.entityCreation + 5L * 60L * 1000L;
+        this.entityLifeExpiry = this.entityCreation + 5 * 60 * 1000;
         this.timestamp = timestamp;
         this.last = timestamp;
         this.expiry = this.last + LIFESPAN_IN_MSEC;

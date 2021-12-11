@@ -23,6 +23,7 @@
             <option value="$PROJECT_DIR$/cube/fileprocessor" />
             <option value="$PROJECT_DIR$/cube/filestorage" />
             <option value="$PROJECT_DIR$/cube/messaging" />
+            <option value="$PROJECT_DIR$/cube/multipointcomm" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />

@@ -2825,6 +2825,9 @@ public class ContactService extends Module {
             else if (ContactServiceEvent.ContactUpdated.equals(event.getName())) {
                 Contact contact = (Contact) event.getData();
                 if (this.defaultContactZone.contains(contact)) {
+                    // 重置联系人顺序
+                    this.defaultContactZone.resetOrder();
+
                     executeOnMainThread(() -> {
                         for (ContactZoneListener listener : contactZoneListenerList) {
                             listener.onContactZoneUpdated(defaultContactZone, ContactService.this);

@@ -24,57 +24,25 @@
  * SOFTWARE.
  */
 
-package cube.multipointcomm.util;
+package cube.multipointcomm.model;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import cube.contact.model.Self;
 
 /**
- * 视频画面尺寸描述。
+ * 通话记录。
  */
-public enum VideoDimension {
+public class CallRecord {
 
-    QVGA(320, 240),
+    private Self self;
 
-    VGA(640, 480),
+    public CommField field;
 
-    SVGA(800, 600),
-
-    HD(1280, 720),
-
-    FullHD(1920, 1080),
-
-    FourK(4096, 2160),
-
-    EightK(7680, 4320)
-
-    ;
-
-    public final int width;
-
-    public final int height;
-
-    VideoDimension(int width, int height) {
-        this.width = width;
-        this.height = height;
+    public CallRecord(Self self, CommField commField) {
+        this.self = self;
+        this.field = commField;
     }
 
-    public int getWidth() {
-        return this.width;
-    }
-
-    public int getHeight() {
-        return this.height;
-    }
-
-    public JSONObject toJSON() {
-        JSONObject json = new JSONObject();
-        try {
-            json.put("width", this.width);
-            json.put("height", this.height);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return json;
+    public boolean isActive() {
+        return (null != this.field && this.field.numRTCDevices() > 0);
     }
 }

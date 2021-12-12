@@ -24,57 +24,15 @@
  * SOFTWARE.
  */
 
-package cube.multipointcomm.util;
+package cube.multipointcomm.handler;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import cube.core.handler.CallbackHandler;
+import cube.multipointcomm.model.CommField;
 
 /**
- * 视频画面尺寸描述。
+ * 通信场域句柄。
  */
-public enum VideoDimension {
+public interface CommFieldHandler extends CallbackHandler {
 
-    QVGA(320, 240),
-
-    VGA(640, 480),
-
-    SVGA(800, 600),
-
-    HD(1280, 720),
-
-    FullHD(1920, 1080),
-
-    FourK(4096, 2160),
-
-    EightK(7680, 4320)
-
-    ;
-
-    public final int width;
-
-    public final int height;
-
-    VideoDimension(int width, int height) {
-        this.width = width;
-        this.height = height;
-    }
-
-    public int getWidth() {
-        return this.width;
-    }
-
-    public int getHeight() {
-        return this.height;
-    }
-
-    public JSONObject toJSON() {
-        JSONObject json = new JSONObject();
-        try {
-            json.put("width", this.width);
-            json.put("height", this.height);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return json;
-    }
+    void handleCommField(CommField commField);
 }

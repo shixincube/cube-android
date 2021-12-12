@@ -26,10 +26,15 @@
 
 package cube.multipointcomm.util;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import cube.util.JSONable;
+
 /**
  * 媒体约束。
  */
-public class MediaConstraint {
+public class MediaConstraint implements JSONable {
 
     /**
      * 是否使用 Video 设备。
@@ -42,6 +47,13 @@ public class MediaConstraint {
     public final boolean audioEnabled;
 
     /**
+     * 视频画面尺寸描述。
+     */
+    private VideoDimension videoDimension;
+
+    private int videoFps;
+
+    /**
      * 构造函数。
      *
      * @param videoEnabled 是否使用 Video 设备。
@@ -50,5 +62,37 @@ public class MediaConstraint {
     public MediaConstraint(boolean videoEnabled, boolean audioEnabled) {
         this.videoEnabled = videoEnabled;
         this.audioEnabled = audioEnabled;
+        this.videoDimension = VideoDimension.QVGA;
+        this.videoFps = 15;
+    }
+
+    public VideoDimension getVideoDimension() {
+        return this.videoDimension;
+    }
+
+    public int getVideoFps() {
+        return this.videoFps;
+    }
+
+    public void setVideoDimension(VideoDimension dimension) {
+        this.videoDimension = dimension;
+    }
+
+    @Override
+    public JSONObject toJSON() {
+        JSONObject json = new JSONObject();
+        try {
+            json.put("audio", this.audioEnabled);
+            json.put("video", this.videoEnabled);
+            json.put("dimension", this.videoDimension.toJSON());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return json;
+    }
+
+    @Override
+    public JSONObject toCompactJSON() {
+        return this.toJSON();
     }
 }

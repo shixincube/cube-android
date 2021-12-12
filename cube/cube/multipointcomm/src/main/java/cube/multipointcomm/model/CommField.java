@@ -26,11 +26,39 @@
 
 package cube.multipointcomm.model;
 
+import android.content.Context;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.webrtc.DefaultVideoDecoderFactory;
+import org.webrtc.DefaultVideoEncoderFactory;
+import org.webrtc.EglBase;
+import org.webrtc.PeerConnectionFactory;
+import org.webrtc.VideoDecoderFactory;
+import org.webrtc.VideoEncoderFactory;
+import org.webrtc.audio.JavaAudioDeviceModule;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+
+import cube.auth.AuthService;
 import cube.contact.model.Contact;
+import cube.contact.model.Device;
+import cube.contact.model.Group;
 import cube.contact.model.Self;
+import cube.core.Packet;
 import cube.core.Pipeline;
+import cube.core.handler.FailureHandler;
+import cube.core.handler.PipelineHandler;
 import cube.core.model.Entity;
 import cube.multipointcomm.MediaListener;
+import cube.multipointcomm.MultipointComm;
+import cube.multipointcomm.MultipointCommAction;
+import cube.multipointcomm.RTCDevice;
+import cube.multipointcomm.handler.CommFieldHandler;
+import cube.multipointcomm.util.MediaConstraint;
 
 /**
  * 多方通信场域。
@@ -54,6 +82,8 @@ public class CommField extends Entity {
      */
     private String name;
 
+    private MediaConstraint mediaConstraint;
+
     /**
      * 通讯域开始通话时间。
      */
@@ -65,17 +95,176 @@ public class CommField extends Entity {
     private long endTime;
 
     /**
+     * 主叫。
+     */
+    private Contact caller;
+
+    /**
+     * 被叫。
+     */
+    private Contact callee;
+
+    /**
+     * 包含的群组。
+     */
+    private Group group;
+
+    /**
      * 媒体监听器。
      */
     private MediaListener mediaListener;
 
-    public CommField(Self self, Pipeline pipeline) {
+    private Context context;
+
+    private EglBase eglBase;
+
+    private List<CommFieldEndpoint> endpoints;
+
+    private RTCDevice outboundRTC;
+
+    private ConcurrentHashMap<Long, RTCDevice> inboundRTCMap;
+
+    public CommField(Context context, Self self, Pipeline pipeline) {
         super(self.id);
+        this.context = context;
         this.self = self;
         this.pipeline = pipeline;
         this.founder = self;
         this.name = this.founder.getName() + "#" + this.id;
+        this.mediaConstraint = new MediaConstraint(true, true);
+        this.eglBase = EglBase.create();
+        this.endpoints = new ArrayList<>();
+        this.inboundRTCMap = new ConcurrentHashMap<>();
     }
 
+    public Self getSelf() {
+        return this.self;
+    }
 
+    public Contact getFounder() {
+        return this.founder;
+    }
+
+    public void setMediaConstraint(MediaConstraint mediaConstraint) {
+        this.mediaConstraint = mediaConstraint;
+    }
+
+    public void setCallRole(Contact caller, Contact callee) {
+        this.caller = caller;
+        this.callee = callee;
+    }
+
+    public int numRTCDevices() {
+        int result = null != this.outboundRTC ? 1 : 0;
+        return result + this.inboundRTCMap.size();
+    }
+
+    public void applyCall(Contact participant, Device device, CommFieldHandler successHandler, FailureHandler failureHandler) {
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("field", this.toCompactJSON());
+            payload.put("participant", participant.toCompactJSON());
+            payload.put("device", device.toCompactJSON());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        Packet requestPacket = new Packet(MultipointCommAction.ApplyCall, payload);
+        this.pipeline.send(MultipointComm.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+
+            }
+        });
+    }
+
+    private PeerConnectionFactory createPeerConnectionFactory() {
+        PeerConnectionFactory.InitializationOptions initOptions = PeerConnectionFactory.InitializationOptions.builder(context).createInitializationOptions();
+        PeerConnectionFactory.initialize(initOptions);
+
+        // 编码器
+        VideoEncoderFactory encoderFactory = new DefaultVideoEncoderFactory(eglBase.getEglBaseContext(), true, true);
+        // 解码器
+        VideoDecoderFactory decoderFactory = new DefaultVideoDecoderFactory(eglBase.getEglBaseContext());
+
+        PeerConnectionFactory.Options options = new PeerConnectionFactory.Options();
+        options.disableNetworkMonitor = true;
+
+        // Audio Device module
+        JavaAudioDeviceModule audioDeviceModule = JavaAudioDeviceModule.builder(this.context)
+                .setSamplesReadyCallback(null)
+                .setUseHardwareAcousticEchoCanceler(false)
+                .setUseHardwareNoiseSuppressor(false)
+                .setAudioRecordErrorCallback(null)
+                .setAudioTrackErrorCallback(null)
+                .createAudioDeviceModule();
+
+        PeerConnectionFactory factory = PeerConnectionFactory.builder()
+                .setOptions(options)
+                .setAudioDeviceModule(audioDeviceModule)
+                .setVideoEncoderFactory(encoderFactory)
+                .setVideoDecoderFactory(decoderFactory)
+                .createPeerConnectionFactory();
+
+        return factory;
+    }
+
+    @Override
+    public JSONObject toJSON() {
+        JSONObject json = super.toJSON();
+        try {
+            json.put("domain", AuthService.getDomain());
+            json.put("name", this.name);
+            json.put("founder", this.founder.toCompactJSON());
+            json.put("mediaConstraint", this.mediaConstraint.toJSON());
+            json.put("startTime", this.startTime);
+            json.put("endTime", this.endTime);
+
+            JSONArray endpointArray = new JSONArray();
+            for (CommFieldEndpoint endpoint : this.endpoints) {
+                endpointArray.put(endpoint.toJSON());
+            }
+            json.put("endpoints", endpointArray);
+
+            if (null != this.group) {
+                json.put("group", this.group.toCompactJSON());
+            }
+
+            if (null != this.caller) {
+                json.put("caller", this.caller.toCompactJSON());
+            }
+            if (null != this.callee) {
+                json.put("callee", this.callee.toCompactJSON());
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return json;
+    }
+
+    @Override
+    public JSONObject toCompactJSON() {
+        JSONObject json = super.toCompactJSON();
+        try {
+            json.put("domain", AuthService.getDomain());
+            json.put("name", this.name);
+            json.put("founder", this.founder.toCompactJSON());
+            json.put("mediaConstraint", this.mediaConstraint.toJSON());
+            json.put("startTime", this.startTime);
+            json.put("endTime", this.endTime);
+
+            if (null != this.group) {
+                json.put("group", this.group.toCompactJSON());
+            }
+
+            if (null != this.caller) {
+                json.put("caller", this.caller.toCompactJSON());
+            }
+            if (null != this.callee) {
+                json.put("callee", this.callee.toCompactJSON());
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return json;
+    }
 }

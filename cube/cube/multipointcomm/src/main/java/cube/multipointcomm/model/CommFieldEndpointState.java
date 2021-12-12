@@ -24,57 +24,26 @@
  * SOFTWARE.
  */
 
-package cube.multipointcomm.util;
-
-import org.json.JSONException;
-import org.json.JSONObject;
+package cube.multipointcomm.model;
 
 /**
- * 视频画面尺寸描述。
+ * 通信域节点状态码。
  */
-public enum VideoDimension {
+public enum CommFieldEndpointState {
 
-    QVGA(320, 240),
+    /**
+     * 正常状态。
+     */
+    Normal(0),
 
-    VGA(640, 480),
+    /**
+     * 未知的状态。
+     */
+    Unknown(99);
 
-    SVGA(800, 600),
+    public final int code;
 
-    HD(1280, 720),
-
-    FullHD(1920, 1080),
-
-    FourK(4096, 2160),
-
-    EightK(7680, 4320)
-
-    ;
-
-    public final int width;
-
-    public final int height;
-
-    VideoDimension(int width, int height) {
-        this.width = width;
-        this.height = height;
-    }
-
-    public int getWidth() {
-        return this.width;
-    }
-
-    public int getHeight() {
-        return this.height;
-    }
-
-    public JSONObject toJSON() {
-        JSONObject json = new JSONObject();
-        try {
-            json.put("width", this.width);
-            json.put("height", this.height);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return json;
+    CommFieldEndpointState(int code) {
+        this.code = code;
     }
 }

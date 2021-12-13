@@ -26,15 +26,22 @@
 
 package cube.multipointcomm.handler;
 
-import cube.contact.model.Contact;
-import cube.contact.model.Device;
-import cube.core.handler.CallbackHandler;
-import cube.multipointcomm.model.CommField;
-
 /**
- * 通信场域句柄。
+ * 默认申请呼叫句柄。
  */
-public interface CommFieldHandler extends CallbackHandler {
+public abstract class DefaultApplyCallHandler implements ApplyCallHandler {
 
-    void handleCommField(CommField commField, Contact participant, Device device);
+    private boolean inMainThread = false;
+
+    public DefaultApplyCallHandler() {
+    }
+
+    public DefaultApplyCallHandler(boolean inMainThread) {
+        this.inMainThread = inMainThread;
+    }
+
+    @Override
+    public boolean isInMainThread() {
+        return this.inMainThread;
+    }
 }

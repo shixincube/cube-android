@@ -47,6 +47,7 @@ import cube.engine.util.Promise;
 import cube.fileprocessor.FileProcessor;
 import cube.filestorage.FileStorage;
 import cube.messaging.MessagingService;
+import cube.multipointcomm.MultipointComm;
 import cube.util.ObservableEvent;
 import cube.util.Observer;
 
@@ -71,6 +72,7 @@ public class CubeEngine implements Observer {
         this.kernel.installModule(new FileStorage());
         this.kernel.installModule(new FileProcessor());
         this.kernel.installModule(new MessagingService());
+        this.kernel.installModule(new MultipointComm());
     }
 
     public static CubeEngine getInstance() {
@@ -205,6 +207,15 @@ public class CubeEngine implements Observer {
      */
     public MessagingService getMessagingService() {
         return (MessagingService) this.kernel.getModule(MessagingService.NAME);
+    }
+
+    /**
+     * 获取多方实时音视频通讯模块。
+     *
+     * @return 返回多方实时音视频通讯模块。
+     */
+    public MultipointComm getMultipointComm() {
+        return (MultipointComm) this.kernel.getModule(MultipointComm.NAME);
     }
 
     /**

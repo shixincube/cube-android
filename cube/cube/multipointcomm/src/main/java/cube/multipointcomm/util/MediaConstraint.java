@@ -66,6 +66,19 @@ public class MediaConstraint implements JSONable {
         this.videoFps = 15;
     }
 
+    /**
+     * 构造函数。
+     *
+     * @param json
+     * @throws JSONException
+     */
+    public MediaConstraint(JSONObject json) throws JSONException {
+        this.audioEnabled = json.getBoolean("audio");
+        this.videoEnabled = json.getBoolean("video");
+        this.videoDimension = VideoDimension.parse(json.getJSONObject("dimension"));
+        this.videoFps = 15;
+    }
+
     public VideoDimension getVideoDimension() {
         return this.videoDimension;
     }

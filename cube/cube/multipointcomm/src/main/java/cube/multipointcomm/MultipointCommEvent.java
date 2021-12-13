@@ -24,17 +24,25 @@
  * SOFTWARE.
  */
 
-package cube.multipointcomm.handler;
-
-import cube.contact.model.Contact;
-import cube.contact.model.Device;
-import cube.core.handler.CallbackHandler;
-import cube.multipointcomm.model.CommField;
+package cube.multipointcomm;
 
 /**
- * 通信场域句柄。
+ * 多方通讯事件。
  */
-public interface CommFieldHandler extends CallbackHandler {
+public class MultipointCommEvent {
 
-    void handleCommField(CommField commField, Contact participant, Device device);
+    /**
+     * 有新的通话邀请。
+     * 事件数据：{@link cube.multipointcomm.model.CallRecord} - 通话记录。
+     */
+    public final static String NewCall = "NewCall";
+
+    /**
+     * 正在处理通话请求。
+     * 事件数据：{@link cube.contact.model.Contact} / {@link cube.contact.model.Group} / {@link cube.multipointcomm.model.CommField} - 发起或应答通话的目标。
+     */
+    public final static String InProgress = "InProgress";
+
+    private MultipointCommEvent() {
+    }
 }

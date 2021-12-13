@@ -48,22 +48,29 @@ import cube.contact.model.Contact;
 import cube.contact.model.Device;
 import cube.contact.model.Group;
 import cube.contact.model.Self;
+import cube.core.ModuleError;
 import cube.core.Packet;
 import cube.core.Pipeline;
+import cube.core.PipelineState;
 import cube.core.handler.FailureHandler;
 import cube.core.handler.PipelineHandler;
 import cube.core.model.Entity;
 import cube.multipointcomm.MediaListener;
 import cube.multipointcomm.MultipointComm;
 import cube.multipointcomm.MultipointCommAction;
+import cube.multipointcomm.MultipointCommState;
 import cube.multipointcomm.RTCDevice;
-import cube.multipointcomm.handler.CommFieldHandler;
+import cube.multipointcomm.handler.DefaultApplyCallHandler;
 import cube.multipointcomm.util.MediaConstraint;
 
 /**
  * 多方通信场域。
  */
 public class CommField extends Entity {
+
+    private MultipointComm service;
+
+    private Context context;
 
     private Self self;
 
@@ -82,6 +89,9 @@ public class CommField extends Entity {
      */
     private String name;
 
+    /**
+     * 媒体约束。
+     */
     private MediaConstraint mediaConstraint;
 
     /**
@@ -114,8 +124,6 @@ public class CommField extends Entity {
      */
     private MediaListener mediaListener;
 
-    private Context context;
-
     private EglBase eglBase;
 
     private List<CommFieldEndpoint> endpoints;
@@ -124,8 +132,9 @@ public class CommField extends Entity {
 
     private ConcurrentHashMap<Long, RTCDevice> inboundRTCMap;
 
-    public CommField(Context context, Self self, Pipeline pipeline) {
+    public CommField(MultipointComm service, Context context, Self self, Pipeline pipeline) {
         super(self.id);
+        this.service = service;
         this.context = context;
         this.self = self;
         this.pipeline = pipeline;
@@ -135,6 +144,57 @@ public class CommField extends Entity {
         this.eglBase = EglBase.create();
         this.endpoints = new ArrayList<>();
         this.inboundRTCMap = new ConcurrentHashMap<>();
+    }
+
+    public CommField(JSONObject json) throws JSONException {
+        super(json);
+        this.name = json.getString("name");
+        this.founder = new Contact(json.getJSONObject("founder"));
+        this.mediaConstraint = new MediaConstraint(json.getJSONObject("mediaConstraint"));
+        this.startTime = json.getLong("startTime");
+        this.endTime = json.getLong("endTime");
+
+        this.endpoints = new ArrayList<>();
+        if (json.has("endpoints")) {
+            JSONArray array = json.getJSONArray("endpoints");
+            for (int i = 0; i < array.length(); ++i) {
+                CommFieldEndpoint endpoint = new CommFieldEndpoint(array.getJSONObject(i));
+                this.endpoints.add(endpoint);
+            }
+        }
+
+        if (json.has("group")) {
+            this.group = new Group(json.getJSONObject("group"));
+        }
+
+        if (json.has("caller")) {
+            this.caller = new Contact(json.getJSONObject("caller"));
+        }
+        if (json.has("callee")) {
+            this.callee = new Contact(json.getJSONObject("callee"));
+        }
+    }
+
+    private void update(CommField source) {
+        if (!source.endpoints.isEmpty()) {
+            this.endpoints.clear();
+            this.endpoints.addAll(source.endpoints);
+        }
+
+        this.mediaConstraint = source.mediaConstraint;
+        this.startTime = source.startTime;
+        this.endTime = source.endTime;
+
+        if (null == this.group && null != source.group) {
+            this.group = source.group;
+        }
+
+        if (null == this.caller && null != source.caller) {
+            this.caller = source.caller;
+        }
+        if (null == this.callee && null != source.callee) {
+            this.callee = source.callee;
+        }
     }
 
     public Self getSelf() {
@@ -154,12 +214,26 @@ public class CommField extends Entity {
         this.callee = callee;
     }
 
+    public Contact getCaller() {
+        return this.caller;
+    }
+
+    public Contact getCallee() {
+        return this.callee;
+    }
+
     public int numRTCDevices() {
         int result = null != this.outboundRTC ? 1 : 0;
         return result + this.inboundRTCMap.size();
     }
 
-    public void applyCall(Contact participant, Device device, CommFieldHandler successHandler, FailureHandler failureHandler) {
+    public void applyCall(Contact participant, Device device, DefaultApplyCallHandler successHandler, FailureHandler failureHandler) {
+        if (!this.pipeline.isReady()) {
+            ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.NoPipeline.code);
+            this.service.execute(failureHandler, error);
+            return;
+        }
+
         JSONObject payload = new JSONObject();
         try {
             payload.put("field", this.toCompactJSON());
@@ -172,7 +246,31 @@ public class CommField extends Entity {
         this.pipeline.send(MultipointComm.NAME, requestPacket, new PipelineHandler() {
             @Override
             public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    ModuleError error = new ModuleError(MultipointComm.NAME, packet.state.code);
+                    service.execute(failureHandler, error);
+                    return;
+                }
 
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != MultipointCommState.Ok.code) {
+                    ModuleError error = new ModuleError(MultipointComm.NAME, stateCode);
+                    service.execute(failureHandler, error);
+                    return;
+                }
+
+                JSONObject data = packet.extractServiceData();
+                try {
+                    CommField response = new CommField(data);
+                    // 更新数据
+                    update(response);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                service.execute(() -> {
+                    successHandler.handleApplyCall(CommField.this, participant, device);
+                });
             }
         });
     }

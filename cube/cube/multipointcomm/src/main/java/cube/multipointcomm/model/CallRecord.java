@@ -27,6 +27,7 @@
 package cube.multipointcomm.model;
 
 import cube.contact.model.Self;
+import cube.multipointcomm.util.MediaConstraint;
 
 /**
  * 通话记录。
@@ -35,7 +36,11 @@ public class CallRecord {
 
     private Self self;
 
-    public CommField field;
+    public final CommField field;
+
+    private MediaConstraint callerConstraint;
+
+    private MediaConstraint calleeConstraint;
 
     public CallRecord(Self self, CommField commField) {
         this.self = self;

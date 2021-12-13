@@ -65,7 +65,23 @@ public class CommFieldEndpoint extends Entity {
         this.name = contact.id.toString() + "_" + device.name + "_" + device.platform;
         this.contact = contact;
         this.device = device;
-        this.state = CommFieldEndpointState.Normal;
+        this.state = CommFieldEndpointState.CallBye;
+    }
+
+    public CommFieldEndpoint(JSONObject json) throws JSONException {
+        super(json);
+        this.name = json.getString("name");
+        this.contact = new Contact(json.getJSONObject("contact"));
+        this.device = new Device(json.getJSONObject("device"));
+        this.state = CommFieldEndpointState.parse(json.getInt("state"));
+
+        JSONObject video = json.getJSONObject("video");
+        this.videoEnabled = video.getBoolean("enabled");
+        this.videoStreamEnabled = video.getBoolean("streamEnabled");
+
+        JSONObject audio = json.getJSONObject("audio");
+        this.audioEnabled = audio.getBoolean("enabled");
+        this.audioStreamEnabled = audio.getBoolean("streamEnabled");
     }
 
     public Contact getContact() {

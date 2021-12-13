@@ -72,9 +72,30 @@ public enum VideoDimension {
         try {
             json.put("width", this.width);
             json.put("height", this.height);
+
+            StringBuilder constraintsString = new StringBuilder();
+            constraintsString.append("{");
+            constraintsString.append("\"width\":{\"max\":").append(this.width).append("}");
+            constraintsString.append("\"height\":{\"max\":").append(this.height).append("}");
+            constraintsString.append("}");
+            JSONObject constraints = new JSONObject(constraintsString.toString());
+            json.put("constraints", constraints);
         } catch (JSONException e) {
             e.printStackTrace();
         }
         return json;
+    }
+
+    public static VideoDimension parse(JSONObject json) throws JSONException {
+        int width = json.getInt("width");
+        int height = json.getInt("height");
+        for (VideoDimension dimension : VideoDimension.values()) {
+            if (dimension.width == width || dimension.height == height ||
+                    (dimension.width == height && dimension.height == width)) {
+                return dimension;
+            }
+        }
+
+        return VideoDimension.VGA;
     }
 }

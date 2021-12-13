@@ -67,6 +67,15 @@ public class Self extends Contact {
         this.device = new Device(json.getJSONObject("device"));
     }
 
+    /**
+     * 获取当前设备。
+     *
+     * @return 返回当前设备。
+     */
+    public Device getDevice() {
+        return this.device;
+    }
+
     public void update(JSONObject json) throws JSONException {
         this.name = json.getString("name");
 

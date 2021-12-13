@@ -50,4 +50,20 @@ public class CallRecord {
     public boolean isActive() {
         return (null != this.field && this.field.numRTCDevices() > 0);
     }
+
+    public void setCallerConstraint(MediaConstraint mediaConstraint) {
+        this.callerConstraint = mediaConstraint;
+    }
+
+    public MediaConstraint getCallerConstraint() {
+        return this.callerConstraint;
+    }
+
+    public void setCalleeConstraint(MediaConstraint mediaConstraint) {
+        this.calleeConstraint = mediaConstraint;
+    }
+
+    public MediaConstraint getCalleeConstraint() {
+        return this.calleeConstraint;
+    }
 }

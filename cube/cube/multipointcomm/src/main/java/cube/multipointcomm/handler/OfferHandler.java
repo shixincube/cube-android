@@ -24,31 +24,16 @@
  * SOFTWARE.
  */
 
-package cube.multipointcomm;
+package cube.multipointcomm.handler;
+
+import org.webrtc.SessionDescription;
+
+import cube.multipointcomm.RTCDevice;
 
 /**
- * 多方通讯事件。
+ * RTC 设备句柄。
  */
-public class MultipointCommEvent {
+public interface OfferHandler {
 
-    /**
-     * 有新的通话邀请。
-     * 事件数据：{@link cube.multipointcomm.model.CallRecord} - 通话记录。
-     */
-    public final static String NewCall = "NewCall";
-
-    /**
-     * 正在处理通话请求。
-     * 事件数据：{@link cube.multipointcomm.model.CallRecord} - 发起或应答的通话记录。
-     */
-    public final static String InProgress = "InProgress";
-
-    /**
-     * 发生错误。
-     * 事件数据：{@link cube.core.ModuleError} - 错误描述。
-     */
-    public final static String Failed = "Failed";
-
-    private MultipointCommEvent() {
-    }
+    void handleOffer(RTCDevice device, SessionDescription sessionDescription);
 }

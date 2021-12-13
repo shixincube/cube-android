@@ -31,13 +31,8 @@ import android.content.Context;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.webrtc.DefaultVideoDecoderFactory;
-import org.webrtc.DefaultVideoEncoderFactory;
-import org.webrtc.EglBase;
-import org.webrtc.PeerConnectionFactory;
-import org.webrtc.VideoDecoderFactory;
-import org.webrtc.VideoEncoderFactory;
-import org.webrtc.audio.JavaAudioDeviceModule;
+import org.webrtc.IceCandidate;
+import org.webrtc.SessionDescription;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,25 +43,33 @@ import cube.contact.model.Contact;
 import cube.contact.model.Device;
 import cube.contact.model.Group;
 import cube.contact.model.Self;
+import cube.core.Module;
 import cube.core.ModuleError;
 import cube.core.Packet;
 import cube.core.Pipeline;
 import cube.core.PipelineState;
 import cube.core.handler.FailureHandler;
 import cube.core.handler.PipelineHandler;
+import cube.core.handler.StableFailureHandler;
 import cube.core.model.Entity;
 import cube.multipointcomm.MediaListener;
 import cube.multipointcomm.MultipointComm;
 import cube.multipointcomm.MultipointCommAction;
 import cube.multipointcomm.MultipointCommState;
 import cube.multipointcomm.RTCDevice;
+import cube.multipointcomm.handler.CommFieldHandler;
 import cube.multipointcomm.handler.DefaultApplyCallHandler;
+import cube.multipointcomm.handler.OfferHandler;
+import cube.multipointcomm.handler.SignalingHandler;
 import cube.multipointcomm.util.MediaConstraint;
+import cube.util.LogUtils;
 
 /**
  * 多方通信场域。
  */
-public class CommField extends Entity {
+public class CommField extends Entity implements RTCDevice.RTCEventListener {
+
+    private final static String TAG = "CommField";
 
     private MultipointComm service;
 
@@ -124,8 +127,6 @@ public class CommField extends Entity {
      */
     private MediaListener mediaListener;
 
-    private EglBase eglBase;
-
     private List<CommFieldEndpoint> endpoints;
 
     private RTCDevice outboundRTC;
@@ -141,7 +142,7 @@ public class CommField extends Entity {
         this.founder = self;
         this.name = this.founder.getName() + "#" + this.id;
         this.mediaConstraint = new MediaConstraint(true, true);
-        this.eglBase = EglBase.create();
+
         this.endpoints = new ArrayList<>();
         this.inboundRTCMap = new ConcurrentHashMap<>();
     }
@@ -227,6 +228,14 @@ public class CommField extends Entity {
         return result + this.inboundRTCMap.size();
     }
 
+    /**
+     * 申请发起通话。
+     *
+     * @param participant
+     * @param device
+     * @param successHandler
+     * @param failureHandler
+     */
     public void applyCall(Contact participant, Device device, DefaultApplyCallHandler successHandler, FailureHandler failureHandler) {
         if (!this.pipeline.isReady()) {
             ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.NoPipeline.code);
@@ -275,35 +284,113 @@ public class CommField extends Entity {
         });
     }
 
-    private PeerConnectionFactory createPeerConnectionFactory() {
-        PeerConnectionFactory.InitializationOptions initOptions = PeerConnectionFactory.InitializationOptions.builder(context).createInitializationOptions();
-        PeerConnectionFactory.initialize(initOptions);
+    /**
+     * 启动 Offer 流程。
+     *
+     * @param rtcDevice
+     * @param mediaConstraint
+     * @param successHandler
+     * @param failureHandler
+     */
+    public void launchOffer(RTCDevice rtcDevice, MediaConstraint mediaConstraint, CommFieldHandler successHandler, FailureHandler failureHandler) {
+        if (rtcDevice.getMode().equals(RTCDevice.MODE_BIDIRECTION)) {
+            this.outboundRTC = rtcDevice;
+        }
+        else if (rtcDevice.getMode().equals(RTCDevice.MODE_SEND_ONLY)) {
+            this.outboundRTC = rtcDevice;
+        }
+        else {
+            // TODO
+        }
 
-        // 编码器
-        VideoEncoderFactory encoderFactory = new DefaultVideoEncoderFactory(eglBase.getEglBaseContext(), true, true);
-        // 解码器
-        VideoDecoderFactory decoderFactory = new DefaultVideoDecoderFactory(eglBase.getEglBaseContext());
+        // 设置监听器
+        rtcDevice.setEventListener(this);
 
-        PeerConnectionFactory.Options options = new PeerConnectionFactory.Options();
-        options.disableNetworkMonitor = true;
+        this.service.executeOnMainThread(() -> {
+            rtcDevice.openOffer(mediaConstraint, new OfferHandler() {
+                @Override
+                public void handleOffer(RTCDevice device, SessionDescription sessionDescription) {
+                    // 创建信令
+                    Signaling signaling = new Signaling(rtcDevice.getSN(), MultipointCommAction.Offer,
+                            CommField.this, self, self.device);
+                    // 设置 SDP 信息
+                    signaling.sessionDescription = sessionDescription;
+                    // 设置媒体约束
+                    signaling.mediaConstraint = mediaConstraint;
+                    // 设置目标
+                    // TODO
 
-        // Audio Device module
-        JavaAudioDeviceModule audioDeviceModule = JavaAudioDeviceModule.builder(this.context)
-                .setSamplesReadyCallback(null)
-                .setUseHardwareAcousticEchoCanceler(false)
-                .setUseHardwareNoiseSuppressor(false)
-                .setAudioRecordErrorCallback(null)
-                .setAudioTrackErrorCallback(null)
-                .createAudioDeviceModule();
+                    sendSignaling(signaling, new SignalingHandler() {
+                        @Override
+                        public void handleSignaling(Signaling signaling) {
 
-        PeerConnectionFactory factory = PeerConnectionFactory.builder()
-                .setOptions(options)
-                .setAudioDeviceModule(audioDeviceModule)
-                .setVideoEncoderFactory(encoderFactory)
-                .setVideoDecoderFactory(decoderFactory)
-                .createPeerConnectionFactory();
+                        }
+                    }, new StableFailureHandler() {
+                        @Override
+                        public void handleFailure(Module module, ModuleError error) {
+                            
+                        }
+                    });
+                }
+            }, new StableFailureHandler() {
+                @Override
+                public void handleFailure(Module module, ModuleError error) {
 
-        return factory;
+                }
+            });
+        });
+    }
+
+    private void sendSignaling(Signaling signaling, SignalingHandler successHandler, FailureHandler failureHandler) {
+        if (!this.pipeline.isReady()) {
+            ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.NoPipeline.code);
+            this.service.execute(failureHandler, error);
+            return;
+        }
+
+        this.pipeline.send(MultipointComm.NAME, new Packet(signaling.name, signaling.toJSON()), new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    ModuleError error = new ModuleError(MultipointComm.NAME, packet.state.code);
+                    service.execute(failureHandler, error);
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != MultipointCommState.Ok.code) {
+                    ModuleError error = new ModuleError(MultipointComm.NAME, stateCode);
+                    service.execute(failureHandler, error);
+                    return;
+                }
+
+                try {
+                    Signaling response = new Signaling(packet.extractServiceData());
+                    successHandler.handleSignaling(response);
+                } catch (JSONException e) {
+                    LogUtils.w(TAG, "#sendSignaling", e);
+                }
+            }
+        });
+    }
+
+    private void fillSignaling(Signaling signaling) {
+
+    }
+
+    @Override
+    public void onIceCandidate(IceCandidate iceCandidate, RTCDevice rtcDevice) {
+
+    }
+
+    @Override
+    public void onMediaConnected(RTCDevice rtcDevice) {
+
+    }
+
+    @Override
+    public void onMediaDisconnected(RTCDevice rtcDevice) {
+
     }
 
     @Override

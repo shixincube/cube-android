@@ -26,13 +26,12 @@
 
 package cube.multipointcomm.handler;
 
-import cube.core.handler.CallbackHandler;
-import cube.multipointcomm.RTCDevice;
+import cube.multipointcomm.model.Signaling;
 
 /**
- * RTC 设备句柄。
+ * 信令句柄。
  */
-public interface RTCDeviceHandler extends CallbackHandler {
+public interface SignalingHandler {
 
-    void handleOffer(RTCDevice device);
+    void handleSignaling(Signaling signaling);
 }

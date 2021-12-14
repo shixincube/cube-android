@@ -53,15 +53,21 @@ import cube.contact.model.Device;
 import cube.contact.model.Self;
 import cube.core.Module;
 import cube.core.ModuleError;
+import cube.core.Packet;
+import cube.core.PipelineState;
 import cube.core.handler.FailureHandler;
+import cube.core.handler.PipelineHandler;
 import cube.core.handler.StableFailureHandler;
 import cube.multipointcomm.handler.CallHandler;
+import cube.multipointcomm.handler.CommFieldHandler;
 import cube.multipointcomm.handler.DefaultApplyCallHandler;
 import cube.multipointcomm.handler.DefaultCallHandler;
 import cube.multipointcomm.handler.DefaultCommFieldHandler;
 import cube.multipointcomm.model.CallRecord;
 import cube.multipointcomm.model.CommField;
+import cube.multipointcomm.model.Signaling;
 import cube.multipointcomm.util.MediaConstraint;
+import cube.util.LogUtils;
 import cube.util.ObservableEvent;
 import cube.util.Observer;
 
@@ -69,6 +75,8 @@ import cube.util.Observer;
  * 多方通信服务。
  */
 public class MultipointComm extends Module implements Observer {
+
+    private final static String TAG = MultipointComm.class.getSimpleName();
 
     public final static String NAME = "MultipointComm";
 
@@ -88,6 +96,9 @@ public class MultipointComm extends Module implements Observer {
     private ConcurrentHashMap<Long, CommField> commFieldMap;
 
     private CallRecord activeCall;
+
+    private Signaling offerSignaling;
+    private Signaling answerSignaling;
 
     public MultipointComm() {
         super(NAME);
@@ -269,8 +280,163 @@ public class MultipointComm extends Module implements Observer {
             });
     }
 
-    private void fireCallTimeout() {
+    /**
+     * 终止当前的通话。
+     */
+    public void hangupCall() {
+        this.hangupCall(new DefaultCommFieldHandler(false) {
+            @Override
+            public void handleCommField(CommField commField) {
+                // Nothing
+            }
+        }, new StableFailureHandler() {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                // Nothing
+            }
+        });
+    }
 
+    /**
+     * 终止当前的通话。
+     * @param successHandler 操作成功回调。
+     * @param failureHandler 操作失败回调。
+     */
+    public void hangupCall(CommFieldHandler successHandler, FailureHandler failureHandler) {
+        if (null == this.activeCall) {
+            LogUtils.w(TAG, "#hangupCall - No active calling");
+            ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.Failure.code);
+            this.execute(failureHandler, error);
+            return;
+        }
+
+        CommField field = this.activeCall.field;
+
+        PipelineHandler handler = new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.ServerFault.code);
+                    error.data = activeCall;
+
+                    activeCall.setEndTime(System.currentTimeMillis());
+                    activeCall.lastError = error;
+
+                    field.close();
+
+                    execute(failureHandler, error);
+                    notifyObservers(new ObservableEvent(MultipointCommEvent.Failed, error));
+                    activeCall = null;
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != MultipointCommState.Ok.code) {
+                    ModuleError error = new ModuleError(MultipointComm.NAME, stateCode);
+                    error.data = activeCall;
+
+                    activeCall.setEndTime(System.currentTimeMillis());
+                    activeCall.lastError = error;
+
+                    field.close();
+
+                    execute(failureHandler, error);
+                    notifyObservers(new ObservableEvent(MultipointCommEvent.Failed, error));
+                    activeCall = null;
+                    return;
+                }
+
+                // 信令
+                try {
+                    Signaling signaling = new Signaling(packet.extractServiceData());
+                    if (field.isPrivate()) {
+                        field.close();
+                        offerSignaling = null;
+                        answerSignaling = null;
+
+                        activeCall.setEndTime(System.currentTimeMillis());
+
+                        if (successHandler.isInMainThread()) {
+                            executeOnMainThread(() -> {
+                                successHandler.handleCommField(field);
+                            });
+                        }
+                        else {
+                            execute(() -> {
+                                successHandler.handleCommField(field);
+                            });
+                        }
+
+                        notifyObservers(new ObservableEvent(MultipointCommEvent.Bye, activeCall));
+                    }
+                    else {
+                        // 更新数据
+                        field.update(signaling.field);
+
+                        if (successHandler.isInMainThread()) {
+                            executeOnMainThread(() -> {
+                                successHandler.handleCommField(field);
+                            });
+                        }
+                        else {
+                            execute(() -> {
+                                successHandler.handleCommField(field);
+                            });
+                        }
+
+                        notifyObservers(new ObservableEvent(MultipointCommEvent.Bye, activeCall));
+
+                        // 关闭场域
+                        field.close();
+                    }
+
+                    // 重置
+                    activeCall = null;
+                } catch (JSONException e) {
+                    LogUtils.w(TAG, e);
+                }
+            }
+        };
+
+        if (null != this.callTimer) {
+            this.callTimer.cancel();
+            this.callTimer = null;
+        }
+
+        if (field.isPrivate()) {
+            if (this.activeCall.isActive()) {
+                Signaling signaling = new Signaling(MultipointCommAction.Bye, field,
+                        this.privateField.getFounder(), this.privateField.getSelf().device);
+                Packet packet = new Packet(MultipointCommAction.Bye, signaling.toJSON());
+                this.pipeline.send(MultipointComm.NAME, packet, handler);
+            }
+            else {
+                // 回送被叫忙
+                Signaling signaling = new Signaling(MultipointCommAction.Busy, field,
+                        this.privateField.getFounder(), this.privateField.getSelf().device);
+                Packet packet = new Packet(MultipointCommAction.Busy, signaling.toJSON());
+                this.pipeline.send(MultipointComm.NAME, packet, handler);
+            }
+        }
+        else {
+            Signaling signaling = new Signaling(MultipointCommAction.Bye, field,
+                    this.privateField.getSelf(), this.privateField.getSelf().device);
+            Packet packet = new Packet(MultipointCommAction.Bye, signaling.toJSON());
+            this.pipeline.send(MultipointComm.NAME, packet, handler);
+        }
+    }
+
+    private void fireCallTimeout() {
+        if (null != this.callTimer) {
+            this.callTimer.cancel();
+            this.callTimer = null;
+        }
+
+        CallRecord callRecord = this.activeCall;
+        ObservableEvent event = new ObservableEvent(MultipointCommEvent.Timeout, callRecord);
+        notifyObservers(event);
+
+        this.hangupCall();
     }
 
     private RTCDevice createRTCDevice(String mode) {

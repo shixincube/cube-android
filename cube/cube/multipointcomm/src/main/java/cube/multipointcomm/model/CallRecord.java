@@ -27,6 +27,7 @@
 package cube.multipointcomm.model;
 
 import cube.contact.model.Self;
+import cube.core.ModuleError;
 import cube.multipointcomm.util.MediaConstraint;
 
 /**
@@ -38,17 +39,50 @@ public class CallRecord {
 
     public final CommField field;
 
+    private long startTime;
+
+    private long answerTime;
+
+    private long endTime;
+
     private MediaConstraint callerConstraint;
 
     private MediaConstraint calleeConstraint;
 
+    public ModuleError lastError;
+
     public CallRecord(Self self, CommField commField) {
         this.self = self;
         this.field = commField;
+        this.startTime = System.currentTimeMillis();
     }
 
     public boolean isActive() {
         return (null != this.field && this.field.numRTCDevices() > 0);
+    }
+
+    public long getStartTime() {
+        return this.startTime;
+    }
+
+    public void setStartTime(long time) {
+        this.startTime = time;
+    }
+
+    public long getAnswerTime() {
+        return this.answerTime;
+    }
+
+    public void setAnswerTime(long time) {
+        this.answerTime = time;
+    }
+
+    public long getEndTime() {
+        return this.endTime;
+    }
+
+    public void setEndTime(long time) {
+        this.endTime = time;
     }
 
     public void setCallerConstraint(MediaConstraint mediaConstraint) {

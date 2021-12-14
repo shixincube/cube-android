@@ -74,6 +74,10 @@ public class Signaling implements JSONable {
 
     public Contact callee;
 
+    public Signaling(String name, CommField commField, Contact contact, Device device) {
+        this(0, name, commField, contact, device);
+    }
+
     public Signaling(long sn, String name, CommField commField, Contact contact, Device device) {
         this.sn = sn;
         this.name = name;

@@ -176,7 +176,7 @@ public class CommField extends Entity implements RTCDevice.RTCEventListener {
         }
     }
 
-    private void update(CommField source) {
+    public void update(CommField source) {
         if (!source.endpoints.isEmpty()) {
             this.endpoints.clear();
             this.endpoints.addAll(source.endpoints);
@@ -387,6 +387,10 @@ public class CommField extends Entity implements RTCDevice.RTCEventListener {
                 }
             }
         });
+    }
+
+    public void close() {
+
     }
 
     private void fillSignaling(Signaling signaling) {

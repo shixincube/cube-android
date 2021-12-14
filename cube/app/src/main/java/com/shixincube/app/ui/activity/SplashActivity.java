@@ -33,6 +33,8 @@ import android.view.animation.AlphaAnimation;
 import android.widget.Button;
 import android.widget.RelativeLayout;
 
+import androidx.annotation.NonNull;
+
 import com.jaeger.library.StatusBarUtil;
 import com.shixincube.app.R;
 import com.shixincube.app.api.Explorer;
@@ -54,7 +56,9 @@ import cube.engine.util.PromiseFuture;
 import cube.engine.util.PromiseHandler;
 import cube.util.LogUtils;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+import kr.co.namee.permissiongen.PermissionFail;
 import kr.co.namee.permissiongen.PermissionGen;
+import kr.co.namee.permissiongen.PermissionSuccess;
 
 /**
  * 开屏页。
@@ -72,6 +76,8 @@ public class SplashActivity extends BaseActivity {
     @BindView(R.id.btnRegister)
     Button registerButton;
 
+    private boolean permissionOk = true;
+
     private CubeConnection connection;
 
     private boolean valid = true;
@@ -86,17 +92,8 @@ public class SplashActivity extends BaseActivity {
 
     @Override
     public void init() {
-        PermissionGen.with(this)
-                .addRequestCode(100)
-                .permissions(
-                        // 网络权限
-                        Manifest.permission.ACCESS_NETWORK_STATE,
-                        // 存储权限
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                        Manifest.permission.READ_EXTERNAL_STORAGE,
-                        Manifest.permission.WRITE_SETTINGS
-                )
-                .request();
+        // 请求权限
+        this.requestPermission();
 
         // 启动
         this.launch();
@@ -119,14 +116,38 @@ public class SplashActivity extends BaseActivity {
     @Override
     public void initListener() {
         this.loginButton.setOnClickListener(v -> {
+            if (!permissionOk) {
+                requestPermission();
+                return;
+            }
+
             jumpToActivity(LoginActivity.class);
             overridePendingTransition(R.anim.entry_from_bottom, 0);
         });
 
         this.registerButton.setOnClickListener(v -> {
+            if (!permissionOk) {
+                requestPermission();
+                return;
+            }
+
             jumpToActivity(RegisterActivity.class);
             overridePendingTransition(R.anim.entry_from_bottom, 0);
         });
+    }
+
+    private void requestPermission() {
+        PermissionGen.with(this)
+                .addRequestCode(100)
+                .permissions(
+                        // 网络权限
+                        Manifest.permission.ACCESS_NETWORK_STATE,
+                        // 存储权限
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                        Manifest.permission.READ_EXTERNAL_STORAGE,
+                        Manifest.permission.WRITE_SETTINGS
+                )
+                .request();
     }
 
     @Override
@@ -147,6 +168,22 @@ public class SplashActivity extends BaseActivity {
             unbindService(this.connection);
             this.connection = null;
         }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        PermissionGen.onRequestPermissionsResult(this, requestCode, permissions, grantResults);
+    }
+
+    @PermissionSuccess(requestCode = 100)
+    public void onPermissionSuccess() {
+        this.permissionOk = true;
+    }
+
+    @PermissionFail(requestCode = 100)
+    public void onPermissionFail() {
+        this.permissionOk = false;
     }
 
     private void launch() {

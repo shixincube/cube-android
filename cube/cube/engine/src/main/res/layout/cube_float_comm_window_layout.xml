@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:auto="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -17,8 +18,98 @@
         android:id="@+id/fullLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_gravity="center_horizontal"
         android:orientation="vertical"
         android:background="@mipmap/window_background">
+
+        <!-- 顶部工具栏 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:layout_weight="0.5"
+            android:orientation="horizontal">
+
+        </LinearLayout>
+
+        <!-- 中间视频和头像区域 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <cube.engine.ui.AdvancedImageView
+                android:id="@+id/ivAvatar"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:scaleType="centerCrop"
+                android:src="@mipmap/avatar"
+                auto:corner_radius="3dp"/>
+
+            <org.webrtc.SurfaceViewRenderer
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:visibility="gone"/>
+
+            <TextView
+                android:id="@+id/tvName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginTop="10dp"
+                android:gravity="center_horizontal"
+                android:textColor="@color/white"
+                android:text="@string/cube_default_contact_name"
+                android:textSize="16sp"/>
+
+            <TextView
+                android:id="@+id/tvTips"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginTop="20dp"
+                android:gravity="center_horizontal"
+                android:textColor="@color/gray"
+                android:text="@string/cube_default_contact_name"
+                android:textSize="14sp"/>
+        </LinearLayout>
+
+        <!-- 底部操作栏 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:layout_weight="0.5"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/btnMicrophone"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:background="@drawable/selector_microphone"
+                android:src="@null"/>
+
+            <ImageButton
+                android:id="@+id/btnHangup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="50dp"
+                android:layout_marginEnd="50dp"
+                android:background="@color/transparent"
+                android:src="@drawable/selector_hang_up"/>
+
+            <ImageButton
+                android:id="@+id/btnSpeaker"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:background="@drawable/selector_speaker"
+                android:src="@null"/>
+
+        </LinearLayout>
 
     </LinearLayout>
 

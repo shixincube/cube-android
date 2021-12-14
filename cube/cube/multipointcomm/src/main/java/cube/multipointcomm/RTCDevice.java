@@ -114,6 +114,10 @@ public class RTCDevice {
         return this.mode;
     }
 
+    public void setViewRenderer(SurfaceViewRenderer viewRenderer) {
+        this.localView = viewRenderer;
+    }
+
     public void setEventListener(RTCEventListener listener) {
         this.listener = listener;
     }

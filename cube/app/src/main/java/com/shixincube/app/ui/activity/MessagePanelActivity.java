@@ -48,6 +48,7 @@ import com.shixincube.app.model.MessageConversation;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.presenter.MessagePanelPresenter;
 import com.shixincube.app.ui.view.MessagePanelView;
+import com.shixincube.app.util.AvatarUtils;
 import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.emotion.EmotionLayout;
 import com.shixincube.app.widget.keyboard.SoftwareKeyboard;
@@ -265,7 +266,7 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
                         Uri.parse("package:" + getPackageName())), REQUEST_OVERLAY_PERMISSION);
             }
             else {
-                startService(new Intent(MessagePanelActivity.this, FloatVideoWindowService.class));
+                showAudioVideo();
             }
         });
 
@@ -278,15 +279,7 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
                         Uri.parse("package:" + getPackageName())), REQUEST_OVERLAY_PERMISSION);
             }
             else {
-                Intent intent = new Intent(MessagePanelActivity.this, FloatVideoWindowService.class);
-                if (conversation.getType() == ConversationType.Contact) {
-                    intent.putExtra("contactId", conversation.getContact().getId().longValue());
-                }
-                else if (conversation.getType() == ConversationType.Group) {
-                    intent.putExtra("groupId", conversation.getGroup().getId().longValue());
-                }
-                intent.putExtra("mediaConstraint", this.mediaConstraint.toJSON().toString());
-                startService(intent);
+                showAudioVideo();
             }
         });
 
@@ -300,6 +293,20 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
                             "xlsx", "xls", "doc", "docx", "ppt", "pptx", "pdf"});
             startActivityForResult(intent, REQUEST_FILE_PICKER);
         });
+    }
+
+    private void showAudioVideo() {
+        Intent intent = new Intent(MessagePanelActivity.this, FloatVideoWindowService.class);
+        if (conversation.getType() == ConversationType.Contact) {
+            intent.putExtra("contactId", conversation.getContact().getId().longValue());
+            intent.putExtra("avatarResource", AvatarUtils.getAvatarResource(conversation.getContact()));
+        }
+        else if (conversation.getType() == ConversationType.Group) {
+            intent.putExtra("groupId", conversation.getGroup().getId().longValue());
+        }
+
+        intent.putExtra("mediaConstraint", this.mediaConstraint.toJSON().toString());
+        startService(intent);
     }
 
     private void initKeyboard() {
@@ -468,15 +475,7 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
                     UIUtils.showToast(UIUtils.getString(R.string.auth_overlay_permission_failure));
                 }
                 else {
-                    Intent intent = new Intent(MessagePanelActivity.this, FloatVideoWindowService.class);
-                    if (conversation.getType() == ConversationType.Contact) {
-                        intent.putExtra("contactId", conversation.getContact().getId().longValue());
-                    }
-                    else if (conversation.getType() == ConversationType.Group) {
-                        intent.putExtra("groupId", conversation.getGroup().getId().longValue());
-                    }
-                    intent.putExtra("mediaConstraint", this.mediaConstraint.toJSON().toString());
-                    startService(intent);
+                    showAudioVideo();
                 }
                 break;
             default:

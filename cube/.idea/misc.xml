@@ -166,7 +166,8 @@
         <entry key="app/src/main/res/layout/menu_main.xml" value="0.16939890710382513" />
         <entry key="app/src/main/res/menu/menu_conversation.xml" value="0.228125" />
         <entry key="app/src/main/res/menu/menu_file.xml" value="0.228125" />
-        <entry key="cube/engine/src/main/res/layout/cube_float_comm_window_layout.xml" value="0.1" />
+        <entry key="cube/engine/src/main/res/drawable/selector_speaker.xml" value="0.240234375" />
+        <entry key="cube/engine/src/main/res/layout/cube_float_comm_window_layout.xml" value="0.4722222222222222" />
         <entry key="cube/engine/src/main/res/layout/cube_preview_layout.xml" value="0.16837431693989072" />
         <entry key="cube/engine/src/main/res/layout/float_comm_window_layout.xml" value="0.1117061973986228" />
       </map>
@@ -178,5 +179,12 @@
   </component>
   <component name="ProjectType">
     <option name="id" value="Android" />
+  </component>
+  <component name="VisualizationToolProject">
+    <option name="state">
+      <ProjectState>
+        <option name="scale" value="0.335" />
+      </ProjectState>
+    </option>
   </component>
 </project>

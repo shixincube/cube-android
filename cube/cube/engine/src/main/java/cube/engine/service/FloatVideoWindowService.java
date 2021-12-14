@@ -39,14 +39,21 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import cube.contact.model.Contact;
 import cube.contact.model.Group;
+import cube.engine.CubeEngine;
 import cube.engine.R;
+import cube.engine.ui.AdvancedImageView;
 import cube.engine.util.ScreenUtil;
 import cube.multipointcomm.util.MediaConstraint;
 
@@ -63,6 +70,13 @@ public class FloatVideoWindowService extends Service {
     private View displayView;
     private LinearLayout fullLayout;
     private RelativeLayout previewLayout;
+
+    private AdvancedImageView avatarView;
+    private TextView nameView;
+    private TextView tipsView;
+    private ImageButton hangupButton;
+    private ImageButton microphoneButton;
+    private ImageButton speakerButton;
 
     private Contact contact;
     private Group group;
@@ -89,6 +103,7 @@ public class FloatVideoWindowService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         showFloatingWindow();
+        loadData(intent);
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -102,15 +117,19 @@ public class FloatVideoWindowService extends Service {
 
     private void showFloatingWindow() {
         if (Settings.canDrawOverlays(this)) {
-            // 获取布局
-            LayoutInflater inflater = LayoutInflater.from(getApplicationContext());
-            displayView = inflater.inflate(R.layout.cube_float_comm_window_layout, null);
-            displayView.setOnTouchListener(new FloatingOnTouchListener());
+            if (null == this.displayView) {
+                // 获取布局
+                LayoutInflater inflater = LayoutInflater.from(getApplicationContext());
+                displayView = inflater.inflate(R.layout.cube_float_comm_window_layout, null);
+                displayView.setOnTouchListener(new FloatingOnTouchListener());
 
-            previewLayout = displayView.findViewById(R.id.previewLayout);
-            fullLayout = displayView.findViewById(R.id.fullLayout);
+                previewLayout = displayView.findViewById(R.id.previewLayout);
+                fullLayout = displayView.findViewById(R.id.fullLayout);
 
-            windowManager.addView(displayView, layoutParams);
+                this.initView();
+
+                windowManager.addView(displayView, layoutParams);
+            }
         }
     }
 
@@ -141,6 +160,50 @@ public class FloatVideoWindowService extends Service {
         params.gravity = Gravity.LEFT | Gravity.TOP;
 
         return params;
+    }
+
+    private void initView() {
+        this.avatarView = this.fullLayout.findViewById(R.id.ivAvatar);
+        this.nameView = this.fullLayout.findViewById(R.id.tvName);
+        this.tipsView = this.fullLayout.findViewById(R.id.tvTips);
+        this.hangupButton = this.fullLayout.findViewById(R.id.btnHangup);
+        this.microphoneButton = this.fullLayout.findViewById(R.id.btnMicrophone);
+        this.speakerButton = this.fullLayout.findViewById(R.id.btnSpeaker);
+
+        this.hangupButton.setOnClickListener((view) -> {
+            CubeEngine.getInstance().getMultipointComm().hangupCall();
+            this.windowManager.removeView(this.displayView);
+        });
+    }
+
+    private void loadData(Intent intent) {
+        if (intent.hasExtra("contactId")) {
+            Long contactId = intent.getLongExtra("contactId", 0);
+            this.contact = CubeEngine.getInstance().getContactService().getContact(contactId);
+        }
+        else if (intent.hasExtra("groupId")) {
+            Long groupId = intent.getLongExtra("groupId", 0);
+            this.group = CubeEngine.getInstance().getContactService().getGroup(groupId);
+        }
+
+        String jsonString = intent.getStringExtra("mediaConstraint");
+        try {
+            MediaConstraint mediaConstraint = new MediaConstraint(new JSONObject(jsonString));
+
+            if (null != this.contact) {
+                int resource = intent.getIntExtra("avatarResource", 0);
+                if (resource > 0) {
+                    this.avatarView.setImageResource(resource);
+                }
+
+                this.nameView.setText(this.contact.getPriorityName());
+            }
+
+            this.microphoneButton.setVisibility(View.GONE);
+            this.speakerButton.setVisibility(View.GONE);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
 

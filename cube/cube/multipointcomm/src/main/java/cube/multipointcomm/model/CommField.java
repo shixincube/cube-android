@@ -206,6 +206,10 @@ public class CommField extends Entity implements RTCDevice.RTCEventListener {
         return this.founder;
     }
 
+    public boolean isPrivate() {
+        return this.id.longValue() == this.founder.id.longValue();
+    }
+
     public void setMediaConstraint(MediaConstraint mediaConstraint) {
         this.mediaConstraint = mediaConstraint;
     }
@@ -307,6 +311,7 @@ public class CommField extends Entity implements RTCDevice.RTCEventListener {
         rtcDevice.setEventListener(this);
 
         this.service.executeOnMainThread(() -> {
+            // 启用 Offer
             rtcDevice.openOffer(mediaConstraint, new OfferHandler() {
                 @Override
                 public void handleOffer(RTCDevice device, SessionDescription sessionDescription) {
@@ -320,22 +325,32 @@ public class CommField extends Entity implements RTCDevice.RTCEventListener {
                     // 设置目标
                     // TODO
 
+                    // 发送信令
                     sendSignaling(signaling, new SignalingHandler() {
                         @Override
                         public void handleSignaling(Signaling signaling) {
-
+                            // 更新数据
+                            update(signaling.field);
+                            // 回调
+                            service.execute(() -> {
+                                successHandler.handleCommField(CommField.this);
+                            });
                         }
                     }, new StableFailureHandler() {
                         @Override
                         public void handleFailure(Module module, ModuleError error) {
-                            
+                            service.execute(() -> {
+                                failureHandler.handleFailure(service, error);
+                            });
                         }
                     });
                 }
             }, new StableFailureHandler() {
                 @Override
                 public void handleFailure(Module module, ModuleError error) {
-
+                    service.execute(() -> {
+                        failureHandler.handleFailure(service, error);
+                    });
                 }
             });
         });

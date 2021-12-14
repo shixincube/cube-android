@@ -44,6 +44,12 @@ public class MultipointCommEvent {
     public final static String InProgress = "InProgress";
 
     /**
+     * 对方振铃。
+     * 事件数据：{@link cube.multipointcomm.model.CallRecord} - 通话记录。
+     */
+    public final static String Ringing = "Ringing";
+
+    /**
      * 发生错误。
      * 事件数据：{@link cube.core.ModuleError} - 错误描述。
      */

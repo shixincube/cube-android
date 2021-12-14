@@ -57,6 +57,8 @@ import cube.core.handler.FailureHandler;
 import cube.core.handler.StableFailureHandler;
 import cube.multipointcomm.handler.CallHandler;
 import cube.multipointcomm.handler.DefaultApplyCallHandler;
+import cube.multipointcomm.handler.DefaultCallHandler;
+import cube.multipointcomm.handler.DefaultCommFieldHandler;
 import cube.multipointcomm.model.CallRecord;
 import cube.multipointcomm.model.CommField;
 import cube.multipointcomm.util.MediaConstraint;
@@ -168,6 +170,34 @@ public class MultipointComm extends Module implements Observer {
             return;
         }
 
+        // 成功处理
+        DefaultCallHandler success = new DefaultCallHandler(false) {
+            @Override
+            public void handleCall(CallRecord callRecord) {
+                if (successHandler.isInMainThread()) {
+                    executeOnMainThread(() -> {
+                        successHandler.handleCall(activeCall);
+                    });
+                }
+                else {
+                    execute(() -> {
+                        successHandler.handleCall(activeCall);
+                    });
+                }
+
+                if (callRecord.field.isPrivate()) {
+                    // 私有场域，触发 Ringing 事件
+                    ObservableEvent event = new ObservableEvent(MultipointCommEvent.Ringing, callRecord);
+                    notifyObservers(event);
+                }
+                else {
+                    // 普通场域，触发 Ringing 事件
+                    // TODO
+                }
+            }
+        };
+
+        // 失败处理
         StableFailureHandler failure = new StableFailureHandler() {
             @Override
             public void handleFailure(Module module, ModuleError error) {
@@ -219,12 +249,22 @@ public class MultipointComm extends Module implements Observer {
                     // 创建 RTC 设备
                     RTCDevice rtcDevice = createRTCDevice(RTCDevice.MODE_BIDIRECTION);
                     // 发起 Offer
-//                    privateField;
+                    privateField.launchOffer(rtcDevice, mediaConstraint, new DefaultCommFieldHandler() {
+                        @Override
+                        public void handleCommField(CommField commField) {
+                            success.handleCall(activeCall);
+                        }
+                    }, new StableFailureHandler() {
+                        @Override
+                        public void handleFailure(Module module, ModuleError error) {
+                            failure.handleFailure(MultipointComm.this, error);
+                        }
+                    });
                 }
             }, new StableFailureHandler() {
                 @Override
                 public void handleFailure(Module module, ModuleError error) {
-                    failure.handleFailure(module, error);
+                    failure.handleFailure(MultipointComm.this, error);
                 }
             });
     }

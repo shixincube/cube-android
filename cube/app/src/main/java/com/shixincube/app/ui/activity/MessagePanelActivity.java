@@ -29,6 +29,8 @@ package com.shixincube.app.ui.activity;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
+import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.MotionEvent;
@@ -66,8 +68,11 @@ import butterknife.BindView;
 import cn.bingoogolapple.refreshlayout.BGANormalRefreshViewHolder;
 import cn.bingoogolapple.refreshlayout.BGARefreshLayout;
 import cube.engine.CubeEngine;
+import cube.engine.service.FloatVideoWindowService;
 import cube.messaging.model.Conversation;
 import cube.messaging.model.ConversationState;
+import cube.messaging.model.ConversationType;
+import cube.multipointcomm.util.MediaConstraint;
 
 /**
  * 消息面板。
@@ -78,7 +83,9 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
     public final static int REQUEST_TAKE_PHOTO = 2000;
     public final static int REQUEST_FILE_PICKER = 6000;
 
-    public final static int REQUEST_DETAILS = 9000;
+    public final static int REQUEST_DETAILS = 8000;
+
+    public final static int REQUEST_OVERLAY_PERMISSION = 9000;
 
     @BindView(R.id.llMessagePanel)
     LinearLayout messagePanelLayout;
@@ -112,8 +119,8 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
     RelativeLayout albumButton;
     @BindView(R.id.rlShot)
     RelativeLayout shotButton;
-    @BindView(R.id.rlVoice)
-    RelativeLayout voiceCallButton;
+    @BindView(R.id.rlAudio)
+    RelativeLayout audioCallButton;
     @BindView(R.id.rlVideo)
     RelativeLayout videoCallButton;
     @BindView(R.id.rlFiles)
@@ -122,6 +129,8 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
     private SoftwareKeyboard softwareKeyboard;
 
     private Conversation conversation;
+
+    private MediaConstraint mediaConstraint;
 
     public MessagePanelActivity() {
         super();
@@ -240,10 +249,47 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
             Intent intent = new Intent(this, ImageGridActivity.class);
             startActivityForResult(intent, REQUEST_IMAGE_PICKER);
         });
+
+        // 牌照按钮事件
         shotButton.setOnClickListener((view) -> {
             Intent intent = new Intent(this, TakePhotoActivity.class);
             startActivityForResult(intent, REQUEST_TAKE_PHOTO);
         });
+
+        // 语音通话按钮事件
+        audioCallButton.setOnClickListener((view) -> {
+            mediaConstraint = new MediaConstraint(false);
+            if (!Settings.canDrawOverlays(this)) {
+                UIUtils.showToast(UIUtils.getString(R.string.apply_overlay_permission));
+                startActivityForResult(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                        Uri.parse("package:" + getPackageName())), REQUEST_OVERLAY_PERMISSION);
+            }
+            else {
+                startService(new Intent(MessagePanelActivity.this, FloatVideoWindowService.class));
+            }
+        });
+
+        // 视频通话按钮事件
+        videoCallButton.setOnClickListener((view) -> {
+            mediaConstraint = new MediaConstraint(true);
+            if (!Settings.canDrawOverlays(this)) {
+                UIUtils.showToast(UIUtils.getString(R.string.apply_overlay_permission));
+                startActivityForResult(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                        Uri.parse("package:" + getPackageName())), REQUEST_OVERLAY_PERMISSION);
+            }
+            else {
+                Intent intent = new Intent(MessagePanelActivity.this, FloatVideoWindowService.class);
+                if (conversation.getType() == ConversationType.Contact) {
+                    intent.putExtra("contactId", conversation.getContact().getId().longValue());
+                }
+                else if (conversation.getType() == ConversationType.Group) {
+                    intent.putExtra("groupId", conversation.getGroup().getId().longValue());
+                }
+                intent.putExtra("mediaConstraint", this.mediaConstraint.toJSON().toString());
+                startService(intent);
+            }
+        });
+
         // 文件按钮事件
         filesButton.setOnClickListener((view) -> {
             Intent intent = new Intent(this, NormalFilePickActivity.class);
@@ -415,6 +461,22 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
                     // 会话已经被删除
                     // 提示当前会话已失效
                     presenter.appendLocalMessage(UIUtils.getString(R.string.tip_conversation_invalid));
+                }
+                break;
+            case REQUEST_OVERLAY_PERMISSION:
+                if (!Settings.canDrawOverlays(MessagePanelActivity.this)) {
+                    UIUtils.showToast(UIUtils.getString(R.string.auth_overlay_permission_failure));
+                }
+                else {
+                    Intent intent = new Intent(MessagePanelActivity.this, FloatVideoWindowService.class);
+                    if (conversation.getType() == ConversationType.Contact) {
+                        intent.putExtra("contactId", conversation.getContact().getId().longValue());
+                    }
+                    else if (conversation.getType() == ConversationType.Group) {
+                        intent.putExtra("groupId", conversation.getGroup().getId().longValue());
+                    }
+                    intent.putExtra("mediaConstraint", this.mediaConstraint.toJSON().toString());
+                    startService(intent);
                 }
                 break;
             default:

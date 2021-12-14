@@ -24,7 +24,7 @@
  * SOFTWARE.
  */
 
-package cube.engine;
+package cube.engine.service;
 
 import android.app.Service;
 import android.content.Context;
@@ -37,6 +37,7 @@ import android.os.IBinder;
 import androidx.annotation.Nullable;
 
 import cube.core.KernelConfig;
+import cube.engine.CubeEngine;
 import cube.engine.handler.EngineHandler;
 
 /**

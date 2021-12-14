@@ -124,7 +124,7 @@ public class ConversationPresenter extends BasePresenter<ConversationView> imple
 
                     // 会话是否置顶
                     if (item.conversation.focused()) {
-                        helper.getView(R.id.flRoot).setBackgroundColor(UIUtils.getColorByAttrId(R.attr.colorBackgroundAccent));
+                        helper.getView(R.id.flRoot).setBackgroundColor(UIUtils.getColorByAttrId(R.attr.colorThemeBackground));
                     }
                     else {
                         helper.getView(R.id.flRoot).setBackgroundColor(UIUtils.getColorByAttrId(R.attr.colorBackground));

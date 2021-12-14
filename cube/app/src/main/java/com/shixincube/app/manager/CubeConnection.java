@@ -42,7 +42,7 @@ import cube.contact.ContactService;
 import cube.contact.handler.DefaultSignHandler;
 import cube.contact.model.Self;
 import cube.core.ModuleError;
-import cube.engine.CubeBinder;
+import cube.engine.service.CubeBinder;
 import cube.engine.CubeEngine;
 import cube.engine.handler.EngineHandler;
 import cube.engine.util.Future;

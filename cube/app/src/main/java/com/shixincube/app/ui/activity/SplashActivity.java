@@ -49,7 +49,7 @@ import java.util.Date;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import butterknife.BindView;
-import cube.engine.CubeService;
+import cube.engine.service.CubeService;
 import cube.engine.util.Future;
 import cube.engine.util.Promise;
 import cube.engine.util.PromiseFuture;

@@ -161,6 +161,10 @@
     <string name="conv_clear_records">清空聊天记录</string>
     <string name="tip_conv_deleted">聊天已删除</string>
 
+    <!-- 音视频通话界面相关 -->
+    <string name="apply_overlay_permission">音视频通话界面需要您授权悬浮窗权限</string>
+    <string name="auth_overlay_permission_failure">授权悬浮窗权限失败</string>
+
     <!-- 附言界面 -->
     <string name="postscript_tip">您需要发送验证申请，等待对方通过</string>
     <string name="not_allow_to_read_my_share_box">不让他(她)看我的分享盒子</string>

@@ -11,6 +11,9 @@
     <!-- 访问WiFi状态。当需要 Wifi 信息用于网络定位 -->
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
 
+    <!-- 用于授权悬浮窗 -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+
     <application
         android:name=".CubeApp"
         android:requestLegacyExternalStorage="true"
@@ -38,9 +41,10 @@
         <meta-data android:name="CUBE_APPKEY" android:value="shixin-cubeteam-opensource-appkey"></meta-data>
 
         <service
-            android:name="cube.engine.CubeService"
+            android:name="cube.engine.service.CubeService"
             android:exported="true">
         </service>
+        <service android:name="cube.engine.service.FloatVideoWindowService"></service>
 
         <receiver android:name="cube.pipeline.NetworkConnectChangedReceiver">
             <intent-filter>

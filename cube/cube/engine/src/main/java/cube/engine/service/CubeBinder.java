@@ -24,7 +24,7 @@
  * SOFTWARE.
  */
 
-package cube.engine;
+package cube.engine.service;
 
 import android.os.Binder;
 

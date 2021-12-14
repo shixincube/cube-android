@@ -40,7 +40,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import cube.engine.CubeEngine;
-import cube.engine.CubeService;
+import cube.engine.service.CubeService;
 import cube.messaging.MessagingServiceEvent;
 import cube.util.LogUtils;
 import cube.util.ObservableEvent;

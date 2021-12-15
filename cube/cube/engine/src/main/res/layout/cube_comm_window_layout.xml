@@ -57,7 +57,7 @@
                     android:layout_height="120dp"
                     android:scaleType="centerCrop"
                     android:src="@mipmap/avatar"
-                    auto:corner_radius="3dp"/>
+                    auto:corner_radius="3dp" />
 
                 <cube.engine.ui.AdvancedImageView
                     android:id="@+id/ivType"
@@ -109,12 +109,27 @@
             android:gravity="center"
             android:orientation="horizontal">
 
-            <ImageButton
-                android:id="@+id/btnMicrophone"
-                android:layout_width="56dp"
-                android:layout_height="56dp"
-                android:background="@drawable/selector_microphone"
-                android:src="@null"/>
+            <LinearLayout
+                android:id="@+id/llMicrophone"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:orientation="vertical">
+                <ImageButton
+                    android:id="@+id/btnMicrophone"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:background="@drawable/selector_microphone"
+                    android:src="@null"/>
+                <TextView
+                    android:id="@+id/tvMicrophone"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="@string/enabled"
+                    android:textColor="@color/white"
+                    android:textSize="12sp"/>
+            </LinearLayout>
 
             <ImageButton
                 android:id="@+id/btnHangup"
@@ -125,12 +140,27 @@
                 android:background="@color/transparent"
                 android:src="@drawable/selector_hang_up"/>
 
-            <ImageButton
-                android:id="@+id/btnSpeaker"
-                android:layout_width="56dp"
-                android:layout_height="56dp"
-                android:background="@drawable/selector_speaker"
-                android:src="@null"/>
+            <LinearLayout
+                android:id="@+id/llSpeaker"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:orientation="vertical">
+                <ImageButton
+                    android:id="@+id/btnSpeaker"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:background="@drawable/selector_speaker"
+                    android:src="@null"/>
+                <TextView
+                    android:id="@+id/tvSpeaker"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="@string/receiver"
+                    android:textColor="@color/white"
+                    android:textSize="12sp"/>
+            </LinearLayout>
 
         </LinearLayout>
 

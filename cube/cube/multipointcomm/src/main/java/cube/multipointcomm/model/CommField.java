@@ -233,6 +233,15 @@ public class CommField extends Entity implements RTCDevice.RTCEventListener {
     }
 
     /**
+     * 获取本地 RTC 设备。
+     *
+     * @return 返回本地 RTC 设备。
+     */
+    public RTCDevice getLocalDevice() {
+        return this.outboundRTC;
+    }
+
+    /**
      * 申请发起通话。
      *
      * @param participant
@@ -412,7 +421,28 @@ public class CommField extends Entity implements RTCDevice.RTCEventListener {
 
     @Override
     public void onIceCandidate(IceCandidate iceCandidate, RTCDevice rtcDevice) {
+        if (LogUtils.isDebugLevel()) {
+            LogUtils.d(TAG, "#onIceCandidate");
+        }
 
+        Signaling signaling = new Signaling(rtcDevice.getSN(), MultipointCommAction.Candidate, this,
+                this.getSelf(), this.getSelf().device);
+        // 设置 Candidate
+        signaling.candidate = iceCandidate;
+
+        // TODO rtcForEndpointMap
+
+        this.sendSignaling(signaling, new SignalingHandler() {
+            @Override
+            public void handleSignaling(Signaling signaling) {
+                // Nothing
+            }
+        }, new StableFailureHandler() {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                // Nothing
+            }
+        });
     }
 
     @Override

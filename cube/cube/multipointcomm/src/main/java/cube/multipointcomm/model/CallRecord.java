@@ -57,6 +57,10 @@ public class CallRecord {
         this.startTime = System.currentTimeMillis();
     }
 
+    public CommField getCommField() {
+        return this.field;
+    }
+
     public boolean isActive() {
         return (null != this.field && this.field.numRTCDevices() > 0);
     }

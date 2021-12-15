@@ -36,6 +36,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.provider.Settings;
+import android.util.MutableInt;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -54,18 +55,18 @@ import androidx.annotation.Nullable;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 import cube.contact.model.Contact;
 import cube.contact.model.Group;
-import cube.core.Module;
 import cube.core.ModuleError;
-import cube.core.handler.DefaultFailureHandler;
 import cube.engine.CubeEngine;
 import cube.engine.R;
 import cube.engine.ui.AdvancedImageView;
 import cube.engine.ui.KeyEventLinearLayout;
 import cube.engine.util.ScreenUtil;
 import cube.multipointcomm.CallListener;
-import cube.multipointcomm.handler.DefaultCallHandler;
 import cube.multipointcomm.model.CallRecord;
 import cube.multipointcomm.util.MediaConstraint;
 import cube.util.LogUtils;
@@ -93,14 +94,22 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
     private TextView nameView;
     private TextView tipsView;
     private ImageButton hangupButton;
+
+    private LinearLayout microphoneLayout;
     private ImageButton microphoneButton;
+    private TextView microphoneText;
+
+    private LinearLayout speakerLayout;
     private ImageButton speakerButton;
+    private TextView speakerText;
 
     private boolean previewMode = false;
 
     private Contact contact;
     private Group group;
     private MediaConstraint mediaConstraint;
+
+    private Timer callTimer;
 
     @Override
     public void onCreate() {
@@ -120,6 +129,11 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
     @Override
     public void onDestroy() {
         super.onDestroy();
+
+        if (null != this.callTimer) {
+            this.callTimer.cancel();
+            this.callTimer = null;
+        }
 
         if (null != this.windowManager) {
             if (null != this.displayView.getParent()) {
@@ -158,7 +172,7 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
             if (null == this.displayView) {
                 // 获取布局
                 LayoutInflater inflater = LayoutInflater.from(getApplicationContext());
-                displayView = (KeyEventLinearLayout) inflater.inflate(R.layout.cube_float_comm_window_layout, null);
+                displayView = (KeyEventLinearLayout) inflater.inflate(R.layout.cube_comm_window_layout, null);
                 displayView.setKeyEventListener(this);
                 displayView.setOnTouchListener(new FloatingOnTouchListener());
 
@@ -177,6 +191,11 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
      * 从窗口删除。
      */
     private void hide() {
+        if (null != this.callTimer) {
+            this.callTimer.cancel();
+            this.callTimer = null;
+        }
+
         TranslateAnimation animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0,
                 Animation.RELATIVE_TO_SELF, 0,
                 Animation.RELATIVE_TO_SELF, 0,
@@ -248,6 +267,38 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
         this.windowManager.updateViewLayout(this.displayView, this.layoutParams);
     }
 
+    private void showControls(CallRecord callRecord) {
+        if (this.mediaConstraint.audioEnabled) {
+//            RTCDevice device = callRecord.field.getLocalDevice();
+
+            boolean audioEnabled = true;
+            this.microphoneButton.setSelected(audioEnabled);
+            this.microphoneText.setText(audioEnabled ? getResources().getString(R.string.enabled)
+                    : getResources().getString(R.string.disabled));
+
+            this.microphoneLayout.setVisibility(View.VISIBLE);
+            TranslateAnimation animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, -2,
+                    Animation.RELATIVE_TO_SELF, 0,
+                    Animation.RELATIVE_TO_SELF, 0,
+                    Animation.RELATIVE_TO_SELF, 0);
+            animation.setDuration(500);
+            this.microphoneLayout.startAnimation(animation);
+
+            this.speakerLayout.setVisibility(View.VISIBLE);
+            animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 2,
+                    Animation.RELATIVE_TO_SELF, 0,
+                    Animation.RELATIVE_TO_SELF, 0,
+                    Animation.RELATIVE_TO_SELF, 0);
+            animation.setDuration(500);
+            this.speakerLayout.startAnimation(animation);
+        }
+    }
+
+    private void hideControls() {
+        this.microphoneButton.setVisibility(View.GONE);
+        this.speakerButton.setVisibility(View.GONE);
+    }
+
     private WindowManager.LayoutParams getParams() {
         WindowManager.LayoutParams params = new WindowManager.LayoutParams();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -291,8 +342,13 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
         this.nameView = this.mainLayout.findViewById(R.id.tvName);
         this.tipsView = this.mainLayout.findViewById(R.id.tvTips);
         this.hangupButton = this.mainLayout.findViewById(R.id.btnHangup);
+
+        this.microphoneLayout = this.mainLayout.findViewById(R.id.llMicrophone);
         this.microphoneButton = this.mainLayout.findViewById(R.id.btnMicrophone);
+        this.microphoneText = this.mainLayout.findViewById(R.id.tvMicrophone);
+        this.speakerLayout = this.mainLayout.findViewById(R.id.llSpeaker);
         this.speakerButton = this.mainLayout.findViewById(R.id.btnSpeaker);
+        this.speakerText = this.mainLayout.findViewById(R.id.tvSpeaker);
     }
 
     private void initListener() {
@@ -301,8 +357,17 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
         });
 
         this.hangupButton.setOnClickListener((view) -> {
-            hide();
             CubeEngine.getInstance().getMultipointComm().hangupCall();
+        });
+
+        this.microphoneButton.setOnClickListener((view) -> {
+            boolean state = !microphoneButton.isSelected();
+            microphoneButton.setSelected(state);
+            microphoneText.setText(state ? getResources().getString(R.string.enabled)
+                    : getResources().getString(R.string.disabled));
+        });
+        this.speakerButton.setOnClickListener((view) -> {
+            speakerButton.setSelected(!speakerButton.isSelected());
         });
     }
 
@@ -316,13 +381,15 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
             this.group = CubeEngine.getInstance().getContactService().getGroup(groupId);
         }
 
-        MediaConstraint mediaConstraint = null;
         String jsonString = intent.getStringExtra("mediaConstraint");
         try {
-            mediaConstraint = new MediaConstraint(new JSONObject(jsonString));
+            this.mediaConstraint = new MediaConstraint(new JSONObject(jsonString));
         } catch (JSONException e) {
             e.printStackTrace();
         }
+
+        this.microphoneLayout.setVisibility(View.GONE);
+        this.speakerLayout.setVisibility(View.GONE);
 
         if (null != this.contact) {
             int resource = intent.getIntExtra("avatarResource", 0);
@@ -333,21 +400,22 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
             this.nameView.setText(this.contact.getPriorityName());
 
             // 呼叫联系人
-            CubeEngine.getInstance().getMultipointComm().makeCall(this.contact, mediaConstraint, new DefaultCallHandler(true) {
-                @Override
-                public void handleCall(CallRecord callRecord) {
-
-                }
-            }, new DefaultFailureHandler(true) {
-                @Override
-                public void handleFailure(Module module, ModuleError error) {
-                    hide();
-                }
-            });
+//            CubeEngine.getInstance().getMultipointComm().makeCall(this.contact, mediaConstraint, new DefaultCallHandler(true) {
+//                @Override
+//                public void handleCall(CallRecord callRecord) {
+//                    tipsView.setText(getResources().getString(R.string.on_ringing));
+//                    // 显示控件
+//                    showControls(callRecord);
+//                }
+//            }, new DefaultFailureHandler(true) {
+//                @Override
+//                public void handleFailure(Module module, ModuleError error) {
+//                    hide();
+//                }
+//            });
         }
 
-        this.microphoneButton.setVisibility(View.GONE);
-        this.speakerButton.setVisibility(View.GONE);
+        showControls(null);
     }
 
     @Override
@@ -429,12 +497,30 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
         if (LogUtils.isDebugLevel()) {
             LogUtils.d(TAG, "#onInProgress");
         }
+
+        tipsView.setText(getResources().getString(R.string.on_in_progress));
     }
 
     @Override
     public void onRinging(CallRecord callRecord) {
         if (LogUtils.isDebugLevel()) {
             LogUtils.d(TAG, "#onRinging");
+        }
+
+        if (null == this.callTimer) {
+            Handler handler = new Handler(getApplicationContext().getMainLooper());
+            MutableInt count = new MutableInt(0);
+
+            this.callTimer = new Timer();
+            this.callTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    handler.post(() -> {
+                        count.value += 1;
+                        tipsView.setText(getResources().getString(R.string.on_ringing_with_count, count.value));
+                    });
+                }
+            }, 1000, 1000);
         }
     }
 
@@ -443,12 +529,22 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
         if (LogUtils.isDebugLevel()) {
             LogUtils.d(TAG, "#onConnected");
         }
+
+        if (null != this.callTimer) {
+            this.callTimer.cancel();
+            this.callTimer = null;
+        }
     }
 
     @Override
     public void onBusy(CallRecord callRecord) {
         if (LogUtils.isDebugLevel()) {
             LogUtils.d(TAG, "#onBusy");
+        }
+
+        if (null != this.callTimer) {
+            this.callTimer.cancel();
+            this.callTimer = null;
         }
     }
 
@@ -457,6 +553,8 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
         if (LogUtils.isDebugLevel()) {
             LogUtils.d(TAG, "#onBye");
         }
+
+        hide();
     }
 
     @Override
@@ -464,12 +562,22 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
         if (LogUtils.isDebugLevel()) {
             LogUtils.d(TAG, "#onTimeout");
         }
+
+        if (null != this.callTimer) {
+            this.callTimer.cancel();
+            this.callTimer = null;
+        }
     }
 
     @Override
     public void onFailed(ModuleError error) {
         if (LogUtils.isDebugLevel()) {
             LogUtils.d(TAG, "#onFailed : " + error.code);
+        }
+
+        if (null != this.callTimer) {
+            this.callTimer.cancel();
+            this.callTimer = null;
         }
     }
 }

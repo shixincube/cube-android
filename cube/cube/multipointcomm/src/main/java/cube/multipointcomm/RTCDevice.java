@@ -104,6 +104,8 @@ public class RTCDevice {
 
     private MediaStream inboundStream;
 
+    private StreamState streamState;
+
     public RTCDevice(Context context, String mode, PeerConnectionFactory factory, EglBase.Context eglBaseContext) {
         this.sn = cell.util.Utils.generateUnsignedSerialNumber();
         this.context = context;
@@ -135,6 +137,92 @@ public class RTCDevice {
 
     public void disableICE() {
         this.iceServers = new ArrayList<>();
+    }
+
+    /**
+     * 返回出站视频是否已启用。
+     *
+     * @return 返回出站视频是否已启用。
+     */
+    public boolean outboundVideoEnabled() {
+        if (null == this.outboundStream) {
+            return this.streamState.output.video;
+        }
+
+        this.streamState.output.video = this.streamEnabled(this.outboundStream, "video");
+        return this.streamState.output.video;
+    }
+
+    /**
+     * 返回出站音频是否已启用。
+     *
+     * @return 返回出站音频是否已启用。
+     */
+    public boolean outboundAudioEnabled() {
+        if (null == this.outboundStream) {
+            return this.streamState.output.audio;
+        }
+
+        this.streamState.output.audio = this.streamEnabled(this.outboundStream, "audio");
+        return this.streamState.output.audio;
+    }
+
+    /**
+     * 启用/停用出站视频。
+     *
+     * @param enabled 指定是否启用。
+     */
+    public void enableOutboundVideo(boolean enabled) {
+        this.streamState.output.video = enabled;
+        this.enableStream(this.outboundStream, "video", enabled);
+    }
+
+    /**
+     * 启用/停用出站音频。
+     *
+     * @param enabled 指定是否启用。
+     */
+    public void enableOutboundAudio(boolean enabled) {
+        this.streamState.output.audio = enabled;
+        this.enableStream(this.outboundStream, "audio", enabled);
+    }
+
+    private boolean streamEnabled(MediaStream stream, String kind) {
+        if (kind.equalsIgnoreCase("video")) {
+            for (VideoTrack track : stream.videoTracks) {
+                return track.enabled();
+            }
+        }
+        else if (kind.equalsIgnoreCase("audio")) {
+            for (AudioTrack track : stream.audioTracks) {
+                return track.enabled();
+            }
+        }
+
+        return false;
+    }
+
+    private boolean enableStream(MediaStream stream, String kind, boolean enabled) {
+        if (null == stream) {
+            return false;
+        }
+
+        boolean result = false;
+
+        if (kind.equalsIgnoreCase("video")) {
+            for (VideoTrack track : stream.videoTracks) {
+                track.setEnabled(enabled);
+                result = true;
+            }
+        }
+        else if (kind.equalsIgnoreCase("audio")) {
+            for (AudioTrack track : stream.audioTracks) {
+                track.setEnabled(enabled);
+                result = true;
+            }
+        }
+
+        return result;
     }
 
     /**
@@ -458,5 +546,27 @@ public class RTCDevice {
         void onMediaConnected(RTCDevice rtcDevice);
 
         void onMediaDisconnected(RTCDevice rtcDevice);
+    }
+
+
+    /**
+     * 预置的流状态。
+     */
+    public class StreamState {
+
+        public StreamStateSymbol input = new StreamStateSymbol();
+
+        public StreamStateSymbol output = new StreamStateSymbol();
+
+    }
+
+    /**
+     * 流状态符号。
+     */
+    public class StreamStateSymbol {
+
+        public boolean video = true;
+        public boolean audio = true;
+        public int volume = 100;
     }
 }

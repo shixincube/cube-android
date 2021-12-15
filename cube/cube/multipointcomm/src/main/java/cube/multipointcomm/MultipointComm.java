@@ -103,6 +103,7 @@ public class MultipointComm extends Module implements Observer {
 
     public MultipointComm() {
         super(NAME);
+        this.callListeners = new ArrayList<>();
     }
 
     @Override
@@ -112,10 +113,11 @@ public class MultipointComm extends Module implements Observer {
         }
 
         this.commFieldMap = new ConcurrentHashMap<>();
-        this.callListeners = new ArrayList<>();
 
-        this.eglBase = EglBase.create();
-        this.peerConnectionFactory = createPeerConnectionFactory();
+        super.executeOnMainThread(() -> {
+            this.eglBase = EglBase.create();
+            this.peerConnectionFactory = createPeerConnectionFactory();
+        });
 
         this.contactService = ((ContactService) this.kernel.getModule(ContactService.NAME));
         this.contactService.attachWithName(ContactServiceEvent.SelfReady, this);
@@ -130,12 +132,13 @@ public class MultipointComm extends Module implements Observer {
     @Override
     public void stop() {
         super.stop();
+
+        this.callListeners.clear();
     }
 
     @Override
     protected void config(@Nullable JSONObject configData) {
         this.iceServers = new ArrayList<>();
-        System.out.println("XJW: " + configData.toString());
         if (configData.has("iceServers")) {
             try {
                 JSONArray array = configData.getJSONArray("iceServers");
@@ -463,7 +466,9 @@ public class MultipointComm extends Module implements Observer {
     }
 
     private RTCDevice createRTCDevice(String mode) {
-        return new RTCDevice(this.getContext(), mode, this.peerConnectionFactory, this.eglBase.getEglBaseContext());
+        RTCDevice rtcDevice = new RTCDevice(this.getContext(), mode, this.peerConnectionFactory, this.eglBase.getEglBaseContext());
+        rtcDevice.enableICE(this.iceServers);
+        return rtcDevice;
     }
 
     private PeerConnectionFactory createPeerConnectionFactory() {

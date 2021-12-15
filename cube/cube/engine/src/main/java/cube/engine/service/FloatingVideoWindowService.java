@@ -56,15 +56,19 @@ import org.json.JSONObject;
 
 import cube.contact.model.Contact;
 import cube.contact.model.Group;
+import cube.core.Module;
 import cube.core.ModuleError;
+import cube.core.handler.DefaultFailureHandler;
 import cube.engine.CubeEngine;
 import cube.engine.R;
 import cube.engine.ui.AdvancedImageView;
 import cube.engine.ui.KeyEventLinearLayout;
 import cube.engine.util.ScreenUtil;
 import cube.multipointcomm.CallListener;
+import cube.multipointcomm.handler.DefaultCallHandler;
 import cube.multipointcomm.model.CallRecord;
 import cube.multipointcomm.util.MediaConstraint;
+import cube.util.LogUtils;
 
 /**
  * 悬浮的视频窗口。
@@ -211,7 +215,7 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
         this.layoutParams.width = ScreenUtil.dp2px(this, 55);
         this.layoutParams.height = ScreenUtil.dp2px(this, 55);
         this.layoutParams.x = size.x - this.layoutParams.width;
-        this.layoutParams.y = ScreenUtil.getStatusBarHeight(this);
+        this.layoutParams.y = ScreenUtil.getStatusBarHeight(this) + ScreenUtil.dp2px(this, 50);
         this.windowManager.updateViewLayout(this.displayView, this.layoutParams);
     }
 
@@ -327,12 +331,23 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
             }
 
             this.nameView.setText(this.contact.getPriorityName());
+
+            // 呼叫联系人
+            CubeEngine.getInstance().getMultipointComm().makeCall(this.contact, mediaConstraint, new DefaultCallHandler(true) {
+                @Override
+                public void handleCall(CallRecord callRecord) {
+
+                }
+            }, new DefaultFailureHandler(true) {
+                @Override
+                public void handleFailure(Module module, ModuleError error) {
+                    hide();
+                }
+            });
         }
 
         this.microphoneButton.setVisibility(View.GONE);
         this.speakerButton.setVisibility(View.GONE);
-
-        
     }
 
     @Override
@@ -411,36 +426,50 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
 
     @Override
     public void onInProgress(CallRecord callRecord) {
-
+        if (LogUtils.isDebugLevel()) {
+            LogUtils.d(TAG, "#onInProgress");
+        }
     }
 
     @Override
     public void onRinging(CallRecord callRecord) {
-
+        if (LogUtils.isDebugLevel()) {
+            LogUtils.d(TAG, "#onRinging");
+        }
     }
 
     @Override
     public void onConnected(CallRecord callRecord) {
-
+        if (LogUtils.isDebugLevel()) {
+            LogUtils.d(TAG, "#onConnected");
+        }
     }
 
     @Override
     public void onBusy(CallRecord callRecord) {
-
+        if (LogUtils.isDebugLevel()) {
+            LogUtils.d(TAG, "#onBusy");
+        }
     }
 
     @Override
     public void onBye(CallRecord callRecord) {
-
+        if (LogUtils.isDebugLevel()) {
+            LogUtils.d(TAG, "#onBye");
+        }
     }
 
     @Override
     public void onTimeout(CallRecord callRecord) {
-
+        if (LogUtils.isDebugLevel()) {
+            LogUtils.d(TAG, "#onTimeout");
+        }
     }
 
     @Override
     public void onFailed(ModuleError error) {
-
+        if (LogUtils.isDebugLevel()) {
+            LogUtils.d(TAG, "#onFailed : " + error.code);
+        }
     }
 }

@@ -259,7 +259,7 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
             startActivityForResult(intent, REQUEST_IMAGE_PICKER);
         });
 
-        // 牌照按钮事件
+        // 拍照按钮事件
         shotButton.setOnClickListener((view) -> {
             Intent intent = new Intent(this, TakePhotoActivity.class);
             startActivityForResult(intent, REQUEST_TAKE_PHOTO);

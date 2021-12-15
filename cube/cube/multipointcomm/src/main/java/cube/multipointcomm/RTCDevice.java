@@ -51,6 +51,7 @@ import org.webrtc.VideoSource;
 import org.webrtc.VideoTrack;
 import org.webrtc.voiceengine.WebRtcAudioUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import cube.core.ModuleError;
@@ -58,11 +59,14 @@ import cube.core.handler.FailureHandler;
 import cube.multipointcomm.handler.OfferHandler;
 import cube.multipointcomm.util.MediaConstraint;
 import cube.multipointcomm.util.VideoDimension;
+import cube.util.LogUtils;
 
 /**
  * RTC 设备。
  */
 public class RTCDevice {
+
+    private final static String TAG = "RTCDevice";
 
     public final static String MODE_RECEIVE_ONLY = "recvonly";
     public final static String MODE_SEND_ONLY = "sendonly";
@@ -106,6 +110,7 @@ public class RTCDevice {
         this.mode = mode;
         this.factory = factory;
         this.eglBaseContext = eglBaseContext;
+        this.iceServers = new ArrayList<>();
     }
 
     public long getSN() {
@@ -129,7 +134,7 @@ public class RTCDevice {
     }
 
     public void disableICE() {
-        this.iceServers = null;
+        this.iceServers = new ArrayList<>();
     }
 
     /**
@@ -162,7 +167,7 @@ public class RTCDevice {
 
         this.pcObserver = new PeerConnectionObserver();
         // 创建 Peer Connection
-        this.pc = this.factory.createPeerConnection(this.iceServers, this.pcObserver);
+        this.pc = this.factory.createPeerConnection(getConfig(this.iceServers), this.pcObserver);
         this.pc.addStream(this.outboundStream);
 
         this.pc.createOffer(new SdpObserver() {
@@ -329,6 +334,16 @@ public class RTCDevice {
         return videoCapturer;
     }
 
+    private PeerConnection.RTCConfiguration getConfig(List<PeerConnection.IceServer> iceServers) {
+        PeerConnection.RTCConfiguration rtcConfig = new PeerConnection.RTCConfiguration(iceServers);
+        // 关闭分辨率变换
+        rtcConfig.enableCpuOveruseDetection = false;
+        rtcConfig.audioJitterBufferFastAccelerate = true;
+        // 修改模式 PlanB 无法使用仅接收音视频的配置
+//        rtcConfig.sdpSemantics = PeerConnection.SdpSemantics.UNIFIED_PLAN;
+        return rtcConfig;
+    }
+
     protected class CameraVideoEventsHandler implements CameraVideoCapturer.CameraEventsHandler {
 
         @Override
@@ -403,6 +418,9 @@ public class RTCDevice {
 
         @Override
         public void onAddStream(MediaStream mediaStream) {
+            if (LogUtils.isDebugLevel()) {
+                LogUtils.d(TAG, "#onAddStream");
+            }
 
         }
 
@@ -423,7 +441,9 @@ public class RTCDevice {
 
         @Override
         public void onAddTrack(RtpReceiver rtpReceiver, MediaStream[] mediaStreams) {
-
+            if (LogUtils.isDebugLevel()) {
+                LogUtils.d(TAG, "#onAddTrack");
+            }
         }
     }
 

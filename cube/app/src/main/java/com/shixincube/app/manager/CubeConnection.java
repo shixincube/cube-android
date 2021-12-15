@@ -88,6 +88,9 @@ public class CubeConnection implements ServiceConnection {
                 // 启动消息模块
                 engine.getMessagingService().start();
 
+                // 启动多方通信模块
+                engine.getMultipointComm().start();
+
                 // 签入账号
                 signIn(() -> {
                     // 暖机

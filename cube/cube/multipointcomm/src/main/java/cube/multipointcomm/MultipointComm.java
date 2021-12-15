@@ -38,7 +38,6 @@ import org.webrtc.PeerConnection;
 import org.webrtc.PeerConnectionFactory;
 import org.webrtc.VideoDecoderFactory;
 import org.webrtc.VideoEncoderFactory;
-import org.webrtc.audio.JavaAudioDeviceModule;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -97,6 +96,8 @@ public class MultipointComm extends Module implements Observer {
 
     private CallRecord activeCall;
 
+    private List<CallListener> callListeners;
+
     private Signaling offerSignaling;
     private Signaling answerSignaling;
 
@@ -111,6 +112,7 @@ public class MultipointComm extends Module implements Observer {
         }
 
         this.commFieldMap = new ConcurrentHashMap<>();
+        this.callListeners = new ArrayList<>();
 
         this.eglBase = EglBase.create();
         this.peerConnectionFactory = createPeerConnectionFactory();
@@ -133,6 +135,7 @@ public class MultipointComm extends Module implements Observer {
     @Override
     protected void config(@Nullable JSONObject configData) {
         this.iceServers = new ArrayList<>();
+        System.out.println("XJW: " + configData.toString());
         if (configData.has("iceServers")) {
             try {
                 JSONArray array = configData.getJSONArray("iceServers");
@@ -158,6 +161,16 @@ public class MultipointComm extends Module implements Observer {
 
     public ContactService getContactService() {
         return this.contactService;
+    }
+
+    public void addCallListener(CallListener listener) {
+        if (!this.callListeners.contains(listener)) {
+            this.callListeners.add(listener);
+        }
+    }
+
+    public void removeCallListener(CallListener listener) {
+        this.callListeners.remove(listener);
     }
 
     /**
@@ -322,7 +335,9 @@ public class MultipointComm extends Module implements Observer {
                     activeCall.setEndTime(System.currentTimeMillis());
                     activeCall.lastError = error;
 
-                    field.close();
+                    executeOnMainThread(() -> {
+                        field.close();
+                    });
 
                     execute(failureHandler, error);
                     notifyObservers(new ObservableEvent(MultipointCommEvent.Failed, error));
@@ -338,7 +353,9 @@ public class MultipointComm extends Module implements Observer {
                     activeCall.setEndTime(System.currentTimeMillis());
                     activeCall.lastError = error;
 
-                    field.close();
+                    executeOnMainThread(() -> {
+                        field.close();
+                    });
 
                     execute(failureHandler, error);
                     notifyObservers(new ObservableEvent(MultipointCommEvent.Failed, error));
@@ -350,7 +367,11 @@ public class MultipointComm extends Module implements Observer {
                 try {
                     Signaling signaling = new Signaling(packet.extractServiceData());
                     if (field.isPrivate()) {
-                        field.close();
+
+                        executeOnMainThread(() -> {
+                            field.close();
+                        });
+
                         offerSignaling = null;
                         answerSignaling = null;
 
@@ -387,7 +408,9 @@ public class MultipointComm extends Module implements Observer {
                         notifyObservers(new ObservableEvent(MultipointCommEvent.Bye, activeCall));
 
                         // 关闭场域
-                        field.close();
+                        executeOnMainThread(() -> {
+                            field.close();
+                        });
                     }
 
                     // 重置
@@ -456,13 +479,13 @@ public class MultipointComm extends Module implements Observer {
         options.disableNetworkMonitor = true;
 
         // Audio Device module
-        JavaAudioDeviceModule audioDeviceModule = JavaAudioDeviceModule.builder(this.getContext())
-                .setSamplesReadyCallback(null)
-                .setUseHardwareAcousticEchoCanceler(false)
-                .setUseHardwareNoiseSuppressor(false)
-                .setAudioRecordErrorCallback(null)
-                .setAudioTrackErrorCallback(null)
-                .createAudioDeviceModule();
+//        JavaAudioDeviceModule audioDeviceModule = JavaAudioDeviceModule.builder(this.getContext())
+//                .setSamplesReadyCallback(null)
+//                .setUseHardwareAcousticEchoCanceler(false)
+//                .setUseHardwareNoiseSuppressor(false)
+//                .setAudioRecordErrorCallback(null)
+//                .setAudioTrackErrorCallback(null)
+//                .createAudioDeviceModule();
 
         PeerConnectionFactory factory = PeerConnectionFactory.builder()
                 .setOptions(options)
@@ -482,6 +505,62 @@ public class MultipointComm extends Module implements Observer {
     @Override
     public void executeOnMainThread(Runnable task) {
         super.executeOnMainThread(task);
+    }
+
+    @Override
+    public void notifyObservers(ObservableEvent event) {
+        super.notifyObservers(event);
+
+        String eventName = event.getName();
+        if (MultipointCommEvent.InProgress.equals(eventName)) {
+            executeOnMainThread(() -> {
+                for (CallListener listener : callListeners) {
+                    listener.onInProgress((CallRecord) event.getData());
+                }
+            });
+        }
+        else if (MultipointCommEvent.Ringing.equals(eventName)) {
+            executeOnMainThread(() -> {
+                for (CallListener listener : callListeners) {
+                    listener.onRinging((CallRecord) event.getData());
+                }
+            });
+        }
+        else if (MultipointCommEvent.Connected.equals(eventName)) {
+            executeOnMainThread(() -> {
+                for (CallListener listener : callListeners) {
+                    listener.onConnected((CallRecord) event.getData());
+                }
+            });
+        }
+        else if (MultipointCommEvent.Busy.equals(eventName)) {
+            executeOnMainThread(() -> {
+                for (CallListener listener : callListeners) {
+                    listener.onBusy((CallRecord) event.getData());
+                }
+            });
+        }
+        else if (MultipointCommEvent.Bye.equals(eventName)) {
+            executeOnMainThread(() -> {
+                for (CallListener listener : callListeners) {
+                    listener.onBye((CallRecord) event.getData());
+                }
+            });
+        }
+        else if (MultipointCommEvent.Timeout.equals(eventName)) {
+            executeOnMainThread(() -> {
+                for (CallListener listener : callListeners) {
+                    listener.onTimeout((CallRecord) event.getData());
+                }
+            });
+        }
+        else if (MultipointCommEvent.Failed.equals(eventName)) {
+            executeOnMainThread(() -> {
+                for (CallListener listener : callListeners) {
+                    listener.onFailed((ModuleError) event.getData());
+                }
+            });
+        }
     }
 
     @Override

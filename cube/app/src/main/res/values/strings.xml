@@ -165,6 +165,7 @@
     <!-- 音视频通话界面相关 -->
     <string name="apply_overlay_permission">音视频通话界面需要您授权悬浮窗权限</string>
     <string name="auth_overlay_permission_failure">授权悬浮窗权限失败</string>
+    <string name="apply_camera_permission">音视频通话需求您授权摄像机和麦克风权限</string>
 
     <!-- 附言界面 -->
     <string name="postscript_tip">您需要发送验证申请，等待对方通过</string>

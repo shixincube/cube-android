@@ -98,6 +98,8 @@ public class RTCDevice {
 
     private MediaStream outboundStream;
 
+    private MediaStream inboundStream;
+
     public RTCDevice(Context context, String mode, PeerConnectionFactory factory, EglBase.Context eglBaseContext) {
         this.sn = cell.util.Utils.generateUnsignedSerialNumber();
         this.context = context;
@@ -211,6 +213,35 @@ public class RTCDevice {
                 // Nothing
             }
         }, this.createRtcMediaConstraints(mediaConstraint));
+    }
+
+    /**
+     * 关闭 RTC 设备。
+     */
+    public void close() {
+        if (null != this.inboundStream) {
+            this.inboundStream.dispose();
+            this.inboundStream = null;
+        }
+
+        if (null != this.outboundStream) {
+            this.outboundStream.dispose();
+            this.outboundStream = null;
+        }
+
+        if (null != this.videoCapturer) {
+            try {
+                this.videoCapturer.stopCapture();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            this.videoCapturer = null;
+        }
+
+        if (null != this.pc) {
+            this.pc.close();
+            this.pc = null;
+        }
     }
 
     private MediaConstraints createRtcMediaConstraints(MediaConstraint mediaConstraint) {

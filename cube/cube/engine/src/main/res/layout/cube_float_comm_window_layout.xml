@@ -4,18 +4,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@null">
-
-    <RelativeLayout
-        android:id="@+id/previewLayout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="gone">
-
-    </RelativeLayout>
+    android:background="@color/transparent">
 
     <LinearLayout
-        android:id="@+id/fullLayout"
+        android:id="@+id/llMainLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="center_horizontal"
@@ -24,16 +16,29 @@
 
         <!-- 顶部工具栏 -->
         <LinearLayout
+            android:id="@+id/llHeader"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="top"
+            android:layout_gravity="center_vertical"
             android:layout_weight="0.5"
+            android:gravity="end"
             android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/btnPreview"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_gravity="end|top"
+                android:layout_marginTop="50dp"
+                android:layout_marginEnd="20dp"
+                android:background="@color/transparent"
+                android:src="@mipmap/ic_switch_preview"/>
 
         </LinearLayout>
 
         <!-- 中间视频和头像区域 -->
         <LinearLayout
+            android:id="@+id/llBody"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
@@ -41,13 +46,30 @@
             android:gravity="center"
             android:orientation="vertical">
 
-            <cube.engine.ui.AdvancedImageView
-                android:id="@+id/ivAvatar"
-                android:layout_width="120dp"
-                android:layout_height="120dp"
-                android:scaleType="centerCrop"
-                android:src="@mipmap/avatar"
-                auto:corner_radius="3dp"/>
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center">
+
+                <cube.engine.ui.AdvancedImageView
+                    android:id="@+id/ivAvatar"
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
+                    android:scaleType="centerCrop"
+                    android:src="@mipmap/avatar"
+                    auto:corner_radius="3dp"/>
+
+                <cube.engine.ui.AdvancedImageView
+                    android:id="@+id/ivType"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:scaleType="centerCrop"
+                    android:layout_centerInParent="true"
+                    android:src="@mipmap/ic_audio_call"
+                    android:visibility="gone"
+                    auto:corner_radius="3dp"/>
+
+            </RelativeLayout>
 
             <org.webrtc.SurfaceViewRenderer
                 android:layout_width="100dp"
@@ -73,12 +95,13 @@
                 android:layout_marginTop="20dp"
                 android:gravity="center_horizontal"
                 android:textColor="@color/gray"
-                android:text="@string/cube_default_contact_name"
+                android:text="@string/calling"
                 android:textSize="14sp"/>
         </LinearLayout>
 
         <!-- 底部操作栏 -->
         <LinearLayout
+            android:id="@+id/llFooter"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"

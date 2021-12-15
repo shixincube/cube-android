@@ -390,7 +390,20 @@ public class CommField extends Entity implements RTCDevice.RTCEventListener {
     }
 
     public void close() {
+        this.closeRTCDevices();
+        this.endpoints.clear();
+    }
 
+    private void closeRTCDevices() {
+        if (null != this.outboundRTC) {
+            this.outboundRTC.close();
+            this.outboundRTC = null;
+        }
+
+        for (RTCDevice rtcDevice : this.inboundRTCMap.values()) {
+            rtcDevice.close();
+        }
+        this.inboundRTCMap.clear();
     }
 
     private void fillSignaling(Signaling signaling) {

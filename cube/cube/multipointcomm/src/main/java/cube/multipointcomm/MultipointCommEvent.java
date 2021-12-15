@@ -50,6 +50,18 @@ public class MultipointCommEvent {
     public final static String Ringing = "Ringing";
 
     /**
+     * 已经建立连接。
+     * 事件数据：{@link cube.multipointcomm.model.CallRecord} - 通话记录。
+     */
+    public final static String Connected = "Connected";
+
+    /**
+     * 对方忙。
+     * 事件数据：{@link cube.multipointcomm.model.CallRecord} - 通话记录。
+     */
+    public final static String Busy = "Busy";
+
+    /**
      * 结束当前通话。
      * 事件数据：{@link cube.multipointcomm.model.CallRecord} - 通话记录。
      */

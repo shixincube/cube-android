@@ -29,6 +29,7 @@ package cube.engine.service;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.os.Binder;
 import android.os.Build;
@@ -40,12 +41,12 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
@@ -55,17 +56,20 @@ import org.json.JSONObject;
 
 import cube.contact.model.Contact;
 import cube.contact.model.Group;
+import cube.core.ModuleError;
 import cube.engine.CubeEngine;
 import cube.engine.R;
 import cube.engine.ui.AdvancedImageView;
 import cube.engine.ui.KeyEventLinearLayout;
 import cube.engine.util.ScreenUtil;
+import cube.multipointcomm.CallListener;
+import cube.multipointcomm.model.CallRecord;
 import cube.multipointcomm.util.MediaConstraint;
 
 /**
  * 悬浮的视频窗口。
  */
-public class FloatingVideoWindowService extends Service implements KeyEventLinearLayout.KeyEventListener {
+public class FloatingVideoWindowService extends Service implements KeyEventLinearLayout.KeyEventListener, CallListener {
 
     private final static String TAG = "FloatVideoWindowService";
 
@@ -73,15 +77,22 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
     private WindowManager.LayoutParams layoutParams;
 
     private KeyEventLinearLayout displayView;
-    private LinearLayout fullLayout;
-    private RelativeLayout previewLayout;
+    private LinearLayout mainLayout;
 
+    private LinearLayout headerLayout;
+    private LinearLayout bodyLayout;
+    private LinearLayout footerLayout;
+
+    private ImageButton previewButton;
     private AdvancedImageView avatarView;
+    private AdvancedImageView typeView;
     private TextView nameView;
     private TextView tipsView;
     private ImageButton hangupButton;
     private ImageButton microphoneButton;
     private ImageButton speakerButton;
+
+    private boolean previewMode = false;
 
     private Contact contact;
     private Group group;
@@ -91,6 +102,8 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
     public void onCreate() {
         super.onCreate();
         this.initWindow();
+
+        CubeEngine.getInstance().getMultipointComm().addCallListener(this);
     }
 
     @Override
@@ -109,6 +122,8 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
                 this.windowManager.removeViewImmediate(this.displayView);
             }
         }
+
+        CubeEngine.getInstance().getMultipointComm().removeCallListener(this);
     }
 
     public class InnerBinder extends Binder {
@@ -143,14 +158,13 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
                 displayView.setKeyEventListener(this);
                 displayView.setOnTouchListener(new FloatingOnTouchListener());
 
-                previewLayout = displayView.findViewById(R.id.previewLayout);
-                fullLayout = displayView.findViewById(R.id.fullLayout);
+                mainLayout = displayView.findViewById(R.id.llMainLayout);
 
                 this.initView();
                 this.initListener();
             }
 
-            fullLayout.setVisibility(View.VISIBLE);
+            this.previewMode = false;
             windowManager.addView(displayView, layoutParams);
         }
     }
@@ -164,7 +178,7 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
                 Animation.RELATIVE_TO_SELF, 0,
                 Animation.RELATIVE_TO_SELF, 1);
         animation.setDuration(300);
-        fullLayout.startAnimation(animation);
+        this.mainLayout.startAnimation(animation);
 
         Handler handler = new Handler(getApplicationContext().getMainLooper());
         handler.postDelayed(() -> {
@@ -173,11 +187,61 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
     }
 
     private void switchToPreview() {
+        if (this.previewMode) {
+            return;
+        }
 
+        this.previewMode = true;
+
+        this.headerLayout.setVisibility(View.GONE);
+        this.footerLayout.setVisibility(View.GONE);
+        this.nameView.setVisibility(View.GONE);
+        this.tipsView.setVisibility(View.GONE);
+
+        this.mainLayout.setBackgroundResource(R.drawable.shape_frame);
+
+        ViewGroup.LayoutParams params = this.avatarView.getLayoutParams();
+        params.width = ScreenUtil.dp2px(this, 50);
+        params.height = ScreenUtil.dp2px(this, 50);
+
+        this.typeView.setVisibility(View.VISIBLE);
+
+        Point size = ScreenUtil.getScreenSize(this);
+
+        this.layoutParams.width = ScreenUtil.dp2px(this, 55);
+        this.layoutParams.height = ScreenUtil.dp2px(this, 55);
+        this.layoutParams.x = size.x - this.layoutParams.width;
+        this.layoutParams.y = ScreenUtil.getStatusBarHeight(this);
+        this.windowManager.updateViewLayout(this.displayView, this.layoutParams);
     }
 
     private void switchToFull() {
+        if (!this.previewMode) {
+            return;
+        }
 
+        this.previewMode = false;
+
+        this.mainLayout.setBackgroundResource(R.mipmap.window_background);
+
+        this.headerLayout.setVisibility(View.VISIBLE);
+        this.footerLayout.setVisibility(View.VISIBLE);
+        this.nameView.setVisibility(View.VISIBLE);
+        this.tipsView.setVisibility(View.VISIBLE);
+
+        ViewGroup.LayoutParams params = this.avatarView.getLayoutParams();
+        params.width = ScreenUtil.dp2px(this, 120);
+        params.height = ScreenUtil.dp2px(this, 120);
+
+        this.typeView.setVisibility(View.GONE);
+
+        Point size = ScreenUtil.getScreenSize(this);
+
+        this.layoutParams.width = size.x;
+        this.layoutParams.height = size.y;
+        this.layoutParams.x = 0;
+        this.layoutParams.y = 0;
+        this.windowManager.updateViewLayout(this.displayView, this.layoutParams);
     }
 
     private WindowManager.LayoutParams getParams() {
@@ -195,6 +259,9 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
                 WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR |
                 WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH;
 
+        // 透明
+        params.format = PixelFormat.TRANSPARENT;
+
         Point size = ScreenUtil.getScreenSize(this);
 
         // 设置悬浮窗口宽高数据
@@ -210,15 +277,25 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
     }
 
     private void initView() {
-        this.avatarView = this.fullLayout.findViewById(R.id.ivAvatar);
-        this.nameView = this.fullLayout.findViewById(R.id.tvName);
-        this.tipsView = this.fullLayout.findViewById(R.id.tvTips);
-        this.hangupButton = this.fullLayout.findViewById(R.id.btnHangup);
-        this.microphoneButton = this.fullLayout.findViewById(R.id.btnMicrophone);
-        this.speakerButton = this.fullLayout.findViewById(R.id.btnSpeaker);
+        this.headerLayout = this.mainLayout.findViewById(R.id.llHeader);
+        this.bodyLayout = this.mainLayout.findViewById(R.id.llBody);
+        this.footerLayout = this.mainLayout.findViewById(R.id.llFooter);
+
+        this.previewButton = this.mainLayout.findViewById(R.id.btnPreview);
+        this.avatarView = this.mainLayout.findViewById(R.id.ivAvatar);
+        this.typeView = this.mainLayout.findViewById(R.id.ivType);
+        this.nameView = this.mainLayout.findViewById(R.id.tvName);
+        this.tipsView = this.mainLayout.findViewById(R.id.tvTips);
+        this.hangupButton = this.mainLayout.findViewById(R.id.btnHangup);
+        this.microphoneButton = this.mainLayout.findViewById(R.id.btnMicrophone);
+        this.speakerButton = this.mainLayout.findViewById(R.id.btnSpeaker);
     }
 
     private void initListener() {
+        this.previewButton.setOnClickListener((view) -> {
+            switchToPreview();
+        });
+
         this.hangupButton.setOnClickListener((view) -> {
             hide();
             CubeEngine.getInstance().getMultipointComm().hangupCall();
@@ -235,32 +312,33 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
             this.group = CubeEngine.getInstance().getContactService().getGroup(groupId);
         }
 
+        MediaConstraint mediaConstraint = null;
         String jsonString = intent.getStringExtra("mediaConstraint");
         try {
-            MediaConstraint mediaConstraint = new MediaConstraint(new JSONObject(jsonString));
-
-            if (null != this.contact) {
-                int resource = intent.getIntExtra("avatarResource", 0);
-                if (resource > 0) {
-                    this.avatarView.setImageResource(resource);
-                }
-
-                this.nameView.setText(this.contact.getPriorityName());
-            }
-
-            this.microphoneButton.setVisibility(View.GONE);
-            this.speakerButton.setVisibility(View.GONE);
-
-
+            mediaConstraint = new MediaConstraint(new JSONObject(jsonString));
         } catch (JSONException e) {
             e.printStackTrace();
         }
+
+        if (null != this.contact) {
+            int resource = intent.getIntExtra("avatarResource", 0);
+            if (resource > 0) {
+                this.avatarView.setImageResource(resource);
+            }
+
+            this.nameView.setText(this.contact.getPriorityName());
+        }
+
+        this.microphoneButton.setVisibility(View.GONE);
+        this.speakerButton.setVisibility(View.GONE);
+
+        
     }
 
     @Override
     public boolean onKeyEvent(KeyEvent event) {
         if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
-            if (this.fullLayout.isShown()) {
+            if (!previewMode) {
                 switchToPreview();
                 return true;
             }
@@ -290,7 +368,7 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
 
         @Override
         public boolean onTouch(View view, MotionEvent event) {
-            if (!previewLayout.isShown()) {
+            if (!previewMode) {
                 return true;
             }
 
@@ -305,7 +383,8 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
                 case MotionEvent.ACTION_MOVE:
                     int touchCurrentX = (int) event.getRawX();
                     int touchCurrentY = (int) event.getRawY();
-                    layoutParams.x -= touchCurrentX - touchStartX;
+
+                    layoutParams.x += touchCurrentX - touchStartX;
                     layoutParams.y += touchCurrentY - touchStartY;
                     windowManager.updateViewLayout(displayView, layoutParams);
 
@@ -313,10 +392,13 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
                     touchStartY = touchCurrentY;
                     break;
                 case MotionEvent.ACTION_UP:
-                    int mStopX = (int) event.getX();
-                    int mStopY = (int) event.getY();
-                    if (Math.abs(startX - mStopX) >= 1 || Math.abs(startY - mStopY) >= 1) {
+                    int stopX = (int) event.getX();
+                    int stopY = (int) event.getY();
+                    if (Math.abs(startX - stopX) >= 1 || Math.abs(startY - stopY) >= 1) {
                         isMove = true;
+                    }
+                    else {
+                        switchToFull();
                     }
                     break;
                 default:
@@ -325,5 +407,40 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
 
             return isMove;
         }
+    }
+
+    @Override
+    public void onInProgress(CallRecord callRecord) {
+
+    }
+
+    @Override
+    public void onRinging(CallRecord callRecord) {
+
+    }
+
+    @Override
+    public void onConnected(CallRecord callRecord) {
+
+    }
+
+    @Override
+    public void onBusy(CallRecord callRecord) {
+
+    }
+
+    @Override
+    public void onBye(CallRecord callRecord) {
+
+    }
+
+    @Override
+    public void onTimeout(CallRecord callRecord) {
+
+    }
+
+    @Override
+    public void onFailed(ModuleError error) {
+
     }
 }

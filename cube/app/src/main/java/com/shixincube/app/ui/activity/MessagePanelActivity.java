@@ -26,9 +26,11 @@
 
 package com.shixincube.app.ui.activity;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.provider.Settings;
 import android.text.Editable;
@@ -42,6 +44,8 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+
+import androidx.annotation.NonNull;
 
 import com.shixincube.app.R;
 import com.shixincube.app.model.MessageConversation;
@@ -74,6 +78,9 @@ import cube.messaging.model.Conversation;
 import cube.messaging.model.ConversationState;
 import cube.messaging.model.ConversationType;
 import cube.multipointcomm.util.MediaConstraint;
+import kr.co.namee.permissiongen.PermissionFail;
+import kr.co.namee.permissiongen.PermissionGen;
+import kr.co.namee.permissiongen.PermissionSuccess;
 
 /**
  * 消息面板。
@@ -87,6 +94,7 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
     public final static int REQUEST_DETAILS = 8000;
 
     public final static int REQUEST_OVERLAY_PERMISSION = 9000;
+    public final static int REQUEST_AUDIO_VIDEO_PERMISSION = 9100;
 
     @BindView(R.id.llMessagePanel)
     LinearLayout messagePanelLayout;
@@ -266,7 +274,7 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
                         Uri.parse("package:" + getPackageName())), REQUEST_OVERLAY_PERMISSION);
             }
             else {
-                showAudioVideoWindow();
+                requestAudioVideoWindow();
             }
         });
 
@@ -279,7 +287,7 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
                         Uri.parse("package:" + getPackageName())), REQUEST_OVERLAY_PERMISSION);
             }
             else {
-                showAudioVideoWindow();
+                requestAudioVideoWindow();
             }
         });
 
@@ -295,18 +303,16 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
         });
     }
 
-    private void showAudioVideoWindow() {
-        Intent intent = new Intent(MessagePanelActivity.this, FloatingVideoWindowService.class);
-        if (conversation.getType() == ConversationType.Contact) {
-            intent.putExtra("contactId", conversation.getContact().getId().longValue());
-            intent.putExtra("avatarResource", AvatarUtils.getAvatarResource(conversation.getContact()));
-        }
-        else if (conversation.getType() == ConversationType.Group) {
-            intent.putExtra("groupId", conversation.getGroup().getId().longValue());
-        }
-
-        intent.putExtra("mediaConstraint", this.mediaConstraint.toJSON().toString());
-        startService(intent);
+    private void requestAudioVideoWindow() {
+        PermissionGen.with(this)
+            .addRequestCode(REQUEST_AUDIO_VIDEO_PERMISSION)
+            .permissions(
+                    // 摄像机权限
+                    Manifest.permission.CAMERA,
+                    // 麦克风权限
+                    Manifest.permission.RECORD_AUDIO
+            )
+            .request();
     }
 
     private void initKeyboard() {
@@ -475,7 +481,13 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
                     UIUtils.showToast(UIUtils.getString(R.string.auth_overlay_permission_failure));
                 }
                 else {
-                    showAudioVideoWindow();
+                    requestAudioVideoWindow();
+                }
+                break;
+            case REQUEST_AUDIO_VIDEO_PERMISSION:
+                if (getPackageManager().checkPermission("android.permission.CAMERA", "packageName")
+                        == PackageManager.PERMISSION_GRANTED) {
+                    onPermissionSuccess();
                 }
                 break;
             default:
@@ -483,6 +495,35 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
         }
 
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        PermissionGen.onRequestPermissionsResult(this, requestCode, permissions, grantResults);
+    }
+
+    @PermissionSuccess(requestCode = REQUEST_AUDIO_VIDEO_PERMISSION)
+    public void onPermissionSuccess() {
+        Intent intent = new Intent(MessagePanelActivity.this, FloatingVideoWindowService.class);
+        if (conversation.getType() == ConversationType.Contact) {
+            intent.putExtra("contactId", conversation.getContact().getId().longValue());
+            intent.putExtra("avatarResource", AvatarUtils.getAvatarResource(conversation.getContact()));
+        }
+        else if (conversation.getType() == ConversationType.Group) {
+            intent.putExtra("groupId", conversation.getGroup().getId().longValue());
+        }
+
+        intent.putExtra("mediaConstraint", this.mediaConstraint.toJSON().toString());
+        startService(intent);
+    }
+
+    @PermissionFail(requestCode = REQUEST_AUDIO_VIDEO_PERMISSION)
+    public void onPermissionFail() {
+        UIUtils.showToast(UIUtils.getString(R.string.apply_camera_permission));
+
+        startActivityForResult(new Intent(Settings.ACTION_PRIVACY_SETTINGS), REQUEST_AUDIO_VIDEO_PERMISSION);
     }
 
     @Override

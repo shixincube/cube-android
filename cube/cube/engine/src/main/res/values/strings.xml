@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="cube_default_contact_name">Cube Contact</string>
+    <string name="calling">正在呼叫……</string>
 </resources>

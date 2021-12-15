@@ -32,13 +32,17 @@ import android.content.Intent;
 import android.graphics.Point;
 import android.os.Binder;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
 import android.provider.Settings;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.TranslateAnimation;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -54,20 +58,21 @@ import cube.contact.model.Group;
 import cube.engine.CubeEngine;
 import cube.engine.R;
 import cube.engine.ui.AdvancedImageView;
+import cube.engine.ui.KeyEventLinearLayout;
 import cube.engine.util.ScreenUtil;
 import cube.multipointcomm.util.MediaConstraint;
 
 /**
  * 悬浮的视频窗口。
  */
-public class FloatVideoWindowService extends Service {
+public class FloatVideoWindowService extends Service implements KeyEventLinearLayout.KeyEventListener {
 
     private final static String TAG = "FloatVideoWindowService";
 
     private WindowManager windowManager;
     private WindowManager.LayoutParams layoutParams;
 
-    private View displayView;
+    private KeyEventLinearLayout displayView;
     private LinearLayout fullLayout;
     private RelativeLayout previewLayout;
 
@@ -82,6 +87,30 @@ public class FloatVideoWindowService extends Service {
     private Group group;
     private MediaConstraint mediaConstraint;
 
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        this.initWindow();
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        show();
+        loadData(intent);
+        return super.onStartCommand(intent, flags, startId);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        if (null != this.windowManager) {
+            if (null != this.displayView.getParent()) {
+                this.windowManager.removeViewImmediate(this.displayView);
+            }
+        }
+    }
+
     public class InnerBinder extends Binder {
         public FloatVideoWindowService getService() {
             return FloatVideoWindowService.this;
@@ -94,19 +123,6 @@ public class FloatVideoWindowService extends Service {
         return new InnerBinder();
     }
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        this.initWindow();
-    }
-
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        showFloatingWindow();
-        loadData(intent);
-        return super.onStartCommand(intent, flags, startId);
-    }
-
     /**
      * 初始化基本参数。
      */
@@ -115,22 +131,53 @@ public class FloatVideoWindowService extends Service {
         this.layoutParams = getParams();
     }
 
-    private void showFloatingWindow() {
+    /**
+     * 显示默认界面。
+     */
+    private void show() {
         if (Settings.canDrawOverlays(this)) {
             if (null == this.displayView) {
                 // 获取布局
                 LayoutInflater inflater = LayoutInflater.from(getApplicationContext());
-                displayView = inflater.inflate(R.layout.cube_float_comm_window_layout, null);
+                displayView = (KeyEventLinearLayout) inflater.inflate(R.layout.cube_float_comm_window_layout, null);
+                displayView.setKeyEventListener(this);
                 displayView.setOnTouchListener(new FloatingOnTouchListener());
 
                 previewLayout = displayView.findViewById(R.id.previewLayout);
                 fullLayout = displayView.findViewById(R.id.fullLayout);
 
                 this.initView();
-
-                windowManager.addView(displayView, layoutParams);
+                this.initListener();
             }
+
+            fullLayout.setVisibility(View.VISIBLE);
+            windowManager.addView(displayView, layoutParams);
         }
+    }
+
+    /**
+     * 从窗口删除。
+     */
+    private void hide() {
+        TranslateAnimation animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0,
+                Animation.RELATIVE_TO_SELF, 0,
+                Animation.RELATIVE_TO_SELF, 0,
+                Animation.RELATIVE_TO_SELF, 1);
+        animation.setDuration(300);
+        fullLayout.startAnimation(animation);
+
+        Handler handler = new Handler(getApplicationContext().getMainLooper());
+        handler.postDelayed(() -> {
+            windowManager.removeView(displayView);
+        }, 310);
+    }
+
+    private void switchToPreview() {
+
+    }
+
+    private void switchToFull() {
+
     }
 
     private WindowManager.LayoutParams getParams() {
@@ -169,10 +216,12 @@ public class FloatVideoWindowService extends Service {
         this.hangupButton = this.fullLayout.findViewById(R.id.btnHangup);
         this.microphoneButton = this.fullLayout.findViewById(R.id.btnMicrophone);
         this.speakerButton = this.fullLayout.findViewById(R.id.btnSpeaker);
+    }
 
+    private void initListener() {
         this.hangupButton.setOnClickListener((view) -> {
+            hide();
             CubeEngine.getInstance().getMultipointComm().hangupCall();
-            this.windowManager.removeView(this.displayView);
         });
     }
 
@@ -201,9 +250,23 @@ public class FloatVideoWindowService extends Service {
 
             this.microphoneButton.setVisibility(View.GONE);
             this.speakerButton.setVisibility(View.GONE);
+
+
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public boolean onKeyEvent(KeyEvent event) {
+        if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+            if (this.fullLayout.isShown()) {
+                switchToPreview();
+                return true;
+            }
+        }
+
+        return false;
     }
 
 

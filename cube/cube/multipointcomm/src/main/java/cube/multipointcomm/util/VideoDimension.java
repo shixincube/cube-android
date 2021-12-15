@@ -75,7 +75,7 @@ public enum VideoDimension {
 
             StringBuilder constraintsString = new StringBuilder();
             constraintsString.append("{");
-            constraintsString.append("\"width\":{\"max\":").append(this.width).append("}");
+            constraintsString.append("\"width\":{\"max\":").append(this.width).append("},");
             constraintsString.append("\"height\":{\"max\":").append(this.height).append("}");
             constraintsString.append("}");
             JSONObject constraints = new JSONObject(constraintsString.toString());

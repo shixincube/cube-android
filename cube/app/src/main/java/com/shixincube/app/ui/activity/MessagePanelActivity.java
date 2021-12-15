@@ -69,7 +69,7 @@ import butterknife.BindView;
 import cn.bingoogolapple.refreshlayout.BGANormalRefreshViewHolder;
 import cn.bingoogolapple.refreshlayout.BGARefreshLayout;
 import cube.engine.CubeEngine;
-import cube.engine.service.FloatVideoWindowService;
+import cube.engine.service.FloatingVideoWindowService;
 import cube.messaging.model.Conversation;
 import cube.messaging.model.ConversationState;
 import cube.messaging.model.ConversationType;
@@ -266,7 +266,7 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
                         Uri.parse("package:" + getPackageName())), REQUEST_OVERLAY_PERMISSION);
             }
             else {
-                showAudioVideo();
+                showAudioVideoWindow();
             }
         });
 
@@ -279,7 +279,7 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
                         Uri.parse("package:" + getPackageName())), REQUEST_OVERLAY_PERMISSION);
             }
             else {
-                showAudioVideo();
+                showAudioVideoWindow();
             }
         });
 
@@ -295,8 +295,8 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
         });
     }
 
-    private void showAudioVideo() {
-        Intent intent = new Intent(MessagePanelActivity.this, FloatVideoWindowService.class);
+    private void showAudioVideoWindow() {
+        Intent intent = new Intent(MessagePanelActivity.this, FloatingVideoWindowService.class);
         if (conversation.getType() == ConversationType.Contact) {
             intent.putExtra("contactId", conversation.getContact().getId().longValue());
             intent.putExtra("avatarResource", AvatarUtils.getAvatarResource(conversation.getContact()));
@@ -475,7 +475,7 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
                     UIUtils.showToast(UIUtils.getString(R.string.auth_overlay_permission_failure));
                 }
                 else {
-                    showAudioVideo();
+                    showAudioVideoWindow();
                 }
                 break;
             default:

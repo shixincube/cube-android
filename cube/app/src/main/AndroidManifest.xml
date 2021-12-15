@@ -44,7 +44,7 @@
             android:name="cube.engine.service.CubeService"
             android:exported="true">
         </service>
-        <service android:name="cube.engine.service.FloatVideoWindowService"></service>
+        <service android:name="cube.engine.service.FloatingVideoWindowService"></service>
 
         <receiver android:name="cube.pipeline.NetworkConnectChangedReceiver">
             <intent-filter>

@@ -65,7 +65,7 @@ import cube.multipointcomm.util.MediaConstraint;
 /**
  * 悬浮的视频窗口。
  */
-public class FloatVideoWindowService extends Service implements KeyEventLinearLayout.KeyEventListener {
+public class FloatingVideoWindowService extends Service implements KeyEventLinearLayout.KeyEventListener {
 
     private final static String TAG = "FloatVideoWindowService";
 
@@ -112,8 +112,8 @@ public class FloatVideoWindowService extends Service implements KeyEventLinearLa
     }
 
     public class InnerBinder extends Binder {
-        public FloatVideoWindowService getService() {
-            return FloatVideoWindowService.this;
+        public FloatingVideoWindowService getService() {
+            return FloatingVideoWindowService.this;
         }
     }
 

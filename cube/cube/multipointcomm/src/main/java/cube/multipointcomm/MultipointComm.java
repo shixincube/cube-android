@@ -34,6 +34,7 @@ import org.json.JSONObject;
 import org.webrtc.DefaultVideoDecoderFactory;
 import org.webrtc.DefaultVideoEncoderFactory;
 import org.webrtc.EglBase;
+import org.webrtc.IceCandidate;
 import org.webrtc.PeerConnection;
 import org.webrtc.PeerConnectionFactory;
 import org.webrtc.VideoDecoderFactory;
@@ -62,8 +63,10 @@ import cube.multipointcomm.handler.CommFieldHandler;
 import cube.multipointcomm.handler.DefaultApplyCallHandler;
 import cube.multipointcomm.handler.DefaultCallHandler;
 import cube.multipointcomm.handler.DefaultCommFieldHandler;
+import cube.multipointcomm.handler.RTCDeviceHandler;
 import cube.multipointcomm.model.CallRecord;
 import cube.multipointcomm.model.CommField;
+import cube.multipointcomm.model.CommFieldEndpoint;
 import cube.multipointcomm.model.Signaling;
 import cube.multipointcomm.util.MediaConstraint;
 import cube.util.LogUtils;
@@ -80,6 +83,8 @@ public class MultipointComm extends Module implements Observer {
     public final static String NAME = "MultipointComm";
 
     private ContactService contactService;
+
+    private CommPipelineListener pipelineListener;
 
     private EglBase eglBase;
 
@@ -114,6 +119,9 @@ public class MultipointComm extends Module implements Observer {
 
         this.commFieldMap = new ConcurrentHashMap<>();
 
+        this.pipelineListener = new CommPipelineListener(this);
+        this.pipeline.addListener(MultipointComm.NAME, this.pipelineListener);
+
         super.executeOnMainThread(() -> {
             this.eglBase = EglBase.create();
             this.peerConnectionFactory = createPeerConnectionFactory();
@@ -134,6 +142,10 @@ public class MultipointComm extends Module implements Observer {
         super.stop();
 
         this.callListeners.clear();
+
+        if (null != this.pipelineListener) {
+            this.pipeline.removeListener(MultipointComm.NAME, this.pipelineListener);
+        }
     }
 
     @Override
@@ -166,12 +178,22 @@ public class MultipointComm extends Module implements Observer {
         return this.contactService;
     }
 
+    /**
+     * 添加通话监听。
+     *
+     * @param listener
+     */
     public void addCallListener(CallListener listener) {
         if (!this.callListeners.contains(listener)) {
             this.callListeners.add(listener);
         }
     }
 
+    /**
+     * 移除通话监听器。
+     *
+     * @param listener
+     */
     public void removeCallListener(CallListener listener) {
         this.callListeners.remove(listener);
     }
@@ -575,6 +597,177 @@ public class MultipointComm extends Module implements Observer {
             if (null == this.privateField) {
                 this.privateField = new CommField(this, this.getContext(), self, this.pipeline);
             }
+        }
+    }
+
+    protected void triggerAnswer(Packet packet) {
+        if (null == this.activeCall || !this.activeCall.isActive()) {
+            LogUtils.e(TAG, "#triggerAnswer no active call record");
+            return;
+        }
+
+        if (null != this.callTimer) {
+            this.callTimer.cancel();
+            this.callTimer = null;
+        }
+
+        // 记录应答时间
+        this.activeCall.setAnswerTime(System.currentTimeMillis());
+
+        RTCDevice rtcDevice = null;
+
+        JSONObject data = packet.extractServiceData();
+        try {
+            Signaling answerSignaling = new Signaling(data);
+            if (this.activeCall.field.isPrivate()) {
+                this.answerSignaling = answerSignaling;
+                // 被叫媒体约束
+                this.activeCall.setCalleeConstraint(answerSignaling.mediaConstraint);
+                rtcDevice = this.activeCall.field.getRTCDevice();
+            }
+            else {
+                if (answerSignaling.sn == 0) {
+                    Contact fromContact = answerSignaling.contact;
+                    CommFieldEndpoint endpoint = this.activeCall.field.getEndpoint(fromContact);
+                    // 查找到对应的 RTC 设备
+                    rtcDevice = this.activeCall.field.getRTCDevice(endpoint);
+                }
+                else {
+                    // 通过 SN 查找 RTC 设备
+                    rtcDevice = this.activeCall.field.getRTCDevice(answerSignaling.sn);
+                }
+            }
+        } catch (JSONException e) {
+            LogUtils.w(TAG, "#triggerAnswer", e);
+        }
+
+        if (null == rtcDevice) {
+            LogUtils.w(TAG, "#triggerAnswer - Can NOT find rtc device for " + answerSignaling.contact.id);
+            ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.NoPeerEndpoint.code);
+            error.data = this.activeCall;
+            execute(() -> {
+                notifyObservers(new ObservableEvent(MultipointCommEvent.Failed, error));
+            });
+            return;
+        }
+
+        if (LogUtils.isDebugLevel()) {
+            LogUtils.d(TAG, "Answer from " + answerSignaling.contact.id);
+        }
+
+        final RTCDevice currentDevice = rtcDevice;
+        executeOnMainThread(() -> {
+            currentDevice.doAnswer(answerSignaling.sessionDescription, new RTCDeviceHandler() {
+                @Override
+                public void handleRTCDevice(RTCDevice device) {
+                    // 对于 recvonly 的 Peer 不回调 Connected 事件
+                    if (device.getMode().equals(RTCDevice.MODE_BIDIRECTION) || device.getMode().equals(RTCDevice.MODE_SEND_ONLY)) {
+                        notifyObservers(new ObservableEvent(MultipointCommEvent.Connected, activeCall));
+                    }
+                }
+            }, new StableFailureHandler() {
+                @Override
+                public void handleFailure(Module module, ModuleError error) {
+                    activeCall.lastError = error;
+                    notifyObservers(new ObservableEvent(MultipointCommEvent.Failed, error));
+                }
+            });
+        });
+    }
+
+    protected void triggerCandidate(Packet packet) {
+        Signaling signaling = null;
+        try {
+            signaling = new Signaling(packet.extractServiceData());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        RTCDevice rtcDevice = null;
+        if (this.activeCall.field.isPrivate()) {
+            rtcDevice = this.activeCall.field.getRTCDevice();
+        }
+        else {
+            if (signaling.sn == 0) {
+                // 找到对应的节点
+                CommFieldEndpoint endpoint = this.activeCall.field.getEndpoint(signaling.contact);
+                if (null != endpoint) {
+                    rtcDevice = this.activeCall.field.getRTCDevice(endpoint);
+                }
+            }
+            else {
+                rtcDevice = this.activeCall.field.getRTCDevice(signaling.sn);
+            }
+        }
+
+        if (null == rtcDevice) {
+            LogUtils.e(MultipointComm.NAME, "#triggerCandidate - Can NOT find RTC device: " + signaling.name);
+            return;
+        }
+
+        final RTCDevice currentDevice = rtcDevice;
+        final Signaling currentSignaling = signaling;
+
+        if (null != signaling.candidates) {
+            executeOnMainThread(() -> {
+                for (IceCandidate candidate : currentSignaling.candidates) {
+                    currentDevice.doCandidate(candidate);
+                }
+            });
+        }
+
+        if (null != signaling.candidate) {
+            executeOnMainThread(() -> {
+                currentDevice.doCandidate(currentSignaling.candidate);
+            });
+        }
+    }
+
+    protected void triggerBye(Packet packet) {
+        try {
+            Signaling signaling = new Signaling(packet.extractServiceData());
+            if (this.activeCall.field.isPrivate()) {
+                hangupCall();
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    protected void triggerBusy(Packet packet) {
+        if (null != this.callTimer) {
+            this.callTimer.cancel();
+            this.callTimer = null;
+        }
+
+        try {
+            Signaling signaling = new Signaling(packet.extractServiceData());
+            if (signaling.field.isPrivate()) {
+                if (signaling.callee.id.longValue() == this.privateField.id.longValue()) {
+                    // 被叫收到自己其他终端的 Busy
+
+                    // 记录
+                    this.activeCall.setEndTime(System.currentTimeMillis());
+
+                    // 收到本终端的 Busy 时，回调 Bye
+                    ObservableEvent event = new ObservableEvent(MultipointCommEvent.Bye, this.activeCall);
+                    this.notifyObservers(event);
+                }
+                else {
+                    // 收到其他终端的 Busy
+                    ObservableEvent event = new ObservableEvent(MultipointCommEvent.Busy, this.activeCall);
+                    notifyObservers(event);
+
+                    // 终止通话
+                    this.hangupCall();
+                }
+            }
+            else {
+                ObservableEvent event = new ObservableEvent(MultipointCommEvent.Busy, this.activeCall);
+                notifyObservers(event);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
     }
 }

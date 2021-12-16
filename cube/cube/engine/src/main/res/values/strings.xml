@@ -5,9 +5,10 @@
     <string name="on_in_progress">正在处理呼叫...</string>
     <string name="on_ringing">对方振铃...</string>
     <string name="on_ringing_with_count">对方振铃，等待接通 (%1$d)</string>
+    <string name="on_timeout">对方未应答</string>
 
     <string name="enabled">已开启</string>
     <string name="disabled">已关闭</string>
-    <string name="speaker">扬声器</string>
-    <string name="receiver">听筒</string>
+    <string name="speakerphone">扬声器</string>
+    <string name="telephone">听筒</string>
 </resources>

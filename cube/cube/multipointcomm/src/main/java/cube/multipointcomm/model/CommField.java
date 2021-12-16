@@ -131,6 +131,8 @@ public class CommField extends Entity implements RTCDevice.RTCEventListener {
 
     private RTCDevice outboundRTC;
 
+    private RTCDevice inboundRTC;
+
     private ConcurrentHashMap<Long, RTCDevice> inboundRTCMap;
 
     public CommField(MultipointComm service, Context context, Self self, Pipeline pipeline) {
@@ -239,6 +241,62 @@ public class CommField extends Entity implements RTCDevice.RTCEventListener {
      */
     public RTCDevice getLocalDevice() {
         return this.outboundRTC;
+    }
+
+    public RTCDevice getRTCDevice() {
+        return this.outboundRTC;
+    }
+
+    public RTCDevice getRTCDevice(CommFieldEndpoint endpoint) {
+        RTCDevice device = this.inboundRTCMap.get(endpoint.id);
+        if (null != device) {
+            return device;
+        }
+
+        if (endpoint.getContact().id.longValue() == this.self.id.longValue() &&
+            endpoint.getDevice().name.equals(this.self.device.name)) {
+            // loopback 的 Peer
+            return this.outboundRTC;
+        }
+
+        return null;
+    }
+
+    public RTCDevice getRTCDevice(long deviceSN) {
+        if (null != this.outboundRTC && this.outboundRTC.getSN() == deviceSN) {
+            return this.outboundRTC;
+        }
+        else if (null != this.inboundRTC && this.inboundRTC.getSN() == deviceSN) {
+            return this.inboundRTC;
+        }
+        else {
+            for (RTCDevice device : this.inboundRTCMap.values()) {
+                if (device.getSN() == deviceSN) {
+                    return device;
+                }
+            }
+
+            return null;
+        }
+    }
+
+    /**
+     * 返回指定的终端节点的实例。
+     *
+     * @param contact
+     * @return
+     */
+    public CommFieldEndpoint getEndpoint(Contact contact) {
+        for (CommFieldEndpoint endpoint : this.endpoints) {
+            if (endpoint.getContact().id.longValue() == contact.id.longValue()) {
+                if (null == endpoint.rtcDevice) {
+                    endpoint.rtcDevice = this.getRTCDevice(endpoint);
+                }
+                return endpoint;
+            }
+        }
+
+        return null;
     }
 
     /**

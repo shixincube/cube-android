@@ -310,7 +310,9 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
                     // 摄像机权限
                     Manifest.permission.CAMERA,
                     // 麦克风权限
-                    Manifest.permission.RECORD_AUDIO
+                    Manifest.permission.RECORD_AUDIO,
+                    // 扬声器权限
+                    Manifest.permission.MODIFY_AUDIO_SETTINGS
             )
             .request();
     }

@@ -29,6 +29,8 @@ package cube.multipointcomm;
 import cube.core.Packet;
 import cube.core.Pipeline;
 import cube.core.PipelineListener;
+import cube.core.PipelineState;
+import cube.util.LogUtils;
 
 /**
  * 通道监听器。
@@ -43,7 +45,23 @@ public class CommPipelineListener implements PipelineListener {
 
     @Override
     public void onReceived(Pipeline pipeline, String source, Packet packet) {
+        if (packet.state.code != PipelineState.Ok.code) {
+            LogUtils.w("CommPipelineListener", "Pipeline error: " + packet.name + " - " + packet.state.code);
+            return;
+        }
 
+        if (packet.name.equals(MultipointCommAction.Answer)) {
+            this.service.triggerAnswer(packet);
+        }
+        else if (packet.name.equals(MultipointCommAction.Candidate)) {
+            this.service.triggerCandidate(packet);
+        }
+        else if (packet.name.equals(MultipointCommAction.Bye)) {
+            this.service.triggerBye(packet);
+        }
+        else if (packet.name.equals(MultipointCommAction.Busy)) {
+            this.service.triggerBusy(packet);
+        }
     }
 
     @Override

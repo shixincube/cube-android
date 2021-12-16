@@ -41,6 +41,7 @@ import org.webrtc.MediaConstraints;
 import org.webrtc.MediaStream;
 import org.webrtc.PeerConnection;
 import org.webrtc.PeerConnectionFactory;
+import org.webrtc.RendererCommon;
 import org.webrtc.RtpReceiver;
 import org.webrtc.SdpObserver;
 import org.webrtc.SessionDescription;
@@ -57,6 +58,7 @@ import java.util.List;
 import cube.core.ModuleError;
 import cube.core.handler.FailureHandler;
 import cube.multipointcomm.handler.OfferHandler;
+import cube.multipointcomm.handler.RTCDeviceHandler;
 import cube.multipointcomm.util.MediaConstraint;
 import cube.multipointcomm.util.VideoDimension;
 import cube.util.LogUtils;
@@ -93,7 +95,9 @@ public class RTCDevice {
 
     private CameraVideoEventsHandler cameraVideoHandler;
     private VideoCapturer videoCapturer;
-    private SurfaceViewRenderer localView;
+
+    private SurfaceViewRenderer localVideoView;
+    private SurfaceViewRenderer remoteVideoView;
 
     private PeerConnectionFactory factory;
     private EglBase.Context eglBaseContext;
@@ -106,6 +110,10 @@ public class RTCDevice {
 
     private StreamState streamState;
 
+    private boolean ready = false;
+
+    private List<IceCandidate> candidates;
+
     public RTCDevice(Context context, String mode, PeerConnectionFactory factory, EglBase.Context eglBaseContext) {
         this.sn = cell.util.Utils.generateUnsignedSerialNumber();
         this.context = context;
@@ -113,6 +121,7 @@ public class RTCDevice {
         this.factory = factory;
         this.eglBaseContext = eglBaseContext;
         this.iceServers = new ArrayList<>();
+        this.candidates = new ArrayList<>();
     }
 
     public long getSN() {
@@ -123,8 +132,12 @@ public class RTCDevice {
         return this.mode;
     }
 
-    public void setViewRenderer(SurfaceViewRenderer viewRenderer) {
-        this.localView = viewRenderer;
+    public void setLocalVideoView(SurfaceViewRenderer videoView) {
+        this.localVideoView = videoView;
+    }
+
+    public void setRemoteVideoView(SurfaceViewRenderer videoView) {
+        this.remoteVideoView = videoView;
     }
 
     public void setEventListener(RTCEventListener listener) {
@@ -225,6 +238,16 @@ public class RTCDevice {
         return result;
     }
 
+    private void syncStreamState(MediaStream stream, StreamStateSymbol streamStateSymbol) {
+        for (VideoTrack track : stream.videoTracks) {
+            track.setEnabled(streamStateSymbol.video);
+        }
+        for (AudioTrack track : stream.audioTracks) {
+            track.setEnabled(streamStateSymbol.audio);
+            track.setVolume(streamStateSymbol.calcTrackVolume());
+        }
+    }
+
     /**
      * 启动 RTC 终端为主叫。
      *
@@ -309,6 +332,90 @@ public class RTCDevice {
     }
 
     /**
+     * 主叫执行 Answer 应答。
+     * @param description
+     * @param successHandler
+     * @param failureHandler
+     */
+    protected void doAnswer(SessionDescription description, RTCDeviceHandler successHandler, FailureHandler failureHandler) {
+        this.pc.setRemoteDescription(new SdpObserver() {
+            @Override
+            public void onCreateSuccess(SessionDescription sessionDescription) {
+                // Nothing
+            }
+
+            @Override
+            public void onSetSuccess() {
+                successHandler.handleRTCDevice(RTCDevice.this);
+                doReady();
+            }
+
+            @Override
+            public void onCreateFailure(String sdp) {
+                // Nothing
+            }
+
+            @Override
+            public void onSetFailure(String sdp) {
+                ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.RemoteDescriptionFault.code);
+                error.data = RTCDevice.this;
+                failureHandler.handleFailure(null, error);
+            }
+        }, description);
+    }
+
+    private void doReady() {
+        this.ready = true;
+
+        synchronized (this.candidates) {
+            for (IceCandidate candidate : this.candidates) {
+                // 添加 Ice Candidate
+                this.pc.addIceCandidate(candidate);
+
+                if (LogUtils.isDebugLevel()) {
+                    LogUtils.d(TAG, "#doReady - Add candidate: " + candidate.sdpMid);
+                }
+            }
+
+            this.candidates.clear();
+        }
+
+        // 同步流状态
+        android.os.Handler handler = new android.os.Handler(this.context.getMainLooper());
+        handler.post(() -> {
+            if (null != outboundStream) {
+                syncStreamState(outboundStream, streamState.output);
+            }
+        });
+    }
+
+    protected void doCandidate(IceCandidate candidate) {
+        if (null == this.pc) {
+            return;
+        }
+
+        if (!this.ready) {
+            synchronized (this.candidates) {
+                this.candidates.add(candidate);
+            }
+            return;
+        }
+
+        synchronized (this.candidates) {
+            if (this.candidates.size() > 0) {
+                for (IceCandidate iceCandidate : this.candidates) {
+                    this.pc.addIceCandidate(iceCandidate);
+                }
+                this.candidates.clear();
+            }
+        }
+
+        this.pc.addIceCandidate(candidate);
+
+        LogUtils.d(TAG, "#doCandidate - add candidate: " + candidate.sdpMid);
+    }
+
+    /**
      * 关闭 RTC 设备。
      */
     public void close() {
@@ -365,13 +472,14 @@ public class RTCDevice {
         this.videoCapturer.startCapture(videoDimension.height, videoDimension.width, fps);
 
         // 设置本地摄像头的渲染界面
-        this.localView.setMirror(true);
-        this.localView.setEnableHardwareScaler(true);
-        this.localView.init(this.eglBaseContext, null);
+        this.localVideoView.init(this.eglBaseContext, null);
+        this.localVideoView.setMirror(true);
+        this.localVideoView.setEnableHardwareScaler(true);
+        this.localVideoView.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
 
         // 创建 Video Track
         VideoTrack videoTrack = this.factory.createVideoTrack(VIDEO_TRACK_ID, videoSource);
-        videoTrack.addSink(this.localView);
+        videoTrack.addSink(this.localVideoView);
 
         return videoTrack;
     }
@@ -509,7 +617,6 @@ public class RTCDevice {
             if (LogUtils.isDebugLevel()) {
                 LogUtils.d(TAG, "#onAddStream");
             }
-
         }
 
         @Override
@@ -567,6 +674,14 @@ public class RTCDevice {
 
         public boolean video = true;
         public boolean audio = true;
+
+        /**
+         * 语音 Volume 设置，取值范围 0 - 100
+         */
         public int volume = 100;
+
+        private double calcTrackVolume() {
+            return ((double) this.volume) / 10.0f;
+        }
     }
 }

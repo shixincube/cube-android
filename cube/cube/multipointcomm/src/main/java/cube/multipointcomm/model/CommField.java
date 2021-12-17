@@ -505,7 +505,9 @@ public class CommField extends Entity implements RTCDevice.RTCEventListener {
 
     @Override
     public void onMediaConnected(RTCDevice rtcDevice) {
-
+        if (null != this.mediaListener) {
+            this.mediaListener.onMediaConnected(this, rtcDevice);
+        }
     }
 
     @Override

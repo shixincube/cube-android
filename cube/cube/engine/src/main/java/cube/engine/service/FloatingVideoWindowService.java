@@ -189,6 +189,8 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
 
         this.closing.set(true);
 
+        this.callContactController.stopCallTiming();
+
         TranslateAnimation animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0,
                 Animation.RELATIVE_TO_SELF, 0,
                 Animation.RELATIVE_TO_SELF, 0,
@@ -211,13 +213,29 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
         this.previewMode = true;
 
         if (this.callContactController.isShown()) {
-            this.callContactController.changeSize(true);
+            if (this.mediaConstraint.videoEnabled) {
+                this.callContactController.changeSize(true,
+                        ScreenUtil.dp2px(this, 80),
+                        ScreenUtil.dp2px(this, 120));
+            }
+            else {
+                this.callContactController.changeSize(true,
+                        ScreenUtil.dp2px(this, 50),
+                        ScreenUtil.dp2px(this, 50));
+            }
         }
 
         Point size = ScreenUtil.getScreenSize(this);
 
-        this.layoutParams.width = ScreenUtil.dp2px(this, 55);
-        this.layoutParams.height = ScreenUtil.dp2px(this, 55);
+        if (this.mediaConstraint.videoEnabled) {
+            this.layoutParams.width = ScreenUtil.dp2px(this, 80);
+            this.layoutParams.height = ScreenUtil.dp2px(this, 120);
+        }
+        else {
+            this.layoutParams.width = ScreenUtil.dp2px(this, 55);
+            this.layoutParams.height = ScreenUtil.dp2px(this, 55);
+        }
+
         this.layoutParams.x = size.x - this.layoutParams.width;
         this.layoutParams.y = ScreenUtil.getStatusBarHeight(this) + ScreenUtil.dp2px(this, 50);
         this.windowManager.updateViewLayout(this.displayView, this.layoutParams);
@@ -230,11 +248,18 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
 
         this.previewMode = false;
 
-        if (this.callContactController.isShown()) {
-            this.callContactController.changeSize(false);
-        }
-
         Point size = ScreenUtil.getScreenSize(this);
+
+        if (this.callContactController.isShown()) {
+            if (this.mediaConstraint.videoEnabled) {
+                this.callContactController.changeSize(false, size.x, size.y);
+            }
+            else {
+                this.callContactController.changeSize(false,
+                        ScreenUtil.dp2px(this, 120),
+                        ScreenUtil.dp2px(this, 120));
+            }
+        }
 
         this.layoutParams.width = size.x;
         this.layoutParams.height = size.y;
@@ -293,7 +318,7 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
         }
 
         // 设置媒体约束
-        this.callContactController.setMediaConstraint(this.mediaConstraint);
+        this.callContactController.config(this.mediaConstraint);
 
         if (null != this.contact) {
             int resource = intent.getIntExtra("avatarResource", 0);
@@ -436,6 +461,8 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
             this.callTimer.cancel();
             this.callTimer = null;
         }
+
+        this.callContactController.startCallTiming();
     }
 
     @Override

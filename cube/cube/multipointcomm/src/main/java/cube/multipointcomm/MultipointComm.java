@@ -26,6 +26,8 @@
 
 package cube.multipointcomm;
 
+import android.view.ViewGroup;
+
 import androidx.annotation.Nullable;
 
 import org.json.JSONArray;
@@ -105,6 +107,9 @@ public class MultipointComm extends Module implements Observer {
 
     private Signaling offerSignaling;
     private Signaling answerSignaling;
+
+    private ViewGroup localVideoContainer;
+    private ViewGroup remoteVideoContainer;
 
     public MultipointComm() {
         super(NAME);
@@ -199,6 +204,24 @@ public class MultipointComm extends Module implements Observer {
     }
 
     /**
+     * 设置本地视频容器。
+     *
+     * @param container
+     */
+    public void setLocalVideoContainer(ViewGroup container) {
+        this.localVideoContainer = container;
+    }
+
+    /**
+     * 设置远端视频容器。
+     *
+     * @param container
+     */
+    public void setRemoteVideoContainer(ViewGroup container) {
+        this.remoteVideoContainer = container;
+    }
+
+    /**
      * 发起通话。
      *
      * @param contact
@@ -238,6 +261,13 @@ public class MultipointComm extends Module implements Observer {
                     // 私有场域，触发 Ringing 事件
                     ObservableEvent event = new ObservableEvent(MultipointCommEvent.Ringing, callRecord);
                     notifyObservers(event);
+
+                    if (null != localVideoContainer) {
+                        executeOnMainThread(() -> {
+                            // 添加本地视频界面
+                            localVideoContainer.addView(callRecord.field.getLocalDevice().getLocalVideoView());
+                        });
+                    }
                 }
                 else {
                     // 普通场域，触发 Ringing 事件
@@ -349,6 +379,20 @@ public class MultipointComm extends Module implements Observer {
         }
 
         CommField field = this.activeCall.field;
+
+        executeOnMainThread(() -> {
+            if (field.isPrivate()) {
+                if (null != localVideoContainer) {
+                    localVideoContainer.removeAllViews();
+                }
+                if (null != remoteVideoContainer) {
+                    remoteVideoContainer.removeAllViews();
+                }
+            }
+            else {
+                // TODO
+            }
+        });
 
         PipelineHandler handler = new PipelineHandler() {
             @Override

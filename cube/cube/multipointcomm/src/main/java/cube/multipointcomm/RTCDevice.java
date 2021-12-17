@@ -27,6 +27,7 @@
 package cube.multipointcomm;
 
 import android.content.Context;
+import android.view.ViewGroup;
 
 import org.webrtc.AudioSource;
 import org.webrtc.AudioTrack;
@@ -132,12 +133,18 @@ public class RTCDevice {
         return this.mode;
     }
 
-    public void setLocalVideoView(SurfaceViewRenderer videoView) {
-        this.localVideoView = videoView;
+    public SurfaceViewRenderer getLocalVideoView() {
+        return this.localVideoView;
     }
 
-    public void setRemoteVideoView(SurfaceViewRenderer videoView) {
-        this.remoteVideoView = videoView;
+    public SurfaceViewRenderer getRemoteVideoView() {
+        if (null == remoteVideoView) {
+            remoteVideoView = new SurfaceViewRenderer(context);
+            ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT);
+            remoteVideoView.setLayoutParams(lp);
+        }
+        return this.remoteVideoView;
     }
 
     public void setEventListener(RTCEventListener listener) {
@@ -338,6 +345,7 @@ public class RTCDevice {
      * @param failureHandler
      */
     protected void doAnswer(SessionDescription description, RTCDeviceHandler successHandler, FailureHandler failureHandler) {
+        // 设置远端 SDP
         this.pc.setRemoteDescription(new SdpObserver() {
             @Override
             public void onCreateSuccess(SessionDescription sessionDescription) {
@@ -381,12 +389,11 @@ public class RTCDevice {
         }
 
         // 同步流状态
-        android.os.Handler handler = new android.os.Handler(this.context.getMainLooper());
-        handler.post(() -> {
-            if (null != outboundStream) {
+        if (null != outboundStream) {
+            runOnUiThread(() -> {
                 syncStreamState(outboundStream, streamState.output);
-            }
-        });
+            });
+        }
     }
 
     protected void doCandidate(IceCandidate candidate) {
@@ -472,6 +479,12 @@ public class RTCDevice {
         this.videoCapturer.startCapture(videoDimension.height, videoDimension.width, fps);
 
         // 设置本地摄像头的渲染界面
+        if (null == this.localVideoView) {
+            this.localVideoView = new SurfaceViewRenderer(this.context);
+            ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT);
+            this.localVideoView.setLayoutParams(lp);
+        }
         this.localVideoView.init(this.eglBaseContext, null);
         this.localVideoView.setMirror(true);
         this.localVideoView.setEnableHardwareScaler(true);
@@ -538,6 +551,11 @@ public class RTCDevice {
         // 修改模式 PlanB 无法使用仅接收音视频的配置
 //        rtcConfig.sdpSemantics = PeerConnection.SdpSemantics.UNIFIED_PLAN;
         return rtcConfig;
+    }
+
+    private void runOnUiThread(Runnable task) {
+        android.os.Handler handler = new android.os.Handler(this.context.getMainLooper());
+        handler.post(task);
     }
 
     protected class CameraVideoEventsHandler implements CameraVideoCapturer.CameraEventsHandler {
@@ -617,11 +635,31 @@ public class RTCDevice {
             if (LogUtils.isDebugLevel()) {
                 LogUtils.d(TAG, "#onAddStream");
             }
+
+            inboundStream = mediaStream;
+
+            VideoTrack remoteVideoTrack = mediaStream.videoTracks.get(0);
+            runOnUiThread(() -> {
+                if (null == remoteVideoView) {
+                    remoteVideoView = new SurfaceViewRenderer(context);
+                    ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT);
+                    remoteVideoView.setLayoutParams(lp);
+                }
+                remoteVideoView.init(eglBaseContext, null);
+                remoteVideoView.setMirror(false);
+                remoteVideoView.setEnableHardwareScaler(true);
+                remoteVideoView.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
+
+                remoteVideoTrack.addSink(remoteVideoView);
+
+                // 同步流状态
+                syncStreamState(mediaStream, streamState.input);
+            });
         }
 
         @Override
         public void onRemoveStream(MediaStream mediaStream) {
-
         }
 
         @Override

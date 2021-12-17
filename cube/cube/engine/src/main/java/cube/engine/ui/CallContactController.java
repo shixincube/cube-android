@@ -34,7 +34,10 @@ import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import java.util.Timer;
 
 import cube.core.Module;
 import cube.core.ModuleError;
@@ -43,6 +46,7 @@ import cube.engine.CubeEngine;
 import cube.engine.R;
 import cube.engine.service.FloatingVideoWindowService;
 import cube.engine.util.ScreenUtil;
+import cube.multipointcomm.RTCDevice;
 import cube.multipointcomm.handler.DefaultCommFieldHandler;
 import cube.multipointcomm.model.CallRecord;
 import cube.multipointcomm.model.CommField;
@@ -56,7 +60,12 @@ public class CallContactController {
     private FloatingVideoWindowService service;
     private AudioManager audioManager;
 
-    private LinearLayout mainLayout;
+    private ViewGroup mainLayout;
+
+    private RelativeLayout backboardLayout;
+    private RelativeLayout foreboardLayout;
+    private RelativeLayout primaryVideoContainer;
+    private RelativeLayout secondaryVideoContainer;
 
     private LinearLayout headerLayout;
     private LinearLayout bodyLayout;
@@ -79,17 +88,31 @@ public class CallContactController {
 
     private MediaConstraint mediaConstraint;
 
-    public CallContactController(FloatingVideoWindowService service, AudioManager audioManager, LinearLayout mainLayout) {
+    private Timer callingTimer;
+
+    public CallContactController(FloatingVideoWindowService service, AudioManager audioManager, ViewGroup mainLayout) {
         this.service = service;
         this.audioManager = audioManager;
         this.mainLayout = mainLayout;
+
+        this.initView();
+        this.initListener();
     }
 
+    /**
+     * 重置界面元素。
+     */
     public void reset() {
-        if (null == this.headerLayout) {
-            this.initView();
-            this.initListener();
-        }
+        int barHeight = ScreenUtil.getStatusBarHeight(this.service);
+        RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(this.backboardLayout.getLayoutParams());
+        lp.setMargins(0, barHeight, 0, 0);
+        this.backboardLayout.setLayoutParams(lp);
+        this.backboardLayout.setVisibility(View.GONE);
+
+        lp = new RelativeLayout.LayoutParams(this.foreboardLayout.getLayoutParams());
+        lp.setMargins(0, barHeight, 0, 0);
+        this.foreboardLayout.setLayoutParams(lp);
+        this.foreboardLayout.setVisibility(View.GONE);
 
         this.microphoneLayout.setVisibility(View.GONE);
         this.speakerLayout.setVisibility(View.GONE);
@@ -98,11 +121,27 @@ public class CallContactController {
         this.hangupButton.setEnabled(true);
     }
 
-    public void setMediaConstraint(MediaConstraint mediaConstraint) {
+    public void config(MediaConstraint mediaConstraint) {
         this.mediaConstraint = mediaConstraint;
+
+        if (mediaConstraint.videoEnabled) {
+            this.avatarView.setVisibility(View.GONE);
+            this.nameView.setVisibility(View.GONE);
+
+            this.backboardLayout.setVisibility(View.VISIBLE);
+            this.foreboardLayout.setVisibility(View.VISIBLE);
+
+            // 设置视频容器
+            CubeEngine.getInstance().getMultipointComm().setRemoteVideoContainer(this.primaryVideoContainer);
+            CubeEngine.getInstance().getMultipointComm().setLocalVideoContainer(this.secondaryVideoContainer);
+        }
+        else {
+            this.avatarView.setVisibility(View.VISIBLE);
+            this.nameView.setVisibility(View.VISIBLE);
+        }
     }
 
-    public LinearLayout getMainLayout() {
+    public ViewGroup getMainLayout() {
         return this.mainLayout;
     }
 
@@ -110,34 +149,69 @@ public class CallContactController {
         return this.mainLayout.isShown();
     }
 
-    public void changeSize(boolean mini) {
+    public void startCallTiming() {
+
+    }
+
+    public void stopCallTiming() {
+
+    }
+
+    public void changeSize(boolean mini, int widthInPixel, int heightInPixel) {
         if (mini) {
-            this.headerLayout.setVisibility(View.GONE);
-            this.footerLayout.setVisibility(View.GONE);
-            this.nameView.setVisibility(View.GONE);
-            this.tipsView.setVisibility(View.GONE);
+            if (this.mediaConstraint.videoEnabled) {
+                this.headerLayout.setVisibility(View.GONE);
+                this.footerLayout.setVisibility(View.GONE);
+                this.bodyLayout.setVisibility(View.GONE);
+
+                this.foreboardLayout.setVisibility(View.GONE);
+
+                RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(this.backboardLayout.getLayoutParams());
+                lp.setMargins(0, 0, 0, 0);
+                this.backboardLayout.setLayoutParams(lp);
+            }
+            else {
+                this.headerLayout.setVisibility(View.GONE);
+                this.footerLayout.setVisibility(View.GONE);
+                this.nameView.setVisibility(View.GONE);
+                this.tipsView.setVisibility(View.GONE);
+
+                ViewGroup.LayoutParams params = this.avatarView.getLayoutParams();
+                params.width = widthInPixel;
+                params.height = heightInPixel;
+
+                this.typeView.setVisibility(View.VISIBLE);
+            }
 
             this.mainLayout.setBackgroundResource(R.drawable.shape_frame);
-
-            ViewGroup.LayoutParams params = this.avatarView.getLayoutParams();
-            params.width = ScreenUtil.dp2px(this.service, 50);
-            params.height = ScreenUtil.dp2px(this.service, 50);
-
-            this.typeView.setVisibility(View.VISIBLE);
         }
         else {
             this.mainLayout.setBackgroundResource(R.mipmap.window_background);
 
-            this.headerLayout.setVisibility(View.VISIBLE);
-            this.footerLayout.setVisibility(View.VISIBLE);
-            this.nameView.setVisibility(View.VISIBLE);
-            this.tipsView.setVisibility(View.VISIBLE);
+            if (this.mediaConstraint.videoEnabled) {
+                this.headerLayout.setVisibility(View.VISIBLE);
+                this.footerLayout.setVisibility(View.VISIBLE);
+                this.bodyLayout.setVisibility(View.VISIBLE);
 
-            ViewGroup.LayoutParams params = this.avatarView.getLayoutParams();
-            params.width = ScreenUtil.dp2px(this.service, 120);
-            params.height = ScreenUtil.dp2px(this.service, 120);
+                this.foreboardLayout.setVisibility(View.VISIBLE);
 
-            this.typeView.setVisibility(View.GONE);
+                int barHeight = ScreenUtil.getStatusBarHeight(this.service);
+                RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(this.backboardLayout.getLayoutParams());
+                lp.setMargins(0, barHeight, 0, 0);
+                this.backboardLayout.setLayoutParams(lp);
+            }
+            else {
+                this.headerLayout.setVisibility(View.VISIBLE);
+                this.footerLayout.setVisibility(View.VISIBLE);
+                this.nameView.setVisibility(View.VISIBLE);
+                this.tipsView.setVisibility(View.VISIBLE);
+
+                ViewGroup.LayoutParams params = this.avatarView.getLayoutParams();
+                params.width = widthInPixel;
+                params.height = heightInPixel;
+
+                this.typeView.setVisibility(View.GONE);
+            }
         }
     }
 
@@ -159,12 +233,14 @@ public class CallContactController {
 
     public void showControls(CallRecord callRecord) {
         if (this.mediaConstraint.audioEnabled) {
-//            RTCDevice device = callRecord.field.getLocalDevice();
+            RTCDevice device = callRecord.field.getLocalDevice();
 
-            boolean audioEnabled = true;
+            // 出站音频流是否启用，即是否启用麦克风采集数据
+            boolean audioEnabled = device.outboundAudioEnabled();
+
             this.microphoneButton.setSelected(audioEnabled);
-            this.microphoneText.setText(audioEnabled ? getResources().getString(R.string.enabled)
-                    : getResources().getString(R.string.disabled));
+            this.microphoneText.setText(audioEnabled ? getResources().getString(R.string.microphone_opened)
+                    : getResources().getString(R.string.microphone_closed));
 
             boolean speakerphoneOn = this.audioManager.isSpeakerphoneOn();
             this.speakerButton.setSelected(speakerphoneOn);
@@ -187,6 +263,10 @@ public class CallContactController {
             animation.setDuration(300);
             this.speakerLayout.startAnimation(animation);
         }
+
+        if (this.mediaConstraint.videoEnabled) {
+            // 切换摄像头
+        }
     }
 
     private void hideControls() {
@@ -195,6 +275,11 @@ public class CallContactController {
     }
 
     private void initView() {
+        this.backboardLayout = this.mainLayout.findViewById(R.id.rlBackboard);
+        this.foreboardLayout = this.mainLayout.findViewById(R.id.rlForeboard);
+        this.primaryVideoContainer = this.mainLayout.findViewById(R.id.primaryVideoContainer);
+        this.secondaryVideoContainer = this.mainLayout.findViewById(R.id.secondaryVideoContainer);
+
         this.headerLayout = this.mainLayout.findViewById(R.id.llHeader);
         this.bodyLayout = this.mainLayout.findViewById(R.id.llBody);
         this.footerLayout = this.mainLayout.findViewById(R.id.llFooter);
@@ -239,8 +324,8 @@ public class CallContactController {
         this.microphoneButton.setOnClickListener((view) -> {
             boolean state = !microphoneButton.isSelected();
             microphoneButton.setSelected(state);
-            microphoneText.setText(state ? getResources().getString(R.string.enabled)
-                    : getResources().getString(R.string.disabled));
+            microphoneText.setText(state ? getResources().getString(R.string.microphone_opened)
+                    : getResources().getString(R.string.microphone_closed));
         });
         this.speakerButton.setOnClickListener((view) -> {
             boolean speakerphoneState = audioManager.isSpeakerphoneOn();

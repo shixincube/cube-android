@@ -48,7 +48,6 @@ import org.webrtc.SdpObserver;
 import org.webrtc.SessionDescription;
 import org.webrtc.SurfaceTextureHelper;
 import org.webrtc.SurfaceViewRenderer;
-import org.webrtc.VideoCapturer;
 import org.webrtc.VideoSource;
 import org.webrtc.VideoTrack;
 import org.webrtc.voiceengine.WebRtcAudioUtils;
@@ -95,7 +94,7 @@ public class RTCDevice {
     private PeerConnectionObserver pcObserver;
 
     private CameraVideoEventsHandler cameraVideoHandler;
-    private VideoCapturer videoCapturer;
+    private CameraVideoCapturer videoCapturer;
 
     private SurfaceViewRenderer localVideoView;
     private SurfaceViewRenderer remoteVideoView;
@@ -123,6 +122,8 @@ public class RTCDevice {
         this.eglBaseContext = eglBaseContext;
         this.iceServers = new ArrayList<>();
         this.candidates = new ArrayList<>();
+
+        this.streamState = new StreamState();
     }
 
     public long getSN() {
@@ -138,12 +139,13 @@ public class RTCDevice {
     }
 
     public SurfaceViewRenderer getRemoteVideoView() {
-        if (null == remoteVideoView) {
-            remoteVideoView = new SurfaceViewRenderer(context);
+        if (null == this.remoteVideoView) {
+            this.remoteVideoView = new SurfaceViewRenderer(context);
             ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.MATCH_PARENT);
-            remoteVideoView.setLayoutParams(lp);
+            this.remoteVideoView.setLayoutParams(lp);
         }
+
         return this.remoteVideoView;
     }
 
@@ -252,6 +254,14 @@ public class RTCDevice {
         for (AudioTrack track : stream.audioTracks) {
             track.setEnabled(streamStateSymbol.audio);
             track.setVolume(streamStateSymbol.calcTrackVolume());
+        }
+    }
+
+    public void switchCamera() {
+        if (null != this.videoCapturer) {
+            runOnUiThread(() -> {
+                videoCapturer.switchCamera(null);
+            });
         }
     }
 
@@ -442,6 +452,7 @@ public class RTCDevice {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+            this.videoCapturer.dispose();
             this.videoCapturer = null;
         }
 
@@ -515,7 +526,7 @@ public class RTCDevice {
         return audioTrack;
     }
 
-    private VideoCapturer createCameraCapturer(boolean front) {
+    private CameraVideoCapturer createCameraCapturer(boolean front) {
         boolean camera2Supported = Camera2Enumerator.isSupported(this.context);
         CameraEnumerator enumerator = null;
         if (camera2Supported) {
@@ -527,7 +538,7 @@ public class RTCDevice {
 
         this.cameraVideoHandler = new CameraVideoEventsHandler();
 
-        VideoCapturer videoCapturer = null;
+        CameraVideoCapturer videoCapturer = null;
 
         final String[] deviceNames = enumerator.getDeviceNames();
         for (String deviceName : deviceNames) {
@@ -561,33 +572,45 @@ public class RTCDevice {
     protected class CameraVideoEventsHandler implements CameraVideoCapturer.CameraEventsHandler {
 
         @Override
-        public void onCameraError(String s) {
-
+        public void onCameraError(String deviceName) {
+            if (LogUtils.isDebugLevel()) {
+                LogUtils.d(TAG, "#onCameraError - " + deviceName);
+            }
         }
 
         @Override
         public void onCameraDisconnected() {
-
+            if (LogUtils.isDebugLevel()) {
+                LogUtils.d(TAG, "#onCameraDisconnected");
+            }
         }
 
         @Override
-        public void onCameraFreezed(String s) {
-
+        public void onCameraFreezed(String deviceName) {
+            if (LogUtils.isDebugLevel()) {
+                LogUtils.d(TAG, "#onCameraFreezed - " + deviceName);
+            }
         }
 
         @Override
-        public void onCameraOpening(String s) {
-
+        public void onCameraOpening(String deviceName) {
+            if (LogUtils.isDebugLevel()) {
+                LogUtils.d(TAG, "#onCameraOpening - " + deviceName);
+            }
         }
 
         @Override
         public void onFirstFrameAvailable() {
-
+            if (LogUtils.isDebugLevel()) {
+                LogUtils.d(TAG, "#onFirstFrameAvailable");
+            }
         }
 
         @Override
         public void onCameraClosed() {
-
+            if (LogUtils.isDebugLevel()) {
+                LogUtils.d(TAG, "#onCameraClosed");
+            }
         }
     }
 
@@ -703,6 +726,8 @@ public class RTCDevice {
 
         public StreamStateSymbol output = new StreamStateSymbol();
 
+        protected StreamState() {
+        }
     }
 
     /**
@@ -717,6 +742,13 @@ public class RTCDevice {
          * 语音 Volume 设置，取值范围 0 - 100
          */
         public int volume = 100;
+
+        protected StreamStateSymbol() {
+        }
+
+        protected StreamStateSymbol(int volume) {
+            this.volume = volume;
+        }
 
         private double calcTrackVolume() {
             return ((double) this.volume) / 10.0f;

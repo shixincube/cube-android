@@ -155,6 +155,10 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
      * 显示默认界面。
      */
     private void show(Intent intent) {
+        if (null == intent) {
+            return;
+        }
+
         if (null == this.displayView) {
             // 获取布局
             LayoutInflater inflater = LayoutInflater.from(getApplicationContext());
@@ -171,7 +175,9 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
         this.previewMode = false;
         windowManager.addView(displayView, layoutParams);
 
-        this.start(intent);
+        if (!this.start(intent)) {
+            windowManager.removeView(displayView);
+        }
     }
 
     /**
@@ -300,7 +306,7 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
         return params;
     }
 
-    private void start(Intent intent) {
+    private boolean start(Intent intent) {
         if (intent.hasExtra("contactId")) {
             Long contactId = intent.getLongExtra("contactId", 0);
             this.contact = CubeEngine.getInstance().getContactService().getContact(contactId);
@@ -308,6 +314,9 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
         else if (intent.hasExtra("groupId")) {
             Long groupId = intent.getLongExtra("groupId", 0);
             this.group = CubeEngine.getInstance().getContactService().getGroup(groupId);
+        }
+        else {
+            return false;
         }
 
         String jsonString = intent.getStringExtra("mediaConstraint");
@@ -343,6 +352,8 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
                 }
             });
         }
+
+        return true;
     }
 
     @Override

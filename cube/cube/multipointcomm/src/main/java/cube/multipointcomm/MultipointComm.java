@@ -268,6 +268,12 @@ public class MultipointComm extends Module implements Observer {
                             localVideoContainer.addView(callRecord.field.getLocalDevice().getLocalVideoView());
                         });
                     }
+                    if (null != remoteVideoContainer) {
+                        executeOnMainThread(() -> {
+                            // 添加对端视频界面
+                            remoteVideoContainer.addView(callRecord.field.getLocalDevice().getRemoteVideoView());
+                        });
+                    }
                 }
                 else {
                     // 普通场域，触发 Ringing 事件

@@ -116,59 +116,94 @@
             android:layout_gravity="bottom"
             android:layout_weight="0.75"
             android:gravity="center"
-            android:orientation="horizontal">
+            android:orientation="vertical">
 
             <LinearLayout
-                android:id="@+id/llMicrophone"
+                android:id="@+id/llCameraLayout"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:orientation="vertical">
-                <ImageButton
-                    android:id="@+id/btnMicrophone"
-                    android:layout_width="56dp"
-                    android:layout_height="56dp"
-                    android:background="@drawable/selector_microphone"
-                    android:src="@null"/>
-                <TextView
-                    android:id="@+id/tvMicrophone"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:text="@string/microphone_opened"
-                    android:textColor="@color/white"
-                    android:textSize="12sp"/>
+                android:layout_marginBottom="20dp"
+                android:layout_gravity="center"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnCamera"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:background="@drawable/selector_camera"/>
+
+                <View
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_marginStart="50dp"
+                    android:layout_marginEnd="50dp"/>
+
+                <Button
+                    android:id="@+id/btnSwitchCamera"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:background="@drawable/selector_switch_camera"/>
+
             </LinearLayout>
 
-            <ImageButton
-                android:id="@+id/btnHangup"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="50dp"
-                android:layout_marginEnd="50dp"
-                android:background="@color/transparent"
-                android:src="@drawable/selector_hang_up"/>
-
             <LinearLayout
-                android:id="@+id/llSpeaker"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:orientation="vertical">
-                <ImageButton
-                    android:id="@+id/btnSpeaker"
-                    android:layout_width="56dp"
-                    android:layout_height="56dp"
-                    android:background="@drawable/selector_speaker"
-                    android:src="@null"/>
-                <TextView
-                    android:id="@+id/tvSpeaker"
+                android:layout_gravity="center"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:id="@+id/llMicrophone"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:text="@string/telephone"
-                    android:textColor="@color/white"
-                    android:textSize="12sp"/>
+                    android:layout_gravity="center_vertical"
+                    android:orientation="vertical">
+                    <Button
+                        android:id="@+id/btnMicrophone"
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:background="@drawable/selector_microphone"/>
+                    <TextView
+                        android:id="@+id/tvMicrophone"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="@string/microphone_opened"
+                        android:textColor="@color/white"
+                        android:textSize="12sp"/>
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/btnHangup"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_marginStart="50dp"
+                    android:layout_marginEnd="50dp"
+                    android:background="@drawable/selector_hangup"/>
+
+                <LinearLayout
+                    android:id="@+id/llSpeaker"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:orientation="vertical">
+                    <Button
+                        android:id="@+id/btnSpeaker"
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:background="@drawable/selector_speaker"/>
+                    <TextView
+                        android:id="@+id/tvSpeaker"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="@string/telephone"
+                        android:textColor="@color/white"
+                        android:textSize="12sp"/>
+                </LinearLayout>
+
             </LinearLayout>
 
         </LinearLayout>
@@ -186,7 +221,7 @@
             android:id="@+id/secondaryVideoContainer"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@color/gray"/>
+            android:background="@color/black"/>
 
     </RelativeLayout>
 

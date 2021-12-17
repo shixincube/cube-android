@@ -458,6 +458,10 @@ public class Directory extends Entity implements Comparator<FileItem> {
         Iterator<FileItem> iter = itemList.iterator();
         while (iter.hasNext()) {
             FileItem item = iter.next();
+            if (null == item) {
+                continue;
+            }
+
             if (item.type == FileItem.ItemType.File) {
                 fileList.add(item);
                 iter.remove();

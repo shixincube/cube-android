@@ -32,6 +32,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -76,15 +77,19 @@ public class CallContactController {
     private AdvancedImageView typeView;
     private TextView nameView;
     private TextView tipsView;
-    private ImageButton hangupButton;
+    private Button hangupButton;
 
     private LinearLayout microphoneLayout;
-    private ImageButton microphoneButton;
+    private Button microphoneButton;
     private TextView microphoneText;
 
     private LinearLayout speakerLayout;
-    private ImageButton speakerButton;
+    private Button speakerButton;
     private TextView speakerText;
+
+    private LinearLayout cameraLayout;
+    private Button cameraButton;
+    private Button switchCameraButton;
 
     private MediaConstraint mediaConstraint;
 
@@ -116,7 +121,11 @@ public class CallContactController {
 
         this.microphoneLayout.setVisibility(View.GONE);
         this.speakerLayout.setVisibility(View.GONE);
+        this.cameraLayout.setVisibility(View.GONE);
+        this.cameraButton.setVisibility(View.GONE);
+        this.switchCameraButton.setVisibility(View.GONE);
 
+        this.tipsView.setVisibility(View.VISIBLE);
         this.tipsView.setText(getResources().getString(R.string.calling));
         this.hangupButton.setEnabled(true);
     }
@@ -127,6 +136,7 @@ public class CallContactController {
         if (mediaConstraint.videoEnabled) {
             this.avatarView.setVisibility(View.GONE);
             this.nameView.setVisibility(View.GONE);
+            this.cameraLayout.setVisibility(View.VISIBLE);
 
             this.backboardLayout.setVisibility(View.VISIBLE);
             this.foreboardLayout.setVisibility(View.VISIBLE);
@@ -138,6 +148,7 @@ public class CallContactController {
         else {
             this.avatarView.setVisibility(View.VISIBLE);
             this.nameView.setVisibility(View.VISIBLE);
+            this.cameraLayout.setVisibility(View.GONE);
         }
     }
 
@@ -150,11 +161,21 @@ public class CallContactController {
     }
 
     public void startCallTiming() {
+        if (this.mediaConstraint.videoEnabled) {
+            this.tipsView.setVisibility(View.GONE);
+        }
+        else {
 
+        }
     }
 
     public void stopCallTiming() {
+        if (this.mediaConstraint.videoEnabled) {
+            this.tipsView.setVisibility(View.VISIBLE);
+        }
+        else {
 
+        }
     }
 
     public void changeSize(boolean mini, int widthInPixel, int heightInPixel) {
@@ -231,10 +252,14 @@ public class CallContactController {
         this.tipsView.setText(getResources().getString(resourceId, formatArgs));
     }
 
-    public void showControls(CallRecord callRecord) {
-        if (this.mediaConstraint.audioEnabled) {
-            RTCDevice device = callRecord.field.getLocalDevice();
+    public void setTipsText(ModuleError error) {
+        this.tipsView.setText(getResources().getString(R.string.no_failed_with_error, error.code));
+    }
 
+    public void showControls(CallRecord callRecord) {
+        RTCDevice device = callRecord.field.getLocalDevice();
+
+        if (this.mediaConstraint.audioEnabled) {
             // 出站音频流是否启用，即是否启用麦克风采集数据
             boolean audioEnabled = device.outboundAudioEnabled();
 
@@ -265,13 +290,32 @@ public class CallContactController {
         }
 
         if (this.mediaConstraint.videoEnabled) {
-            // 切换摄像头
+            // 出站视频流是否可用
+            boolean videoEnabled = device.outboundVideoEnabled();
+            this.cameraButton.setSelected(videoEnabled);
+
+            this.cameraButton.setVisibility(View.VISIBLE);
+            TranslateAnimation animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, -2,
+                    Animation.RELATIVE_TO_SELF, 0,
+                    Animation.RELATIVE_TO_SELF, 0,
+                    Animation.RELATIVE_TO_SELF, 0);
+            animation.setDuration(300);
+            this.cameraButton.startAnimation(animation);
+
+            this.switchCameraButton.setVisibility(View.VISIBLE);
+            animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 2,
+                    Animation.RELATIVE_TO_SELF, 0,
+                    Animation.RELATIVE_TO_SELF, 0,
+                    Animation.RELATIVE_TO_SELF, 0);
+            animation.setDuration(300);
+            this.switchCameraButton.startAnimation(animation);
         }
     }
 
     private void hideControls() {
-        this.microphoneButton.setVisibility(View.GONE);
-        this.speakerButton.setVisibility(View.GONE);
+        this.microphoneLayout.setVisibility(View.GONE);
+        this.speakerLayout.setVisibility(View.GONE);
+        this.cameraLayout.setVisibility(View.GONE);
     }
 
     private void initView() {
@@ -297,6 +341,10 @@ public class CallContactController {
         this.speakerLayout = this.mainLayout.findViewById(R.id.llSpeaker);
         this.speakerButton = this.mainLayout.findViewById(R.id.btnSpeaker);
         this.speakerText = this.mainLayout.findViewById(R.id.tvSpeaker);
+
+        this.cameraLayout = this.mainLayout.findViewById(R.id.llCameraLayout);
+        this.cameraButton = this.mainLayout.findViewById(R.id.btnCamera);
+        this.switchCameraButton = this.mainLayout.findViewById(R.id.btnSwitchCamera);
     }
 
     private void initListener() {
@@ -326,7 +374,15 @@ public class CallContactController {
             microphoneButton.setSelected(state);
             microphoneText.setText(state ? getResources().getString(R.string.microphone_opened)
                     : getResources().getString(R.string.microphone_closed));
+
+            // 开关麦克风
+            CubeEngine.getInstance().getMultipointComm()
+                    .getActiveCallRecord()
+                    .getCommField()
+                    .getLocalDevice()
+                    .enableOutboundAudio(state);
         });
+
         this.speakerButton.setOnClickListener((view) -> {
             boolean speakerphoneState = audioManager.isSpeakerphoneOn();
             speakerphoneState = !speakerphoneState;
@@ -334,6 +390,26 @@ public class CallContactController {
             speakerButton.setSelected(speakerphoneState);
             speakerText.setText(speakerphoneState ? getResources().getString(R.string.speakerphone)
                     : getResources().getString(R.string.telephone));
+        });
+
+        this.cameraButton.setOnClickListener((view) -> {
+            boolean state = !cameraButton.isSelected();
+            cameraButton.setSelected(state);
+
+            // 开关摄像机
+            CubeEngine.getInstance().getMultipointComm()
+                    .getActiveCallRecord()
+                    .getCommField()
+                    .getLocalDevice()
+                    .enableOutboundVideo(state);
+        });
+
+        this.switchCameraButton.setOnClickListener((view) -> {
+            CubeEngine.getInstance().getMultipointComm()
+                    .getActiveCallRecord()
+                    .getCommField()
+                    .getLocalDevice()
+                    .switchCamera();
         });
     }
 

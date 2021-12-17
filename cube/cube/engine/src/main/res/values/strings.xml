@@ -6,6 +6,7 @@
     <string name="on_ringing">对方振铃...</string>
     <string name="on_ringing_with_count">对方振铃，等待接通 (%1$d)</string>
     <string name="on_timeout">对方未应答</string>
+    <string name="no_failed_with_error">通话失败: (%1$d)</string>
 
     <string name="microphone_opened">已开启</string>
     <string name="microphone_closed">已静音</string>

@@ -222,6 +222,15 @@ public class MultipointComm extends Module implements Observer {
     }
 
     /**
+     * 获取当前正在活跃的通话记录。
+     *
+     * @return 返回当前正在活跃的通话记录。
+     */
+    public CallRecord getActiveCallRecord() {
+        return this.activeCall;
+    }
+
+    /**
      * 发起通话。
      *
      * @param contact
@@ -342,6 +351,10 @@ public class MultipointComm extends Module implements Observer {
                     }, new StableFailureHandler() {
                         @Override
                         public void handleFailure(Module module, ModuleError error) {
+                            if (LogUtils.isDebugLevel()) {
+                                LogUtils.d(TAG, "#launchOffer - Failed : " + error.code);
+                            }
+
                             failure.handleFailure(MultipointComm.this, error);
                         }
                     });
@@ -349,6 +362,10 @@ public class MultipointComm extends Module implements Observer {
             }, new StableFailureHandler() {
                 @Override
                 public void handleFailure(Module module, ModuleError error) {
+                    if (LogUtils.isDebugLevel()) {
+                        LogUtils.d(TAG, "#applyCall - Failed : " + error.code);
+                    }
+
                     failure.handleFailure(MultipointComm.this, error);
                 }
             });
@@ -534,7 +551,7 @@ public class MultipointComm extends Module implements Observer {
         ObservableEvent event = new ObservableEvent(MultipointCommEvent.Timeout, callRecord);
         notifyObservers(event);
 
-        this.hangupCall();
+        hangupCall();
     }
 
     private RTCDevice createRTCDevice(String mode) {

@@ -3,7 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/transparent">
+    android:background="@color/transparent"
+    android:keepScreenOn="true">
 
     <include layout="@layout/cube_contact_call_layout"/>
 

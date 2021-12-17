@@ -348,7 +348,11 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
             }, new DefaultFailureHandler(true) {
                 @Override
                 public void handleFailure(Module module, ModuleError error) {
-                    hide();
+                    callContactController.setTipsText(error);
+                    Handler handler = new Handler(getMainLooper());
+                    handler.postDelayed(() -> {
+                        hide();
+                    }, 3000);
                 }
             });
         }

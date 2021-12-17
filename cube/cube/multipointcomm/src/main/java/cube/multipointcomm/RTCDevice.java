@@ -257,6 +257,9 @@ public class RTCDevice {
         }
     }
 
+    /**
+     * 切换摄像头。
+     */
     public void switchCamera() {
         if (null != this.videoCapturer) {
             runOnUiThread(() -> {
@@ -673,6 +676,8 @@ public class RTCDevice {
                 remoteVideoView.setMirror(false);
                 remoteVideoView.setEnableHardwareScaler(true);
                 remoteVideoView.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
+                remoteVideoView.setZOrderOnTop(false);
+                remoteVideoView.setZOrderMediaOverlay(false);
 
                 remoteVideoTrack.addSink(remoteVideoView);
 

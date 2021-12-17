@@ -27,6 +27,7 @@
 package cube.multipointcomm;
 
 import android.content.Context;
+import android.view.View;
 import android.view.ViewGroup;
 
 import org.webrtc.AudioSource;
@@ -147,6 +148,19 @@ public class RTCDevice {
         }
 
         return this.remoteVideoView;
+    }
+
+    public void swapVideoViewTop(boolean localTop) {
+        if (null == this.localVideoView || null == this.remoteVideoView) {
+            return;
+        }
+
+        this.localVideoView.setVisibility(View.GONE);
+        this.remoteVideoView.setVisibility(View.GONE);
+        this.localVideoView.setZOrderMediaOverlay(localTop);
+        this.remoteVideoView.setZOrderMediaOverlay(!localTop);
+        this.localVideoView.setVisibility(View.VISIBLE);
+        this.remoteVideoView.setVisibility(View.VISIBLE);
     }
 
     public void setEventListener(RTCEventListener listener) {
@@ -676,8 +690,6 @@ public class RTCDevice {
                 remoteVideoView.setMirror(false);
                 remoteVideoView.setEnableHardwareScaler(true);
                 remoteVideoView.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
-                remoteVideoView.setZOrderOnTop(false);
-                remoteVideoView.setZOrderMediaOverlay(false);
 
                 remoteVideoTrack.addSink(remoteVideoView);
 

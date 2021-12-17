@@ -312,10 +312,45 @@ public class CallContactController {
         }
     }
 
-    private void hideControls() {
-        this.microphoneLayout.setVisibility(View.GONE);
-        this.speakerLayout.setVisibility(View.GONE);
-        this.cameraLayout.setVisibility(View.GONE);
+    public void hideControls() {
+        this.microphoneLayout.setVisibility(View.INVISIBLE);
+        this.speakerLayout.setVisibility(View.INVISIBLE);
+        this.cameraLayout.setVisibility(View.INVISIBLE);
+    }
+
+    /**
+     * 交换两个视频界面。
+     */
+    public void swapVideoView() {
+        View view = this.backboardLayout.getChildAt(0);
+        if (view.getId() == this.primaryVideoContainer.getId()) {
+            // 将副视频界面切换到背板
+            this.backboardLayout.removeView(this.primaryVideoContainer);
+            this.foreboardLayout.removeView(this.secondaryVideoContainer);
+
+            CubeEngine.getInstance().getMultipointComm()
+                    .getActiveCallRecord()
+                    .getCommField()
+                    .getLocalDevice()
+                    .swapVideoViewTop(false);
+
+            this.backboardLayout.addView(this.secondaryVideoContainer);
+            this.foreboardLayout.addView(this.primaryVideoContainer);
+        }
+        else {
+            // 将主视频界面切换到背板
+            this.backboardLayout.removeView(this.secondaryVideoContainer);
+            this.foreboardLayout.removeView(this.primaryVideoContainer);
+
+            CubeEngine.getInstance().getMultipointComm()
+                    .getActiveCallRecord()
+                    .getCommField()
+                    .getLocalDevice()
+                    .swapVideoViewTop(true);
+
+            this.backboardLayout.addView(this.primaryVideoContainer);
+            this.foreboardLayout.addView(this.secondaryVideoContainer);
+        }
     }
 
     private void initView() {
@@ -410,6 +445,11 @@ public class CallContactController {
                     .getCommField()
                     .getLocalDevice()
                     .switchCamera();
+        });
+
+        this.foreboardLayout.setOnClickListener((view) -> {
+            // 切换画面
+            swapVideoView();
         });
     }
 

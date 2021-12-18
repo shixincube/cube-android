@@ -50,7 +50,10 @@ public class CommPipelineListener implements PipelineListener {
             return;
         }
 
-        if (packet.name.equals(MultipointCommAction.Answer)) {
+        if (packet.name.equals(MultipointCommAction.Offer)) {
+            this.service.triggerOffer(packet);
+        }
+        else if (packet.name.equals(MultipointCommAction.Answer)) {
             this.service.triggerAnswer(packet);
         }
         else if (packet.name.equals(MultipointCommAction.Candidate)) {

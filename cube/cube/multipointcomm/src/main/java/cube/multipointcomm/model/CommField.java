@@ -162,6 +162,7 @@ public class CommField extends Entity implements RTCDevice.RTCEventListener {
             JSONArray array = json.getJSONArray("endpoints");
             for (int i = 0; i < array.length(); ++i) {
                 CommFieldEndpoint endpoint = new CommFieldEndpoint(array.getJSONObject(i));
+                endpoint.field = this;
                 this.endpoints.add(endpoint);
             }
         }
@@ -180,6 +181,9 @@ public class CommField extends Entity implements RTCDevice.RTCEventListener {
 
     public void update(CommField source) {
         if (!source.endpoints.isEmpty()) {
+            for (CommFieldEndpoint endpoint : source.endpoints) {
+                endpoint.field = this;
+            }
             this.endpoints.clear();
             this.endpoints.addAll(source.endpoints);
         }
@@ -200,12 +204,23 @@ public class CommField extends Entity implements RTCDevice.RTCEventListener {
         }
     }
 
+    public void assigns(MultipointComm service, Context context, Self self, Pipeline pipeline) {
+        this.service = service;
+        this.context = context;
+        this.self = self;
+        this.pipeline = pipeline;
+    }
+
     public Self getSelf() {
         return this.self;
     }
 
     public Contact getFounder() {
         return this.founder;
+    }
+
+    public void setFounder(Contact contact) {
+        this.founder = contact;
     }
 
     public boolean isPrivate() {
@@ -225,8 +240,28 @@ public class CommField extends Entity implements RTCDevice.RTCEventListener {
         return this.caller;
     }
 
+    public void setCaller(Contact caller) {
+        this.caller = caller;
+    }
+
     public Contact getCallee() {
         return this.callee;
+    }
+
+    public void setCallee(Contact callee) {
+        this.callee = callee;
+    }
+
+    public Group getGroup() {
+        return this.group;
+    }
+
+    public void setGroup(Group group) {
+        this.group = group;
+    }
+
+    public List<CommFieldEndpoint> getEndpoints() {
+        return new ArrayList<>(this.endpoints);
     }
 
     public int numRTCDevices() {
@@ -471,10 +506,6 @@ public class CommField extends Entity implements RTCDevice.RTCEventListener {
             rtcDevice.close();
         }
         this.inboundRTCMap.clear();
-    }
-
-    private void fillSignaling(Signaling signaling) {
-
     }
 
     @Override

@@ -88,6 +88,10 @@ public class CommFieldEndpoint extends Entity {
         return this.contact;
     }
 
+    public void setContact(Contact contact) {
+        this.contact = contact;
+    }
+
     public Device getDevice() {
         return this.device;
     }

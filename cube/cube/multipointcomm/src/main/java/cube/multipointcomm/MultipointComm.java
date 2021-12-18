@@ -52,6 +52,7 @@ import cube.contact.ContactService;
 import cube.contact.ContactServiceEvent;
 import cube.contact.model.Contact;
 import cube.contact.model.Device;
+import cube.contact.model.Group;
 import cube.contact.model.Self;
 import cube.core.Module;
 import cube.core.ModuleError;
@@ -667,6 +668,57 @@ public class MultipointComm extends Module implements Observer {
         }
     }
 
+    protected void triggerOffer(Packet packet) {
+        Signaling offerSignaling = null;
+        try {
+            offerSignaling = new Signaling(packet.extractServiceData());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        if (null != this.activeCall && this.activeCall.isActive()) {
+            // 应答忙音 Busy
+            Signaling busy = new Signaling(MultipointCommAction.Busy, offerSignaling.field,
+                    this.privateField.getSelf(), this.privateField.getSelf().device);
+            Packet busyPacket = new Packet(MultipointCommAction.Busy, busy.toJSON());
+            this.pipeline.send(MultipointComm.NAME, busyPacket);
+            return;
+        }
+
+        // 赋值
+        this.offerSignaling = offerSignaling;
+
+        // 启动应答定时器
+        this.callTimer = new Timer();
+        this.callTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                fireCallTimeout();
+            }
+        }, this.callTimeout - 10000);
+
+        if (this.offerSignaling.field.isPrivate()) {
+            this.activeCall = new CallRecord(this.privateField.getSelf(), this.privateField);
+
+            this.privateField.setCaller(this.contactService.getContact(offerSignaling.caller.id));
+            this.privateField.setCallee(this.contactService.getContact(offerSignaling.callee.id));
+
+            this.activeCall.setCallerConstraint(offerSignaling.mediaConstraint);
+
+            ObservableEvent event = new ObservableEvent(MultipointCommEvent.NewCall, this.activeCall);
+            notifyObservers(event);
+        }
+        else {
+            this.activeCall = new CallRecord(this.privateField.getSelf(), offerSignaling.field);
+
+            // 填充数据
+            fillCommField(this.activeCall.field);
+
+            ObservableEvent event = new ObservableEvent(MultipointCommEvent.NewCall, this.activeCall);
+            notifyObservers(event);
+        }
+    }
+
     protected void triggerAnswer(Packet packet) {
         if (null == this.activeCall || !this.activeCall.isActive()) {
             LogUtils.e(TAG, "#triggerAnswer no active call record");
@@ -835,6 +887,53 @@ public class MultipointComm extends Module implements Observer {
             }
         } catch (JSONException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void fillCommField(CommField commField) {
+        if (null == commField.getSelf()) {
+            // 数据对象赋值
+            commField.assigns(this, getContext(), this.privateField.getSelf(), this.pipeline);
+
+            for (CommFieldEndpoint endpoint : commField.getEndpoints()) {
+                Contact contact = endpoint.getContact();
+                if (null != contact) {
+                    contact = this.contactService.getContact(contact.id);
+                    if (null != contact) {
+                        endpoint.setContact(contact);
+                    }
+                }
+            }
+
+            Contact founder = commField.getFounder();
+            founder = this.contactService.getContact(founder.id);
+            if (null != founder) {
+                commField.setFounder(founder);
+            }
+
+            Contact caller = commField.getCaller();
+            if (null != caller) {
+                caller = this.contactService.getContact(caller.id);
+                if (null != caller) {
+                    commField.setCaller(caller);
+                }
+            }
+
+            Contact callee = commField.getCallee();
+            if (null != callee) {
+                callee = this.contactService.getContact(callee.id);
+                if (null != callee) {
+                    commField.setCallee(callee);
+                }
+            }
+
+            Group group = commField.getGroup();
+            if (null != group) {
+                group = this.contactService.getGroup(group.id);
+                if (null != group) {
+                    commField.setGroup(group);
+                }
+            }
         }
     }
 }

@@ -435,6 +435,13 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
     }
 
     @Override
+    public void onNewCall(CallRecord callRecord) {
+        if (LogUtils.isDebugLevel()) {
+            LogUtils.d(TAG, "#onNewCall");
+        }
+    }
+
+    @Override
     public void onInProgress(CallRecord callRecord) {
         if (LogUtils.isDebugLevel()) {
             LogUtils.d(TAG, "#onInProgress");

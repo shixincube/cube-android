@@ -58,6 +58,7 @@ import java.util.List;
 
 import cube.core.ModuleError;
 import cube.core.handler.FailureHandler;
+import cube.multipointcomm.handler.AnswerHandler;
 import cube.multipointcomm.handler.OfferHandler;
 import cube.multipointcomm.handler.RTCDeviceHandler;
 import cube.multipointcomm.util.MediaConstraint;
@@ -313,6 +314,7 @@ public class RTCDevice {
         this.pcObserver = new PeerConnectionObserver();
         // 创建 Peer Connection
         this.pc = this.factory.createPeerConnection(getConfig(this.iceServers), this.pcObserver);
+        // 添加媒体流
         this.pc.addStream(this.outboundStream);
 
         this.pc.createOffer(new SdpObserver() {
@@ -363,6 +365,114 @@ public class RTCDevice {
                 // Nothing
             }
         }, this.createRtcMediaConstraints(mediaConstraint));
+    }
+
+    /**
+     * 启动 RTC 终端为被叫。
+     *
+     * @param sessionDescription
+     * @param mediaConstraint
+     * @param successHandler
+     * @param failureHandler
+     */
+    public void openAnswer(SessionDescription sessionDescription, MediaConstraint mediaConstraint,
+                           AnswerHandler successHandler, FailureHandler failureHandler) {
+        if (null != this.pc) {
+            ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.ConnRepeated.code);
+            failureHandler.handleFailure(null, error);
+            return;
+        }
+
+        this.mediaConstraint = mediaConstraint;
+
+        this.pcObserver = new PeerConnectionObserver();
+        // 创建 Peer Connection
+        this.pc = this.factory.createPeerConnection(getConfig(this.iceServers), this.pcObserver);
+        this.pc.setRemoteDescription(new SdpObserver() {
+            @Override
+            public void onCreateSuccess(SessionDescription sessionDescription) {
+                // Nothing
+            }
+
+            @Override
+            public void onSetSuccess() {
+                runOnUiThread(() -> {
+                    // 创建本地流
+                    outboundStream = factory.createLocalMediaStream(MEDIA_STREAM_LABEL);
+
+                    if (mediaConstraint.videoEnabled) {
+                        // 启动摄像机提供视频画面
+                        VideoTrack videoTrack = createVideoTrack(mediaConstraint.getVideoDimension(), mediaConstraint.getVideoFps());
+                        outboundStream.addTrack(videoTrack);
+                    }
+
+                    AudioTrack audioTrack = createAudioTrack();
+                    outboundStream.addTrack(audioTrack);
+
+                    // 添加媒体流
+                    pc.addStream(outboundStream);
+
+                    pc.createAnswer(new SdpObserver() {
+                        @Override
+                        public void onCreateSuccess(SessionDescription sessionDescription) {
+                            // 设置本地 SDP
+                            pc.setLocalDescription(new SdpObserver() {
+                                @Override
+                                public void onCreateSuccess(SessionDescription sessionDescription) {
+                                    // Nothing
+                                }
+
+                                @Override
+                                public void onSetSuccess() {
+                                    successHandler.handleAnswer(RTCDevice.this, pc.getLocalDescription());
+                                }
+
+                                @Override
+                                public void onCreateFailure(String desc) {
+                                    // Nothing
+                                }
+
+                                @Override
+                                public void onSetFailure(String desc) {
+                                    ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.LocalDescriptionFault.code);
+                                    error.data = desc;
+                                    failureHandler.handleFailure(null, error);
+                                }
+                            }, sessionDescription);
+                        }
+
+                        @Override
+                        public void onSetSuccess() {
+                            // Nothing
+                        }
+
+                        @Override
+                        public void onCreateFailure(String desc) {
+                            ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.CreateAnswerFailed.code);
+                            error.data = desc;
+                            failureHandler.handleFailure(null, error);
+                        }
+
+                        @Override
+                        public void onSetFailure(String desc) {
+                            // Nothing
+                        }
+                    }, createRtcMediaConstraints(mediaConstraint));
+                });
+            }
+
+            @Override
+            public void onCreateFailure(String desc) {
+                // Nothing
+            }
+
+            @Override
+            public void onSetFailure(String desc) {
+                ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.RemoteDescriptionFault.code);
+                error.data = desc;
+                failureHandler.handleFailure(null, error);
+            }
+        }, sessionDescription);
     }
 
     /**

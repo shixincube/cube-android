@@ -340,6 +340,8 @@ public class MultipointComm extends Module implements Observer {
                     // 记录媒体约束
                     activeCall.setCallerConstraint(mediaConstraint);
 
+                    fillCommField(commField, true);
+
                     // 2. 启动 RTC 节点，发起 Offer
                     // 创建 RTC 设备
                     RTCDevice rtcDevice = createRTCDevice(RTCDevice.MODE_BIDIRECTION);
@@ -370,6 +372,111 @@ public class MultipointComm extends Module implements Observer {
                     failure.handleFailure(MultipointComm.this, error);
                 }
             });
+    }
+
+    /**
+     * 应答通话请求。
+     *
+     * @param mediaConstraint
+     * @param successHandler
+     * @param failureHandler
+     */
+    public void answerCall(MediaConstraint mediaConstraint, CallHandler successHandler, FailureHandler failureHandler) {
+        if (null == this.activeCall) {
+            ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.Failure.code);
+            execute(failureHandler, error);
+            return;
+        }
+
+        if (this.activeCall.field.isPrivate()) {
+            Contact target = this.activeCall.field.getCaller();
+            this.answerCall(mediaConstraint, target, successHandler, failureHandler);
+        }
+        else {
+            // TODO
+        }
+    }
+
+    public void answerCall(MediaConstraint mediaConstraint, Contact target, CallHandler successHandler, FailureHandler failureHandler) {
+        if (null == this.offerSignaling) {
+            ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.SignalingError.code);
+            execute(failureHandler, error);
+            return;
+        }
+
+        if (null != this.callTimer) {
+            this.callTimer.cancel();
+            this.callTimer = null;
+        }
+
+        execute(() -> {
+            notifyObservers(new ObservableEvent(MultipointCommEvent.InProgress, this.activeCall));
+        });
+
+        if (this.activeCall.isActive()) {
+            ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.CalleeBusy.code);
+            execute(failureHandler, error);
+            return;
+        }
+
+        // 记录时间
+        this.activeCall.setAnswerTime(System.currentTimeMillis());
+
+        // 1. 申请加入
+        this.privateField.applyJoin(this.privateField.getSelf(), this.privateField.getSelf().device, new DefaultApplyCallHandler(false) {
+            @Override
+            public void handleApplyCall(CommField commField, Contact participant, Device device) {
+                // 记录
+                activeCall.setCalleeConstraint(mediaConstraint);
+
+                fillCommField(commField, true);
+
+                // 2. 启动 RTC 节点，发起 Answer
+                RTCDevice rtcDevice = createRTCDevice(RTCDevice.MODE_BIDIRECTION);
+                privateField.launchAnswer(rtcDevice, offerSignaling.sessionDescription, mediaConstraint, new DefaultCommFieldHandler() {
+                    @Override
+                    public void handleCommField(CommField commField) {
+                        if (successHandler.isInMainThread()) {
+                            executeOnMainThread(() -> {
+                                successHandler.handleCall(activeCall);
+                            });
+                        }
+                        else {
+                            execute(() -> {
+                                successHandler.handleCall(activeCall);
+                            });
+                        }
+
+                        execute(() -> {
+                            notifyObservers(new ObservableEvent(MultipointCommEvent.Connected, activeCall));
+                        });
+                    }
+                }, new StableFailureHandler() {
+                    @Override
+                    public void handleFailure(Module module, ModuleError error) {
+                        if (failureHandler.isInMainThread()) {
+                            executeOnMainThread(() -> {
+                                failureHandler.handleFailure(MultipointComm.this, error);
+                            });
+                        }
+                        else {
+                            execute(() -> {
+                                failureHandler.handleFailure(MultipointComm.this, error);
+                            });
+                        }
+
+                        executeOnMainThread(() -> {
+                            hangupCall();
+                        });
+                    }
+                });
+            }
+        }, new StableFailureHandler() {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+
+            }
+        });
     }
 
     /**
@@ -607,7 +714,14 @@ public class MultipointComm extends Module implements Observer {
         super.notifyObservers(event);
 
         String eventName = event.getName();
-        if (MultipointCommEvent.InProgress.equals(eventName)) {
+        if (MultipointCommEvent.NewCall.equals(eventName)) {
+            executeOnMainThread(() -> {
+                for (CallListener listener : callListeners) {
+                    listener.onNewCall((CallRecord) event.getData());
+                }
+            });
+        }
+        else if (MultipointCommEvent.InProgress.equals(eventName)) {
             executeOnMainThread(() -> {
                 for (CallListener listener : callListeners) {
                     listener.onInProgress((CallRecord) event.getData());
@@ -712,7 +826,7 @@ public class MultipointComm extends Module implements Observer {
             this.activeCall = new CallRecord(this.privateField.getSelf(), offerSignaling.field);
 
             // 填充数据
-            fillCommField(this.activeCall.field);
+            fillCommField(this.activeCall.field, false);
 
             ObservableEvent event = new ObservableEvent(MultipointCommEvent.NewCall, this.activeCall);
             notifyObservers(event);
@@ -890,10 +1004,12 @@ public class MultipointComm extends Module implements Observer {
         }
     }
 
-    private void fillCommField(CommField commField) {
-        if (null == commField.getSelf()) {
+    private void fillCommField(CommField commField, boolean force) {
+        if (null == commField.getSelf() || force) {
             // 数据对象赋值
-            commField.assigns(this, getContext(), this.privateField.getSelf(), this.pipeline);
+            if (null == commField.getSelf()) {
+                commField.assigns(this, getContext(), this.privateField.getSelf(), this.pipeline);
+            }
 
             for (CommFieldEndpoint endpoint : commField.getEndpoints()) {
                 Contact contact = endpoint.getContact();

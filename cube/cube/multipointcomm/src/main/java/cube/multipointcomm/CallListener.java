@@ -38,6 +38,12 @@ public interface CallListener {
      *
      * @param callRecord
      */
+    void onNewCall(CallRecord callRecord);
+
+    /**
+     *
+     * @param callRecord
+     */
     void onInProgress(CallRecord callRecord);
 
     /**

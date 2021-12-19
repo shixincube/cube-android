@@ -31,9 +31,9 @@ import org.webrtc.SessionDescription;
 import cube.multipointcomm.RTCDevice;
 
 /**
- * RTC 设备 Offer 句柄。
+ * RTC 设备 Answer 句柄。
  */
-public interface OfferHandler {
+public interface AnswerHandler {
 
-    void handleOffer(RTCDevice device, SessionDescription sessionDescription);
+    void handleAnswer(RTCDevice device, SessionDescription sessionDescription);
 }

@@ -391,6 +391,62 @@ public class CommField extends Entity implements RTCDevice.RTCEventListener {
     }
 
     /**
+     * 申请加入场域。
+     *
+     * @param participant
+     * @param device
+     * @param successHandler
+     * @param failureHandler
+     */
+    public void applyJoin(Contact participant, Device device, DefaultApplyCallHandler successHandler, FailureHandler failureHandler) {
+        if (!this.pipeline.isReady()) {
+            ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.NoPipeline.code);
+            this.service.execute(failureHandler, error);
+            return;
+        }
+
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("field", this.toCompactJSON());
+            payload.put("participant", participant.toCompactJSON());
+            payload.put("device", device.toCompactJSON());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        Packet requestPacket = new Packet(MultipointCommAction.ApplyJoin, payload);
+        this.pipeline.send(MultipointComm.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    ModuleError error = new ModuleError(MultipointComm.NAME, packet.state.code);
+                    service.execute(failureHandler, error);
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != MultipointCommState.Ok.code) {
+                    ModuleError error = new ModuleError(MultipointComm.NAME, stateCode);
+                    service.execute(failureHandler, error);
+                    return;
+                }
+
+                JSONObject data = packet.extractServiceData();
+                try {
+                    CommField response = new CommField(data);
+                    // 更新数据
+                    update(response);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                service.execute(() -> {
+                    successHandler.handleApplyCall(CommField.this, participant, device);
+                });
+            }
+        });
+    }
+
+    /**
      * 启动 Offer 流程。
      *
      * @param rtcDevice
@@ -456,6 +512,11 @@ public class CommField extends Entity implements RTCDevice.RTCEventListener {
                 }
             });
         });
+    }
+
+    public void launchAnswer(RTCDevice rtcDevice, SessionDescription sessionDescription, MediaConstraint mediaConstraint,
+                             CommFieldHandler successHandler, FailureHandler failureHandler) {
+
     }
 
     private void sendSignaling(Signaling signaling, SignalingHandler successHandler, FailureHandler failureHandler) {

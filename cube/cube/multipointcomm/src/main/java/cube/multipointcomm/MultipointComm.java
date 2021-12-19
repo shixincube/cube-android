@@ -349,6 +349,9 @@ public class MultipointComm extends Module implements Observer {
                     privateField.launchOffer(rtcDevice, mediaConstraint, new DefaultCommFieldHandler() {
                         @Override
                         public void handleCommField(CommField commField) {
+                            // 填充数据
+                            fillCommField(commField, true);
+
                             success.handleCall(activeCall);
                         }
                     }, new StableFailureHandler() {
@@ -388,95 +391,110 @@ public class MultipointComm extends Module implements Observer {
             return;
         }
 
-        if (this.activeCall.field.isPrivate()) {
-            Contact target = this.activeCall.field.getCaller();
-            this.answerCall(mediaConstraint, target, successHandler, failureHandler);
-        }
-        else {
-            // TODO
-        }
-    }
-
-    public void answerCall(MediaConstraint mediaConstraint, Contact target, CallHandler successHandler, FailureHandler failureHandler) {
         if (null == this.offerSignaling) {
             ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.SignalingError.code);
             execute(failureHandler, error);
             return;
         }
 
-        if (null != this.callTimer) {
-            this.callTimer.cancel();
-            this.callTimer = null;
-        }
+        if (this.activeCall.field.isPrivate()) {
+            if (null != this.callTimer) {
+                this.callTimer.cancel();
+                this.callTimer = null;
+            }
 
-        execute(() -> {
-            notifyObservers(new ObservableEvent(MultipointCommEvent.InProgress, this.activeCall));
-        });
+            if (this.activeCall.isActive()) {
+                ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.CalleeBusy.code);
+                execute(failureHandler, error);
+                return;
+            }
 
-        if (this.activeCall.isActive()) {
-            ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.CalleeBusy.code);
-            execute(failureHandler, error);
-            return;
-        }
+            execute(() -> {
+                notifyObservers(new ObservableEvent(MultipointCommEvent.InProgress, this.activeCall));
+            });
 
-        // 记录时间
-        this.activeCall.setAnswerTime(System.currentTimeMillis());
+            // 记录时间
+            this.activeCall.setAnswerTime(System.currentTimeMillis());
 
-        // 1. 申请加入
-        this.privateField.applyJoin(this.privateField.getSelf(), this.privateField.getSelf().device, new DefaultApplyCallHandler(false) {
-            @Override
-            public void handleApplyCall(CommField commField, Contact participant, Device device) {
-                // 记录
-                activeCall.setCalleeConstraint(mediaConstraint);
+            // 1. 申请加入
+            this.privateField.applyJoin(this.privateField.getSelf(), this.privateField.getSelf().device, new DefaultApplyCallHandler(false) {
+                @Override
+                public void handleApplyCall(CommField commField, Contact participant, Device device) {
+                    // 记录
+                    activeCall.setCalleeConstraint(mediaConstraint);
 
-                fillCommField(commField, true);
+                    fillCommField(commField, true);
 
-                // 2. 启动 RTC 节点，发起 Answer
-                RTCDevice rtcDevice = createRTCDevice(RTCDevice.MODE_BIDIRECTION);
-                privateField.launchAnswer(rtcDevice, offerSignaling.sessionDescription, mediaConstraint, new DefaultCommFieldHandler() {
-                    @Override
-                    public void handleCommField(CommField commField) {
-                        if (successHandler.isInMainThread()) {
-                            executeOnMainThread(() -> {
-                                successHandler.handleCall(activeCall);
-                            });
-                        }
-                        else {
+                    // 2. 启动 RTC 节点，发起 Answer
+                    RTCDevice rtcDevice = createRTCDevice(RTCDevice.MODE_BIDIRECTION);
+                    privateField.launchAnswer(rtcDevice, offerSignaling.sessionDescription, mediaConstraint, new DefaultCommFieldHandler() {
+                        @Override
+                        public void handleCommField(CommField commField) {
+                            // 填充数据
+                            fillCommField(commField, true);
+
+                            if (successHandler.isInMainThread()) {
+                                executeOnMainThread(() -> {
+                                    successHandler.handleCall(activeCall);
+                                });
+                            }
+                            else {
+                                execute(() -> {
+                                    successHandler.handleCall(activeCall);
+                                });
+                            }
+
                             execute(() -> {
-                                successHandler.handleCall(activeCall);
+                                notifyObservers(new ObservableEvent(MultipointCommEvent.Connected, activeCall));
                             });
                         }
+                    }, new StableFailureHandler() {
+                        @Override
+                        public void handleFailure(Module module, ModuleError error) {
+                            if (LogUtils.isDebugLevel()) {
+                                LogUtils.d(TAG, "#launchAnswer - Failed : " + error.code);
+                            }
 
-                        execute(() -> {
-                            notifyObservers(new ObservableEvent(MultipointCommEvent.Connected, activeCall));
-                        });
+                            if (failureHandler.isInMainThread()) {
+                                executeOnMainThread(() -> {
+                                    failureHandler.handleFailure(MultipointComm.this, error);
+                                });
+                            }
+                            else {
+                                execute(() -> {
+                                    failureHandler.handleFailure(MultipointComm.this, error);
+                                });
+                            }
+
+                            executeOnMainThread(() -> {
+                                hangupCall();
+                            });
+                        }
+                    });
+                }
+            }, new StableFailureHandler() {
+                @Override
+                public void handleFailure(Module module, ModuleError error) {
+                    if (LogUtils.isDebugLevel()) {
+                        LogUtils.d(TAG, "#applyJoin - Failed : " + error.code);
                     }
-                }, new StableFailureHandler() {
-                    @Override
-                    public void handleFailure(Module module, ModuleError error) {
-                        if (failureHandler.isInMainThread()) {
-                            executeOnMainThread(() -> {
-                                failureHandler.handleFailure(MultipointComm.this, error);
-                            });
-                        }
-                        else {
-                            execute(() -> {
-                                failureHandler.handleFailure(MultipointComm.this, error);
-                            });
-                        }
 
+                    if (failureHandler.isInMainThread()) {
                         executeOnMainThread(() -> {
-                            hangupCall();
+                            failureHandler.handleFailure(MultipointComm.this, error);
                         });
                     }
-                });
-            }
-        }, new StableFailureHandler() {
-            @Override
-            public void handleFailure(Module module, ModuleError error) {
-
-            }
-        });
+                    else {
+                        execute(() -> {
+                            failureHandler.handleFailure(MultipointComm.this, error);
+                        });
+                    }
+                }
+            });
+        }
+        else {
+            // TODO
+        }
     }
 
     /**

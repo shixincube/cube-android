@@ -57,6 +57,7 @@ import cube.multipointcomm.MultipointComm;
 import cube.multipointcomm.MultipointCommAction;
 import cube.multipointcomm.MultipointCommState;
 import cube.multipointcomm.RTCDevice;
+import cube.multipointcomm.handler.AnswerHandler;
 import cube.multipointcomm.handler.CommFieldHandler;
 import cube.multipointcomm.handler.DefaultApplyCallHandler;
 import cube.multipointcomm.handler.OfferHandler;
@@ -516,7 +517,58 @@ public class CommField extends Entity implements RTCDevice.RTCEventListener {
 
     public void launchAnswer(RTCDevice rtcDevice, SessionDescription sessionDescription, MediaConstraint mediaConstraint,
                              CommFieldHandler successHandler, FailureHandler failureHandler) {
+        if (rtcDevice.getMode().equals(RTCDevice.MODE_BIDIRECTION) || rtcDevice.getMode().equals(RTCDevice.MODE_SEND_ONLY)) {
+            this.outboundRTC = rtcDevice;
+        }
+        else {
+            this.inboundRTC = rtcDevice;
+        }
 
+        // 设置监听器
+        rtcDevice.setEventListener(this);
+
+        this.service.executeOnMainThread(() -> {
+            // 启用 Answer
+            rtcDevice.openAnswer(sessionDescription, mediaConstraint, new AnswerHandler() {
+                @Override
+                public void handleAnswer(RTCDevice device, SessionDescription sessionDescription) {
+                    // 创建信令
+                    Signaling signaling = new Signaling(rtcDevice.getSN(), MultipointCommAction.Answer,
+                            CommField.this, self, self.device);
+                    // 设置 SDP 信息
+                    signaling.sessionDescription = sessionDescription;
+                    // 设置媒体约束
+                    signaling.mediaConstraint = mediaConstraint;
+
+                    // 发送信令
+                    sendSignaling(signaling, new SignalingHandler() {
+                        @Override
+                        public void handleSignaling(Signaling signaling) {
+                            // 更新数据
+                            update(signaling.field);
+                            // 回调
+                            service.execute(() -> {
+                                successHandler.handleCommField(CommField.this);
+                            });
+                        }
+                    }, new StableFailureHandler() {
+                        @Override
+                        public void handleFailure(Module module, ModuleError error) {
+                            service.execute(() -> {
+                                failureHandler.handleFailure(service, error);
+                            });
+                        }
+                    });
+                }
+            }, new StableFailureHandler() {
+                @Override
+                public void handleFailure(Module module, ModuleError error) {
+                    service.execute(() -> {
+                        failureHandler.handleFailure(service, error);
+                    });
+                }
+            });
+        });
     }
 
     private void sendSignaling(Signaling signaling, SignalingHandler successHandler, FailureHandler failureHandler) {

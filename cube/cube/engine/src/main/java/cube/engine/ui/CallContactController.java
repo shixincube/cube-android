@@ -56,7 +56,7 @@ import cube.multipointcomm.util.MediaConstraint;
 /**
  * 联系人通话控制器。
  */
-public class CallContactController {
+public class CallContactController implements Controller {
 
     private FloatingVideoWindowService service;
     private AudioManager audioManager;
@@ -107,6 +107,7 @@ public class CallContactController {
     /**
      * 重置界面元素。
      */
+    @Override
     public void reset() {
         int barHeight = ScreenUtil.getStatusBarHeight(this.service);
         RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(this.backboardLayout.getLayoutParams());
@@ -130,6 +131,16 @@ public class CallContactController {
         this.hangupButton.setEnabled(true);
     }
 
+    @Override
+    public ViewGroup getMainLayout() {
+        return this.mainLayout;
+    }
+
+    @Override
+    public boolean isShown() {
+        return this.mainLayout.isShown();
+    }
+
     public void config(MediaConstraint mediaConstraint) {
         this.mediaConstraint = mediaConstraint;
 
@@ -150,14 +161,6 @@ public class CallContactController {
             this.nameView.setVisibility(View.VISIBLE);
             this.cameraLayout.setVisibility(View.GONE);
         }
-    }
-
-    public ViewGroup getMainLayout() {
-        return this.mainLayout;
-    }
-
-    public boolean isShown() {
-        return this.mainLayout.isShown();
     }
 
     public void startCallTiming() {
@@ -253,7 +256,7 @@ public class CallContactController {
     }
 
     public void setTipsText(ModuleError error) {
-        this.tipsView.setText(getResources().getString(R.string.no_failed_with_error, error.code));
+        this.tipsView.setText(getResources().getString(R.string.on_failed_with_error, error.code));
     }
 
     public void showControls(CallRecord callRecord) {

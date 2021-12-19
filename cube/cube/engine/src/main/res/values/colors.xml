@@ -6,4 +6,6 @@
     <color name="transparent">#00000000</color>
 
     <color name="border">#287DF6</color>
+
+    <color name="background">#303135</color>
 </resources>

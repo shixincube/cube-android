@@ -8,4 +8,7 @@
 
     <include layout="@layout/cube_contact_call_layout"/>
 
+    <include layout="@layout/cube_new_call_layout"
+        android:visibility="gone"/>
+
 </cube.engine.ui.KeyEventLinearLayout>

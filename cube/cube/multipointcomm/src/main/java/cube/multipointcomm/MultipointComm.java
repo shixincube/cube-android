@@ -62,7 +62,6 @@ import cube.core.handler.FailureHandler;
 import cube.core.handler.PipelineHandler;
 import cube.core.handler.StableFailureHandler;
 import cube.multipointcomm.handler.CallHandler;
-import cube.multipointcomm.handler.CommFieldHandler;
 import cube.multipointcomm.handler.DefaultApplyCallHandler;
 import cube.multipointcomm.handler.DefaultCallHandler;
 import cube.multipointcomm.handler.DefaultCommFieldHandler;
@@ -501,9 +500,9 @@ public class MultipointComm extends Module implements Observer {
      * 终止当前的通话。
      */
     public void hangupCall() {
-        this.hangupCall(new DefaultCommFieldHandler(false) {
+        this.hangupCall(new DefaultCallHandler(false) {
             @Override
-            public void handleCommField(CommField commField) {
+            public void handleCall(CallRecord callRecord) {
                 // Nothing
             }
         }, new StableFailureHandler() {
@@ -519,7 +518,7 @@ public class MultipointComm extends Module implements Observer {
      * @param successHandler 操作成功回调。
      * @param failureHandler 操作失败回调。
      */
-    public void hangupCall(CommFieldHandler successHandler, FailureHandler failureHandler) {
+    public void hangupCall(CallHandler successHandler, FailureHandler failureHandler) {
         if (null == this.activeCall) {
             LogUtils.w(TAG, "#hangupCall - No active calling");
             ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.Failure.code);
@@ -581,6 +580,8 @@ public class MultipointComm extends Module implements Observer {
                     return;
                 }
 
+                final CallRecord record = activeCall;
+
                 // 信令
                 try {
                     Signaling signaling = new Signaling(packet.extractServiceData());
@@ -597,16 +598,18 @@ public class MultipointComm extends Module implements Observer {
 
                         if (successHandler.isInMainThread()) {
                             executeOnMainThread(() -> {
-                                successHandler.handleCommField(field);
+                                successHandler.handleCall(record);
+                                activeCall = null;
                             });
                         }
                         else {
                             execute(() -> {
-                                successHandler.handleCommField(field);
+                                successHandler.handleCall(record);
+                                activeCall = null;
                             });
                         }
 
-                        notifyObservers(new ObservableEvent(MultipointCommEvent.Bye, activeCall));
+                        notifyObservers(new ObservableEvent(MultipointCommEvent.Bye, record));
                     }
                     else {
                         // 更新数据
@@ -614,25 +617,24 @@ public class MultipointComm extends Module implements Observer {
 
                         if (successHandler.isInMainThread()) {
                             executeOnMainThread(() -> {
-                                successHandler.handleCommField(field);
+                                successHandler.handleCall(record);
+                                activeCall = null;
                             });
                         }
                         else {
                             execute(() -> {
-                                successHandler.handleCommField(field);
+                                successHandler.handleCall(record);
+                                activeCall = null;
                             });
                         }
 
-                        notifyObservers(new ObservableEvent(MultipointCommEvent.Bye, activeCall));
+                        notifyObservers(new ObservableEvent(MultipointCommEvent.Bye, record));
 
                         // 关闭场域
                         executeOnMainThread(() -> {
                             field.close();
                         });
                     }
-
-                    // 重置
-                    activeCall = null;
                 } catch (JSONException e) {
                     LogUtils.w(TAG, e);
                 }
@@ -655,6 +657,8 @@ public class MultipointComm extends Module implements Observer {
                 // 回送被叫忙
                 Signaling signaling = new Signaling(MultipointCommAction.Busy, field,
                         this.privateField.getFounder(), this.privateField.getSelf().device);
+                signaling.caller = this.privateField.getCaller();
+                signaling.callee = this.privateField.getCallee();
                 Packet packet = new Packet(MultipointCommAction.Busy, signaling.toJSON());
                 this.pipeline.send(MultipointComm.NAME, packet, handler);
             }

@@ -37,6 +37,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.MutableInt;
+import android.util.Size;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -209,7 +210,12 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
         this.newCallController.getMainLayout().setVisibility(View.GONE);
         this.callContactController.getMainLayout().setVisibility(View.VISIBLE);
 
-        this.callContactController.reset();
+        Size size = this.callContactController.reset();
+        if (null == size) {
+            Point screenSize = ScreenUtil.getScreenSize(this);
+            this.layoutParams.width = screenSize.x;
+            this.layoutParams.height = screenSize.y;
+        }
 
         this.previewMode = false;
         this.windowManager.addView(this.displayView, this.layoutParams);
@@ -223,7 +229,11 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
         this.newCallController.getMainLayout().setVisibility(View.VISIBLE);
         this.callContactController.getMainLayout().setVisibility(View.GONE);
 
-        this.newCallController.reset();
+        Size size = this.newCallController.reset();
+        if (null != size) {
+            this.layoutParams.width = size.getWidth();
+            this.layoutParams.height = size.getHeight();
+        }
 
         this.windowManager.addView(this.displayView, this.layoutParams);
 
@@ -266,7 +276,7 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
             handler.postDelayed(() -> {
                 windowManager.removeView(displayView);
                 closing.set(false);
-            }, delay + 10);
+            }, delay);
         }
         else if (this.newCallController.isShown()) {
             int delay = this.newCallController.hideWithAnimation();
@@ -275,7 +285,7 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
             handler.postDelayed(() -> {
                 windowManager.removeView(displayView);
                 closing.set(false);
-            }, delay + 10);
+            }, delay);
         }
     }
 

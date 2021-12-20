@@ -197,6 +197,13 @@ public class Signaling implements JSONable {
                 }
                 json.put("invitees", array);
             }
+
+            if (null != this.caller) {
+                json.put("caller", this.caller.toCompactJSON());
+            }
+            if (null != this.callee) {
+                json.put("callee", this.callee.toCompactJSON());
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }

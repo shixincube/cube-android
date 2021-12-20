@@ -28,6 +28,7 @@ package cube.engine.ui;
 
 import android.content.res.Resources;
 import android.media.AudioManager;
+import android.util.Size;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
@@ -48,9 +49,8 @@ import cube.engine.R;
 import cube.engine.service.FloatingVideoWindowService;
 import cube.engine.util.ScreenUtil;
 import cube.multipointcomm.RTCDevice;
-import cube.multipointcomm.handler.DefaultCommFieldHandler;
+import cube.multipointcomm.handler.DefaultCallHandler;
 import cube.multipointcomm.model.CallRecord;
-import cube.multipointcomm.model.CommField;
 import cube.multipointcomm.util.MediaConstraint;
 
 /**
@@ -108,7 +108,7 @@ public class CallContactController implements Controller {
      * 重置界面元素。
      */
     @Override
-    public void reset() {
+    public Size reset() {
         int barHeight = ScreenUtil.getStatusBarHeight(this.service);
         RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(this.backboardLayout.getLayoutParams());
         lp.setMargins(0, barHeight, 0, 0);
@@ -129,6 +129,8 @@ public class CallContactController implements Controller {
         this.tipsView.setVisibility(View.VISIBLE);
         this.tipsView.setText(getResources().getString(R.string.calling));
         this.hangupButton.setEnabled(true);
+
+        return null;
     }
 
     @Override
@@ -405,9 +407,9 @@ public class CallContactController implements Controller {
             hangupButton.setEnabled(false);
             hideControls();
 
-            CubeEngine.getInstance().getMultipointComm().hangupCall(new DefaultCommFieldHandler(true) {
+            CubeEngine.getInstance().getMultipointComm().hangupCall(new DefaultCallHandler(true) {
                 @Override
-                public void handleCommField(CommField commField) {
+                public void handleCall(CallRecord callRecord) {
                     service.hide();
                 }
             }, new DefaultFailureHandler(true) {

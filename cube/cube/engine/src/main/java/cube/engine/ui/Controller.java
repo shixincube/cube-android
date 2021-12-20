@@ -26,6 +26,7 @@
 
 package cube.engine.ui;
 
+import android.util.Size;
 import android.view.ViewGroup;
 
 /**
@@ -33,7 +34,7 @@ import android.view.ViewGroup;
  */
 public interface Controller {
 
-    void reset();
+    Size reset();
 
     ViewGroup getMainLayout();
 

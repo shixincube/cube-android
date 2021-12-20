@@ -28,8 +28,10 @@ package cube.engine.ui;
 
 import android.content.Intent;
 import android.content.res.Resources;
+import android.graphics.Point;
 import android.net.Uri;
 import android.provider.Settings;
+import android.util.Size;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
@@ -38,9 +40,15 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import cube.contact.model.Contact;
+import cube.core.Module;
+import cube.core.ModuleError;
+import cube.core.handler.DefaultFailureHandler;
+import cube.engine.CubeEngine;
 import cube.engine.R;
 import cube.engine.service.FloatingVideoWindowService;
 import cube.engine.util.ScreenUtil;
+import cube.multipointcomm.handler.DefaultCallHandler;
+import cube.multipointcomm.model.CallRecord;
 import cube.multipointcomm.util.MediaConstraint;
 
 /**
@@ -61,6 +69,8 @@ public class NewCallController implements Controller {
 
     private Contact caller;
 
+    private MediaConstraint mediaConstraint;
+
     public NewCallController(FloatingVideoWindowService service, ViewGroup mainLayout) {
         this.service = service;
         this.mainLayout = mainLayout;
@@ -70,17 +80,24 @@ public class NewCallController implements Controller {
     }
 
     @Override
-    public void reset() {
+    public Size reset() {
         if (!Settings.canDrawOverlays(this.service)) {
             this.service.startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                     Uri.parse("package:" + this.service.getApplicationContext().getPackageName())));
-            return;
+            return null;
         }
+
+        this.hangupButton.setEnabled(true);
+        this.answerButton.setEnabled(true);
 
         int barHeight = ScreenUtil.getStatusBarHeight(this.service);
         this.mainLayout.setPadding(0, barHeight + ScreenUtil.dp2px(this.service, 30), 0, 0);
 
         this.avatarView.setImageResource(R.mipmap.cube);
+
+        Point screenSize = ScreenUtil.getScreenSize(this.service);
+        Size size = new Size(screenSize.x, 1000);
+        return size;
     }
 
     @Override
@@ -95,6 +112,7 @@ public class NewCallController implements Controller {
 
     public void showWithAnimation(Contact caller, MediaConstraint mediaConstraint, int avatarResourceId) {
         this.caller = caller;
+        this.mediaConstraint = mediaConstraint;
 
         if (avatarResourceId > 0) {
             this.avatarView.setImageResource(avatarResourceId);
@@ -121,7 +139,14 @@ public class NewCallController implements Controller {
     }
 
     public int hideWithAnimation() {
-        return 300;
+        int duration = 300;
+        TranslateAnimation animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0,
+                Animation.RELATIVE_TO_SELF, 0,
+                Animation.RELATIVE_TO_SELF, 0,
+                Animation.RELATIVE_TO_SELF, -1);
+        animation.setDuration(duration);
+        this.mainLayout.startAnimation(animation);
+        return duration;
     }
 
     private void initView() {
@@ -134,11 +159,37 @@ public class NewCallController implements Controller {
 
     private void initListener() {
         this.hangupButton.setOnClickListener((view) -> {
+            hangupButton.setEnabled(false);
+            answerButton.setEnabled(false);
 
+            CubeEngine.getInstance().getMultipointComm().hangupCall(new DefaultCallHandler(true) {
+                @Override
+                public void handleCall(CallRecord callRecord) {
+                    // Nothing
+                }
+            }, new DefaultFailureHandler(true) {
+                @Override
+                public void handleFailure(Module module, ModuleError error) {
+                    // Nothing
+                }
+            });
         });
 
         this.answerButton.setOnClickListener((view) -> {
+            answerButton.setEnabled(false);
+            hangupButton.setEnabled(false);
 
+            CubeEngine.getInstance().getMultipointComm().answerCall(mediaConstraint, new DefaultCallHandler(true) {
+                @Override
+                public void handleCall(CallRecord callRecord) {
+                    // Nothing
+                }
+            }, new DefaultFailureHandler(true) {
+                @Override
+                public void handleFailure(Module module, ModuleError error) {
+                    // Nothing
+                }
+            });
         });
     }
 

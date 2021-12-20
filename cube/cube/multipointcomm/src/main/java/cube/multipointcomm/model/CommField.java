@@ -607,6 +607,10 @@ public class CommField extends Entity implements RTCDevice.RTCEventListener {
     public void close() {
         this.closeRTCDevices();
         this.endpoints.clear();
+
+        this.caller = null;
+        this.callee = null;
+        this.group = null;
     }
 
     private void closeRTCDevices() {

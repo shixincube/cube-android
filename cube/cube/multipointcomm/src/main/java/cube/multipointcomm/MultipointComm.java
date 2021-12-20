@@ -271,18 +271,8 @@ public class MultipointComm extends Module implements Observer {
                     ObservableEvent event = new ObservableEvent(MultipointCommEvent.Ringing, callRecord);
                     notifyObservers(event);
 
-                    if (null != localVideoContainer) {
-                        executeOnMainThread(() -> {
-                            // 添加本地视频界面
-                            localVideoContainer.addView(callRecord.field.getLocalDevice().getLocalVideoView());
-                        });
-                    }
-                    if (null != remoteVideoContainer) {
-                        executeOnMainThread(() -> {
-                            // 添加对端视频界面
-                            remoteVideoContainer.addView(callRecord.field.getLocalDevice().getRemoteVideoView());
-                        });
-                    }
+                    // 绑定视频 View
+                    bindVideoView(callRecord.field);
                 }
                 else {
                     // 普通场域，触发 Ringing 事件
@@ -442,6 +432,9 @@ public class MultipointComm extends Module implements Observer {
                                     successHandler.handleCall(activeCall);
                                 });
                             }
+
+                            // 绑定视频 View
+                            bindVideoView(activeCall.field);
 
                             execute(() -> {
                                 notifyObservers(new ObservableEvent(MultipointCommEvent.Connected, activeCall));
@@ -668,6 +661,24 @@ public class MultipointComm extends Module implements Observer {
                     this.privateField.getSelf(), this.privateField.getSelf().device);
             Packet packet = new Packet(MultipointCommAction.Bye, signaling.toJSON());
             this.pipeline.send(MultipointComm.NAME, packet, handler);
+        }
+    }
+
+    private void bindVideoView(CommField commField) {
+        if (null != remoteVideoContainer) {
+            executeOnMainThread(() -> {
+                // 添加对端视频界面
+                remoteVideoContainer.removeAllViews();
+                remoteVideoContainer.addView(commField.getLocalDevice().getRemoteVideoView());
+            });
+        }
+
+        if (null != localVideoContainer) {
+            executeOnMainThread(() -> {
+                // 添加本地视频界面
+                localVideoContainer.removeAllViews();
+                localVideoContainer.addView(commField.getLocalDevice().getLocalVideoView());
+            });
         }
     }
 

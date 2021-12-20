@@ -71,6 +71,8 @@ public class NewCallController implements Controller {
 
     private MediaConstraint mediaConstraint;
 
+    private int avatarResourceId;
+
     public NewCallController(FloatingVideoWindowService service, ViewGroup mainLayout) {
         this.service = service;
         this.mainLayout = mainLayout;
@@ -113,6 +115,7 @@ public class NewCallController implements Controller {
     public void showWithAnimation(Contact caller, MediaConstraint mediaConstraint, int avatarResourceId) {
         this.caller = caller;
         this.mediaConstraint = mediaConstraint;
+        this.avatarResourceId = avatarResourceId;
 
         if (avatarResourceId > 0) {
             this.avatarView.setImageResource(avatarResourceId);
@@ -179,17 +182,7 @@ public class NewCallController implements Controller {
             answerButton.setEnabled(false);
             hangupButton.setEnabled(false);
 
-            CubeEngine.getInstance().getMultipointComm().answerCall(mediaConstraint, new DefaultCallHandler(true) {
-                @Override
-                public void handleCall(CallRecord callRecord) {
-                    // Nothing
-                }
-            }, new DefaultFailureHandler(true) {
-                @Override
-                public void handleFailure(Module module, ModuleError error) {
-                    // Nothing
-                }
-            });
+            service.showCallee(this.caller, this.mediaConstraint, this.avatarResourceId);
         });
     }
 

@@ -2,7 +2,8 @@
 <resources>
     <string name="cube_default_contact_name">Cube Contact</string>
     <string name="calling">正在呼叫...</string>
-    <string name="on_in_progress">正在处理呼叫...</string>
+    <string name="answering">正在应答...</string>
+    <string name="on_in_progress">正在处理...</string>
     <string name="on_ringing">对方振铃...</string>
     <string name="on_ringing_with_count">对方振铃，等待接通 (%1$d)</string>
     <string name="on_timeout">对方未应答</string>

@@ -61,7 +61,7 @@ import cube.core.ModuleError;
 import cube.core.handler.DefaultFailureHandler;
 import cube.engine.CubeEngine;
 import cube.engine.R;
-import cube.engine.ui.CallContactController;
+import cube.engine.ui.ContactCallingController;
 import cube.engine.ui.KeyEventLinearLayout;
 import cube.engine.ui.NewCallController;
 import cube.engine.util.ScreenUtil;
@@ -103,7 +103,7 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
     private KeyEventLinearLayout displayView;
 
     private NewCallController newCallController;
-    private CallContactController callContactController;
+    private ContactCallingController contactCallingController;
 
     private FloatingVideoWindowBinder binder;
 
@@ -121,8 +121,6 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
     public void onCreate() {
         super.onCreate();
 
-        this.initWindow();
-
         this.audioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -131,6 +129,8 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
         else {
             this.soundPool = new SoundPool(4, AudioManager.STREAM_MUSIC, 0);
         }
+
+        this.initWindow();
 
         CubeEngine.getInstance().getMultipointComm().addCallListener(this);
     }
@@ -149,7 +149,7 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
             this.newCallController = new NewCallController(this,
                     this.displayView.findViewById(R.id.rlNewCallLayout));
 
-            this.callContactController = new CallContactController(this,
+            this.contactCallingController = new ContactCallingController(this,
                     this.audioManager, this.displayView.findViewById(R.id.rlContactCallLayout));
         }
     }
@@ -163,7 +163,7 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
 
         if (action.equals(ACTION_PREPARE)) {
             this.newCallController.getMainLayout().setVisibility(View.VISIBLE);
-            this.callContactController.getMainLayout().setVisibility(View.GONE);
+            this.contactCallingController.getMainLayout().setVisibility(View.GONE);
         }
         else if (action.equals(ACTION_SHOW_CALLER)) {
             showCaller(intent);
@@ -200,7 +200,9 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
     }
 
     /**
-     * 显示联系人主叫界面。
+     * 显示联系人主叫界面并发起主叫。
+     *
+     * @param intent
      */
     private void showCaller(Intent intent) {
         if (null == intent) {
@@ -208,9 +210,9 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
         }
 
         this.newCallController.getMainLayout().setVisibility(View.GONE);
-        this.callContactController.getMainLayout().setVisibility(View.VISIBLE);
+        this.contactCallingController.getMainLayout().setVisibility(View.VISIBLE);
 
-        Size size = this.callContactController.reset();
+        Size size = this.contactCallingController.reset();
         if (null == size) {
             Point screenSize = ScreenUtil.getScreenSize(this);
             this.layoutParams.width = screenSize.x;
@@ -220,14 +222,58 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
         this.previewMode = false;
         this.windowManager.addView(this.displayView, this.layoutParams);
 
-        if (!this.startContactCaller(intent)) {
+        if (!this.startCallerByContact(intent)) {
             this.windowManager.removeView(this.displayView);
         }
     }
 
-    private void showNewCall(CallRecord callRecord) {
+    /**
+     * 显示联系人被叫界面并应答通话。
+     *
+     * @param contact
+     * @param mediaConstraint
+     * @param avatarResourceId
+     */
+    public void showCallee(Contact contact, MediaConstraint mediaConstraint, int avatarResourceId) {
+        Runnable task = () -> {
+            this.contactCallingController.getMainLayout().setVisibility(View.VISIBLE);
+            Size size = this.contactCallingController.reset();
+            if (null == size) {
+                Point screenSize = ScreenUtil.getScreenSize(this);
+                this.layoutParams.width = screenSize.x;
+                this.layoutParams.height = screenSize.y;
+            }
+
+            this.previewMode = false;
+            this.windowManager.updateViewLayout(this.displayView, this.layoutParams);
+
+            if (!this.startCalleeByContact(contact, mediaConstraint, avatarResourceId)) {
+                this.windowManager.removeView(this.displayView);
+            }
+        };
+
+        if (this.newCallController.isShown()) {
+            // 隐藏界面
+            int delay = this.newCallController.hideWithAnimation();
+            Handler handler = new Handler(getApplicationContext().getMainLooper());
+            handler.postDelayed(() -> {
+                newCallController.getMainLayout().setVisibility(View.GONE);
+                task.run();
+            }, delay);
+        }
+        else {
+            task.run();
+        }
+    }
+
+    /**
+     * 显示有新的通话邀请。
+     *
+     * @param callRecord
+     */
+    private void showNewIncomingCall(CallRecord callRecord) {
         this.newCallController.getMainLayout().setVisibility(View.VISIBLE);
-        this.callContactController.getMainLayout().setVisibility(View.GONE);
+        this.contactCallingController.getMainLayout().setVisibility(View.GONE);
 
         Size size = this.newCallController.reset();
         if (null != size) {
@@ -267,10 +313,10 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
 
         this.closing.set(true);
 
-        if (this.callContactController.isShown()) {
-            this.callContactController.stopCallTiming();
+        if (this.contactCallingController.isShown()) {
+            this.contactCallingController.stopCallTiming();
 
-            int delay = this.callContactController.hideWithAnimation();
+            int delay = this.contactCallingController.hideWithAnimation();
 
             Handler handler = new Handler(getApplicationContext().getMainLooper());
             handler.postDelayed(() -> {
@@ -296,14 +342,14 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
 
         this.previewMode = true;
 
-        if (this.callContactController.isShown()) {
+        if (this.contactCallingController.isShown()) {
             if (this.mediaConstraint.videoEnabled) {
-                this.callContactController.changeSize(true,
+                this.contactCallingController.changeSize(true,
                         ScreenUtil.dp2px(this, 80),
                         ScreenUtil.dp2px(this, 120));
             }
             else {
-                this.callContactController.changeSize(true,
+                this.contactCallingController.changeSize(true,
                         ScreenUtil.dp2px(this, 50),
                         ScreenUtil.dp2px(this, 50));
             }
@@ -334,12 +380,12 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
 
         Point size = ScreenUtil.getScreenSize(this);
 
-        if (this.callContactController.isShown()) {
+        if (this.contactCallingController.isShown()) {
             if (this.mediaConstraint.videoEnabled) {
-                this.callContactController.changeSize(false, size.x, size.y);
+                this.contactCallingController.changeSize(false, size.x, size.y);
             }
             else {
-                this.callContactController.changeSize(false,
+                this.contactCallingController.changeSize(false,
                         ScreenUtil.dp2px(this, 120),
                         ScreenUtil.dp2px(this, 120));
             }
@@ -384,7 +430,7 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
         return params;
     }
 
-    private boolean startContactCaller(Intent intent) {
+    private boolean startCallerByContact(Intent intent) {
         if (intent.hasExtra("contactId")) {
             Long contactId = intent.getLongExtra("contactId", 0);
             this.contact = CubeEngine.getInstance().getContactService().getContact(contactId);
@@ -401,28 +447,26 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
         }
 
         // 设置媒体约束
-        this.callContactController.config(this.mediaConstraint);
+        this.contactCallingController.config(this.mediaConstraint);
 
         if (null != this.contact) {
-            int resource = intent.getIntExtra("avatarResource", 0);
-            if (resource > 0) {
-                this.callContactController.setAvatarImageResource(resource);
-            }
-
-            this.callContactController.setNameText(this.contact.getPriorityName());
+            // 头像
+            this.contactCallingController.setAvatarImageResource(intent.getIntExtra("avatarResource", 0));
+            // 名字
+            this.contactCallingController.setNameText(this.contact.getPriorityName());
 
             // 呼叫联系人
             CubeEngine.getInstance().getMultipointComm().makeCall(this.contact, mediaConstraint, new DefaultCallHandler(true) {
                 @Override
                 public void handleCall(CallRecord callRecord) {
-                    callContactController.setTipsText(R.string.on_ringing);
+                    contactCallingController.setTipsText(R.string.on_ringing);
                     // 显示控件
-                    callContactController.showControls(callRecord);
+                    contactCallingController.showControls(callRecord);
                 }
             }, new DefaultFailureHandler(true) {
                 @Override
                 public void handleFailure(Module module, ModuleError error) {
-                    callContactController.setTipsText(error);
+                    contactCallingController.setTipsText(error);
                     Handler handler = new Handler(getMainLooper());
                     handler.postDelayed(() -> {
                         hide();
@@ -430,6 +474,40 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
                 }
             });
         }
+
+        return true;
+    }
+
+    private boolean startCalleeByContact(Contact contact, MediaConstraint mediaConstraint, int avatarResourceId) {
+        this.mediaConstraint = mediaConstraint;
+        this.contact = contact;
+
+        // 设置媒体约束
+        this.contactCallingController.config(mediaConstraint);
+        // 头像
+        this.contactCallingController.setAvatarImageResource(avatarResourceId);
+        // 名字
+        this.contactCallingController.setNameText(contact.getPriorityName());
+        // 提示
+        this.contactCallingController.setTipsText(R.string.answering);
+
+        // 应答
+        CubeEngine.getInstance().getMultipointComm().answerCall(mediaConstraint, new DefaultCallHandler(true) {
+            @Override
+            public void handleCall(CallRecord callRecord) {
+                // 显示控件
+                contactCallingController.showControls(callRecord);
+            }
+        }, new DefaultFailureHandler(true) {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                contactCallingController.setTipsText(error);
+                Handler handler = new Handler(getMainLooper());
+                handler.postDelayed(() -> {
+                    hide();
+                }, 3000);
+            }
+        });
 
         return true;
     }
@@ -514,7 +592,7 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
             LogUtils.d(TAG, "#onNewCall");
         }
 
-        this.showNewCall(callRecord);
+        this.showNewIncomingCall(callRecord);
     }
 
     @Override
@@ -523,7 +601,9 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
             LogUtils.d(TAG, "#onInProgress");
         }
 
-        this.callContactController.setTipsText(R.string.on_in_progress);
+        if (this.contactCallingController.isShown()) {
+            this.contactCallingController.setTipsText(R.string.on_in_progress);
+        }
     }
 
     @Override
@@ -542,7 +622,7 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
                 public void run() {
                     handler.post(() -> {
                         count.value += 1;
-                        callContactController.setTipsText(R.string.on_ringing_with_count, count.value);
+                        contactCallingController.setTipsText(R.string.on_ringing_with_count, count.value);
                     });
                 }
             }, 1000, 1000);
@@ -560,7 +640,7 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
             this.callTimer = null;
         }
 
-        this.callContactController.startCallTiming();
+        this.contactCallingController.startCallTiming();
     }
 
     @Override
@@ -595,7 +675,7 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
             this.callTimer = null;
         }
 
-        this.callContactController.setTipsText(R.string.on_timeout);
+        this.contactCallingController.setTipsText(R.string.on_timeout);
     }
 
     @Override

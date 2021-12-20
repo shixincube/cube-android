@@ -56,7 +56,7 @@ import cube.multipointcomm.util.MediaConstraint;
 /**
  * 联系人通话控制器。
  */
-public class CallContactController implements Controller {
+public class ContactCallingController implements Controller {
 
     private FloatingVideoWindowService service;
     private AudioManager audioManager;
@@ -95,7 +95,7 @@ public class CallContactController implements Controller {
 
     private Timer callingTimer;
 
-    public CallContactController(FloatingVideoWindowService service, AudioManager audioManager, ViewGroup mainLayout) {
+    public ContactCallingController(FloatingVideoWindowService service, AudioManager audioManager, ViewGroup mainLayout) {
         this.service = service;
         this.audioManager = audioManager;
         this.mainLayout = mainLayout;
@@ -253,7 +253,12 @@ public class CallContactController implements Controller {
     }
 
     public void setAvatarImageResource(int resource) {
-        this.avatarView.setImageResource(resource);
+        if (resource > 0) {
+            this.avatarView.setImageResource(resource);
+        }
+        else {
+            this.avatarView.setImageResource(R.mipmap.avatar);
+        }
     }
 
     public void setNameText(String nameText) {

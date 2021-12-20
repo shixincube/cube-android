@@ -343,6 +343,9 @@ public class RTCDevice {
                         ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.LocalDescriptionFault.code);
                         error.data = desc;
                         failureHandler.handleFailure(null, error);
+
+                        // 关闭
+                        close();
                     }
                 }, sessionDescription);
             }
@@ -358,6 +361,9 @@ public class RTCDevice {
                 ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.CreateOfferFailed.code);
                 error.data = desc;
                 failureHandler.handleFailure(null, error);
+
+                // 关闭
+                close();
             }
 
             @Override
@@ -425,6 +431,8 @@ public class RTCDevice {
                                 @Override
                                 public void onSetSuccess() {
                                     successHandler.handleAnswer(RTCDevice.this, pc.getLocalDescription());
+                                    // 执行就绪
+                                    doReady();
                                 }
 
                                 @Override
@@ -437,6 +445,9 @@ public class RTCDevice {
                                     ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.LocalDescriptionFault.code);
                                     error.data = desc;
                                     failureHandler.handleFailure(null, error);
+
+                                    // 关闭
+                                    close();
                                 }
                             }, sessionDescription);
                         }
@@ -451,6 +462,9 @@ public class RTCDevice {
                             ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.CreateAnswerFailed.code);
                             error.data = desc;
                             failureHandler.handleFailure(null, error);
+
+                            // 关闭
+                            close();
                         }
 
                         @Override
@@ -471,6 +485,9 @@ public class RTCDevice {
                 ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.RemoteDescriptionFault.code);
                 error.data = desc;
                 failureHandler.handleFailure(null, error);
+
+                // 关闭
+                close();
             }
         }, sessionDescription);
     }
@@ -581,6 +598,15 @@ public class RTCDevice {
             }
             this.videoCapturer.dispose();
             this.videoCapturer = null;
+        }
+
+        if (null != this.localVideoView) {
+            this.localVideoView.release();
+            this.localVideoView = null;
+        }
+        if (null != this.remoteVideoView) {
+            this.remoteVideoView.release();
+            this.remoteVideoView = null;
         }
 
         if (null != this.pc) {

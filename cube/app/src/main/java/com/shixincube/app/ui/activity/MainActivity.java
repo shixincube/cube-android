@@ -26,7 +26,10 @@
 
 package com.shixincube.app.ui.activity;
 
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.ServiceConnection;
+import android.os.IBinder;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.ImageButton;
@@ -43,6 +46,7 @@ import com.shixincube.app.ui.base.BaseFragment;
 import com.shixincube.app.ui.fragment.FragmentFactory;
 import com.shixincube.app.ui.presenter.MainPresenter;
 import com.shixincube.app.ui.view.MainView;
+import com.shixincube.app.util.AvatarUtils;
 import com.shixincube.app.util.PopupWindowUtils;
 import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.MainTabBar;
@@ -50,7 +54,10 @@ import com.shixincube.app.widget.MainTabBar;
 import java.util.ArrayList;
 
 import butterknife.BindView;
+import cube.contact.model.Contact;
 import cube.engine.CubeEngine;
+import cube.engine.handler.ContactDataHandler;
+import cube.engine.service.FloatingVideoWindowBinder;
 import cube.engine.service.FloatingVideoWindowService;
 import cube.engine.util.Future;
 import cube.engine.util.Promise;
@@ -61,7 +68,8 @@ import cube.util.LogUtils;
 /**
  * 主界面。
  */
-public class MainActivity extends BaseActivity<MainView, MainPresenter> implements ViewPager.OnPageChangeListener, MainView {
+public class MainActivity extends BaseActivity<MainView, MainPresenter> implements
+        ViewPager.OnPageChangeListener, MainView,ContactDataHandler {
 
     public final static int REQUEST_CREATE_GROUP_CONVERSATION = 1000;
 
@@ -119,6 +127,8 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
 
     private MainTabBar mainTabBar;
 
+    private ServiceConnection serviceConnection;
+
     public MainActivity() {
         super();
     }
@@ -129,6 +139,20 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
         Intent cubeFloatingWindow = new Intent(this, FloatingVideoWindowService.class);
         cubeFloatingWindow.setAction(FloatingVideoWindowService.ACTION_PREPARE);
         startService(cubeFloatingWindow);
+
+        this.serviceConnection = new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+                FloatingVideoWindowBinder binder = (FloatingVideoWindowBinder) iBinder;
+                binder.setContactDataHandler(MainActivity.this);
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName componentName) {
+            }
+        };
+        Intent intent = new Intent(this, FloatingVideoWindowService.class);
+        bindService(intent, this.serviceConnection, BIND_AUTO_CREATE);
     }
 
     @Override
@@ -277,6 +301,7 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
 
     @Override
     protected void onDestroy() {
+        unbindService(this.serviceConnection);
         super.onDestroy();
     }
 
@@ -382,5 +407,15 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
     @Override
     public TextView getProfilePressedTitle() {
         return this.profileTextPressed;
+    }
+
+    @Override
+    public int extractContactAvatarResourceId(Contact contact) {
+        return AvatarUtils.getAvatarResource(contact);
+    }
+
+    @Override
+    public String extractContactName(Contact contact) {
+        return contact.getPriorityName();
     }
 }

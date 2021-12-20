@@ -33,7 +33,6 @@ import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.media.AudioManager;
 import android.media.SoundPool;
-import android.os.Binder;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
@@ -44,8 +43,6 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
-import android.view.animation.Animation;
-import android.view.animation.TranslateAnimation;
 
 import androidx.annotation.Nullable;
 
@@ -106,6 +103,8 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
 
     private NewCallController newCallController;
     private CallContactController callContactController;
+
+    private FloatingVideoWindowBinder binder;
 
     private boolean previewMode = false;
 
@@ -190,16 +189,13 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
         CubeEngine.getInstance().getMultipointComm().removeCallListener(this);
     }
 
-    public class InnerBinder extends Binder {
-        public FloatingVideoWindowService getService() {
-            return FloatingVideoWindowService.this;
-        }
-    }
-
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        return new InnerBinder();
+        if (null == this.binder) {
+            this.binder = new FloatingVideoWindowBinder();
+        }
+        return this.binder;
     }
 
     /**
@@ -209,6 +205,9 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
         if (null == intent) {
             return;
         }
+
+        this.newCallController.getMainLayout().setVisibility(View.GONE);
+        this.callContactController.getMainLayout().setVisibility(View.VISIBLE);
 
         this.callContactController.reset();
 
@@ -221,10 +220,22 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
     }
 
     private void showNewCall(CallRecord callRecord) {
+        this.newCallController.getMainLayout().setVisibility(View.VISIBLE);
+        this.callContactController.getMainLayout().setVisibility(View.GONE);
+
+        this.newCallController.reset();
+
+        this.windowManager.addView(this.displayView, this.layoutParams);
+
         if (callRecord.field.isPrivate()) {
             // 来自一对一通话
             Contact caller = callRecord.field.getCaller();
+            int resId = 0;
+            if (null != this.binder && null != this.binder.getContactDataHandler()) {
+                resId = this.binder.getContactDataHandler().extractContactAvatarResourceId(caller);
+            }
 
+            this.newCallController.showWithAnimation(caller, callRecord.getCallerConstraint(), resId);
         }
         else {
             // TODO
@@ -249,21 +260,22 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
         if (this.callContactController.isShown()) {
             this.callContactController.stopCallTiming();
 
-            TranslateAnimation animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0,
-                    Animation.RELATIVE_TO_SELF, 0,
-                    Animation.RELATIVE_TO_SELF, 0,
-                    Animation.RELATIVE_TO_SELF, 1);
-            animation.setDuration(300);
-            this.callContactController.getMainLayout().startAnimation(animation);
+            int delay = this.callContactController.hideWithAnimation();
 
             Handler handler = new Handler(getApplicationContext().getMainLooper());
             handler.postDelayed(() -> {
                 windowManager.removeView(displayView);
                 closing.set(false);
-            }, 310);
+            }, delay + 10);
         }
-        else {
+        else if (this.newCallController.isShown()) {
+            int delay = this.newCallController.hideWithAnimation();
 
+            Handler handler = new Handler(getApplicationContext().getMainLooper());
+            handler.postDelayed(() -> {
+                windowManager.removeView(displayView);
+                closing.set(false);
+            }, delay + 10);
         }
     }
 

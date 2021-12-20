@@ -141,6 +141,17 @@ public class CallContactController implements Controller {
         return this.mainLayout.isShown();
     }
 
+    public int hideWithAnimation() {
+        int duration = 300;
+        TranslateAnimation animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0,
+                Animation.RELATIVE_TO_SELF, 0,
+                Animation.RELATIVE_TO_SELF, 0,
+                Animation.RELATIVE_TO_SELF, 1);
+        animation.setDuration(duration);
+        this.mainLayout.startAnimation(animation);
+        return duration;
+    }
+
     public void config(MediaConstraint mediaConstraint) {
         this.mediaConstraint = mediaConstraint;
 

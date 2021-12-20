@@ -51,6 +51,7 @@ import java.util.ArrayList;
 
 import butterknife.BindView;
 import cube.engine.CubeEngine;
+import cube.engine.service.FloatingVideoWindowService;
 import cube.engine.util.Future;
 import cube.engine.util.Promise;
 import cube.engine.util.PromiseFuture;
@@ -124,6 +125,10 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
 
     @Override
     public void init() {
+        // 启动通话界面悬浮窗
+        Intent cubeFloatingWindow = new Intent(this, FloatingVideoWindowService.class);
+        cubeFloatingWindow.setAction(FloatingVideoWindowService.ACTION_PREPARE);
+        startService(cubeFloatingWindow);
     }
 
     @Override

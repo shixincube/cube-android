@@ -32,6 +32,7 @@ import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.media.AudioManager;
+import android.media.SoundPool;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Handler;
@@ -64,6 +65,7 @@ import cube.engine.CubeEngine;
 import cube.engine.R;
 import cube.engine.ui.CallContactController;
 import cube.engine.ui.KeyEventLinearLayout;
+import cube.engine.ui.NewCallController;
 import cube.engine.util.ScreenUtil;
 import cube.multipointcomm.CallListener;
 import cube.multipointcomm.handler.DefaultCallHandler;
@@ -78,13 +80,31 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
 
     private final static String TAG = "FloatVideoWindowService";
 
+    /**
+     * 准备界面。
+     */
+    public final static String ACTION_PREPARE = "ACTION_PREPARE";
+
+    /**
+     * 显示主叫界面。
+     */
+    public final static String ACTION_SHOW_CALLER = "ACTION_SHOW_CALLER";
+
+    /**
+     * 显示被叫界面。
+     */
+    public final static String ACTION_SHOW_CALLEE = "ACTION_SHOW_CALLEE";
+
     private WindowManager windowManager;
     private WindowManager.LayoutParams layoutParams;
 
     private AudioManager audioManager;
 
+    private SoundPool soundPool;
+
     private KeyEventLinearLayout displayView;
 
+    private NewCallController newCallController;
     private CallContactController callContactController;
 
     private boolean previewMode = false;
@@ -100,16 +120,55 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
     @Override
     public void onCreate() {
         super.onCreate();
+
         this.initWindow();
 
         this.audioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            this.soundPool = new SoundPool.Builder().setMaxStreams(4).build();
+        }
+        else {
+            this.soundPool = new SoundPool(4, AudioManager.STREAM_MUSIC, 0);
+        }
+
         CubeEngine.getInstance().getMultipointComm().addCallListener(this);
+    }
+
+    private void initWindow() {
+        this.windowManager = (WindowManager) getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
+        this.layoutParams = getParams();
+
+        if (null == this.displayView) {
+            // 获取布局
+            LayoutInflater inflater = LayoutInflater.from(getApplicationContext());
+            this.displayView = (KeyEventLinearLayout) inflater.inflate(R.layout.cube_comm_window_layout, null);
+            this.displayView.setKeyEventListener(this);
+            this.displayView.setOnTouchListener(new FloatingOnTouchListener());
+
+            this.newCallController = new NewCallController(this,
+                    this.displayView.findViewById(R.id.rlNewCallLayout));
+
+            this.callContactController = new CallContactController(this,
+                    this.audioManager, this.displayView.findViewById(R.id.rlContactCallLayout));
+        }
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        show(intent);
+        String action = intent.getAction();
+        if (null == action) {
+            return super.onStartCommand(intent, flags, startId);
+        }
+
+        if (action.equals(ACTION_PREPARE)) {
+            this.newCallController.getMainLayout().setVisibility(View.VISIBLE);
+            this.callContactController.getMainLayout().setVisibility(View.GONE);
+        }
+        else if (action.equals(ACTION_SHOW_CALLER)) {
+            showCaller(intent);
+        }
+
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -144,39 +203,31 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
     }
 
     /**
-     * 初始化基本参数。
+     * 显示联系人主叫界面。
      */
-    private void initWindow() {
-        this.windowManager = (WindowManager) getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
-        this.layoutParams = getParams();
-    }
-
-    /**
-     * 显示默认界面。
-     */
-    private void show(Intent intent) {
+    private void showCaller(Intent intent) {
         if (null == intent) {
             return;
-        }
-
-        if (null == this.displayView) {
-            // 获取布局
-            LayoutInflater inflater = LayoutInflater.from(getApplicationContext());
-            displayView = (KeyEventLinearLayout) inflater.inflate(R.layout.cube_comm_window_layout, null);
-            displayView.setKeyEventListener(this);
-            displayView.setOnTouchListener(new FloatingOnTouchListener());
-
-            this.callContactController = new CallContactController(this,
-                    this.audioManager, displayView.findViewById(R.id.llContactCallLayout));
         }
 
         this.callContactController.reset();
 
         this.previewMode = false;
-        windowManager.addView(displayView, layoutParams);
+        this.windowManager.addView(this.displayView, this.layoutParams);
 
-        if (!this.start(intent)) {
-            windowManager.removeView(displayView);
+        if (!this.startContactCaller(intent)) {
+            this.windowManager.removeView(this.displayView);
+        }
+    }
+
+    private void showNewCall(CallRecord callRecord) {
+        if (callRecord.field.isPrivate()) {
+            // 来自一对一通话
+            Contact caller = callRecord.field.getCaller();
+
+        }
+        else {
+            // TODO
         }
     }
 
@@ -195,20 +246,25 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
 
         this.closing.set(true);
 
-        this.callContactController.stopCallTiming();
+        if (this.callContactController.isShown()) {
+            this.callContactController.stopCallTiming();
 
-        TranslateAnimation animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0,
-                Animation.RELATIVE_TO_SELF, 0,
-                Animation.RELATIVE_TO_SELF, 0,
-                Animation.RELATIVE_TO_SELF, 1);
-        animation.setDuration(300);
-        this.callContactController.getMainLayout().startAnimation(animation);
+            TranslateAnimation animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0,
+                    Animation.RELATIVE_TO_SELF, 0,
+                    Animation.RELATIVE_TO_SELF, 0,
+                    Animation.RELATIVE_TO_SELF, 1);
+            animation.setDuration(300);
+            this.callContactController.getMainLayout().startAnimation(animation);
 
-        Handler handler = new Handler(getApplicationContext().getMainLooper());
-        handler.postDelayed(() -> {
-            windowManager.removeView(displayView);
-            closing.set(false);
-        }, 310);
+            Handler handler = new Handler(getApplicationContext().getMainLooper());
+            handler.postDelayed(() -> {
+                windowManager.removeView(displayView);
+                closing.set(false);
+            }, 310);
+        }
+        else {
+
+        }
     }
 
     public void switchToPreview() {
@@ -306,14 +362,10 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
         return params;
     }
 
-    private boolean start(Intent intent) {
+    private boolean startContactCaller(Intent intent) {
         if (intent.hasExtra("contactId")) {
             Long contactId = intent.getLongExtra("contactId", 0);
             this.contact = CubeEngine.getInstance().getContactService().getContact(contactId);
-        }
-        else if (intent.hasExtra("groupId")) {
-            Long groupId = intent.getLongExtra("groupId", 0);
-            this.group = CubeEngine.getInstance().getContactService().getGroup(groupId);
         }
         else {
             return false;
@@ -439,6 +491,8 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
         if (LogUtils.isDebugLevel()) {
             LogUtils.d(TAG, "#onNewCall");
         }
+
+        this.showNewCall(callRecord);
     }
 
     @Override

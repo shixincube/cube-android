@@ -35,8 +35,16 @@ import cube.engine.service.FloatingVideoWindowService;
  */
 public class NewCallController implements Controller {
 
-    public NewCallController(FloatingVideoWindowService service, ViewGroup mainLayout) {
+    private FloatingVideoWindowService service;
 
+    private ViewGroup mainLayout;
+
+    public NewCallController(FloatingVideoWindowService service, ViewGroup mainLayout) {
+        this.service = service;
+        this.mainLayout = mainLayout;
+
+        this.initView();
+        this.initListener();
     }
 
     @Override
@@ -46,11 +54,19 @@ public class NewCallController implements Controller {
 
     @Override
     public ViewGroup getMainLayout() {
-        return null;
+        return this.mainLayout;
     }
 
     @Override
     public boolean isShown() {
-        return false;
+        return this.mainLayout.isShown();
+    }
+
+    private void initView() {
+
+    }
+
+    private void initListener() {
+
     }
 }

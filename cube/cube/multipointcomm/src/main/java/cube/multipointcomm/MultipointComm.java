@@ -830,6 +830,7 @@ public class MultipointComm extends Module implements Observer {
         }, this.callTimeout - 10000);
 
         if (this.offerSignaling.field.isPrivate()) {
+            // 创建 CallRecord
             this.activeCall = new CallRecord(this.privateField.getSelf(), this.privateField);
 
             this.privateField.setCaller(this.contactService.getContact(offerSignaling.caller.id));

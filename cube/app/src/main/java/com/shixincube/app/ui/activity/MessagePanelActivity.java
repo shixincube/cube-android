@@ -510,6 +510,7 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
     public void onPermissionSuccess() {
         Intent intent = new Intent(MessagePanelActivity.this, FloatingVideoWindowService.class);
         if (conversation.getType() == ConversationType.Contact) {
+            intent.setAction(FloatingVideoWindowService.ACTION_SHOW_CALLER);
             intent.putExtra("contactId", conversation.getContact().getId().longValue());
             intent.putExtra("avatarResource", AvatarUtils.getAvatarResource(conversation.getContact()));
         }

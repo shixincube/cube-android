@@ -32,7 +32,6 @@ import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.media.AudioManager;
-import android.media.SoundPool;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
@@ -65,6 +64,7 @@ import cube.engine.ui.ContactCallingController;
 import cube.engine.ui.KeyEventLinearLayout;
 import cube.engine.ui.NewCallController;
 import cube.engine.util.ScreenUtil;
+import cube.engine.util.SoundPlayer;
 import cube.multipointcomm.CallListener;
 import cube.multipointcomm.handler.DefaultCallHandler;
 import cube.multipointcomm.model.CallRecord;
@@ -98,7 +98,7 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
 
     private AudioManager audioManager;
 
-    private SoundPool soundPool;
+    private SoundPlayer soundPlayer;
 
     private KeyEventLinearLayout displayView;
 
@@ -123,12 +123,7 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
 
         this.audioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            this.soundPool = new SoundPool.Builder().setMaxStreams(4).build();
-        }
-        else {
-            this.soundPool = new SoundPool(4, AudioManager.STREAM_MUSIC, 0);
-        }
+        this.soundPlayer = new SoundPlayer(this.getApplicationContext());
 
         this.initWindow();
 
@@ -252,6 +247,9 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
             }
         };
 
+        // 停止振铃音效
+        this.soundPlayer.stopRinging();
+
         if (this.newCallController.isShown()) {
             // 隐藏界面
             int delay = this.newCallController.hideWithAnimation();
@@ -291,6 +289,9 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
                 resId = this.binder.getContactDataHandler().extractContactAvatarResourceId(caller);
             }
 
+            // 播放振铃
+            this.soundPlayer.playRinging();
+
             this.newCallController.showWithAnimation(caller, callRecord.getCallerConstraint(), resId);
         }
         else {
@@ -312,6 +313,13 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
         }
 
         this.closing.set(true);
+
+        // 停止音效
+        this.soundPlayer.stopOutgoing();
+        this.soundPlayer.stopRinging();
+
+        // 播放音效
+        this.soundPlayer.playHangup();
 
         if (this.contactCallingController.isShown()) {
             this.contactCallingController.stopCallTiming();
@@ -449,31 +457,32 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
         // 设置媒体约束
         this.contactCallingController.config(this.mediaConstraint);
 
-        if (null != this.contact) {
-            // 头像
-            this.contactCallingController.setAvatarImageResource(intent.getIntExtra("avatarResource", 0));
-            // 名字
-            this.contactCallingController.setNameText(this.contact.getPriorityName());
+        // 头像
+        this.contactCallingController.setAvatarImageResource(intent.getIntExtra("avatarResource", 0));
+        // 名字
+        this.contactCallingController.setNameText(this.contact.getPriorityName());
 
-            // 呼叫联系人
-            CubeEngine.getInstance().getMultipointComm().makeCall(this.contact, mediaConstraint, new DefaultCallHandler(true) {
-                @Override
-                public void handleCall(CallRecord callRecord) {
-                    contactCallingController.setTipsText(R.string.on_ringing);
-                    // 显示控件
-                    contactCallingController.showControls(callRecord);
-                }
-            }, new DefaultFailureHandler(true) {
-                @Override
-                public void handleFailure(Module module, ModuleError error) {
-                    contactCallingController.setTipsText(error);
-                    Handler handler = new Handler(getMainLooper());
-                    handler.postDelayed(() -> {
-                        hide();
-                    }, 3000);
-                }
-            });
-        }
+        // 播放音效
+        this.soundPlayer.playOutgoing();
+
+        // 呼叫联系人
+        CubeEngine.getInstance().getMultipointComm().makeCall(this.contact, mediaConstraint, new DefaultCallHandler(true) {
+            @Override
+            public void handleCall(CallRecord callRecord) {
+                contactCallingController.setTipsText(R.string.on_ringing);
+                // 显示控件
+                contactCallingController.showControls(callRecord);
+            }
+        }, new DefaultFailureHandler(true) {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                contactCallingController.setTipsText(error);
+                Handler handler = new Handler(getMainLooper());
+                handler.postDelayed(() -> {
+                    hide();
+                }, 3000);
+            }
+        });
 
         return true;
     }
@@ -640,7 +649,9 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
             this.callTimer = null;
         }
 
-        this.contactCallingController.startCallTiming();
+        if (this.contactCallingController.isShown()) {
+            this.contactCallingController.startCallTiming();
+        }
     }
 
     @Override
@@ -653,6 +664,8 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
             this.callTimer.cancel();
             this.callTimer = null;
         }
+
+        this.soundPlayer.stopRinging();
     }
 
     @Override
@@ -675,7 +688,12 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
             this.callTimer = null;
         }
 
-        this.contactCallingController.setTipsText(R.string.on_timeout);
+        if (this.contactCallingController.isShown()) {
+            this.contactCallingController.setTipsText(R.string.on_timeout);
+        }
+
+        this.soundPlayer.stopOutgoing();
+        this.soundPlayer.stopRinging();
     }
 
     @Override
@@ -688,5 +706,8 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
             this.callTimer.cancel();
             this.callTimer = null;
         }
+
+        this.soundPlayer.stopOutgoing();
+        this.soundPlayer.stopRinging();
     }
 }

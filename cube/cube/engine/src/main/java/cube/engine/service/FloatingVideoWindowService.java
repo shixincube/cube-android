@@ -114,6 +114,7 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
     private MediaConstraint mediaConstraint;
 
     private Timer callTimer;
+    private Timer callCountingTimer;
 
     private AtomicBoolean closing = new AtomicBoolean(false);
 

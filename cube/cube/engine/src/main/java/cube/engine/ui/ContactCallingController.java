@@ -39,8 +39,6 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import java.util.Timer;
-
 import cube.core.Module;
 import cube.core.ModuleError;
 import cube.core.handler.DefaultFailureHandler;
@@ -56,7 +54,7 @@ import cube.multipointcomm.util.MediaConstraint;
 /**
  * 联系人通话控制器。
  */
-public class ContactCallingController implements Controller {
+public class ContactCallingController implements Controller, Runnable {
 
     private FloatingVideoWindowService service;
     private AudioManager audioManager;
@@ -72,6 +70,7 @@ public class ContactCallingController implements Controller {
     private LinearLayout bodyLayout;
     private LinearLayout footerLayout;
 
+    private TextView callingTimeText;
     private ImageButton previewButton;
     private AdvancedImageView avatarView;
     private AdvancedImageView typeView;
@@ -93,7 +92,7 @@ public class ContactCallingController implements Controller {
 
     private MediaConstraint mediaConstraint;
 
-    private Timer callingTimer;
+    private int timing;
 
     public ContactCallingController(FloatingVideoWindowService service, AudioManager audioManager, ViewGroup mainLayout) {
         this.service = service;
@@ -176,22 +175,55 @@ public class ContactCallingController implements Controller {
         }
     }
 
-    public void startCallTiming() {
+    public Runnable startCallTiming() {
         if (this.mediaConstraint.videoEnabled) {
             this.tipsView.setVisibility(View.GONE);
         }
-        else {
 
-        }
+        this.callingTimeText.setText("");
+        this.callingTimeText.setVisibility(View.VISIBLE);
+        this.timing = 0;
+
+        return this;
     }
 
     public void stopCallTiming() {
         if (this.mediaConstraint.videoEnabled) {
             this.tipsView.setVisibility(View.VISIBLE);
         }
-        else {
 
+        this.callingTimeText.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void run() {
+        ++this.timing;
+
+        StringBuilder buf = new StringBuilder();
+
+        if (this.timing >= 60) {
+            int minute = (int) Math.floor(this.timing / 60.0);
+            int mod = this.timing % 60;
+
+            if (minute < 10) {
+                buf.append("0");
+            }
+            buf.append(minute);
+
+            if (mod < 10) {
+                buf.append("0");
+            }
+            buf.append(mod);
         }
+        else {
+            buf.append("00:");
+            if (this.timing < 10) {
+                buf.append("0");
+            }
+            buf.append(this.timing);
+        }
+
+        this.callingTimeText.setText(buf.toString());
     }
 
     public void changeSize(boolean mini, int widthInPixel, int heightInPixel) {
@@ -384,6 +416,7 @@ public class ContactCallingController implements Controller {
         this.bodyLayout = this.mainLayout.findViewById(R.id.llBody);
         this.footerLayout = this.mainLayout.findViewById(R.id.llFooter);
 
+        this.callingTimeText = this.mainLayout.findViewById(R.id.tvCallingTime);
         this.previewButton = this.mainLayout.findViewById(R.id.btnPreview);
         this.avatarView = this.mainLayout.findViewById(R.id.ivAvatar);
         this.typeView = this.mainLayout.findViewById(R.id.ivType);

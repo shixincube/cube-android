@@ -210,6 +210,8 @@ public class ContactCallingController implements Controller, Runnable {
             }
             buf.append(minute);
 
+            buf.append(":");
+
             if (mod < 10) {
                 buf.append("0");
             }

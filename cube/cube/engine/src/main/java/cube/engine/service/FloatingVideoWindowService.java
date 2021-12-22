@@ -309,6 +309,11 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
             this.callTimer = null;
         }
 
+        if (null != this.callCountingTimer) {
+            this.callCountingTimer.cancel();
+            this.callCountingTimer = null;
+        }
+
         if (this.closing.get()) {
             return;
         }
@@ -651,7 +656,15 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
         }
 
         if (this.contactCallingController.isShown()) {
-            this.contactCallingController.startCallTiming();
+            Runnable task = this.contactCallingController.startCallTiming();
+            Handler handler = new Handler(getApplicationContext().getMainLooper());
+            this.callCountingTimer = new Timer();
+            this.callCountingTimer.scheduleAtFixedRate(new TimerTask() {
+                @Override
+                public void run() {
+                    handler.post(task);
+                }
+            }, 1000, 1000);
         }
     }
 
@@ -689,6 +702,11 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
             this.callTimer = null;
         }
 
+        if (null != this.callCountingTimer) {
+            this.callCountingTimer.cancel();
+            this.callCountingTimer = null;
+        }
+
         if (this.contactCallingController.isShown()) {
             this.contactCallingController.setTipsText(R.string.on_timeout);
         }
@@ -706,6 +724,11 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
         if (null != this.callTimer) {
             this.callTimer.cancel();
             this.callTimer = null;
+        }
+
+        if (null != this.callCountingTimer) {
+            this.callCountingTimer.cancel();
+            this.callCountingTimer = null;
         }
 
         this.soundPlayer.stopOutgoing();

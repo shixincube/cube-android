@@ -58,8 +58,8 @@ import cube.multipointcomm.MultipointCommAction;
 import cube.multipointcomm.MultipointCommState;
 import cube.multipointcomm.RTCDevice;
 import cube.multipointcomm.handler.AnswerHandler;
+import cube.multipointcomm.handler.ApplyHandler;
 import cube.multipointcomm.handler.CommFieldHandler;
-import cube.multipointcomm.handler.DefaultApplyCallHandler;
 import cube.multipointcomm.handler.OfferHandler;
 import cube.multipointcomm.handler.SignalingHandler;
 import cube.multipointcomm.util.MediaConstraint;
@@ -136,6 +136,11 @@ public class CommField extends Entity implements RTCDevice.RTCEventListener {
 
     private ConcurrentHashMap<Long, RTCDevice> inboundRTCMap;
 
+    /**
+     * RTC 设备对应的目标。键为 RTC 设备的 SN 。
+     */
+    private ConcurrentHashMap<Long, CommFieldEndpoint> rtcForEndpointMap;
+
     public CommField(MultipointComm service, Context context, Self self, Pipeline pipeline) {
         super(self.id);
         this.service = service;
@@ -148,6 +153,7 @@ public class CommField extends Entity implements RTCDevice.RTCEventListener {
 
         this.endpoints = new ArrayList<>();
         this.inboundRTCMap = new ConcurrentHashMap<>();
+        this.rtcForEndpointMap = new ConcurrentHashMap<>();
     }
 
     public CommField(JSONObject json) throws JSONException {
@@ -261,10 +267,6 @@ public class CommField extends Entity implements RTCDevice.RTCEventListener {
         this.group = group;
     }
 
-    public List<CommFieldEndpoint> getEndpoints() {
-        return new ArrayList<>(this.endpoints);
-    }
-
     public int numRTCDevices() {
         int result = null != this.outboundRTC ? 1 : 0;
         return result + this.inboundRTCMap.size();
@@ -317,25 +319,6 @@ public class CommField extends Entity implements RTCDevice.RTCEventListener {
     }
 
     /**
-     * 返回指定的终端节点的实例。
-     *
-     * @param contact
-     * @return
-     */
-    public CommFieldEndpoint getEndpoint(Contact contact) {
-        for (CommFieldEndpoint endpoint : this.endpoints) {
-            if (endpoint.getContact().id.longValue() == contact.id.longValue()) {
-                if (null == endpoint.rtcDevice) {
-                    endpoint.rtcDevice = this.getRTCDevice(endpoint);
-                }
-                return endpoint;
-            }
-        }
-
-        return null;
-    }
-
-    /**
      * 申请发起通话。
      *
      * @param participant
@@ -343,7 +326,7 @@ public class CommField extends Entity implements RTCDevice.RTCEventListener {
      * @param successHandler
      * @param failureHandler
      */
-    public void applyCall(Contact participant, Device device, DefaultApplyCallHandler successHandler, FailureHandler failureHandler) {
+    public void applyCall(Contact participant, Device device, ApplyHandler successHandler, FailureHandler failureHandler) {
         if (!this.pipeline.isReady()) {
             ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.NoPipeline.code);
             this.service.execute(failureHandler, error);
@@ -385,7 +368,7 @@ public class CommField extends Entity implements RTCDevice.RTCEventListener {
                 }
 
                 service.execute(() -> {
-                    successHandler.handleApplyCall(CommField.this, participant, device);
+                    successHandler.handleApply(CommField.this, participant, device);
                 });
             }
         });
@@ -399,7 +382,7 @@ public class CommField extends Entity implements RTCDevice.RTCEventListener {
      * @param successHandler
      * @param failureHandler
      */
-    public void applyJoin(Contact participant, Device device, DefaultApplyCallHandler successHandler, FailureHandler failureHandler) {
+    public void applyJoin(Contact participant, Device device, ApplyHandler successHandler, FailureHandler failureHandler) {
         if (!this.pipeline.isReady()) {
             ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.NoPipeline.code);
             this.service.execute(failureHandler, error);
@@ -441,10 +424,132 @@ public class CommField extends Entity implements RTCDevice.RTCEventListener {
                 }
 
                 service.execute(() -> {
-                    successHandler.handleApplyCall(CommField.this, participant, device);
+                    successHandler.handleApply(CommField.this, participant, device);
                 });
             }
         });
+    }
+
+    /**
+     * 申请终止指定参与者的数据。
+     *
+     * @param participant
+     * @param device
+     * @param successHandler
+     * @param failureHandler
+     */
+    public void applyTerminate(Contact participant, Device device, ApplyHandler successHandler, FailureHandler failureHandler) {
+        if (!this.pipeline.isReady()) {
+            ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.NoPipeline.code);
+            this.service.execute(failureHandler, error);
+            return;
+        }
+
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("field", this.toCompactJSON());
+            payload.put("participant", participant.toCompactJSON());
+            payload.put("device", device.toCompactJSON());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        Packet requestPacket = new Packet(MultipointCommAction.ApplyTerminate, payload);
+        this.pipeline.send(MultipointComm.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    ModuleError error = new ModuleError(MultipointComm.NAME, packet.state.code);
+                    service.execute(failureHandler, error);
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != MultipointCommState.Ok.code) {
+                    ModuleError error = new ModuleError(MultipointComm.NAME, stateCode);
+                    service.execute(failureHandler, error);
+                    return;
+                }
+
+                JSONObject data = packet.extractServiceData();
+                try {
+                    CommField response = new CommField(data);
+                    // 更新数据
+                    update(response);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                service.execute(() -> {
+                    successHandler.handleApply(CommField.this, participant, device);
+                });
+            }
+        });
+    }
+
+    /**
+     * 判断当前签入的终端是否参与了通讯。
+     *
+     * @return 返回 {@code true} 表示当前签入的设备已经在当前场域内。
+     */
+    public boolean hasJoin() {
+        for (CommFieldEndpoint ep : this.endpoints) {
+            if (ep.getContact().id.longValue() == this.self.id.longValue()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 终端节点数量。
+     *
+     * @return 返回终端节点数量。
+     */
+    public int numEndpoints() {
+        return this.endpoints.size();
+    }
+
+    /**
+     * 获取终端节点列表。
+     *
+     * @return 返回终端节点列表。
+     */
+    public List<CommFieldEndpoint> getEndpoints() {
+        return new ArrayList<>(this.endpoints);
+    }
+
+    /**
+     * 返回指定的终端节点的实例。
+     *
+     * @param contact
+     * @return
+     */
+    public CommFieldEndpoint getEndpoint(Contact contact) {
+        for (CommFieldEndpoint endpoint : this.endpoints) {
+            if (endpoint.getContact().id.longValue() == contact.id.longValue()) {
+                if (null == endpoint.rtcDevice) {
+                    endpoint.rtcDevice = this.getRTCDevice(endpoint);
+                }
+                return endpoint;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * 关闭指定的终端。
+     *
+     * @param endpoint
+     */
+    public void closeEndpoint(CommFieldEndpoint endpoint) {
+        for (CommFieldEndpoint ep : this.endpoints) {
+            if (ep.getId().longValue() == endpoint.id.longValue()) {
+                // 关闭设备
+                this.closeRTCDevice(ep);
+                break;
+            }
+        }
     }
 
     /**
@@ -623,6 +728,30 @@ public class CommField extends Entity implements RTCDevice.RTCEventListener {
             rtcDevice.close();
         }
         this.inboundRTCMap.clear();
+
+        this.rtcForEndpointMap.clear();
+
+        if (null != this.inboundRTC) {
+            this.inboundRTC.close();
+            this.inboundRTC = null;
+        }
+    }
+
+    private void closeRTCDevice(CommFieldEndpoint endpoint) {
+        if (null != this.outboundRTC) {
+            if (this.self.id.longValue() == endpoint.getContact().id.longValue() &&
+                this.self.device.name.equals(endpoint.getDevice().name)) {
+                this.outboundRTC.close();
+                this.outboundRTC = null;
+                return;
+            }
+        }
+
+        RTCDevice rtcDevice = this.inboundRTCMap.remove(endpoint.id);
+        if (null != rtcDevice) {
+            this.rtcForEndpointMap.remove(rtcDevice.getSN());
+            rtcDevice.close();
+        }
     }
 
     @Override

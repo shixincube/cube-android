@@ -34,7 +34,7 @@ import cube.multipointcomm.model.CommField;
 /**
  * 申请呼叫句柄。
  */
-public interface ApplyCallHandler extends CallbackHandler {
+public interface ApplyHandler extends CallbackHandler {
 
-    void handleApplyCall(CommField commField, Contact participant, Device device);
+    void handleApply(CommField commField, Contact participant, Device device);
 }

@@ -41,10 +41,12 @@ import org.webrtc.EglBase;
 import org.webrtc.IceCandidate;
 import org.webrtc.MediaConstraints;
 import org.webrtc.MediaStream;
+import org.webrtc.MediaStreamTrack;
 import org.webrtc.PeerConnection;
 import org.webrtc.PeerConnectionFactory;
 import org.webrtc.RendererCommon;
 import org.webrtc.RtpReceiver;
+import org.webrtc.RtpTransceiver;
 import org.webrtc.SdpObserver;
 import org.webrtc.SessionDescription;
 import org.webrtc.SurfaceTextureHelper;
@@ -284,6 +286,14 @@ public class RTCDevice {
     }
 
     /**
+     * 当前 RTC 是否正在工作。
+     * @return 如果正在通话返回 {@code true} 。
+     */
+    public boolean isWorking() {
+        return (null != this.pc);
+    }
+
+    /**
      * 启动 RTC 终端为主叫。
      *
      * @param mediaConstraint
@@ -299,23 +309,68 @@ public class RTCDevice {
 
         this.mediaConstraint = mediaConstraint;
 
-        // 创建本地流
-        this.outboundStream = this.factory.createLocalMediaStream(MEDIA_STREAM_LABEL);
-
-        if (mediaConstraint.videoEnabled) {
-            // 启动摄像机提供视频画面
-            VideoTrack videoTrack = createVideoTrack(mediaConstraint.getVideoDimension(), mediaConstraint.getVideoFps());
-            this.outboundStream.addTrack(videoTrack);
-        }
-
-        AudioTrack audioTrack = createAudioTrack();
-        this.outboundStream.addTrack(audioTrack);
-
         this.pcObserver = new PeerConnectionObserver();
         // 创建 Peer Connection
         this.pc = this.factory.createPeerConnection(getConfig(this.iceServers), this.pcObserver);
-        // 添加媒体流
-        this.pc.addStream(this.outboundStream);
+
+        if (this.mode.equals(MODE_BIDIRECTION)) {
+            // 双向流
+            // 创建本地流
+            this.outboundStream = this.factory.createLocalMediaStream(MEDIA_STREAM_LABEL);
+
+            if (mediaConstraint.videoEnabled) {
+                // 启动摄像机提供视频画面
+                VideoTrack videoTrack = this.createVideoTrack(mediaConstraint.getVideoDimension(), mediaConstraint.getVideoFps());
+                this.outboundStream.addTrack(videoTrack);
+            }
+
+            if (mediaConstraint.audioEnabled) {
+                // 获取麦克风数据
+                AudioTrack audioTrack = this.createAudioTrack();
+                this.outboundStream.addTrack(audioTrack);
+            }
+
+            // 添加媒体流
+            this.pc.addStream(this.outboundStream);
+        }
+        else if (this.mode.equals(MODE_SEND_ONLY)) {
+            // 仅发送模式
+            // 创建本地流
+            this.outboundStream = this.factory.createLocalMediaStream(MEDIA_STREAM_LABEL);
+
+            if (mediaConstraint.audioEnabled) {
+                this.pc.addTransceiver(MediaStreamTrack.MediaType.MEDIA_TYPE_AUDIO,
+                        new RtpTransceiver.RtpTransceiverInit(RtpTransceiver.RtpTransceiverDirection.SEND_ONLY));
+                AudioTrack audioTrack = this.createAudioTrack();
+                audioTrack.setEnabled(true);
+                this.outboundStream.addTrack(audioTrack);
+//                this.pc.addTrack(audioTrack);
+            }
+
+            if (mediaConstraint.videoEnabled) {
+                this.pc.addTransceiver(MediaStreamTrack.MediaType.MEDIA_TYPE_VIDEO,
+                        new RtpTransceiver.RtpTransceiverInit(RtpTransceiver.RtpTransceiverDirection.SEND_ONLY));
+
+                VideoTrack videoTrack = this.createVideoTrack(mediaConstraint.getVideoDimension(), mediaConstraint.getVideoFps());
+                videoTrack.setEnabled(true);
+                this.outboundStream.addTrack(videoTrack);
+//                this.pc.addTrack(videoTrack);
+            }
+
+            this.pc.addStream(this.outboundStream);
+        }
+        else if (this.mode.equals(MODE_RECEIVE_ONLY)) {
+            // 仅接收模式
+            if (mediaConstraint.audioEnabled) {
+                this.pc.addTransceiver(MediaStreamTrack.MediaType.MEDIA_TYPE_AUDIO,
+                        new RtpTransceiver.RtpTransceiverInit(RtpTransceiver.RtpTransceiverDirection.RECV_ONLY));
+            }
+
+            if (mediaConstraint.videoEnabled) {
+                this.pc.addTransceiver(MediaStreamTrack.MediaType.MEDIA_TYPE_VIDEO,
+                        new RtpTransceiver.RtpTransceiverInit(RtpTransceiver.RtpTransceiverDirection.RECV_ONLY));
+            }
+        }
 
         this.pc.createOffer(new SdpObserver() {
             @Override
@@ -509,6 +564,7 @@ public class RTCDevice {
             @Override
             public void onSetSuccess() {
                 successHandler.handleRTCDevice(RTCDevice.this);
+                // 执行就绪
                 doReady();
             }
 

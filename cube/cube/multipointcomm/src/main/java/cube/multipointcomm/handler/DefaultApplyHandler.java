@@ -29,14 +29,14 @@ package cube.multipointcomm.handler;
 /**
  * 默认申请呼叫句柄。
  */
-public abstract class DefaultApplyCallHandler implements ApplyCallHandler {
+public abstract class DefaultApplyHandler implements ApplyHandler {
 
     private boolean inMainThread = false;
 
-    public DefaultApplyCallHandler() {
+    public DefaultApplyHandler() {
     }
 
-    public DefaultApplyCallHandler(boolean inMainThread) {
+    public DefaultApplyHandler(boolean inMainThread) {
         this.inMainThread = inMainThread;
     }
 

@@ -50,6 +50,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import cube.contact.ContactService;
 import cube.contact.ContactServiceEvent;
+import cube.contact.model.AbstractContact;
 import cube.contact.model.Contact;
 import cube.contact.model.Device;
 import cube.contact.model.Group;
@@ -62,7 +63,7 @@ import cube.core.handler.FailureHandler;
 import cube.core.handler.PipelineHandler;
 import cube.core.handler.StableFailureHandler;
 import cube.multipointcomm.handler.CallHandler;
-import cube.multipointcomm.handler.DefaultApplyCallHandler;
+import cube.multipointcomm.handler.DefaultApplyHandler;
 import cube.multipointcomm.handler.DefaultCallHandler;
 import cube.multipointcomm.handler.DefaultCommFieldHandler;
 import cube.multipointcomm.handler.RTCDeviceHandler;
@@ -239,14 +240,20 @@ public class MultipointComm extends Module implements Observer {
      * @param failureHandler
      */
     public void makeCall(Contact contact, MediaConstraint mediaConstraint, CallHandler successHandler, FailureHandler failureHandler) {
+        this.makeCall(contact, mediaConstraint, successHandler, failureHandler);
+    }
+
+    /**
+     * 发起通话。
+     *
+     * @param target
+     * @param mediaConstraint
+     * @param successHandler
+     * @param failureHandler
+     */
+    public void makeCall(AbstractContact target, MediaConstraint mediaConstraint, CallHandler successHandler, FailureHandler failureHandler) {
         if (null == this.privateField) {
             ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.NoCommField.code);
-            execute(failureHandler, error);
-            return;
-        }
-
-        if (null != this.activeCall && this.activeCall.isActive()) {
-            ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.CallerBusy.code);
             execute(failureHandler, error);
             return;
         }
@@ -300,70 +307,86 @@ public class MultipointComm extends Module implements Observer {
             }
         };
 
-        // 创建通话记录
-        this.activeCall = new CallRecord(this.privateField.getSelf(), this.privateField);
-        // 设置主叫和被叫
-        this.privateField.setCallRole(this.privateField.getFounder(), contact);
-        // 设置媒体约束
-        this.privateField.setMediaConstraint(mediaConstraint);
+        if (target instanceof Contact) {
+            if (null != this.activeCall && this.activeCall.isActive()) {
+                ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.CallerBusy.code);
+                execute(failureHandler, error);
+                return;
+            }
 
-        execute(() -> {
-            this.callTimer = new Timer();
-            this.callTimer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    fireCallTimeout();
-                }
-            }, this.callTimeout);
+            Contact contact = (Contact) target;
 
-            // 回调 InProgress 事件
-            ObservableEvent event = new ObservableEvent(MultipointCommEvent.InProgress, activeCall);
-            notifyObservers(event);
-        });
+            // 创建通话记录
+            this.activeCall = new CallRecord(this.privateField.getSelf(), this.privateField);
+            // 设置主叫和被叫
+            this.privateField.setCallRole(this.privateField.getFounder(), contact);
+            // 设置媒体约束
+            this.privateField.setMediaConstraint(mediaConstraint);
 
-        // 1. 申请一对一主叫
-        this.privateField.applyCall(this.privateField.getCaller(), this.privateField.getSelf().device,
-            new DefaultApplyCallHandler(false) {
-                @Override
-                public void handleApplyCall(CommField commField, Contact participant, Device device) {
-                    // 记录媒体约束
-                    activeCall.setCallerConstraint(mediaConstraint);
+            execute(() -> {
+                this.callTimer = new Timer();
+                this.callTimer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        fireCallTimeout();
+                    }
+                }, this.callTimeout);
 
-                    fillCommField(commField, true);
+                // 回调 InProgress 事件
+                ObservableEvent event = new ObservableEvent(MultipointCommEvent.InProgress, activeCall);
+                notifyObservers(event);
+            });
 
-                    // 2. 启动 RTC 节点，发起 Offer
-                    // 创建 RTC 设备
-                    RTCDevice rtcDevice = createRTCDevice(RTCDevice.MODE_BIDIRECTION);
-                    // 发起 Offer
-                    privateField.launchOffer(rtcDevice, mediaConstraint, new DefaultCommFieldHandler() {
+            // 1. 申请一对一主叫
+            this.privateField.applyCall(this.privateField.getCaller(), this.privateField.getSelf().device,
+                    new DefaultApplyHandler(false) {
                         @Override
-                        public void handleCommField(CommField commField) {
-                            // 填充数据
+                        public void handleApply(CommField commField, Contact participant, Device device) {
+                            // 记录媒体约束
+                            activeCall.setCallerConstraint(mediaConstraint);
+
                             fillCommField(commField, true);
 
-                            success.handleCall(activeCall);
+                            // 2. 启动 RTC 节点，发起 Offer
+                            // 创建 RTC 设备
+                            RTCDevice rtcDevice = createRTCDevice(RTCDevice.MODE_BIDIRECTION);
+                            // 发起 Offer
+                            privateField.launchOffer(rtcDevice, mediaConstraint, new DefaultCommFieldHandler() {
+                                @Override
+                                public void handleCommField(CommField commField) {
+                                    // 填充数据
+                                    fillCommField(commField, true);
+
+                                    success.handleCall(activeCall);
+                                }
+                            }, new StableFailureHandler() {
+                                @Override
+                                public void handleFailure(Module module, ModuleError error) {
+                                    if (LogUtils.isDebugLevel()) {
+                                        LogUtils.d(TAG, "#launchOffer - Failed : " + error.code);
+                                    }
+
+                                    failure.handleFailure(MultipointComm.this, error);
+                                }
+                            });
                         }
                     }, new StableFailureHandler() {
                         @Override
                         public void handleFailure(Module module, ModuleError error) {
                             if (LogUtils.isDebugLevel()) {
-                                LogUtils.d(TAG, "#launchOffer - Failed : " + error.code);
+                                LogUtils.d(TAG, "#applyCall - Failed : " + error.code);
                             }
 
                             failure.handleFailure(MultipointComm.this, error);
                         }
                     });
-                }
-            }, new StableFailureHandler() {
-                @Override
-                public void handleFailure(Module module, ModuleError error) {
-                    if (LogUtils.isDebugLevel()) {
-                        LogUtils.d(TAG, "#applyCall - Failed : " + error.code);
-                    }
-
-                    failure.handleFailure(MultipointComm.this, error);
-                }
-            });
+        }
+        else if (target instanceof Group) {
+            // TODO
+        }
+        else {
+            // TODO
+        }
     }
 
     /**
@@ -406,9 +429,9 @@ public class MultipointComm extends Module implements Observer {
             this.activeCall.setAnswerTime(System.currentTimeMillis());
 
             // 1. 申请加入
-            this.privateField.applyJoin(this.privateField.getSelf(), this.privateField.getSelf().device, new DefaultApplyCallHandler(false) {
+            this.privateField.applyJoin(this.privateField.getSelf(), this.privateField.getSelf().device, new DefaultApplyHandler(false) {
                 @Override
-                public void handleApplyCall(CommField commField, Contact participant, Device device) {
+                public void handleApply(CommField commField, Contact participant, Device device) {
                     // 记录
                     activeCall.setCalleeConstraint(mediaConstraint);
 

@@ -35,8 +35,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 import cube.contact.ContactService;
+import cube.contact.handler.DefaultGroupHandler;
+import cube.contact.handler.GroupAppendixHandler;
 import cube.contact.handler.GroupHandler;
+import cube.contact.handler.StableGroupAppendixHandler;
+import cube.core.Module;
+import cube.core.ModuleError;
 import cube.core.handler.FailureHandler;
+import cube.core.handler.StableFailureHandler;
 import cube.core.model.Cacheable;
 import cube.util.JSONable;
 
@@ -278,6 +284,75 @@ public class GroupAppendix implements JSONable, Cacheable {
      */
     public void setNoticeOperator(Contact contact) {
         this.noticeOperator = contact;
+    }
+
+    /**
+     * 获取群组的通讯 ID 。
+     *
+     * @return 返回群组的通讯 ID 。
+     */
+    public Long getCommId() {
+        Object mutex = new Object();
+
+        this.service.getGroupAppendixCommId(this, new StableGroupAppendixHandler() {
+            @Override
+            public void handleAppendix(Group group, GroupAppendix appendix) {
+                synchronized (mutex) {
+                    mutex.notify();
+                }
+            }
+        }, new StableFailureHandler() {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                synchronized (mutex) {
+                    mutex.notify();
+                }
+            }
+        });
+
+        synchronized (mutex) {
+            try {
+                mutex.wait(10 * 1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return this.commId;
+    }
+
+    /**
+     * <b>Non-public API</b>
+     *
+     * @param commId
+     */
+    public void setCommId(Long commId) {
+        this.commId = commId;
+    }
+
+    /**
+     * <b>Non-public API</b>
+     *
+     * @param id
+     * @param successHandler
+     * @param failureHandler
+     */
+    public void updateCommId(Long id, GroupAppendixHandler successHandler, FailureHandler failureHandler) {
+        this.commId = id;
+
+        JSONObject params = new JSONObject();
+        try {
+            params.put("commId", this.commId.longValue());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        // 更新附录
+        this.service.updateAppendix(this, params, new DefaultGroupHandler(successHandler.isInMainThread()) {
+            @Override
+            public void handleGroup(Group group) {
+                successHandler.handleAppendix(group, GroupAppendix.this);
+            }
+        }, failureHandler);
     }
 
     @Override

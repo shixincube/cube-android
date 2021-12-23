@@ -48,12 +48,15 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
+import cell.util.Utils;
 import cube.contact.ContactService;
 import cube.contact.ContactServiceEvent;
+import cube.contact.handler.StableGroupAppendixHandler;
 import cube.contact.model.AbstractContact;
 import cube.contact.model.Contact;
 import cube.contact.model.Device;
 import cube.contact.model.Group;
+import cube.contact.model.GroupAppendix;
 import cube.contact.model.Self;
 import cube.core.Module;
 import cube.core.ModuleError;
@@ -63,6 +66,7 @@ import cube.core.handler.FailureHandler;
 import cube.core.handler.PipelineHandler;
 import cube.core.handler.StableFailureHandler;
 import cube.multipointcomm.handler.CallHandler;
+import cube.multipointcomm.handler.CommFieldHandler;
 import cube.multipointcomm.handler.DefaultApplyHandler;
 import cube.multipointcomm.handler.DefaultCallHandler;
 import cube.multipointcomm.handler.DefaultCommFieldHandler;
@@ -79,7 +83,7 @@ import cube.util.Observer;
 /**
  * 多方通信服务。
  */
-public class MultipointComm extends Module implements Observer {
+public class MultipointComm extends Module implements Observer, MediaListener {
 
     private final static String TAG = MultipointComm.class.getSimpleName();
 
@@ -138,6 +142,7 @@ public class MultipointComm extends Module implements Observer {
         Self self = this.contactService.getSelf();
         if (null != self) {
             this.privateField = new CommField(this, this.getContext(), self, this.pipeline);
+            this.privateField.setMediaListener(this);
         }
 
         return true;
@@ -240,7 +245,19 @@ public class MultipointComm extends Module implements Observer {
      * @param failureHandler
      */
     public void makeCall(Contact contact, MediaConstraint mediaConstraint, CallHandler successHandler, FailureHandler failureHandler) {
-        this.makeCall(contact, mediaConstraint, successHandler, failureHandler);
+        this.makeCall((AbstractContact) contact, mediaConstraint, successHandler, failureHandler);
+    }
+
+    /**
+     * 发起通话。
+     *
+     * @param group
+     * @param mediaConstraint
+     * @param successHandler
+     * @param failureHandler
+     */
+    public void makeCall(Group group, MediaConstraint mediaConstraint, CallHandler successHandler, FailureHandler failureHandler) {
+        this.makeCall((AbstractContact) group, mediaConstraint, successHandler, failureHandler);
     }
 
     /**
@@ -251,7 +268,7 @@ public class MultipointComm extends Module implements Observer {
      * @param successHandler
      * @param failureHandler
      */
-    public void makeCall(AbstractContact target, MediaConstraint mediaConstraint, CallHandler successHandler, FailureHandler failureHandler) {
+    private void makeCall(AbstractContact target, MediaConstraint mediaConstraint, CallHandler successHandler, FailureHandler failureHandler) {
         if (null == this.privateField) {
             ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.NoCommField.code);
             execute(failureHandler, error);
@@ -308,6 +325,8 @@ public class MultipointComm extends Module implements Observer {
         };
 
         if (target instanceof Contact) {
+            // 呼叫指定联系人
+
             if (null != this.activeCall && this.activeCall.isActive()) {
                 ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.CallerBusy.code);
                 execute(failureHandler, error);
@@ -382,10 +401,110 @@ public class MultipointComm extends Module implements Observer {
                     });
         }
         else if (target instanceof Group) {
-            // TODO
+            // 发起群组内的通话
+            // 获取群组的通讯 ID
+            Group group = (Group) target;
+
+            execute(() -> {
+                Long commId = group.getAppendix().getCommId();
+                if (commId.longValue() == 0) {
+                    // 创建新场域，关联对应的群组
+                    createCommField(mediaConstraint, group, new DefaultCommFieldHandler(false) {
+                        @Override
+                        public void handleCommField(CommField commField) {
+                            // 更新群组的 CommFiled ID
+                            group.getAppendix().updateCommId(commField.id, new StableGroupAppendixHandler() {
+                                @Override
+                                public void handleAppendix(Group group, GroupAppendix appendix) {
+                                    // 发起呼叫
+                                    executeOnMainThread(() -> {
+                                        makeCall(commField, mediaConstraint, successHandler, failureHandler);
+                                    });
+                                }
+                            }, new StableFailureHandler() {
+                                @Override
+                                public void handleFailure(Module module, ModuleError error) {
+                                    failure.handleFailure(module, error);
+                                }
+                            });
+                        }
+                    }, new StableFailureHandler() {
+                        @Override
+                        public void handleFailure(Module module, ModuleError error) {
+                            failure.handleFailure(module, error);
+                        }
+                    });
+                }
+                else {
+                    // 获取场域
+                    getCommField(commId, new DefaultCommFieldHandler(false) {
+                        @Override
+                        public void handleCommField(CommField commField) {
+                            // 发起呼叫
+                            executeOnMainThread(() -> {
+                                makeCall(commField, mediaConstraint, successHandler, failureHandler);
+                            });
+                        }
+                    }, new StableFailureHandler() {
+                        @Override
+                        public void handleFailure(Module module, ModuleError error) {
+                            failure.handleFailure(module, error);
+                        }
+                    });
+                }
+            });
+        }
+        else if (target instanceof CommField) {
+            CommField field = (CommField) target;
+
+            if (null != this.activeCall && null != this.activeCall.getCommField()) {
+                if (this.activeCall.getCommField().id.longValue() != field.id.longValue()) {
+                    LogUtils.w(TAG, "Comm field data error");
+                    ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.CommFieldStateError.code);
+                    error.data = this.activeCall;
+                    execute(failureHandler, error);
+                    return;
+                }
+            }
+
+            if (null == this.activeCall) {
+                this.activeCall = new CallRecord(this.privateField.getSelf(), field);
+            }
+
+            execute(() -> {
+                notifyObservers(new ObservableEvent(MultipointCommEvent.InProgress, field));
+            });
+
+            // 1. 申请通话
+            field.applyCall(this.privateField.getSelf(), this.privateField.getSelf().device, new DefaultApplyHandler(false) {
+                @Override
+                public void handleApply(CommField commField, Contact participant, Device device) {
+                    // 获取自己的终端节点
+                    CommFieldEndpoint endpoint = commField.getEndpoint(privateField.getSelf());
+                    field.update(commField);
+
+                    fillCommField(field, true);
+
+                    // 2. 发起 Offer
+                    RTCDevice rtcDevice = createRTCDevice(RTCDevice.MODE_SEND_ONLY);
+                    field.launchOffer(rtcDevice, mediaConstraint, new DefaultCommFieldHandler() {
+                        @Override
+                        public void handleCommField(CommField commField) {
+                            success.handleCall(activeCall);
+                        }
+                    }, failure);
+                }
+            }, new StableFailureHandler() {
+                @Override
+                public void handleFailure(Module module, ModuleError error) {
+
+                }
+            });
         }
         else {
-            // TODO
+            ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.Failure.code);
+            error.data = target;
+            execute(failureHandler, error);
         }
     }
 
@@ -755,6 +874,101 @@ public class MultipointComm extends Module implements Observer {
         return factory;
     }
 
+    /**
+     * 创建场域。
+     *
+     * @param mediaConstraint
+     * @param group
+     * @param successHandler
+     * @param failureHandler
+     */
+    private void createCommField(MediaConstraint mediaConstraint, Group group, CommFieldHandler successHandler,
+                                      FailureHandler failureHandler) {
+        CommField commField = new CommField(Utils.generateUnsignedSerialNumber(), this, this.getContext(),
+                this.contactService.getSelf(), this.pipeline, group, mediaConstraint);
+        commField.setMediaListener(this);
+
+        // 向服务器申请创建场域
+        Packet requestPacket = new Packet(MultipointCommAction.CreateField, commField.toJSON());
+        this.pipeline.send(MultipointComm.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    ModuleError error = new ModuleError(MultipointComm.NAME, packet.state.code);
+                    error.data = commField;
+                    execute(failureHandler, error);
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != MultipointCommState.Ok.code) {
+                    ModuleError error = new ModuleError(MultipointComm.NAME, stateCode);
+                    error.data = commField;
+                    execute(failureHandler, error);
+                    return;
+                }
+
+                execute(() -> {
+                    successHandler.handleCommField(commField);
+                });
+            }
+        });
+    }
+
+    private void getCommField(Long commId, CommFieldHandler successHandler, FailureHandler failureHandler) {
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("commFieldId", commId.longValue());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        Packet requestPacket = new Packet(MultipointCommAction.GetField, payload);
+        this.pipeline.send(MultipointComm.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    ModuleError error = new ModuleError(MultipointComm.NAME, packet.state.code);
+                    error.data = commId;
+                    execute(failureHandler, error);
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != MultipointCommState.Ok.code) {
+                    ModuleError error = new ModuleError(MultipointComm.NAME, stateCode);
+                    error.data = commId;
+                    execute(failureHandler, error);
+                    return;
+                }
+
+                execute(() -> {
+                    CommField commField = null;
+                    try {
+                        commField = new CommField(packet.extractServiceData());
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                    // 填充数据
+                    fillCommField(commField, true);
+
+                    successHandler.handleCommField(commField);
+                });
+            }
+        });
+    }
+
+    @Override
+    public void onMediaConnected(CommField commField, RTCDevice device) {
+
+    }
+
+    @Override
+    public void onMediaDisconnected(CommField commField, RTCDevice device) {
+
+    }
+
     @Override
     public void execute(Runnable task) {
         super.execute(task);
@@ -834,6 +1048,7 @@ public class MultipointComm extends Module implements Observer {
             Self self = (Self) event.getData();
             if (null == this.privateField) {
                 this.privateField = new CommField(this, this.getContext(), self, this.pipeline);
+                this.privateField.setMediaListener(this);
             }
         }
     }

@@ -38,7 +38,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-import cube.auth.AuthService;
+import cube.contact.model.AbstractContact;
 import cube.contact.model.Contact;
 import cube.contact.model.Device;
 import cube.contact.model.Group;
@@ -51,7 +51,6 @@ import cube.core.PipelineState;
 import cube.core.handler.FailureHandler;
 import cube.core.handler.PipelineHandler;
 import cube.core.handler.StableFailureHandler;
-import cube.core.model.Entity;
 import cube.multipointcomm.MediaListener;
 import cube.multipointcomm.MultipointComm;
 import cube.multipointcomm.MultipointCommAction;
@@ -68,7 +67,7 @@ import cube.util.LogUtils;
 /**
  * 多方通信场域。
  */
-public class CommField extends Entity implements RTCDevice.RTCEventListener {
+public class CommField extends AbstractContact implements RTCDevice.RTCEventListener {
 
     private final static String TAG = "CommField";
 
@@ -87,11 +86,6 @@ public class CommField extends Entity implements RTCDevice.RTCEventListener {
      * 通信场创建人。
      */
     private Contact founder;
-
-    /**
-     * 场域名称。
-     */
-    private String name;
 
     /**
      * 媒体约束。
@@ -142,14 +136,29 @@ public class CommField extends Entity implements RTCDevice.RTCEventListener {
     private ConcurrentHashMap<Long, CommFieldEndpoint> rtcForEndpointMap;
 
     public CommField(MultipointComm service, Context context, Self self, Pipeline pipeline) {
-        super(self.id);
+        super(self.id, self.getName() + "#" + self.id);
         this.service = service;
         this.context = context;
         this.self = self;
         this.pipeline = pipeline;
         this.founder = self;
-        this.name = this.founder.getName() + "#" + this.id;
         this.mediaConstraint = new MediaConstraint(true, true);
+
+        this.endpoints = new ArrayList<>();
+        this.inboundRTCMap = new ConcurrentHashMap<>();
+        this.rtcForEndpointMap = new ConcurrentHashMap<>();
+    }
+
+    public CommField(Long id, MultipointComm service, Context context, Self self, Pipeline pipeline,
+                     Group group, MediaConstraint mediaConstraint) {
+        super(id, self.getName() + "#" + id);
+        this.service = service;
+        this.context = context;
+        this.self = self;
+        this.pipeline = pipeline;
+        this.group = group;
+        this.founder = self;
+        this.mediaConstraint = mediaConstraint;
 
         this.endpoints = new ArrayList<>();
         this.inboundRTCMap = new ConcurrentHashMap<>();
@@ -158,7 +167,6 @@ public class CommField extends Entity implements RTCDevice.RTCEventListener {
 
     public CommField(JSONObject json) throws JSONException {
         super(json);
-        this.name = json.getString("name");
         this.founder = new Contact(json.getJSONObject("founder"));
         this.mediaConstraint = new MediaConstraint(json.getJSONObject("mediaConstraint"));
         this.startTime = json.getLong("startTime");
@@ -216,6 +224,18 @@ public class CommField extends Entity implements RTCDevice.RTCEventListener {
         this.context = context;
         this.self = self;
         this.pipeline = pipeline;
+
+        if (null == this.endpoints) {
+            this.endpoints = new ArrayList<>();
+        }
+
+        if (null == this.inboundRTCMap) {
+            this.inboundRTCMap = new ConcurrentHashMap<>();
+        }
+
+        if (null == this.rtcForEndpointMap) {
+            this.rtcForEndpointMap = new ConcurrentHashMap<>();
+        }
     }
 
     public Self getSelf() {
@@ -561,6 +581,19 @@ public class CommField extends Entity implements RTCDevice.RTCEventListener {
      * @param failureHandler
      */
     public void launchOffer(RTCDevice rtcDevice, MediaConstraint mediaConstraint, CommFieldHandler successHandler, FailureHandler failureHandler) {
+        this.launchOffer(rtcDevice, mediaConstraint, null, successHandler, failureHandler);
+    }
+
+    /**
+     * 启动 Offer 流程。
+     *
+     * @param rtcDevice
+     * @param mediaConstraint
+     * @param target
+     * @param successHandler
+     * @param failureHandler
+     */
+    public void launchOffer(RTCDevice rtcDevice, MediaConstraint mediaConstraint, CommFieldEndpoint target, CommFieldHandler successHandler, FailureHandler failureHandler) {
         if (rtcDevice.getMode().equals(RTCDevice.MODE_BIDIRECTION)) {
             this.outboundRTC = rtcDevice;
         }
@@ -568,11 +601,25 @@ public class CommField extends Entity implements RTCDevice.RTCEventListener {
             this.outboundRTC = rtcDevice;
         }
         else {
-            // TODO
+            if (null != target) {
+                this.inboundRTCMap.put(target.id, rtcDevice);
+            }
+            else {
+                this.inboundRTC = rtcDevice;
+            }
+        }
+
+        if (null != target) {
+            this.rtcForEndpointMap.put(rtcDevice.getSN(), target);
         }
 
         // 设置监听器
         rtcDevice.setEventListener(this);
+
+        if (!this.isPrivate()) {
+            // 调整为限制模式的媒体约束
+            mediaConstraint.limitPattern = true;
+        }
 
         this.service.executeOnMainThread(() -> {
             // 启用 Offer
@@ -780,6 +827,10 @@ public class CommField extends Entity implements RTCDevice.RTCEventListener {
         });
     }
 
+    public void setMediaListener(MediaListener mediaListener) {
+        this.mediaListener = mediaListener;
+    }
+
     @Override
     public void onMediaConnected(RTCDevice rtcDevice) {
         if (null != this.mediaListener) {
@@ -789,15 +840,15 @@ public class CommField extends Entity implements RTCDevice.RTCEventListener {
 
     @Override
     public void onMediaDisconnected(RTCDevice rtcDevice) {
-
+        if (null != this.mediaListener) {
+            this.mediaListener.onMediaDisconnected(this, rtcDevice);
+        }
     }
 
     @Override
     public JSONObject toJSON() {
         JSONObject json = super.toJSON();
         try {
-            json.put("domain", AuthService.getDomain());
-            json.put("name", this.name);
             json.put("founder", this.founder.toCompactJSON());
             json.put("mediaConstraint", this.mediaConstraint.toJSON());
             json.put("startTime", this.startTime);
@@ -829,8 +880,6 @@ public class CommField extends Entity implements RTCDevice.RTCEventListener {
     public JSONObject toCompactJSON() {
         JSONObject json = super.toCompactJSON();
         try {
-            json.put("domain", AuthService.getDomain());
-            json.put("name", this.name);
             json.put("founder", this.founder.toCompactJSON());
             json.put("mediaConstraint", this.mediaConstraint.toJSON());
             json.put("startTime", this.startTime);

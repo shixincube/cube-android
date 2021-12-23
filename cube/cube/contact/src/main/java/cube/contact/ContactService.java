@@ -2556,6 +2556,50 @@ public class ContactService extends Module {
     }
 
     /**
+     * <b>Non-public API</b>
+     *
+     * @param groupAppendix
+     * @param successHandler
+     * @param failureHandler
+     */
+    public void getGroupAppendixCommId(GroupAppendix groupAppendix, StableGroupAppendixHandler successHandler, StableFailureHandler failureHandler) {
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("groupId", groupAppendix.getGroup().id.longValue());
+            payload.put("commId", 0);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        Packet requestPacket = new Packet(ContactServiceAction.GetAppendix, payload);
+        this.pipeline.send(ContactService.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    ModuleError error = new ModuleError(ContactService.NAME, packet.state.code);
+                    execute(failureHandler, error);
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != ContactServiceState.Ok.code) {
+                    ModuleError error = new ModuleError(ContactService.NAME, stateCode);
+                    execute(failureHandler, error);
+                    return;
+                }
+
+                // 更新 Comm ID
+                try {
+                    groupAppendix.setCommId(packet.extractServiceData().getLong("commId"));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                successHandler.handleAppendix(groupAppendix.getGroup(), groupAppendix);
+            }
+        });
+    }
+
+    /**
      * 填写联系人分区里的实体数据。
      *
      * @param zone

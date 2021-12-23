@@ -53,6 +53,11 @@ public class MediaConstraint implements JSONable {
 
     private int videoFps;
 
+    /**
+     * 强制限制模式。
+     */
+    public boolean limitPattern = false;
+
     public MediaConstraint(boolean videoEnabled) {
         this(videoEnabled, true);
     }

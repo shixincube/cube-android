@@ -84,6 +84,10 @@ public class CommFieldEndpoint extends Entity {
         this.audioStreamEnabled = audio.getBoolean("streamEnabled");
     }
 
+    public String getName() {
+        return this.name;
+    }
+
     public Contact getContact() {
         return this.contact;
     }
@@ -94,6 +98,14 @@ public class CommFieldEndpoint extends Entity {
 
     public Device getDevice() {
         return this.device;
+    }
+
+    public CommField getField() {
+        return this.field;
+    }
+
+    public void setField(CommField field) {
+        this.field = field;
     }
 
     @Override

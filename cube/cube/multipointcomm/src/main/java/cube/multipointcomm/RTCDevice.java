@@ -139,12 +139,19 @@ public class RTCDevice {
     }
 
     public SurfaceViewRenderer getLocalVideoView() {
+        if (null == this.localVideoView) {
+            this.localVideoView = new SurfaceViewRenderer(this.context);
+            ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT);
+            this.localVideoView.setLayoutParams(lp);
+        }
+
         return this.localVideoView;
     }
 
     public SurfaceViewRenderer getRemoteVideoView() {
         if (null == this.remoteVideoView) {
-            this.remoteVideoView = new SurfaceViewRenderer(context);
+            this.remoteVideoView = new SurfaceViewRenderer(this.context);
             ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.MATCH_PARENT);
             this.remoteVideoView.setLayoutParams(lp);

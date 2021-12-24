@@ -112,8 +112,14 @@ public enum MultipointCommState {
     /** 拒绝访问媒体设备。 */
     MediaPermissionDenied(110),
 
-    /** 视频视图未设置。 */
-    VideoViewNotSetting(112),
+    /** 没有找到视频容器。 */
+    NoVideoContainer(111),
+
+    /** 视频容器代理未设置。 */
+    VideoContainerAgentNotSetting(112),
+
+    /** 无效的通话记录实例。 */
+    InvalidCallRecord(113),
 
     /** 信令错误。 */
     SignalingError(115),

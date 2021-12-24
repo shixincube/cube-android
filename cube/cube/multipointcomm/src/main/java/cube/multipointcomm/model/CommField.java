@@ -287,6 +287,10 @@ public class CommField extends AbstractContact implements RTCDevice.RTCEventList
         this.group = group;
     }
 
+    public MediaConstraint getMediaConstraint() {
+        return this.mediaConstraint;
+    }
+
     public int numRTCDevices() {
         int result = null != this.outboundRTC ? 1 : 0;
         return result + this.inboundRTCMap.size();
@@ -580,7 +584,8 @@ public class CommField extends AbstractContact implements RTCDevice.RTCEventList
      * @param successHandler
      * @param failureHandler
      */
-    public void launchOffer(RTCDevice rtcDevice, MediaConstraint mediaConstraint, CommFieldHandler successHandler, FailureHandler failureHandler) {
+    public void launchOffer(RTCDevice rtcDevice, MediaConstraint mediaConstraint,
+                            CommFieldHandler successHandler, FailureHandler failureHandler) {
         this.launchOffer(rtcDevice, mediaConstraint, null, successHandler, failureHandler);
     }
 
@@ -593,7 +598,8 @@ public class CommField extends AbstractContact implements RTCDevice.RTCEventList
      * @param successHandler
      * @param failureHandler
      */
-    public void launchOffer(RTCDevice rtcDevice, MediaConstraint mediaConstraint, CommFieldEndpoint target, CommFieldHandler successHandler, FailureHandler failureHandler) {
+    public void launchOffer(RTCDevice rtcDevice, MediaConstraint mediaConstraint,
+                            CommFieldEndpoint target, CommFieldHandler successHandler, FailureHandler failureHandler) {
         if (rtcDevice.getMode().equals(RTCDevice.MODE_BIDIRECTION)) {
             this.outboundRTC = rtcDevice;
         }
@@ -634,7 +640,9 @@ public class CommField extends AbstractContact implements RTCDevice.RTCEventList
                     // 设置媒体约束
                     signaling.mediaConstraint = mediaConstraint;
                     // 设置目标
-                    // TODO
+                    if (null != target) {
+                        signaling.target = target;
+                    }
 
                     // 发送信令
                     sendSignaling(signaling, new SignalingHandler() {
@@ -667,13 +675,42 @@ public class CommField extends AbstractContact implements RTCDevice.RTCEventList
         });
     }
 
+    /**
+     * 启动为 Answer 。
+     *
+     * @param rtcDevice
+     * @param sessionDescription
+     * @param mediaConstraint
+     * @param successHandler
+     * @param failureHandler
+     */
     public void launchAnswer(RTCDevice rtcDevice, SessionDescription sessionDescription, MediaConstraint mediaConstraint,
                              CommFieldHandler successHandler, FailureHandler failureHandler) {
+        this.launchAnswer(rtcDevice, sessionDescription, mediaConstraint, null, successHandler, failureHandler);
+    }
+
+    /**
+     * 启动为 Answer 。
+     *
+     * @param rtcDevice
+     * @param sessionDescription
+     * @param mediaConstraint
+     * @param target
+     * @param successHandler
+     * @param failureHandler
+     */
+    public void launchAnswer(RTCDevice rtcDevice, SessionDescription sessionDescription, MediaConstraint mediaConstraint,
+                             CommFieldEndpoint target, CommFieldHandler successHandler, FailureHandler failureHandler) {
         if (rtcDevice.getMode().equals(RTCDevice.MODE_BIDIRECTION) || rtcDevice.getMode().equals(RTCDevice.MODE_SEND_ONLY)) {
             this.outboundRTC = rtcDevice;
         }
         else {
-            this.inboundRTC = rtcDevice;
+            if (null != target) {
+                this.inboundRTCMap.put(target.id, rtcDevice);
+            }
+            else {
+                this.inboundRTC = rtcDevice;
+            }
         }
 
         // 设置监听器
@@ -691,6 +728,11 @@ public class CommField extends AbstractContact implements RTCDevice.RTCEventList
                     signaling.sessionDescription = sessionDescription;
                     // 设置媒体约束
                     signaling.mediaConstraint = mediaConstraint;
+
+                    // 设置目标
+                    if (null != target) {
+                        signaling.target = target;
+                    }
 
                     // 发送信令
                     sendSignaling(signaling, new SignalingHandler() {
@@ -784,7 +826,7 @@ public class CommField extends AbstractContact implements RTCDevice.RTCEventList
         }
     }
 
-    private void closeRTCDevice(CommFieldEndpoint endpoint) {
+    public void closeRTCDevice(CommFieldEndpoint endpoint) {
         if (null != this.outboundRTC) {
             if (this.self.id.longValue() == endpoint.getContact().id.longValue() &&
                 this.self.device.name.equals(endpoint.getDevice().name)) {
@@ -799,6 +841,16 @@ public class CommField extends AbstractContact implements RTCDevice.RTCEventList
             this.rtcForEndpointMap.remove(rtcDevice.getSN());
             rtcDevice.close();
         }
+    }
+
+    /**
+     * 是否已经存在指定终端的 RTC 设备。
+     *
+     * @param endpoint
+     * @return
+     */
+    public boolean hasRTCDevice(CommFieldEndpoint endpoint) {
+        return this.inboundRTCMap.containsKey(endpoint.id);
     }
 
     @Override

@@ -24,51 +24,16 @@
  * SOFTWARE.
  */
 
-package cube.core;
+package cube.multipointcomm;
+
+import android.view.ViewGroup;
+
+import cube.multipointcomm.model.CommFieldEndpoint;
 
 /**
- * 系统错误信息描述。
+ * 视频容器代理。
  */
-public class ModuleError {
+public interface VideoContainerAgent {
 
-    /**
-     * 模块名称。
-     */
-    public final String moduleName;
-
-    /**
-     * 错误码。
-     */
-    public final int code;
-
-    /**
-     * 错误信息描述。
-     */
-    public final String description;
-
-    /**
-     * 发生错误时携带的数据。
-     */
-    public Object data = null;
-
-    public ModuleError(String moduleName, int code) {
-        this(moduleName, code, "");
-    }
-
-    public ModuleError(String moduleName, int code, String description) {
-        this.moduleName = moduleName;
-        this.code = code;
-        this.description = description;
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder buf = new StringBuilder();
-        buf.append("[").append(this.moduleName).append("] ");
-        buf.append(this.code);
-        if (null != this.description) {
-            buf.append(" ").append(this.description);
-        }
-        return buf.toString();
-    }
+    ViewGroup getVideoContainer(CommFieldEndpoint endpoint);
 }

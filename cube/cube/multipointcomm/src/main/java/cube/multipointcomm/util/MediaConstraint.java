@@ -89,7 +89,13 @@ public class MediaConstraint implements JSONable {
     }
 
     public VideoDimension getVideoDimension() {
-        return this.videoDimension;
+        if (this.limitPattern) {
+            this.videoDimension = VideoDimension.QVGA;
+            return VideoDimension.QVGA;
+        }
+        else {
+            return this.videoDimension;
+        }
     }
 
     public int getVideoFps() {

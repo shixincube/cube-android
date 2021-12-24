@@ -50,20 +50,29 @@ public class CommPipelineListener implements PipelineListener {
             return;
         }
 
-        if (packet.name.equals(MultipointCommAction.Offer)) {
+        if (MultipointCommAction.Offer.equals(packet.name)) {
             this.service.triggerOffer(packet);
         }
-        else if (packet.name.equals(MultipointCommAction.Answer)) {
+        else if (MultipointCommAction.Answer.equals(packet.name)) {
             this.service.triggerAnswer(packet);
         }
-        else if (packet.name.equals(MultipointCommAction.Candidate)) {
+        else if (MultipointCommAction.Candidate.equals(packet.name)) {
             this.service.triggerCandidate(packet);
         }
-        else if (packet.name.equals(MultipointCommAction.Bye)) {
+        else if (MultipointCommAction.Bye.equals(packet.name)) {
             this.service.triggerBye(packet);
         }
-        else if (packet.name.equals(MultipointCommAction.Busy)) {
+        else if (MultipointCommAction.Busy.equals(packet.name)) {
             this.service.triggerBusy(packet);
+        }
+        else if (MultipointCommAction.Invite.equals(packet.name)) {
+            this.service.triggerInvite(packet);
+        }
+        else if (MultipointCommAction.Arrived.equals(packet.name)) {
+            this.service.triggerArrived(packet);
+        }
+        else if (MultipointCommAction.Left.equals(packet.name)) {
+            this.service.triggerLeft(packet);
         }
     }
 

@@ -116,6 +116,9 @@ public class MultipointComm extends Module implements Observer, MediaListener {
     private ViewGroup localVideoContainer;
     private ViewGroup remoteVideoContainer;
 
+    private VideoContainerAgent videoContainerAgent;
+    private List<ViewGroup> videoContainers;
+
     public MultipointComm() {
         super(NAME);
         this.callListeners = new ArrayList<>();
@@ -152,10 +155,27 @@ public class MultipointComm extends Module implements Observer, MediaListener {
     public void stop() {
         super.stop();
 
+        this.videoContainerAgent = null;
+
+        if (null != this.videoContainers) {
+            executeOnMainThread(() -> {
+                for (ViewGroup viewGroup : this.videoContainers) {
+                    viewGroup.removeAllViews();
+                }
+                this.videoContainers.clear();
+            });
+        }
+
         this.callListeners.clear();
 
         if (null != this.pipelineListener) {
             this.pipeline.removeListener(MultipointComm.NAME, this.pipelineListener);
+        }
+
+        if (null != this.activeCall) {
+            executeOnMainThread(() -> {
+                hangupCall();
+            });
         }
     }
 
@@ -225,6 +245,18 @@ public class MultipointComm extends Module implements Observer, MediaListener {
      */
     public void setRemoteVideoContainer(ViewGroup container) {
         this.remoteVideoContainer = container;
+    }
+
+    /**
+     * 设置视频容器代理。
+     *
+     * @param videoContainerAgent
+     */
+    public void setVideoContainerAgent(VideoContainerAgent videoContainerAgent) {
+        this.videoContainerAgent = videoContainerAgent;
+        if (null == this.videoContainers) {
+            this.videoContainers = new ArrayList<>();
+        }
     }
 
     /**
@@ -300,7 +332,30 @@ public class MultipointComm extends Module implements Observer, MediaListener {
                 }
                 else {
                     // 普通场域，触发 Ringing 事件
-                    // TODO
+                    ObservableEvent event = new ObservableEvent(MultipointCommEvent.Ringing, callRecord);
+                    notifyObservers(event);
+
+                    // 请求接收其他终端的数据
+                    if (callRecord.field.getMediaConstraint().videoEnabled) {
+                        // 多方视频采用 SFU 模式
+                        Long selfId = privateField.getSelf().id;
+                        executeOnMainThread(() -> {
+                            for (CommFieldEndpoint endpoint : callRecord.field.getEndpoints()) {
+                                if (endpoint.getContact().id.longValue() == selfId.longValue()) {
+                                    continue;
+                                }
+
+                                // 接收指定终端的数据
+                                follow(endpoint, null, null);
+                            }
+                        });
+                    }
+                    else {
+                        // 多方语音采用 MCU 模式
+                        executeOnMainThread(() -> {
+                            touch(callRecord.field, null, null);
+                        });
+                    }
                 }
             }
         };
@@ -368,7 +423,7 @@ public class MultipointComm extends Module implements Observer, MediaListener {
 
                             // 2. 启动 RTC 节点，发起 Offer
                             // 创建 RTC 设备
-                            RTCDevice rtcDevice = createRTCDevice(RTCDevice.MODE_BIDIRECTION);
+                            RTCDevice rtcDevice = createRTCDevice(RTCDevice.MODE_BIDIRECTION, null, null);
                             // 发起 Offer
                             privateField.launchOffer(rtcDevice, mediaConstraint, new DefaultCommFieldHandler() {
                                 @Override
@@ -486,7 +541,7 @@ public class MultipointComm extends Module implements Observer, MediaListener {
                     fillCommField(field, true);
 
                     // 2. 发起 Offer
-                    RTCDevice rtcDevice = createRTCDevice(RTCDevice.MODE_SEND_ONLY);
+                    RTCDevice rtcDevice = createRTCDevice(RTCDevice.MODE_SEND_ONLY, localVideoContainer, null);
                     field.launchOffer(rtcDevice, mediaConstraint, new DefaultCommFieldHandler() {
                         @Override
                         public void handleCommField(CommField commField) {
@@ -497,7 +552,7 @@ public class MultipointComm extends Module implements Observer, MediaListener {
             }, new StableFailureHandler() {
                 @Override
                 public void handleFailure(Module module, ModuleError error) {
-
+                    failure.handleFailure(MultipointComm.this, error);
                 }
             });
         }
@@ -505,6 +560,118 @@ public class MultipointComm extends Module implements Observer, MediaListener {
             ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.Failure.code);
             error.data = target;
             execute(failureHandler, error);
+        }
+    }
+
+    /**
+     * 邀请列表里的联系人加入到当前通讯域。
+     *
+     * @param commField
+     * @param contacts
+     * @param successHandler
+     * @param failureHandler
+     */
+    public void inviteCall(CommField commField, List<Contact> contacts, CommFieldHandler successHandler, FailureHandler failureHandler) {
+        this.inviteCall(commField.id, contacts, successHandler, failureHandler);
+    }
+
+    /**
+     * 邀请列表里的联系人加入到当前通讯域。
+     *
+     * @param group
+     * @param contacts
+     * @param successHandler
+     * @param failureHandler
+     */
+    public void inviteCall(Group group, List<Contact> contacts, CommFieldHandler successHandler, FailureHandler failureHandler) {
+        execute(() -> {
+            final Long commId = group.getAppendix().getCommId();
+            executeOnMainThread(() -> {
+                inviteCall(commId, contacts, successHandler, failureHandler);
+            });
+        });
+    }
+
+    /**
+     * 邀请列表里的联系人加入到当前 ID 的通讯域。
+     *
+     * @param commId
+     * @param contacts
+     * @param successHandler
+     * @param failureHandler
+     */
+    private void inviteCall(Long commId, List<Contact> contacts, CommFieldHandler successHandler, FailureHandler failureHandler) {
+        DefaultCommFieldHandler handler = new DefaultCommFieldHandler() {
+            @Override
+            public void handleCommField(CommField commField) {
+                Signaling signaling = new Signaling(MultipointCommAction.Invite, commField,
+                        privateField.getSelf(), privateField.getSelf().device);
+
+                // 设置邀请列表
+                List<Long> invitees = new ArrayList<>();
+                for (Contact contact : contacts) {
+                    invitees.add(contact.id);
+                }
+                signaling.invitees = invitees;
+
+                Packet requestPacket = new Packet(MultipointCommAction.Invite, signaling.toJSON());
+                pipeline.send(MultipointComm.NAME, requestPacket, new PipelineHandler() {
+                    @Override
+                    public void handleResponse(Packet packet) {
+                        if (packet.state.code != PipelineState.Ok.code) {
+                            ModuleError error = new ModuleError(MultipointComm.NAME, packet.state.code);
+                            error.data = commField;
+                            execute(failureHandler, error);
+                            return;
+                        }
+
+                        int stateCode = packet.extractServiceStateCode();
+                        if (stateCode != MultipointCommState.Ok.code) {
+                            ModuleError error = new ModuleError(MultipointComm.NAME, stateCode);
+                            error.data = commField;
+                            execute(failureHandler, error);
+                            return;
+                        }
+
+                        if (successHandler.isInMainThread()) {
+                            executeOnMainThread(() -> {
+                                successHandler.handleCommField(commField);
+                            });
+                        }
+                        else {
+                            execute(() -> {
+                                successHandler.handleCommField(commField);
+                            });
+                        }
+                    }
+                });
+            }
+        };
+
+        if (null != this.activeCall && this.activeCall.field.id.longValue() == commId.longValue()) {
+            handler.handleCommField(this.activeCall.field);
+        }
+        else {
+            this.getCommField(commId, new DefaultCommFieldHandler(false) {
+                @Override
+                public void handleCommField(CommField commField) {
+                    handler.handleCommField(commField);
+                }
+            }, new StableFailureHandler() {
+                @Override
+                public void handleFailure(Module module, ModuleError error) {
+                    if (failureHandler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            failureHandler.handleFailure(module, error);
+                        });
+                    }
+                    else {
+                        execute(() -> {
+                            failureHandler.handleFailure(module, error);
+                        });
+                    }
+                }
+            });
         }
     }
 
@@ -557,7 +724,7 @@ public class MultipointComm extends Module implements Observer, MediaListener {
                     fillCommField(commField, true);
 
                     // 2. 启动 RTC 节点，发起 Answer
-                    RTCDevice rtcDevice = createRTCDevice(RTCDevice.MODE_BIDIRECTION);
+                    RTCDevice rtcDevice = createRTCDevice(RTCDevice.MODE_BIDIRECTION, null, null);
                     privateField.launchAnswer(rtcDevice, offerSignaling.sessionDescription, mediaConstraint, new DefaultCommFieldHandler() {
                         @Override
                         public void handleCommField(CommField commField) {
@@ -673,7 +840,10 @@ public class MultipointComm extends Module implements Observer, MediaListener {
                 }
             }
             else {
-                // TODO
+                for (ViewGroup viewGroup : videoContainers) {
+                    viewGroup.removeAllViews();
+                }
+                videoContainers.clear();
             }
         });
 
@@ -806,6 +976,259 @@ public class MultipointComm extends Module implements Observer, MediaListener {
         }
     }
 
+    /**
+     * 从指定 Comm Field 上接收混码流。
+     *
+     * @param commField
+     * @param successHandler
+     * @param failureHandler
+     */
+    private void touch(CommField commField, @Nullable CallHandler successHandler, @Nullable FailureHandler failureHandler) {
+        if (commField.getMediaConstraint().videoEnabled && null == this.remoteVideoContainer) {
+            ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.NoVideoContainer.code);
+            error.data = commField;
+            if (null != failureHandler) {
+                execute(failureHandler, error);
+            }
+            return;
+        }
+
+        if (null == this.activeCall) {
+            ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.InvalidCallRecord.code);
+            error.data = commField;
+            if (null != failureHandler) {
+                execute(failureHandler, error);
+            }
+            return;
+        }
+
+        if (LogUtils.isDebugLevel()) {
+            LogUtils.d(TAG, "Touch comm filed: " + commField.getName());
+        }
+
+        executeOnMainThread(() -> {
+            // 创建 RTC device
+            RTCDevice rtcDevice = this.createRTCDevice(RTCDevice.MODE_RECEIVE_ONLY, null, remoteVideoContainer);
+            // 发起 recv only 的 Offer
+            commField.launchOffer(rtcDevice, commField.getMediaConstraint(), new DefaultCommFieldHandler() {
+                @Override
+                public void handleCommField(CommField commField) {
+                    if (null != successHandler) {
+                        if (successHandler.isInMainThread()) {
+                            executeOnMainThread(() -> {
+                                successHandler.handleCall(activeCall);
+                            });
+                        }
+                        else {
+                            execute(() -> {
+                                successHandler.handleCall(activeCall);
+                            });
+                        }
+                    }
+                }
+            }, new StableFailureHandler() {
+                @Override
+                public void handleFailure(Module module, ModuleError error) {
+                    if (null != failureHandler) {
+                        execute(failureHandler, error);
+                    }
+                }
+            });
+        });
+    }
+
+    /**
+     * 定向接收指定终端的音视频数据。
+     *
+     * @param endpoint
+     * @param successHandler
+     * @param failureHandler
+     */
+    private void follow(CommFieldEndpoint endpoint, @Nullable CallHandler successHandler, @Nullable FailureHandler failureHandler) {
+        if (null == this.privateField) {
+            ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.Uninitialized.code);
+            if (null != failureHandler) {
+                execute(failureHandler, error);
+            }
+            return;
+        }
+
+        StableFailureHandler failure = new StableFailureHandler() {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                if (null != activeCall) {
+                    activeCall.lastError = error;
+                }
+
+                if (null != failureHandler) {
+                    execute(failureHandler, error);
+                }
+
+                if (null != activeCall) {
+                    executeOnMainThread(() -> {
+                        activeCall.field.closeRTCDevice(endpoint);
+                    });
+                }
+            }
+        };
+
+        if (null == this.activeCall) {
+            if (null == endpoint.getField()) {
+                ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.Uninitialized.code);
+                failure.handleFailure(MultipointComm.this, error);
+                LogUtils.e(TAG, error.toString());
+                return;
+            }
+
+            // 创建记录
+            this.activeCall = new CallRecord(this.contactService.getSelf(), endpoint.getField());
+        }
+        else {
+            if (this.activeCall.field.isPrivate()) {
+                ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.CommFieldStateError.code);
+                failure.handleFailure(MultipointComm.this, error);
+                LogUtils.e(TAG, error.toString());
+                return;
+            }
+        }
+
+        if (this.activeCall.field.hasRTCDevice(endpoint)) {
+            LogUtils.w(TAG, "#follow - RTC device is working");
+            ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.CommFieldStateError.code);
+            if (null != failureHandler) {
+                execute(failureHandler, error);
+            }
+            return;
+        }
+
+        if (null == this.videoContainerAgent || null == this.videoContainers) {
+            LogUtils.w(TAG, "#follow - video container agent is null");
+            ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.VideoContainerAgentNotSetting.code);
+            failure.handleFailure(MultipointComm.this, error);
+            return;
+        }
+
+        ViewGroup remoteVideoViewGroup = this.videoContainerAgent.getVideoContainer(endpoint);
+        if (null == remoteVideoViewGroup) {
+            ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.NoVideoContainer.code);
+            failure.handleFailure(MultipointComm.this, error);
+            return;
+        }
+
+        if (!this.videoContainers.contains(remoteVideoViewGroup)) {
+            this.videoContainers.add(remoteVideoViewGroup);
+        }
+
+        // TODO 检查是否已经接收该终端数据
+
+        if (LogUtils.isDebugLevel()) {
+            LogUtils.d(TAG, "Follow endpoint " + endpoint.id);
+        }
+
+        executeOnMainThread(() -> {
+            // 创建 RTC device
+            RTCDevice rtcDevice = this.createRTCDevice(RTCDevice.MODE_RECEIVE_ONLY, null, remoteVideoViewGroup);
+
+            // 发起 recv only 的 Offer
+            this.activeCall.field.launchOffer(rtcDevice, this.activeCall.field.getMediaConstraint(),
+                    endpoint, new DefaultCommFieldHandler(false) {
+                        @Override
+                        public void handleCommField(CommField commField) {
+                            // 填充数据
+                            fillCommField(commField, true);
+
+                            if (null != successHandler) {
+                                if (successHandler.isInMainThread()) {
+                                    executeOnMainThread(() -> {
+                                        successHandler.handleCall(activeCall);
+                                    });
+                                }
+                                else {
+                                    successHandler.handleCall(activeCall);
+                                }
+                            }
+
+                            notifyObservers(new ObservableEvent(MultipointCommEvent.Followed, endpoint));
+                        }
+                    }, failure);
+        });
+    }
+
+    /**
+     * 取消定向接收的指定终端音视频数据。
+     *
+     * @param endpoint
+     * @param successHandler
+     * @param failureHandler
+     */
+    private void unfollow(CommFieldEndpoint endpoint, @Nullable CallHandler successHandler, @Nullable FailureHandler failureHandler) {
+        if (null == this.privateField) {
+            ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.Uninitialized.code);
+            if (null != failureHandler) {
+                execute(failureHandler, error);
+            }
+            return;
+        }
+
+        if (null == this.activeCall) {
+            ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.InvalidCallRecord.code);
+            if (null != failureHandler) {
+                execute(failureHandler, error);
+            }
+            return;
+        }
+
+        Signaling signaling = new Signaling(MultipointCommAction.Bye, this.activeCall.field,
+                this.privateField.getSelf(), this.privateField.getSelf().device);
+        // 设置目录
+        signaling.target = endpoint;
+
+        Packet requestPacket = new Packet(MultipointCommAction.Bye, signaling.toJSON());
+        this.pipeline.send(MultipointComm.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    ModuleError error = new ModuleError(MultipointComm.NAME, packet.state.code);
+                    if (null != failureHandler) {
+                        execute(failureHandler, error);
+                    }
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != MultipointCommState.Ok.code) {
+                    ModuleError error = new ModuleError(MultipointComm.NAME, stateCode);
+                    if (null != failureHandler) {
+                        execute(failureHandler, error);
+                    }
+                    return;
+                }
+
+                // 关闭 Endpoint
+                activeCall.field.closeEndpoint(endpoint);
+
+                // 关闭 RTC 设备
+                activeCall.field.closeRTCDevice(endpoint);
+
+                // 发送 Unfollowed 事件
+                notifyObservers(new ObservableEvent(MultipointCommEvent.Unfollowed, endpoint));
+
+                if (null != successHandler) {
+                    if (successHandler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            successHandler.handleCall(activeCall);
+                        });
+                    }
+                    else {
+                        execute(() -> {
+                            successHandler.handleCall(activeCall);
+                        });
+                    }
+                }
+            }
+        });
+    }
+
     private void bindVideoView(CommField commField) {
         if (null != remoteVideoContainer) {
             executeOnMainThread(() -> {
@@ -837,9 +1260,18 @@ public class MultipointComm extends Module implements Observer, MediaListener {
         hangupCall();
     }
 
-    private RTCDevice createRTCDevice(String mode) {
+    private RTCDevice createRTCDevice(String mode, ViewGroup localVideoContainer, ViewGroup remoteVideoContainer) {
         RTCDevice rtcDevice = new RTCDevice(this.getContext(), mode, this.peerConnectionFactory, this.eglBase.getEglBaseContext());
         rtcDevice.enableICE(this.iceServers);
+
+        if (null != localVideoContainer) {
+            localVideoContainer.addView(rtcDevice.getLocalVideoView());
+        }
+
+        if (null != remoteVideoContainer) {
+            remoteVideoContainer.addView(rtcDevice.getRemoteVideoView());
+        }
+
         return rtcDevice;
     }
 
@@ -1274,6 +1706,79 @@ public class MultipointComm extends Module implements Observer, MediaListener {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    protected void triggerInvite(Packet packet) {
+        if (null != this.activeCall && this.activeCall.isActive()) {
+            // 正在通话
+            return;
+        }
+
+        try {
+            Signaling signaling = new Signaling(packet.extractServiceData());
+
+            if (LogUtils.isDebugLevel()) {
+                LogUtils.d(TAG, "Receive \"" + signaling.field.getName() + "\" invitation");
+            }
+
+            fillCommField(signaling.field, true);
+
+            this.activeCall = new CallRecord(this.privateField.getSelf(), signaling.field);
+
+            notifyObservers(new ObservableEvent(MultipointCommEvent.Invited, this.activeCall.field));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    protected void triggerArrived(Packet packet) {
+        JSONObject data = packet.extractServiceData();
+        CommField commField = null;
+        CommFieldEndpoint endpoint = null;
+
+        try {
+            commField = new CommField(data.getJSONObject("field"));
+            endpoint = new CommFieldEndpoint(data.getJSONObject("endpoint"));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        if (commField.id.longValue() == this.activeCall.field.id.longValue()) {
+            this.activeCall.field.update(commField);
+            fillCommField(this.activeCall.field, true);
+        }
+
+        endpoint.setField(this.activeCall.field);
+
+        if (LogUtils.isDebugLevel()) {
+            LogUtils.d(TAG, "Endpoint \"" + endpoint.getName() + "\" arrived \"" + commField.getName() + "\"");
+        }
+
+        // 事件
+        notifyObservers(new ObservableEvent(MultipointCommEvent.Arrived, endpoint));
+
+        if (commField.id.longValue() == this.activeCall.field.id.longValue() && commField.getMediaConstraint().videoEnabled) {
+            // 使用了视频，采用 SFU 方式
+            CommFieldEndpoint target = endpoint;
+            executeOnMainThread(() -> {
+                follow(target, null, null);
+            });
+        }
+    }
+
+    protected void triggerLeft(Packet packet) {
+        JSONObject data = packet.extractServiceData();
+        CommField commField = null;
+        CommFieldEndpoint endpoint = null;
+
+        try {
+            commField = new CommField(data.getJSONObject("field"));
+            endpoint = new CommFieldEndpoint(data.getJSONObject("endpoint"));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        
     }
 
     private void fillCommField(CommField commField, boolean force) {

@@ -74,6 +74,36 @@ public class MultipointCommEvent {
     public final static String Timeout = "Timeout";
 
     /**
+     * 已经接收参与者数据。
+     * 事件数据：{@link cube.multipointcomm.model.CommFieldEndpoint} - 终端的实例。
+     */
+    public final static String Followed = "Followed";
+
+    /**
+     * 已经停止接收参与者数据。
+     * 事件数据：{@link cube.multipointcomm.model.CommFieldEndpoint} - 终端的实例。
+     */
+    public final static String Unfollowed = "Unfollowed";
+
+    /**
+     * 被邀请加入通话。
+     * 事件数据：{@link cube.multipointcomm.model.CommField} - 发出邀请的通讯场域的实例。
+     */
+    public final static String Invited = "Invited";
+
+    /**
+     * 新参与者加入。
+     * 事件数据：{@link cube.multipointcomm.model.CommFieldEndpoint} - 已加入终端的实例。
+     */
+    public final static String Arrived = "Arrived";
+
+    /**
+     * 参与者已离开。
+     * 事件数据：{@link cube.multipointcomm.model.CommFieldEndpoint} - 已离开终端的实例。
+     */
+    public final static String Left = "Left";
+
+    /**
      * 发生错误。
      * 事件数据：{@link cube.core.ModuleError} - 错误描述。
      */

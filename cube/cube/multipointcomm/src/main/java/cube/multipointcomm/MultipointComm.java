@@ -110,6 +110,8 @@ public class MultipointComm extends Module implements Observer, MediaListener {
 
     private List<CallListener> callListeners;
 
+    private List<MultipointCallListener> multipointCallListeners;
+
     private Signaling offerSignaling;
     private Signaling answerSignaling;
 
@@ -122,6 +124,7 @@ public class MultipointComm extends Module implements Observer, MediaListener {
     public MultipointComm() {
         super(NAME);
         this.callListeners = new ArrayList<>();
+        this.multipointCallListeners = new ArrayList<>();
     }
 
     @Override
@@ -210,7 +213,7 @@ public class MultipointComm extends Module implements Observer, MediaListener {
     }
 
     /**
-     * 添加通话监听。
+     * 添加通话监听器。
      *
      * @param listener
      */
@@ -227,6 +230,26 @@ public class MultipointComm extends Module implements Observer, MediaListener {
      */
     public void removeCallListener(CallListener listener) {
         this.callListeners.remove(listener);
+    }
+
+    /**
+     * 添加多方通话监听器。
+     *
+     * @param listener
+     */
+    public void addMultipointCallListener(MultipointCallListener listener) {
+        if (!this.multipointCallListeners.contains(listener)) {
+            this.multipointCallListeners.add(listener);
+        }
+    }
+
+    /**
+     * 移除多方通话监听器。
+     *
+     * @param listener
+     */
+    public void removeMultipointCallListener(MultipointCallListener listener) {
+        this.multipointCallListeners.remove(listener);
     }
 
     /**
@@ -1472,6 +1495,29 @@ public class MultipointComm extends Module implements Observer, MediaListener {
                 }
             });
         }
+        else if (MultipointCommEvent.Invited.equals(eventName)) {
+            executeOnMainThread(() -> {
+                for (MultipointCallListener listener : multipointCallListeners) {
+                    listener.onInvited((CommField) event.getData());
+                }
+            });
+        }
+        else if (MultipointCommEvent.Arrived.equals(eventName)) {
+            CommFieldEndpoint endpoint = (CommFieldEndpoint) event.getData();
+            executeOnMainThread(() -> {
+                for (MultipointCallListener listener : multipointCallListeners) {
+                    listener.onEndpointArrived(endpoint.getField(), endpoint);
+                }
+            });
+        }
+        else if (MultipointCommEvent.Left.equals(eventName)) {
+            CommFieldEndpoint endpoint = (CommFieldEndpoint) event.getData();
+            executeOnMainThread(() -> {
+                for (MultipointCallListener listener : multipointCallListeners) {
+                    listener.onEndpointLeft(endpoint.getField(), endpoint);
+                }
+            });
+        }
     }
 
     @Override
@@ -1778,7 +1824,39 @@ public class MultipointComm extends Module implements Observer, MediaListener {
             e.printStackTrace();
         }
 
-        
+        endpoint.setField(commField);
+
+        if (LogUtils.isDebugLevel()) {
+            LogUtils.d(TAG, "Endpoint \"" + endpoint.getName() + "\" left \"" + commField.getName() + "\"");
+        }
+
+        if (null != this.activeCall && commField.id.longValue() == this.activeCall.field.id.longValue()) {
+            RTCDevice rtcDevice = this.activeCall.field.getRTCDevice(endpoint);
+
+            // 更新数据
+            this.activeCall.field.update(commField);
+
+            endpoint.setField(this.activeCall.field);
+
+            fillCommField(this.activeCall.field, true);
+
+            if (null != rtcDevice) {
+                CommFieldEndpoint target = endpoint;
+                executeOnMainThread(() -> {
+                    unfollow(target, new DefaultCallHandler(false) {
+                        @Override
+                        public void handleCall(CallRecord callRecord) {
+                            notifyObservers(new ObservableEvent(MultipointCommEvent.Left, target));
+                        }
+                    }, null);
+                });
+            }
+            else {
+                this.activeCall.field.closeEndpoint(endpoint);
+
+                notifyObservers(new ObservableEvent(MultipointCommEvent.Left, endpoint));
+            }
+        }
     }
 
     private void fillCommField(CommField commField, boolean force) {

@@ -179,6 +179,7 @@
         <entry key="cube/engine/src/main/res/layout/cube_comm_window_layout.xml" value="0.1" />
         <entry key="cube/engine/src/main/res/layout/cube_contact_call_layout.xml" value="0.335" />
         <entry key="cube/engine/src/main/res/layout/cube_float_comm_window_layout.xml" value="0.1" />
+        <entry key="cube/engine/src/main/res/layout/cube_group_call_layout.xml" value="0.1" />
         <entry key="cube/engine/src/main/res/layout/cube_new_call_layout.xml" value="0.1" />
         <entry key="cube/engine/src/main/res/layout/cube_preview_layout.xml" value="0.16837431693989072" />
         <entry key="cube/engine/src/main/res/layout/float_comm_window_layout.xml" value="0.1117061973986228" />

@@ -8,6 +8,9 @@
 
     <include layout="@layout/cube_contact_call_layout"/>
 
+    <include layout="@layout/cube_group_call_layout"
+        android:visibility="gone"/>
+
     <include layout="@layout/cube_new_call_layout"
         android:visibility="gone"/>
 

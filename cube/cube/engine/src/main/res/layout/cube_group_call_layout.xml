@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:auto="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/rlGroupCallLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_gravity="center_horizontal"
+    android:background="@mipmap/window_background">
+
+    <!-- 操作界面 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <!-- 顶部工具栏 -->
+        <LinearLayout
+            android:id="@+id/llHeader"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginTop="20dp"
+            android:layout_weight="0.25"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_gravity="start|center_vertical"
+                android:layout_marginStart="20dp"
+                android:orientation="horizontal">
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_gravity="center_vertical"
+                android:layout_weight="0.5"
+                android:orientation="horizontal">
+                <TextView
+                    android:id="@+id/tvCallingTime"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:text="@string/cube_default_contact_name"
+                    android:textColor="@color/white"
+                    android:textSize="14sp"
+                    android:visibility="gone"/>
+            </LinearLayout>
+
+            <ImageButton
+                android:id="@+id/btnPreview"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_gravity="end|center_vertical"
+                android:layout_marginEnd="20dp"
+                android:background="@color/transparent"
+                android:src="@mipmap/ic_switch_preview"/>
+
+        </LinearLayout>
+
+        <!-- 中间信息区域 -->
+        <LinearLayout
+            android:id="@+id/llBody"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <cube.engine.ui.GridLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:orientation="horizontal">
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+                    <View android:layout_width="match_parent"
+                        android:layout_height="match_parent"/>
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"/>
+                </RelativeLayout>
+            </cube.engine.ui.GridLayout>
+
+        </LinearLayout>
+
+        <!-- 底部操作栏 -->
+        <LinearLayout
+            android:id="@+id/llFooter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:layout_weight="0.25"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:id="@+id/llCameraLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                android:layout_gravity="center"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnCamera"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:background="@drawable/selector_camera"/>
+
+                <View
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_marginStart="50dp"
+                    android:layout_marginEnd="50dp"/>
+
+                <Button
+                    android:id="@+id/btnSwitchCamera"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:background="@drawable/selector_switch_camera"/>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:id="@+id/llMicrophone"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:orientation="vertical">
+                    <Button
+                        android:id="@+id/btnMicrophone"
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:background="@drawable/selector_microphone"/>
+                    <TextView
+                        android:id="@+id/tvMicrophone"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="@string/microphone_opened"
+                        android:textColor="@color/white"
+                        android:textSize="12sp"/>
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/btnHangup"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_marginStart="50dp"
+                    android:layout_marginEnd="50dp"
+                    android:background="@drawable/selector_hangup"/>
+
+                <LinearLayout
+                    android:id="@+id/llSpeaker"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:orientation="vertical">
+                    <Button
+                        android:id="@+id/btnSpeaker"
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:background="@drawable/selector_speaker"/>
+                    <TextView
+                        android:id="@+id/tvSpeaker"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="@string/telephone"
+                        android:textColor="@color/white"
+                        android:textSize="12sp"/>
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</RelativeLayout>

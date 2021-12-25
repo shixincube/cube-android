@@ -28,6 +28,7 @@ package cube.engine.ui;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.view.View;
 import android.view.ViewGroup;
 
 /**
@@ -57,7 +58,7 @@ public class GridLayout extends ViewGroup {
         super(context, attrs, defStyleAttr, defStyleRes);
     }
 
-    public void setRowColumnCount(int row, int column) {
+    public void resetRowColumnCount(int row, int column) {
         this.row = row;
         this.column = column;
     }
@@ -77,6 +78,15 @@ public class GridLayout extends ViewGroup {
     }
 
     private void analyse() {
-
+        int total = this.row * this.column;
+        for (int i = 0, len = getChildCount(); i < len; ++i) {
+            View view = getChildAt(i);
+            if (i < total) {
+                view.setVisibility(View.VISIBLE);
+            }
+            else {
+                view.setVisibility(View.GONE);
+            }
+        }
     }
 }

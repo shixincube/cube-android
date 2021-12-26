@@ -96,6 +96,8 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
     public final static int REQUEST_OVERLAY_PERMISSION = 9000;
     public final static int REQUEST_AUDIO_VIDEO_PERMISSION = 9100;
 
+    public final static int REQUEST_SELECT_GROUP_MEMBERS_FOR_CALL = 9500;
+
     @BindView(R.id.llMessagePanel)
     LinearLayout messagePanelLayout;
 
@@ -492,6 +494,18 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
                     onPermissionSuccess();
                 }
                 break;
+            case REQUEST_SELECT_GROUP_MEMBERS_FOR_CALL:
+                if (resultCode == RESULT_OK) {
+                    // 发起群组通话邀请
+                    long[] memberIds = data.getLongArrayExtra("members");
+                    Intent intent = new Intent(MessagePanelActivity.this, FloatingVideoWindowService.class);
+                    intent.setAction(FloatingVideoWindowService.ACTION_SHOW_INVITER);
+                    intent.putExtra("groupId", conversation.getGroup().getId().longValue());
+                    intent.putExtra("invitees", memberIds);
+                    intent.putExtra("mediaConstraint", this.mediaConstraint.toJSON().toString());
+                    startService(intent);
+                }
+                break;
             default:
                 break;
         }
@@ -508,18 +522,20 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
 
     @PermissionSuccess(requestCode = REQUEST_AUDIO_VIDEO_PERMISSION)
     public void onPermissionSuccess() {
-        Intent intent = new Intent(MessagePanelActivity.this, FloatingVideoWindowService.class);
         if (conversation.getType() == ConversationType.Contact) {
+            Intent intent = new Intent(MessagePanelActivity.this, FloatingVideoWindowService.class);
             intent.setAction(FloatingVideoWindowService.ACTION_SHOW_CALLER);
             intent.putExtra("contactId", conversation.getContact().getId().longValue());
             intent.putExtra("avatarResource", AvatarUtils.getAvatarResource(conversation.getContact()));
+            intent.putExtra("mediaConstraint", this.mediaConstraint.toJSON().toString());
+            startService(intent);
         }
         else if (conversation.getType() == ConversationType.Group) {
+            Intent intent = new Intent(MessagePanelActivity.this, OperateContactActivity.class);
             intent.putExtra("groupId", conversation.getGroup().getId().longValue());
+            intent.putExtra("onlyThisGroup", true);
+            startActivityForResult(intent, REQUEST_SELECT_GROUP_MEMBERS_FOR_CALL);
         }
-
-        intent.putExtra("mediaConstraint", this.mediaConstraint.toJSON().toString());
-        startService(intent);
     }
 
     @PermissionFail(requestCode = REQUEST_AUDIO_VIDEO_PERMISSION)

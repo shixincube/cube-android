@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorThemeBackground"
+    android:orientation="vertical">
+
+    <include layout="@layout/include_toolbar"/>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorBackground"
+        android:paddingBottom="10dp"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        android:paddingTop="10dp">
+
+        <EditText
+            android:id="@+id/etSearchContent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:drawableStart="@mipmap/ic_search_item"
+            android:drawablePadding="5dp"
+            android:hint="@string/search"
+            android:textCursorDrawable="@drawable/cursor"
+            android:textColor="?attr/colorText"
+            android:textColorHint="@color/text_accent"
+            android:textSize="14sp"/>
+    </FrameLayout>
+
+    <View style="?attr/styleLine"/>
+
+    <com.shixincube.app.widget.recyclerview.RecyclerView
+        android:id="@+id/rvMembers"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+</LinearLayout>

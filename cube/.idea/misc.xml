@@ -103,7 +103,7 @@
         <entry key="app/src/main/res/drawable/shape_strip_button_pressed.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/shape_vertical_line.xml" value="0.11381578947368422" />
         <entry key="app/src/main/res/layout/activity_about.xml" value="0.15744535519125682" />
-        <entry key="app/src/main/res/layout/activity_add_contact.xml" value="0.15198087431693988" />
+        <entry key="app/src/main/res/layout/activity_add_contact.xml" value="0.335" />
         <entry key="app/src/main/res/layout/activity_contact_details.xml" value="0.21618852459016394" />
         <entry key="app/src/main/res/layout/activity_conversation_details.xml" value="0.5" />
         <entry key="app/src/main/res/layout/activity_create_group.xml" value="0.17725409836065573" />
@@ -142,7 +142,7 @@
         <entry key="app/src/main/res/layout/item_conversation.xml" value="0.5" />
         <entry key="app/src/main/res/layout/item_file.xml" value="0.1" />
         <entry key="app/src/main/res/layout/item_group.xml" value="0.5" />
-        <entry key="app/src/main/res/layout/item_member.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/item_member.xml" value="0.5" />
         <entry key="app/src/main/res/layout/item_member_frame.xml" value="0.1" />
         <entry key="app/src/main/res/layout/item_member_selected.xml" value="0.17725409836065573" />
         <entry key="app/src/main/res/layout/item_message_image_receive.xml" value="0.1" />

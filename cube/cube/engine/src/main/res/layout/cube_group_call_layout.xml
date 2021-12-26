@@ -72,7 +72,7 @@
             android:gravity="center"
             android:orientation="vertical">
 
-            <cube.engine.ui.GridLayout
+            <cube.engine.ui.MultipointGridLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_gravity="center">
@@ -118,7 +118,7 @@
                         android:layout_height="match_parent"
                         android:src="@mipmap/avatar"/>
                 </RelativeLayout>
-            </cube.engine.ui.GridLayout>
+            </cube.engine.ui.MultipointGridLayout>
 
         </LinearLayout>
 

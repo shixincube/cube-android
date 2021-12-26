@@ -34,6 +34,4 @@ import cube.contact.model.Contact;
 public interface ContactDataHandler {
 
     int extractContactAvatarResourceId(Contact contact);
-
-    String extractContactName(Contact contact);
 }

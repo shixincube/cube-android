@@ -46,7 +46,7 @@ import cube.contact.model.Group;
 import cube.engine.CubeEngine;
 
 /**
- * 创建群组。
+ * 操作群组联系人。
  */
 public class OperateContactActivity extends BaseActivity<OperateContactView, OperateContactPresenter> implements OperateContactView {
 
@@ -59,6 +59,7 @@ public class OperateContactActivity extends BaseActivity<OperateContactView, Ope
     private View headerView;
 
     private boolean createMode = true;
+    private boolean onlyThisGroup = false;
 
     public Group group = null;
 
@@ -85,6 +86,8 @@ public class OperateContactActivity extends BaseActivity<OperateContactView, Ope
             this.createMode = false;
             this.group = CubeEngine.getInstance().getContactService().getGroup(groupId);
         }
+
+        this.onlyThisGroup = getIntent().getBooleanExtra("onlyThisGroup", false);
     }
 
     @Override
@@ -100,7 +103,7 @@ public class OperateContactActivity extends BaseActivity<OperateContactView, Ope
 
     @Override
     public void initData() {
-        this.presenter.load();
+        this.presenter.load(this.group);
     }
 
     @Override
@@ -128,7 +131,8 @@ public class OperateContactActivity extends BaseActivity<OperateContactView, Ope
 
     @Override
     protected OperateContactPresenter createPresenter() {
-        return new OperateContactPresenter(this, this.selectedMembers, this.createMode);
+        return new OperateContactPresenter(this, this.selectedMembers,
+                this.createMode, this.onlyThisGroup);
     }
 
     @Override

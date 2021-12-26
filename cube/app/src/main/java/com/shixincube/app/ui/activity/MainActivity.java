@@ -413,9 +413,4 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
     public int extractContactAvatarResourceId(Contact contact) {
         return AvatarUtils.getAvatarResource(contact);
     }
-
-    @Override
-    public String extractContactName(Contact contact) {
-        return contact.getPriorityName();
-    }
 }

@@ -49,6 +49,8 @@ import androidx.annotation.Nullable;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -61,6 +63,7 @@ import cube.core.handler.DefaultFailureHandler;
 import cube.engine.CubeEngine;
 import cube.engine.R;
 import cube.engine.ui.ContactCallingController;
+import cube.engine.ui.GroupCallingController;
 import cube.engine.ui.KeyEventLinearLayout;
 import cube.engine.ui.NewCallController;
 import cube.engine.util.ScreenUtil;
@@ -89,9 +92,9 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
     public final static String ACTION_SHOW_CALLER = "ACTION_SHOW_CALLER";
 
     /**
-     * 显示被叫界面。
+     * 显示群组通话发起邀请。
      */
-    public final static String ACTION_SHOW_CALLEE = "ACTION_SHOW_CALLEE";
+    public final static String ACTION_SHOW_INVITER = "ACTION_SHOW_INVITER";
 
     private WindowManager windowManager;
     private WindowManager.LayoutParams layoutParams;
@@ -104,6 +107,7 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
 
     private NewCallController newCallController;
     private ContactCallingController contactCallingController;
+    private GroupCallingController groupCallingController;
 
     private FloatingVideoWindowBinder binder;
 
@@ -147,6 +151,9 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
 
             this.contactCallingController = new ContactCallingController(this,
                     this.audioManager, this.displayView.findViewById(R.id.rlContactCallLayout));
+
+            this.groupCallingController = new GroupCallingController(this,
+                    this.audioManager, this.displayView.findViewById(R.id.rlGroupCallLayout));
         }
     }
 
@@ -160,9 +167,13 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
         if (action.equals(ACTION_PREPARE)) {
             this.newCallController.getMainLayout().setVisibility(View.VISIBLE);
             this.contactCallingController.getMainLayout().setVisibility(View.GONE);
+            this.groupCallingController.getMainLayout().setVisibility(View.GONE);
         }
         else if (action.equals(ACTION_SHOW_CALLER)) {
             showCaller(intent);
+        }
+        else if (action.equals(ACTION_SHOW_INVITER)) {
+            showInviter(intent);
         }
 
         return super.onStartCommand(intent, flags, startId);
@@ -206,6 +217,7 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
         }
 
         this.newCallController.getMainLayout().setVisibility(View.GONE);
+        this.groupCallingController.getMainLayout().setVisibility(View.GONE);
         this.contactCallingController.getMainLayout().setVisibility(View.VISIBLE);
 
         Size size = this.contactCallingController.reset();
@@ -266,6 +278,35 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
     }
 
     /**
+     * 显示群组邀请通话界面。
+     *
+     * @param intent
+     */
+    private void showInviter(Intent intent) {
+        if (null == intent) {
+            return;
+        }
+
+        this.newCallController.getMainLayout().setVisibility(View.GONE);
+        this.contactCallingController.getMainLayout().setVisibility(View.GONE);
+        this.groupCallingController.getMainLayout().setVisibility(View.VISIBLE);
+
+        Size size = this.groupCallingController.reset();
+        if (null == size) {
+            Point screenSize = ScreenUtil.getScreenSize(this);
+            this.layoutParams.width = screenSize.x;
+            this.layoutParams.height = screenSize.y;
+        }
+
+        this.previewMode = false;
+        this.windowManager.addView(this.displayView, this.layoutParams);
+
+        if (!this.startInviterByGroup(intent)) {
+            this.windowManager.removeView(this.displayView);
+        }
+    }
+
+    /**
      * 显示有新的通话邀请。
      *
      * @param callRecord
@@ -273,6 +314,7 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
     private void showNewIncomingCall(CallRecord callRecord) {
         this.newCallController.getMainLayout().setVisibility(View.VISIBLE);
         this.contactCallingController.getMainLayout().setVisibility(View.GONE);
+        this.groupCallingController.getMainLayout().setVisibility(View.GONE);
 
         Size size = this.newCallController.reset();
         if (null != size) {
@@ -412,6 +454,14 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
         this.windowManager.updateViewLayout(this.displayView, this.layoutParams);
     }
 
+    public int extractContactAvatarResourceId(Contact contact) {
+        if (null == this.binder.getContactDataHandler()) {
+            return 0;
+        }
+
+        return this.binder.getContactDataHandler().extractContactAvatarResourceId(contact);
+    }
+
     private WindowManager.LayoutParams getParams() {
         WindowManager.LayoutParams params = new WindowManager.LayoutParams();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -464,7 +514,15 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
         this.contactCallingController.config(this.mediaConstraint);
 
         // 头像
-        this.contactCallingController.setAvatarImageResource(intent.getIntExtra("avatarResource", 0));
+        int avatarResId = 0;
+        if (intent.hasExtra("avatarResource")) {
+            avatarResId = intent.getIntExtra("avatarResource", 0);
+        }
+        else {
+            avatarResId = this.binder.getContactDataHandler().extractContactAvatarResourceId(contact);
+        }
+        this.contactCallingController.setAvatarImageResource(avatarResId);
+
         // 名字
         this.contactCallingController.setNameText(this.contact.getPriorityName());
 
@@ -523,6 +581,39 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
                 }, 3000);
             }
         });
+
+        return true;
+    }
+
+    private boolean startInviterByGroup(Intent intent) {
+        List<Contact> members = new ArrayList<>();
+
+        if (intent.hasExtra("groupId") && intent.hasExtra("invitees")) {
+            Long groupId = intent.getLongExtra("groupId", 0);
+            this.group = CubeEngine.getInstance().getContactService().getGroup(groupId);
+
+            long[] invitees = intent.getLongArrayExtra("invitees");
+            for (long id : invitees) {
+                Contact contact = CubeEngine.getInstance().getContactService().getContact(id);
+                if (null != contact) {
+                    members.add(contact);
+                }
+            }
+        }
+        else {
+            return false;
+        }
+
+        String jsonString = intent.getStringExtra("mediaConstraint");
+        try {
+            this.mediaConstraint = new MediaConstraint(new JSONObject(jsonString));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        this.groupCallingController.config(mediaConstraint);
+
+//        CubeEngine.getInstance().getMultipointComm().inviteCall(group, );
 
         return true;
     }

@@ -34,7 +34,7 @@ import android.view.ViewGroup;
 /**
  * 视频格子布局。
  */
-public class GridLayout extends ViewGroup {
+public class MultipointGridLayout extends ViewGroup {
 
     private int row = 1;
 
@@ -42,19 +42,19 @@ public class GridLayout extends ViewGroup {
 
     private int span = 0;
 
-    public GridLayout(Context context) {
+    public MultipointGridLayout(Context context) {
         super(context);
     }
 
-    public GridLayout(Context context, AttributeSet attrs) {
+    public MultipointGridLayout(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
-    public GridLayout(Context context, AttributeSet attrs, int defStyleAttr) {
+    public MultipointGridLayout(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
 
-    public GridLayout(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    public MultipointGridLayout(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
     }
 

@@ -55,6 +55,7 @@ import java.util.List;
 import cube.contact.model.Contact;
 import cube.contact.model.ContactZone;
 import cube.contact.model.Group;
+import cube.contact.model.Self;
 import cube.core.Module;
 import cube.core.ModuleError;
 import cube.core.handler.DefaultFailureHandler;
@@ -73,16 +74,21 @@ import cube.messaging.model.Conversation;
 public class OperateContactPresenter extends BasePresenter<OperateContactView> {
 
     private boolean createMode;
+    private boolean onlyThisGroup;
 
     private List<Contact> allContacts;
     private List<Contact> selectedMembers;
 
+    private Group group;
+
     private HeaderAndFooterAdapter contactsAdapter;
     private AdapterForRecyclerView<Contact> selectedAdapter;
 
-    public OperateContactPresenter(BaseActivity activity, List<Contact> selectedMembers, boolean createMode) {
+    public OperateContactPresenter(BaseActivity activity, List<Contact> selectedMembers,
+                                   boolean createMode, boolean onlyThisGroup) {
         super(activity);
         this.createMode = createMode;
+        this.onlyThisGroup = onlyThisGroup;
         this.allContacts = new ArrayList<>();
         this.selectedMembers = selectedMembers;
     }
@@ -91,7 +97,8 @@ public class OperateContactPresenter extends BasePresenter<OperateContactView> {
         return this.selectedMembers;
     }
 
-    public void load() {
+    public void load(Group group) {
+        this.group = group;
         this.setAdapter();
         this.loadData();
     }
@@ -143,12 +150,25 @@ public class OperateContactPresenter extends BasePresenter<OperateContactView> {
         Promise.create(new PromiseHandler<List<Contact>>() {
             @Override
             public void emit(PromiseFuture<List<Contact>> promise) {
-                ContactZone contactZone = CubeEngine.getInstance().getContactService().getDefaultContactZone();
                 allContacts.clear();
 
-                for (Contact contact : contactZone.getParticipantContacts()) {
-                    Account.setNameSpelling(contact);
-                    allContacts.add(contact);
+                if (onlyThisGroup) {
+                    Self self = CubeEngine.getInstance().getContactService().getSelf();
+                    for (Contact contact : group.getMemberList()) {
+                        if (self.equals(contact)) {
+                            // 跳过自己
+                            continue;
+                        }
+
+                        allContacts.add(contact);
+                    }
+                }
+                else {
+                    ContactZone contactZone = CubeEngine.getInstance().getContactService().getDefaultContactZone();
+                    for (Contact contact : contactZone.getParticipantContacts()) {
+                        Account.setNameSpelling(contact);
+                        allContacts.add(contact);
+                    }
                 }
 
                 promise.resolve(allContacts);
@@ -180,7 +200,7 @@ public class OperateContactPresenter extends BasePresenter<OperateContactView> {
                     CheckBox selector = helper.getView(R.id.cbSelector);
                     selector.setVisibility(View.VISIBLE);
                     Group group = ((OperateContactActivity) activity).group;
-                    if (null != group && group.isMember(item)) {
+                    if (null != group && group.isMember(item) && !onlyThisGroup) {
                         selector.setChecked(true);
                         selector.setEnabled(false);
                         helper.setEnabled(R.id.llRoot, false);

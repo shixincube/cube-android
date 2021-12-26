@@ -117,13 +117,19 @@ public class OperateContactActivity extends BaseActivity<OperateContactView, Ope
                 // 管理群成员
                 Intent intent = new Intent();
                 List<Contact> list = presenter.getSelectedMembers();
-                long[] idList = new long[list.size()];
-                for (int i = 0; i < idList.length; ++i) {
-                    Contact member = list.get(i);;
-                    idList[i] = member.getId();
+                if (!list.isEmpty()) {
+                    long[] idList = new long[list.size()];
+                    for (int i = 0; i < idList.length; ++i) {
+                        Contact member = list.get(i);;
+                        idList[i] = member.getId();
+                    }
+                    intent.putExtra("members", idList);
+                    setResult(RESULT_OK, intent);
                 }
-                intent.putExtra("members", idList);
-                setResult(RESULT_OK, intent);
+                else {
+                    setResult(RESULT_CANCELED);
+                }
+
                 finish();
             }
         });

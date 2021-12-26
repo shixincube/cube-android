@@ -61,6 +61,10 @@ public class MultipointGridLayout extends ViewGroup {
     public void resetRowColumnCount(int row, int column) {
         this.row = row;
         this.column = column;
+
+        this.analyse();
+
+        this.requestLayout();
     }
 
     @Override
@@ -70,11 +74,23 @@ public class MultipointGridLayout extends ViewGroup {
         // 计算单个 View 宽度
         int itemWidth = (width - getPaddingLeft() - getPaddingRight()) / this.column;
         int childCount = getChildCount();
+
+        for (int i = 0; i < childCount; ++i) {
+            View child = getChildAt(i);
+            int itemSpec = MeasureSpec.makeMeasureSpec(itemWidth, MeasureSpec.EXACTLY);
+            measureChild(child, itemSpec, itemSpec);
+        }
+
+        int height = itemWidth * this.row;
+        setMeasuredDimension(width, height);
     }
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        this.analyse();
+        int total = this.row * this.column;
+        for (int i = 0; i < total; ++i) {
+            
+        }
     }
 
     private void analyse() {

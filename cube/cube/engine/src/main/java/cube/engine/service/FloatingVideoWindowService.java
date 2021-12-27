@@ -615,7 +615,12 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
 
         this.groupCallingController.config(mediaConstraint);
 
-        this.groupCallingController.set(this.group, members);
+        List<Integer> avatarResIds = new ArrayList<>();
+        for (Contact contact : members) {
+            avatarResIds.add(extractContactAvatarResourceId(contact));
+        }
+
+        this.groupCallingController.set(this.group, members, avatarResIds);
 
 //        CubeEngine.getInstance().getMultipointComm().inviteCall(group, );
 

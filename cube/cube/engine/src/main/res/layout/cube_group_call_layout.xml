@@ -74,17 +74,19 @@
             android:orientation="vertical">
 
             <cube.engine.ui.MultipointGridLayout
+                android:id="@+id/mglGrid"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_gravity="center">
 
                 <RelativeLayout
-                    android:id="@+id/rlGrid1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content">
-                    <View
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:visibility="gone"
                         android:tag="100" />
                     <ImageView
                         android:layout_width="match_parent"
@@ -94,12 +96,13 @@
                 </RelativeLayout>
 
                 <RelativeLayout
-                    android:id="@+id/rlGrid2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content">
-                    <View
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:visibility="gone"
                         android:tag="100" />
                     <ImageView
                         android:layout_width="match_parent"
@@ -109,12 +112,61 @@
                 </RelativeLayout>
 
                 <RelativeLayout
-                    android:id="@+id/rlGrid3"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content">
-                    <View
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:visibility="gone"
+                        android:tag="100" />
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@mipmap/avatar"
+                        android:tag="200" />
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:visibility="gone"
+                        android:tag="100" />
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@mipmap/avatar"
+                        android:tag="200" />
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:visibility="gone"
+                        android:tag="100" />
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@mipmap/avatar"
+                        android:tag="200" />
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:visibility="gone"
                         android:tag="100" />
                     <ImageView
                         android:layout_width="match_parent"

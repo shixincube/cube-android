@@ -30,14 +30,15 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 /**
  * 视频格子布局。
  */
 public class MultipointGridLayout extends ViewGroup {
 
+    private int count = 1;
     private int row = 1;
-
     private int column = 1;
 
     private int span = 0;
@@ -58,13 +59,22 @@ public class MultipointGridLayout extends ViewGroup {
         super(context, attrs, defStyleAttr, defStyleRes);
     }
 
-    public void resetRowColumnCount(int row, int column) {
-        this.row = row;
-        this.column = column;
+    public void setNeededCount(int count) {
+        this.count = count;
 
         this.analyse();
 
         this.requestLayout();
+    }
+
+    public ImageView getAvatar(int index) {
+        ViewGroup layout = (ViewGroup) getChildAt(index);
+        return layout.findViewWithTag("200");
+    }
+
+    public ViewGroup getVideoContainer(int index) {
+        ViewGroup layout = (ViewGroup) getChildAt(index);
+        return layout.findViewWithTag("100");
     }
 
     @Override
@@ -87,17 +97,49 @@ public class MultipointGridLayout extends ViewGroup {
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        int total = this.row * this.column;
-        for (int i = 0; i < total; ++i) {
-            
+        int index = 0;
+        for (int i = 0; i < this.row; ++i) {
+            for (int j = 0; j < this.column; ++j) {
+                View child = getChildAt(index);
+                int width = child.getMeasuredWidth();
+                int height = child.getMeasuredHeight();
+                int left = j * width;
+                int top = i * height;
+
+                child.layout(left, top, left + width, top + height);
+
+                ++index;
+            }
         }
     }
 
     private void analyse() {
-        int total = this.row * this.column;
+        switch (this.count) {
+            case 1:
+                this.row = 1;
+                this.column = 1;
+                break;
+            case 2:
+                this.row = 1;
+                this.column = 2;
+                break;
+            case 3:
+            case 4:
+                this.row = 2;
+                this.column = 2;
+                break;
+            case 5:
+            case 6:
+                this.row = 2;
+                this.column = 3;
+                break;
+            default:
+                break;
+        }
+
         for (int i = 0, len = getChildCount(); i < len; ++i) {
             View view = getChildAt(i);
-            if (i < total) {
+            if (i < this.count) {
                 view.setVisibility(View.VISIBLE);
             }
             else {

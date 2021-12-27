@@ -34,6 +34,7 @@ import java.util.List;
 
 import cube.contact.model.Contact;
 import cube.contact.model.Group;
+import cube.engine.R;
 import cube.engine.service.FloatingVideoWindowService;
 import cube.multipointcomm.util.MediaConstraint;
 
@@ -47,6 +48,8 @@ public class GroupCallingController implements Controller {
 
     private ViewGroup mainLayout;
 
+    private MultipointGridLayout gridLayout;
+
     private MediaConstraint mediaConstraint;
 
     private Group group;
@@ -56,6 +59,8 @@ public class GroupCallingController implements Controller {
         this.service = service;
         this.audioManager = audioManager;
         this.mainLayout = mainLayout;
+
+        this.initView();
     }
 
     public void config(MediaConstraint mediaConstraint) {
@@ -65,10 +70,12 @@ public class GroupCallingController implements Controller {
     public void set(Group group, List<Contact> contactList) {
         this.group = group;
         this.members = contactList;
+        this.gridLayout.setNeededCount(this.members.size());
     }
 
     @Override
     public Size reset() {
+
         return null;
     }
 
@@ -80,5 +87,9 @@ public class GroupCallingController implements Controller {
     @Override
     public boolean isShown() {
         return this.mainLayout.isShown();
+    }
+
+    private void initView() {
+        this.gridLayout = this.mainLayout.findViewById(R.id.mglGrid);
     }
 }

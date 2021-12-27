@@ -587,6 +587,8 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
 
     private boolean startInviterByGroup(Intent intent) {
         List<Contact> members = new ArrayList<>();
+        // 添加"自己"
+        members.add(CubeEngine.getInstance().getContactService().getSelf());
 
         if (intent.hasExtra("groupId") && intent.hasExtra("invitees")) {
             Long groupId = intent.getLongExtra("groupId", 0);
@@ -612,6 +614,8 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
         }
 
         this.groupCallingController.config(mediaConstraint);
+
+        this.groupCallingController.set(this.group, members);
 
 //        CubeEngine.getInstance().getMultipointComm().inviteCall(group, );
 

@@ -552,7 +552,7 @@ public class MultipointComm extends Module implements Observer, MediaListener {
             }
 
             execute(() -> {
-                notifyObservers(new ObservableEvent(MultipointCommEvent.InProgress, field));
+                notifyObservers(new ObservableEvent(MultipointCommEvent.InProgress, activeCall));
             });
 
             // 1. 申请通话
@@ -874,10 +874,12 @@ public class MultipointComm extends Module implements Observer, MediaListener {
                 }
             }
             else {
-                for (ViewGroup viewGroup : videoContainers) {
-                    viewGroup.removeAllViews();
+                if (null != videoContainers) {
+                    for (ViewGroup viewGroup : videoContainers) {
+                        viewGroup.removeAllViews();
+                    }
+                    videoContainers.clear();
                 }
-                videoContainers.clear();
             }
         });
 

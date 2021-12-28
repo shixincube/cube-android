@@ -34,6 +34,7 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -41,11 +42,15 @@ import java.util.List;
 
 import cube.contact.model.Contact;
 import cube.contact.model.Group;
+import cube.core.Module;
 import cube.core.ModuleError;
+import cube.core.handler.DefaultFailureHandler;
+import cube.engine.CubeEngine;
 import cube.engine.R;
 import cube.engine.service.FloatingVideoWindowService;
 import cube.multipointcomm.RTCDevice;
 import cube.multipointcomm.VideoContainerAgent;
+import cube.multipointcomm.handler.DefaultCallHandler;
 import cube.multipointcomm.model.CallRecord;
 import cube.multipointcomm.model.CommFieldEndpoint;
 import cube.multipointcomm.util.MediaConstraint;
@@ -63,6 +68,7 @@ public class GroupCallingController implements Controller, Runnable, VideoContai
     private MultipointGridLayout gridLayout;
 
     private TextView callingTimeText;
+    private ImageButton previewButton;
 
     private Button hangupButton;
 
@@ -91,6 +97,7 @@ public class GroupCallingController implements Controller, Runnable, VideoContai
         this.mainLayout = mainLayout;
 
         this.initView();
+        this.initListener();
     }
 
     public void config(MediaConstraint mediaConstraint) {
@@ -133,6 +140,11 @@ public class GroupCallingController implements Controller, Runnable, VideoContai
             this.microphoneText.setText(audioEnabled ? getResources().getString(R.string.microphone_opened)
                     : getResources().getString(R.string.microphone_closed));
 
+            boolean speakerphoneOn = this.audioManager.isSpeakerphoneOn();
+            this.speakerButton.setSelected(speakerphoneOn);
+            this.speakerText.setText(speakerphoneOn ? getResources().getString(R.string.speakerphone)
+                    : getResources().getString(R.string.telephone));
+
             this.microphoneLayout.setVisibility(View.VISIBLE);
 
             this.speakerLayout.setVisibility(View.VISIBLE);
@@ -158,7 +170,35 @@ public class GroupCallingController implements Controller, Runnable, VideoContai
 
     @Override
     public void run() {
+        ++this.timing;
 
+        StringBuilder buf = new StringBuilder();
+
+        if (this.timing >= 60) {
+            int minute = (int) Math.floor(this.timing / 60.0);
+            int mod = this.timing % 60;
+
+            if (minute < 10) {
+                buf.append("0");
+            }
+            buf.append(minute);
+
+            buf.append(":");
+
+            if (mod < 10) {
+                buf.append("0");
+            }
+            buf.append(mod);
+        }
+        else {
+            buf.append("00:");
+            if (this.timing < 10) {
+                buf.append("0");
+            }
+            buf.append(this.timing);
+        }
+
+        this.callingTimeText.setText(buf.toString());
     }
 
     @Override
@@ -215,6 +255,8 @@ public class GroupCallingController implements Controller, Runnable, VideoContai
         this.gridLayout = this.mainLayout.findViewById(R.id.mglGrid);
 
         this.callingTimeText = this.mainLayout.findViewById(R.id.tvCallingTime);
+        this.previewButton = this.mainLayout.findViewById(R.id.btnPreview);
+
         this.hangupButton = this.mainLayout.findViewById(R.id.btnHangup);
 
         this.microphoneLayout = this.mainLayout.findViewById(R.id.llMicrophone);
@@ -227,6 +269,29 @@ public class GroupCallingController implements Controller, Runnable, VideoContai
         this.cameraLayout = this.mainLayout.findViewById(R.id.llCameraLayout);
         this.cameraButton = this.mainLayout.findViewById(R.id.btnCamera);
         this.switchCameraButton = this.mainLayout.findViewById(R.id.btnSwitchCamera);
+    }
+
+    private void initListener() {
+        this.previewButton.setOnClickListener((view) -> {
+            service.switchToPreview();
+        });
+
+        this.hangupButton.setOnClickListener((view) -> {
+            hangupButton.setEnabled(false);
+            hideControls();
+
+            CubeEngine.getInstance().getMultipointComm().hangupCall(new DefaultCallHandler(true) {
+                @Override
+                public void handleCall(CallRecord callRecord) {
+                    service.hide();
+                }
+            }, new DefaultFailureHandler(true) {
+                @Override
+                public void handleFailure(Module module, ModuleError error) {
+                    service.hide();
+                }
+            });
+        });
     }
 
     private Resources getResources() {

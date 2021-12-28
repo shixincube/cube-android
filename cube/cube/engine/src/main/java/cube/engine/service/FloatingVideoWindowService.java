@@ -59,6 +59,7 @@ import cube.contact.model.Contact;
 import cube.contact.model.Group;
 import cube.core.Module;
 import cube.core.ModuleError;
+import cube.core.PipelineState;
 import cube.core.handler.DefaultFailureHandler;
 import cube.engine.CubeEngine;
 import cube.engine.R;
@@ -70,6 +71,7 @@ import cube.engine.util.ScreenUtil;
 import cube.engine.util.SoundPlayer;
 import cube.multipointcomm.CallListener;
 import cube.multipointcomm.MultipointCallListener;
+import cube.multipointcomm.MultipointCommState;
 import cube.multipointcomm.handler.DefaultCallHandler;
 import cube.multipointcomm.handler.DefaultCommFieldHandler;
 import cube.multipointcomm.model.CallRecord;
@@ -894,20 +896,31 @@ public class FloatingVideoWindowService extends Service
 
         this.soundPlayer.stopOutgoing();
         this.soundPlayer.stopRinging();
+
+        if (error.code == MultipointCommState.NoMediaUnit.code ||
+            error.code == PipelineState.GatewayError.code) {
+            hide();
+        }
     }
 
     @Override
     public void onInvited(CommField commField) {
-
+        if (LogUtils.isDebugLevel()) {
+            LogUtils.d(TAG, "#onInvited");
+        }
     }
 
     @Override
     public void onEndpointArrived(CommField commField, CommFieldEndpoint endpoint) {
-
+        if (LogUtils.isDebugLevel()) {
+            LogUtils.d(TAG, "#onEndpointArrived : " + endpoint.getContact().getId());
+        }
     }
 
     @Override
     public void onEndpointLeft(CommField commField, CommFieldEndpoint endpoint) {
-
+        if (LogUtils.isDebugLevel()) {
+            LogUtils.d(TAG, "#onEndpointLeft : " +  + endpoint.getContact().getId());
+        }
     }
 }

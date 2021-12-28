@@ -69,15 +69,21 @@ import cube.engine.ui.NewCallController;
 import cube.engine.util.ScreenUtil;
 import cube.engine.util.SoundPlayer;
 import cube.multipointcomm.CallListener;
+import cube.multipointcomm.MultipointCallListener;
 import cube.multipointcomm.handler.DefaultCallHandler;
+import cube.multipointcomm.handler.DefaultCommFieldHandler;
 import cube.multipointcomm.model.CallRecord;
+import cube.multipointcomm.model.CommField;
+import cube.multipointcomm.model.CommFieldEndpoint;
 import cube.multipointcomm.util.MediaConstraint;
 import cube.util.LogUtils;
 
 /**
  * 悬浮的视频窗口。
  */
-public class FloatingVideoWindowService extends Service implements KeyEventLinearLayout.KeyEventListener, CallListener {
+public class FloatingVideoWindowService extends Service
+        implements KeyEventLinearLayout.KeyEventListener,
+                    CallListener, MultipointCallListener {
 
     private final static String TAG = "FloatVideoWindowService";
 
@@ -159,6 +165,10 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        if (null == intent) {
+            return super.onStartCommand(intent, flags, startId);
+        }
+
         String action = intent.getAction();
         if (null == action) {
             return super.onStartCommand(intent, flags, startId);
@@ -373,6 +383,17 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
             this.contactCallingController.stopCallTiming();
 
             int delay = this.contactCallingController.hideWithAnimation();
+
+            Handler handler = new Handler(getApplicationContext().getMainLooper());
+            handler.postDelayed(() -> {
+                windowManager.removeView(displayView);
+                closing.set(false);
+            }, delay);
+        }
+        else if (this.groupCallingController.isShown()) {
+            this.groupCallingController.stopCallTiming();
+
+            int delay = this.groupCallingController.hideWithAnimation();
 
             Handler handler = new Handler(getApplicationContext().getMainLooper());
             handler.postDelayed(() -> {
@@ -613,16 +634,57 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
             e.printStackTrace();
         }
 
-        this.groupCallingController.config(mediaConstraint);
+        this.groupCallingController.config(this.mediaConstraint);
 
         List<Integer> avatarResIds = new ArrayList<>();
         for (Contact contact : members) {
             avatarResIds.add(extractContactAvatarResourceId(contact));
         }
 
+        // 设置数据
         this.groupCallingController.set(this.group, members, avatarResIds);
 
-//        CubeEngine.getInstance().getMultipointComm().inviteCall(group, );
+        // 设置视频容器代理
+        CubeEngine.getInstance().getMultipointComm().setVideoContainerAgent(this.groupCallingController);
+
+        // 发起通话
+        CubeEngine.getInstance().getMultipointComm().makeCall(this.group, this.mediaConstraint,
+                new DefaultCallHandler(true) {
+                    @Override
+                    public void handleCall(CallRecord callRecord) {
+                        // 停止等待动画
+                        groupCallingController.stopWaiting(members.get(0));
+
+                        // 邀请指定成员
+                        CubeEngine.getInstance().getMultipointComm().inviteCall(callRecord.getCommField(),
+                                members, new DefaultCommFieldHandler(true) {
+                                    @Override
+                                    public void handleCommField(CommField commField) {
+                                        // 显示控件
+                                        groupCallingController.showControls(callRecord);
+                                    }
+                                }, new DefaultFailureHandler(true) {
+                                    @Override
+                                    public void handleFailure(Module module, ModuleError error) {
+                                        groupCallingController.setTipsText(error);
+                                        Handler handler = new Handler(getMainLooper());
+                                        handler.postDelayed(() -> {
+                                            hide();
+                                        }, 3000);
+                                        CubeEngine.getInstance().getMultipointComm().hangupCall();
+                                    }
+                                });
+                    }
+                }, new DefaultFailureHandler(true) {
+                    @Override
+                    public void handleFailure(Module module, ModuleError error) {
+                        groupCallingController.setTipsText(error);
+                        Handler handler = new Handler(getMainLooper());
+                        handler.postDelayed(() -> {
+                            hide();
+                        }, 3000);
+                    }
+                });
 
         return true;
     }
@@ -638,7 +700,6 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
 
         return false;
     }
-
 
     private class FloatingOnTouchListener implements View.OnTouchListener {
         /**
@@ -833,5 +894,20 @@ public class FloatingVideoWindowService extends Service implements KeyEventLinea
 
         this.soundPlayer.stopOutgoing();
         this.soundPlayer.stopRinging();
+    }
+
+    @Override
+    public void onInvited(CommField commField) {
+
+    }
+
+    @Override
+    public void onEndpointArrived(CommField commField, CommFieldEndpoint endpoint) {
+
+    }
+
+    @Override
+    public void onEndpointLeft(CommField commField, CommFieldEndpoint endpoint) {
+
     }
 }

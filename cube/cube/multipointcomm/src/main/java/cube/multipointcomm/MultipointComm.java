@@ -398,7 +398,9 @@ public class MultipointComm extends Module implements Observer, MediaListener {
                 ObservableEvent event = new ObservableEvent(MultipointCommEvent.Failed, error);
                 notifyObservers(event);
 
-                activeCall = null;
+                executeOnMainThread(() -> {
+                    hangupCall();
+                });
             }
         };
 
@@ -559,13 +561,17 @@ public class MultipointComm extends Module implements Observer, MediaListener {
                 public void handleApply(CommField commField, Contact participant, Device device) {
                     // 获取自己的终端节点
                     CommFieldEndpoint endpoint = commField.getEndpoint(privateField.getSelf());
+                    if (null == endpoint) {
+                        LogUtils.e(TAG, "#makeCall - Can NOT find endpoint in \"" + commField.getName() + "\"");
+                    }
+
                     field.update(commField);
 
                     fillCommField(field, true);
 
                     // 2. 发起 Offer
                     RTCDevice rtcDevice = createRTCDevice(RTCDevice.MODE_SEND_ONLY, localVideoContainer, null);
-                    field.launchOffer(rtcDevice, mediaConstraint, new DefaultCommFieldHandler() {
+                    field.launchOffer(rtcDevice, mediaConstraint, endpoint, new DefaultCommFieldHandler() {
                         @Override
                         public void handleCommField(CommField commField) {
                             success.handleCall(activeCall);
@@ -633,6 +639,11 @@ public class MultipointComm extends Module implements Observer, MediaListener {
                 // 设置邀请列表
                 List<Long> invitees = new ArrayList<>();
                 for (Contact contact : contacts) {
+                    if (privateField.getSelf().equals(contact)) {
+                        // 跳过自己
+                        continue;
+                    }
+
                     invitees.add(contact.id);
                 }
                 signaling.invitees = invitees;

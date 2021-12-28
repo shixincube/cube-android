@@ -27,21 +27,26 @@
 package cube.engine.ui;
 
 import android.content.Context;
+import android.graphics.drawable.AnimationDrawable;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+
+import cube.engine.R;
 
 /**
  * 视频格子布局。
  */
-public class MultipointGridLayout extends ViewGroup {
+public class MultipointGridLayout extends RelativeLayout {
 
     private int count = 1;
     private int row = 1;
-    private int column = 1;
+    private int column = 2;
 
-    private int span = 0;
+    private int height = 0;
 
     public MultipointGridLayout(Context context) {
         super(context);
@@ -67,7 +72,7 @@ public class MultipointGridLayout extends ViewGroup {
         this.requestLayout();
     }
 
-    public ImageView getAvatar(int index) {
+    public ImageView getAvatarView(int index) {
         ViewGroup layout = (ViewGroup) getChildAt(index);
         return layout.findViewWithTag("200");
     }
@@ -75,6 +80,13 @@ public class MultipointGridLayout extends ViewGroup {
     public ViewGroup getVideoContainer(int index) {
         ViewGroup layout = (ViewGroup) getChildAt(index);
         return layout.findViewWithTag("100");
+    }
+
+    public void stopWaiting(int index) {
+        ViewGroup layout = (ViewGroup) getChildAt(index);
+        View animView = layout.findViewWithTag("300");
+        AnimationDrawable anim = (AnimationDrawable) animView.getBackground();
+        anim.stop();
     }
 
     @Override
@@ -91,8 +103,12 @@ public class MultipointGridLayout extends ViewGroup {
             measureChild(child, itemSpec, itemSpec);
         }
 
-        int height = itemWidth * this.row;
-        setMeasuredDimension(width, height);
+        this.height = width;
+        setMeasuredDimension(width, this.height);
+
+        int spanHeight = this.height - itemWidth * this.row;
+        LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) this.getLayoutParams();
+        lp.setMargins(0, (int)(spanHeight * 0.5f), 0, 0);
     }
 
     @Override
@@ -141,6 +157,10 @@ public class MultipointGridLayout extends ViewGroup {
             View view = getChildAt(i);
             if (i < this.count) {
                 view.setVisibility(View.VISIBLE);
+                View animView = view.findViewWithTag("300");
+                animView.setBackgroundResource(R.drawable.cube_group_call_waiting_animation);
+                AnimationDrawable anim = (AnimationDrawable) animView.getBackground();
+                anim.start();
             }
             else {
                 view.setVisibility(View.GONE);

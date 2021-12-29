@@ -35,6 +35,7 @@ import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -64,6 +65,11 @@ public class GroupCallingController implements Controller, Runnable, VideoContai
     private AudioManager audioManager;
 
     private ViewGroup mainLayout;
+
+    private LinearLayout normalLayout;
+    private LinearLayout minimizeLayout;
+
+    private TextView miniCallingTimeText;
 
     private MultipointGridLayout gridLayout;
 
@@ -100,8 +106,39 @@ public class GroupCallingController implements Controller, Runnable, VideoContai
         this.initListener();
     }
 
+    @Override
+    public Size reset() {
+        this.normalLayout.setVisibility(View.VISIBLE);
+        this.minimizeLayout.setVisibility(View.GONE);
+
+        this.microphoneLayout.setVisibility(View.GONE);
+        this.speakerLayout.setVisibility(View.GONE);
+        this.cameraLayout.setVisibility(View.GONE);
+        this.cameraButton.setVisibility(View.GONE);
+        this.switchCameraButton.setVisibility(View.GONE);
+
+        this.hangupButton.setEnabled(true);
+
+        this.callingTimeText.setVisibility(View.GONE);
+
+        this.miniCallingTimeText.setText("");
+
+        return null;
+    }
+
     public void config(MediaConstraint mediaConstraint) {
         this.mediaConstraint = mediaConstraint;
+
+        if (mediaConstraint.videoEnabled) {
+            this.cameraLayout.setVisibility(View.VISIBLE);
+            ImageView imageView = this.minimizeLayout.findViewById(R.id.ivType);
+            imageView.setImageResource(R.mipmap.ic_video_call);
+        }
+        else {
+            this.cameraLayout.setVisibility(View.GONE);
+            ImageView imageView = this.minimizeLayout.findViewById(R.id.ivType);
+            imageView.setImageResource(R.mipmap.ic_audio_call);
+        }
     }
 
     public void set(Group group, List<Contact> contactList, List<Integer> avatarResIds) {
@@ -111,6 +148,21 @@ public class GroupCallingController implements Controller, Runnable, VideoContai
 
         for (int i = 0; i < avatarResIds.size(); ++i) {
             this.gridLayout.getAvatarView(i).setImageResource(avatarResIds.get(i));
+        }
+    }
+
+    public void changeSize(boolean minimum, int widthInPixel, int heightInPixel) {
+        if (minimum) {
+            this.normalLayout.setVisibility(View.GONE);
+            this.minimizeLayout.setVisibility(View.VISIBLE);
+
+            this.mainLayout.setBackgroundResource(R.drawable.shape_frame);
+        }
+        else {
+            this.normalLayout.setVisibility(View.VISIBLE);
+            this.minimizeLayout.setVisibility(View.GONE);
+
+            this.mainLayout.setBackgroundResource(R.mipmap.window_background);
         }
     }
 
@@ -142,18 +194,61 @@ public class GroupCallingController implements Controller, Runnable, VideoContai
                     : getResources().getString(R.string.telephone));
 
             this.microphoneLayout.setVisibility(View.VISIBLE);
+            TranslateAnimation animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, -2,
+                    Animation.RELATIVE_TO_SELF, 0,
+                    Animation.RELATIVE_TO_SELF, 0,
+                    Animation.RELATIVE_TO_SELF, 0);
+            animation.setDuration(300);
+            this.microphoneLayout.startAnimation(animation);
 
             this.speakerLayout.setVisibility(View.VISIBLE);
+            animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 2,
+                    Animation.RELATIVE_TO_SELF, 0,
+                    Animation.RELATIVE_TO_SELF, 0,
+                    Animation.RELATIVE_TO_SELF, 0);
+            animation.setDuration(300);
+            this.speakerLayout.startAnimation(animation);
+        }
+
+        if (this.mediaConstraint.videoEnabled) {
+            // 出站视频流是否可用
+            boolean videoEnabled = device.outboundVideoEnabled();
+            this.cameraButton.setSelected(videoEnabled);
+
+            this.cameraButton.setVisibility(View.VISIBLE);
+            TranslateAnimation animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, -2,
+                    Animation.RELATIVE_TO_SELF, 0,
+                    Animation.RELATIVE_TO_SELF, 0,
+                    Animation.RELATIVE_TO_SELF, 0);
+            animation.setDuration(300);
+            this.cameraButton.startAnimation(animation);
+
+            this.switchCameraButton.setVisibility(View.VISIBLE);
+            animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 2,
+                    Animation.RELATIVE_TO_SELF, 0,
+                    Animation.RELATIVE_TO_SELF, 0,
+                    Animation.RELATIVE_TO_SELF, 0);
+            animation.setDuration(300);
+            this.switchCameraButton.startAnimation(animation);
         }
     }
 
     public void hideControls() {
-        this.microphoneLayout.setVisibility(View.INVISIBLE);
-        this.speakerLayout.setVisibility(View.INVISIBLE);
-        this.cameraLayout.setVisibility(View.INVISIBLE);
+        if (this.microphoneLayout.isShown()) {
+            this.microphoneLayout.setVisibility(View.INVISIBLE);
+        }
+
+        if (this.speakerLayout.isShown()) {
+            this.speakerLayout.setVisibility(View.INVISIBLE);
+        }
+
+        if (this.cameraLayout.isShown()) {
+            this.cameraLayout.setVisibility(View.INVISIBLE);
+        }
     }
 
     public Runnable startCallTiming() {
+        this.miniCallingTimeText.setText("");
         this.callingTimeText.setText("");
         this.callingTimeText.setVisibility(View.VISIBLE);
         this.timing = 0;
@@ -194,22 +289,9 @@ public class GroupCallingController implements Controller, Runnable, VideoContai
             buf.append(this.timing);
         }
 
-        this.callingTimeText.setText(buf.toString());
-    }
-
-    @Override
-    public Size reset() {
-        this.microphoneLayout.setVisibility(View.GONE);
-        this.speakerLayout.setVisibility(View.GONE);
-        this.cameraLayout.setVisibility(View.GONE);
-        this.cameraButton.setVisibility(View.GONE);
-        this.switchCameraButton.setVisibility(View.GONE);
-
-        this.hangupButton.setEnabled(true);
-
-        this.callingTimeText.setVisibility(View.GONE);
-
-        return null;
+        String text = buf.toString();
+        this.callingTimeText.setText(text);
+        this.miniCallingTimeText.setText(text);
     }
 
     @Override
@@ -248,6 +330,11 @@ public class GroupCallingController implements Controller, Runnable, VideoContai
     }
 
     private void initView() {
+        this.normalLayout = this.mainLayout.findViewById(R.id.llNormal);
+        this.minimizeLayout = this.mainLayout.findViewById(R.id.llMinimize);
+
+        this.miniCallingTimeText = this.mainLayout.findViewById(R.id.tvCallingTimeMini);
+
         this.gridLayout = this.mainLayout.findViewById(R.id.mglGrid);
 
         this.callingTimeText = this.mainLayout.findViewById(R.id.tvCallingTime);

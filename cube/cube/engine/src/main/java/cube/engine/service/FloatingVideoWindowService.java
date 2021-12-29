@@ -59,7 +59,6 @@ import cube.contact.model.Contact;
 import cube.contact.model.Group;
 import cube.core.Module;
 import cube.core.ModuleError;
-import cube.core.PipelineState;
 import cube.core.handler.DefaultFailureHandler;
 import cube.engine.CubeEngine;
 import cube.engine.R;
@@ -421,30 +420,33 @@ public class FloatingVideoWindowService extends Service
 
         this.previewMode = true;
 
+        int width = 0;
+        int height = 0;
+
         if (this.contactCallingController.isShown()) {
             if (this.mediaConstraint.videoEnabled) {
-                this.contactCallingController.changeSize(true,
-                        ScreenUtil.dp2px(this, 80),
-                        ScreenUtil.dp2px(this, 120));
+                width = ScreenUtil.dp2px(this, 80);
+                height = ScreenUtil.dp2px(this, 120);
+                this.contactCallingController.changeSize(true, width, height);
             }
             else {
-                this.contactCallingController.changeSize(true,
-                        ScreenUtil.dp2px(this, 50),
-                        ScreenUtil.dp2px(this, 50));
+                width = ScreenUtil.dp2px(this, 50);
+                height = ScreenUtil.dp2px(this, 50);
+                this.contactCallingController.changeSize(true, width, height);
+                width += 10;
+                height += 10;
             }
+        }
+        else if (this.groupCallingController.isShown()) {
+            width = ScreenUtil.dp2px(this, 65);
+            height = ScreenUtil.dp2px(this, 70);
+            this.groupCallingController.changeSize(true, width, height);
         }
 
         Point size = ScreenUtil.getScreenSize(this);
 
-        if (this.mediaConstraint.videoEnabled) {
-            this.layoutParams.width = ScreenUtil.dp2px(this, 80);
-            this.layoutParams.height = ScreenUtil.dp2px(this, 120);
-        }
-        else {
-            this.layoutParams.width = ScreenUtil.dp2px(this, 55);
-            this.layoutParams.height = ScreenUtil.dp2px(this, 55);
-        }
-
+        this.layoutParams.width = width;
+        this.layoutParams.height = height;
         this.layoutParams.x = size.x - this.layoutParams.width;
         this.layoutParams.y = ScreenUtil.getStatusBarHeight(this) + ScreenUtil.dp2px(this, 50);
         this.windowManager.updateViewLayout(this.displayView, this.layoutParams);
@@ -468,6 +470,9 @@ public class FloatingVideoWindowService extends Service
                         ScreenUtil.dp2px(this, 120),
                         ScreenUtil.dp2px(this, 120));
             }
+        }
+        else if (this.groupCallingController.isShown()) {
+            this.groupCallingController.changeSize(false, 0, 0);
         }
 
         this.layoutParams.width = size.x;
@@ -829,6 +834,20 @@ public class FloatingVideoWindowService extends Service
                 }
             }, 1000, 1000);
         }
+        else if (this.groupCallingController.isShown()) {
+            // 显示控件
+            this.groupCallingController.showControls(callRecord);
+
+            Runnable task = this.groupCallingController.startCallTiming();
+            Handler handler = new Handler(getApplicationContext().getMainLooper());
+            this.callCountingTimer = new Timer();
+            this.callCountingTimer.scheduleAtFixedRate(new TimerTask() {
+                @Override
+                public void run() {
+                    handler.post(task);
+                }
+            }, 1000, 1000);
+        }
     }
 
     @Override
@@ -897,8 +916,7 @@ public class FloatingVideoWindowService extends Service
         this.soundPlayer.stopOutgoing();
         this.soundPlayer.stopRinging();
 
-        if (error.code == MultipointCommState.NoMediaUnit.code ||
-            error.code == PipelineState.GatewayError.code) {
+        if (error.code == MultipointCommState.NoMediaUnit.code) {
             hide();
         }
     }

@@ -7,8 +7,39 @@
     android:layout_gravity="center_horizontal"
     android:background="@mipmap/window_background">
 
+    <LinearLayout
+        android:id="@+id/llMinimize"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:paddingTop="2dp"
+        android:paddingBottom="2dp"
+        android:orientation="vertical"
+        android:visibility="gone">
+        <TextView
+            android:id="@+id/tvCallingTimeMini"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:gravity="center_horizontal"
+            android:textColor="@color/black"
+            android:textSize="12sp"
+            android:text="@string/cube_default_contact_name"/>
+        <ImageView
+            android:id="@+id/ivType"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center_horizontal"
+            android:scaleType="centerCrop"
+            android:adjustViewBounds="true"
+            android:maxWidth="40dp"
+            android:maxHeight="40dp"
+            android:src="@mipmap/ic_video_call"/>
+    </LinearLayout>
+
     <!-- 操作界面 -->
     <LinearLayout
+        android:id="@+id/llNormal"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="center"

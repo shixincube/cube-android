@@ -228,8 +228,8 @@ public class ContactCallingController implements Controller, Runnable {
         this.callingTimeText.setText(buf.toString());
     }
 
-    public void changeSize(boolean mini, int widthInPixel, int heightInPixel) {
-        if (mini) {
+    public void changeSize(boolean minimum, int widthInPixel, int heightInPixel) {
+        if (minimum) {
             if (this.mediaConstraint.videoEnabled) {
                 this.headerLayout.setVisibility(View.GONE);
                 this.footerLayout.setVisibility(View.GONE);

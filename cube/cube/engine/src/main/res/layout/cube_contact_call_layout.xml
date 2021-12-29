@@ -104,6 +104,7 @@
                     android:layout_width="30dp"
                     android:layout_height="30dp"
                     android:scaleType="centerCrop"
+                    android:adjustViewBounds="true"
                     android:layout_centerInParent="true"
                     android:src="@mipmap/ic_audio_call"
                     android:visibility="gone"

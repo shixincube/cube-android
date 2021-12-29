@@ -126,10 +126,6 @@ public class GroupCallingController implements Controller, Runnable, VideoContai
     }
 
     public void showControls(CallRecord callRecord) {
-        for (int i = 0; i < this.members.size(); ++i) {
-            this.gridLayout.stopWaiting(i);
-        }
-
         RTCDevice device = callRecord.field.getLocalDevice();
 
         if (this.mediaConstraint.audioEnabled) {

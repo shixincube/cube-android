@@ -32,7 +32,6 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import cube.engine.R;
@@ -87,6 +86,7 @@ public class MultipointGridLayout extends RelativeLayout {
         View animView = layout.findViewWithTag("300");
         AnimationDrawable anim = (AnimationDrawable) animView.getBackground();
         anim.stop();
+        animView.setVisibility(View.GONE);
     }
 
     @Override
@@ -105,10 +105,6 @@ public class MultipointGridLayout extends RelativeLayout {
 
         this.height = width;
         setMeasuredDimension(width, this.height);
-
-        int spanHeight = this.height - itemWidth * this.row;
-        LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) this.getLayoutParams();
-        lp.setMargins(0, (int)(spanHeight * 0.5f), 0, 0);
     }
 
     @Override
@@ -158,6 +154,7 @@ public class MultipointGridLayout extends RelativeLayout {
             if (i < this.count) {
                 view.setVisibility(View.VISIBLE);
                 View animView = view.findViewWithTag("300");
+                animView.setVisibility(View.VISIBLE);
                 animView.setBackgroundResource(R.drawable.cube_group_call_waiting_animation);
                 AnimationDrawable anim = (AnimationDrawable) animView.getBackground();
                 anim.start();

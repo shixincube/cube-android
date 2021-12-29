@@ -108,7 +108,8 @@ public class RTCDevice {
 
     private PeerConnection pc;
 
-    private MediaStream outboundStream;
+    private VideoTrack outboundVideoTrack;
+    private AudioTrack outboundAudioTrack;
 
     private MediaStream inboundStream;
 
@@ -191,11 +192,11 @@ public class RTCDevice {
      * @return 返回出站视频是否已启用。
      */
     public boolean outboundVideoEnabled() {
-        if (null == this.outboundStream) {
+        if (null == this.outboundVideoTrack) {
             return this.streamState.output.video;
         }
 
-        this.streamState.output.video = this.streamEnabled(this.outboundStream, "video");
+        this.streamState.output.video = this.outboundVideoTrack.enabled();
         return this.streamState.output.video;
     }
 
@@ -205,11 +206,11 @@ public class RTCDevice {
      * @return 返回出站音频是否已启用。
      */
     public boolean outboundAudioEnabled() {
-        if (null == this.outboundStream) {
+        if (null == this.outboundAudioTrack) {
             return this.streamState.output.audio;
         }
 
-        this.streamState.output.audio = this.streamEnabled(this.outboundStream, "audio");
+        this.streamState.output.audio = this.outboundAudioTrack.enabled();
         return this.streamState.output.audio;
     }
 
@@ -220,7 +221,7 @@ public class RTCDevice {
      */
     public void enableOutboundVideo(boolean enabled) {
         this.streamState.output.video = enabled;
-        this.enableStream(this.outboundStream, "video", enabled);
+        this.outboundVideoTrack.setEnabled(enabled);
     }
 
     /**
@@ -230,7 +231,7 @@ public class RTCDevice {
      */
     public void enableOutboundAudio(boolean enabled) {
         this.streamState.output.audio = enabled;
-        this.enableStream(this.outboundStream, "audio", enabled);
+        this.outboundAudioTrack.setEnabled(enabled);
     }
 
     private boolean streamEnabled(MediaStream stream, String kind) {
@@ -281,6 +282,15 @@ public class RTCDevice {
         }
     }
 
+    private void syncStreamState(MediaStreamTrack track, StreamStateSymbol streamStateSymbol) {
+        if (track instanceof VideoTrack) {
+            track.setEnabled(streamStateSymbol.video);
+        }
+        else if (track instanceof AudioTrack) {
+            track.setEnabled(streamStateSymbol.audio);
+        }
+    }
+
     /**
      * 切换摄像头。
      */
@@ -318,53 +328,45 @@ public class RTCDevice {
 
         this.pcObserver = new PeerConnectionObserver();
         // 创建 Peer Connection
-        this.pc = this.factory.createPeerConnection(getConfig(this.iceServers), this.pcObserver);
+        this.pc = this.factory.createPeerConnection(getConfig(this.iceServers, this.mode), this.pcObserver);
 
         if (this.mode.equals(MODE_BIDIRECTION)) {
             // 双向流
             // 创建本地流
-            this.outboundStream = this.factory.createLocalMediaStream(MEDIA_STREAM_LABEL);
+//            this.outboundStream = this.factory.createLocalMediaStream(MEDIA_STREAM_LABEL);
 
             if (mediaConstraint.videoEnabled) {
                 // 启动摄像机提供视频画面
-                VideoTrack videoTrack = this.createVideoTrack(mediaConstraint.getVideoDimension(), mediaConstraint.getVideoFps());
-                this.outboundStream.addTrack(videoTrack);
+                this.outboundVideoTrack = this.createVideoTrack(mediaConstraint.getVideoDimension(), mediaConstraint.getVideoFps());
+                this.pc.addTrack(this.outboundVideoTrack);
             }
 
             if (mediaConstraint.audioEnabled) {
                 // 获取麦克风数据
-                AudioTrack audioTrack = this.createAudioTrack();
-                this.outboundStream.addTrack(audioTrack);
+                this.outboundAudioTrack = this.createAudioTrack();
+                this.pc.addTrack(this.outboundAudioTrack);
             }
-
-            // 添加媒体流
-            this.pc.addStream(this.outboundStream);
         }
         else if (this.mode.equals(MODE_SEND_ONLY)) {
             // 仅发送模式
             // 创建本地流
-            this.outboundStream = this.factory.createLocalMediaStream(MEDIA_STREAM_LABEL);
+//            this.outboundStream = this.factory.createLocalMediaStream(MEDIA_STREAM_LABEL);
 
             if (mediaConstraint.audioEnabled) {
                 this.pc.addTransceiver(MediaStreamTrack.MediaType.MEDIA_TYPE_AUDIO,
                         new RtpTransceiver.RtpTransceiverInit(RtpTransceiver.RtpTransceiverDirection.SEND_ONLY));
-                AudioTrack audioTrack = this.createAudioTrack();
-                audioTrack.setEnabled(true);
-                this.outboundStream.addTrack(audioTrack);
-//                this.pc.addTrack(audioTrack);
+                this.outboundAudioTrack = this.createAudioTrack();
+                this.outboundAudioTrack.setEnabled(true);
+                this.pc.addTrack(this.outboundAudioTrack);
             }
 
             if (mediaConstraint.videoEnabled) {
                 this.pc.addTransceiver(MediaStreamTrack.MediaType.MEDIA_TYPE_VIDEO,
                         new RtpTransceiver.RtpTransceiverInit(RtpTransceiver.RtpTransceiverDirection.SEND_ONLY));
-
-                VideoTrack videoTrack = this.createVideoTrack(mediaConstraint.getVideoDimension(), mediaConstraint.getVideoFps());
-                videoTrack.setEnabled(true);
-                this.outboundStream.addTrack(videoTrack);
-//                this.pc.addTrack(videoTrack);
+                this.outboundVideoTrack = this.createVideoTrack(mediaConstraint.getVideoDimension(), mediaConstraint.getVideoFps());
+                this.outboundVideoTrack.setEnabled(true);
+                this.pc.addTrack(this.outboundVideoTrack);
             }
-
-            this.pc.addStream(this.outboundStream);
         }
         else if (this.mode.equals(MODE_RECEIVE_ONLY)) {
             // 仅接收模式
@@ -455,7 +457,7 @@ public class RTCDevice {
 
         this.pcObserver = new PeerConnectionObserver();
         // 创建 Peer Connection
-        this.pc = this.factory.createPeerConnection(getConfig(this.iceServers), this.pcObserver);
+        this.pc = this.factory.createPeerConnection(getConfig(this.iceServers, this.mode), this.pcObserver);
         this.pc.setRemoteDescription(new SdpObserver() {
             @Override
             public void onCreateSuccess(SessionDescription sessionDescription) {
@@ -466,19 +468,16 @@ public class RTCDevice {
             public void onSetSuccess() {
                 runOnUiThread(() -> {
                     // 创建本地流
-                    outboundStream = factory.createLocalMediaStream(MEDIA_STREAM_LABEL);
+//                    outboundStream = factory.createLocalMediaStream(MEDIA_STREAM_LABEL);
 
                     if (mediaConstraint.videoEnabled) {
                         // 启动摄像机提供视频画面
-                        VideoTrack videoTrack = createVideoTrack(mediaConstraint.getVideoDimension(), mediaConstraint.getVideoFps());
-                        outboundStream.addTrack(videoTrack);
+                        outboundVideoTrack = createVideoTrack(mediaConstraint.getVideoDimension(), mediaConstraint.getVideoFps());
+                        pc.addTrack(outboundVideoTrack);
                     }
 
-                    AudioTrack audioTrack = createAudioTrack();
-                    outboundStream.addTrack(audioTrack);
-
-                    // 添加媒体流
-                    pc.addStream(outboundStream);
+                    outboundAudioTrack = createAudioTrack();
+                    pc.addTrack(outboundAudioTrack);
 
                     pc.createAnswer(new SdpObserver() {
                         @Override
@@ -606,11 +605,14 @@ public class RTCDevice {
         }
 
         // 同步流状态
-        if (null != outboundStream) {
-            runOnUiThread(() -> {
-                syncStreamState(outboundStream, streamState.output);
-            });
-        }
+        runOnUiThread(() -> {
+            if (null != outboundAudioTrack) {
+                syncStreamState(outboundAudioTrack, streamState.output);
+            }
+            if (null != outboundVideoTrack) {
+                syncStreamState(outboundVideoTrack, streamState.output);
+            }
+        });
     }
 
     protected void doCandidate(IceCandidate candidate) {
@@ -648,9 +650,13 @@ public class RTCDevice {
             this.inboundStream = null;
         }
 
-        if (null != this.outboundStream) {
-            this.outboundStream.dispose();
-            this.outboundStream = null;
+        if (null != this.outboundVideoTrack) {
+            this.outboundVideoTrack.dispose();
+            this.outboundVideoTrack = null;
+        }
+        if (null != this.outboundAudioTrack) {
+            this.outboundAudioTrack.dispose();
+            this.outboundAudioTrack = null;
         }
 
         if (null != this.videoCapturer) {
@@ -770,13 +776,15 @@ public class RTCDevice {
         return videoCapturer;
     }
 
-    private PeerConnection.RTCConfiguration getConfig(List<PeerConnection.IceServer> iceServers) {
+    private PeerConnection.RTCConfiguration getConfig(List<PeerConnection.IceServer> iceServers, String mode) {
         PeerConnection.RTCConfiguration rtcConfig = new PeerConnection.RTCConfiguration(iceServers);
         // 关闭分辨率变换
         rtcConfig.enableCpuOveruseDetection = false;
         rtcConfig.audioJitterBufferFastAccelerate = true;
-        // 修改模式 PlanB 无法使用仅接收音视频的配置
-//        rtcConfig.sdpSemantics = PeerConnection.SdpSemantics.UNIFIED_PLAN;
+        // 修改模式，以支持仅输入或仅输出
+        if (RTCDevice.MODE_SEND_ONLY.equals(mode) || RTCDevice.MODE_RECEIVE_ONLY.equals(mode)) {
+            rtcConfig.sdpSemantics = PeerConnection.SdpSemantics.UNIFIED_PLAN;
+        }
         return rtcConfig;
     }
 
@@ -877,24 +885,32 @@ public class RTCDevice {
 
             inboundStream = mediaStream;
 
-            VideoTrack remoteVideoTrack = mediaStream.videoTracks.get(0);
-            runOnUiThread(() -> {
-                if (null == remoteVideoView) {
-                    remoteVideoView = new SurfaceViewRenderer(context);
-                    ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.MATCH_PARENT);
-                    remoteVideoView.setLayoutParams(lp);
-                }
-                remoteVideoView.init(eglBaseContext, null);
-                remoteVideoView.setMirror(false);
-                remoteVideoView.setEnableHardwareScaler(true);
-                remoteVideoView.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
+            if (mediaStream.videoTracks.size() > 0) {
+                VideoTrack remoteVideoTrack = mediaStream.videoTracks.get(0);
+                runOnUiThread(() -> {
+                    if (null == remoteVideoView) {
+                        remoteVideoView = new SurfaceViewRenderer(context);
+                        ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                                ViewGroup.LayoutParams.MATCH_PARENT);
+                        remoteVideoView.setLayoutParams(lp);
+                    }
+                    remoteVideoView.init(eglBaseContext, null);
+                    remoteVideoView.setMirror(false);
+                    remoteVideoView.setEnableHardwareScaler(true);
+                    remoteVideoView.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
 
-                remoteVideoTrack.addSink(remoteVideoView);
+                    remoteVideoTrack.addSink(remoteVideoView);
 
-                // 同步流状态
-                syncStreamState(mediaStream, streamState.input);
-            });
+                    // 同步流状态
+                    syncStreamState(mediaStream, streamState.input);
+                });
+            }
+            else {
+                runOnUiThread(() -> {
+                    // 同步流状态
+                    syncStreamState(mediaStream, streamState.input);
+                });
+            }
         }
 
         @Override

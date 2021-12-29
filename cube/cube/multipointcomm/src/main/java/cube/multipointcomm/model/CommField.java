@@ -864,7 +864,10 @@ public class CommField extends AbstractContact implements RTCDevice.RTCEventList
         // 设置 Candidate
         signaling.candidate = iceCandidate;
 
-        // TODO rtcForEndpointMap
+        CommFieldEndpoint endpoint = this.rtcForEndpointMap.get(rtcDevice.getSN());
+        if (null != endpoint) {
+            signaling.target = endpoint;
+        }
 
         this.sendSignaling(signaling, new SignalingHandler() {
             @Override

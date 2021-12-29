@@ -881,7 +881,7 @@ public class FloatingVideoWindowService extends Service
     @Override
     public void onFailed(ModuleError error) {
         if (LogUtils.isDebugLevel()) {
-            LogUtils.d(TAG, "#onFailed : " + error.code);
+            LogUtils.d(TAG, "#onFailed : " + error.moduleName + " - " + error.code);
         }
 
         if (null != this.callTimer) {

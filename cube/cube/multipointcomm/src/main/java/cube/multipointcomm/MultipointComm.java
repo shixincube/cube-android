@@ -39,6 +39,7 @@ import org.webrtc.EglBase;
 import org.webrtc.IceCandidate;
 import org.webrtc.PeerConnection;
 import org.webrtc.PeerConnectionFactory;
+import org.webrtc.SessionDescription;
 import org.webrtc.VideoDecoderFactory;
 import org.webrtc.VideoEncoderFactory;
 
@@ -398,9 +399,11 @@ public class MultipointComm extends Module implements Observer, MediaListener {
                 ObservableEvent event = new ObservableEvent(MultipointCommEvent.Failed, error);
                 notifyObservers(event);
 
-                executeOnMainThread(() -> {
-                    hangupCall();
-                });
+                if (null != activeCall) {
+                    executeOnMainThread(() -> {
+                        hangupCall();
+                    });
+                }
             }
         };
 
@@ -489,6 +492,10 @@ public class MultipointComm extends Module implements Observer, MediaListener {
                 Long commId = group.getAppendix().getCommId();
                 if (commId.longValue() == 0) {
                     // 创建新场域，关联对应的群组
+                    if (LogUtils.isDebugLevel()) {
+                        LogUtils.d(TAG, "#makeCall - Create comm field for group " + group.id);
+                    }
+
                     createCommField(mediaConstraint, group, new DefaultCommFieldHandler(false) {
                         @Override
                         public void handleCommField(CommField commField) {
@@ -504,6 +511,10 @@ public class MultipointComm extends Module implements Observer, MediaListener {
                             }, new StableFailureHandler() {
                                 @Override
                                 public void handleFailure(Module module, ModuleError error) {
+                                    if (LogUtils.isDebugLevel()) {
+                                        LogUtils.d(TAG, "#makeCall - #createCommField - #updateCommId - error : " + error.code);
+                                    }
+
                                     failure.handleFailure(module, error);
                                 }
                             });
@@ -511,12 +522,20 @@ public class MultipointComm extends Module implements Observer, MediaListener {
                     }, new StableFailureHandler() {
                         @Override
                         public void handleFailure(Module module, ModuleError error) {
+                            if (LogUtils.isDebugLevel()) {
+                                LogUtils.d(TAG, "#makeCall - #createCommField - error : " + error.code);
+                            }
+
                             failure.handleFailure(module, error);
                         }
                     });
                 }
                 else {
                     // 获取场域
+                    if (LogUtils.isDebugLevel()) {
+                        LogUtils.d(TAG, "#makeCall - Get comm field: " + commId);
+                    }
+
                     getCommField(commId, new DefaultCommFieldHandler(false) {
                         @Override
                         public void handleCommField(CommField commField) {
@@ -555,6 +574,10 @@ public class MultipointComm extends Module implements Observer, MediaListener {
                 notifyObservers(new ObservableEvent(MultipointCommEvent.InProgress, activeCall));
             });
 
+            if (LogUtils.isDebugLevel()) {
+                LogUtils.d(TAG, "#makeCall - Apply call for comm field: " + field.getName());
+            }
+
             // 1. 申请通话
             field.applyCall(this.privateField.getSelf(), this.privateField.getSelf().device, new DefaultApplyHandler(false) {
                 @Override
@@ -569,9 +592,23 @@ public class MultipointComm extends Module implements Observer, MediaListener {
 
                     fillCommField(field, true);
 
+                    ViewGroup videoContainer = null;
+                    if (mediaConstraint.videoEnabled) {
+                        if (null != videoContainerAgent) {
+                            videoContainer = videoContainerAgent.getVideoContainer(endpoint);
+                        }
+                        else {
+                            videoContainer = localVideoContainer;
+                        }
+                    }
+
+                    if (LogUtils.isDebugLevel()) {
+                        LogUtils.d(TAG, "#makeCall - Open offer for comm field: " + field.getName());
+                    }
+
                     // 2. 发起 Offer
-                    RTCDevice rtcDevice = createRTCDevice(RTCDevice.MODE_SEND_ONLY, localVideoContainer, null);
-                    field.launchOffer(rtcDevice, mediaConstraint, endpoint, new DefaultCommFieldHandler() {
+                    RTCDevice rtcDevice = createRTCDevice(RTCDevice.MODE_SEND_ONLY, videoContainer, null);
+                    field.launchOffer(rtcDevice, mediaConstraint, endpoint, new DefaultCommFieldHandler(false) {
                         @Override
                         public void handleCommField(CommField commField) {
                             success.handleCall(activeCall);
@@ -887,19 +924,21 @@ public class MultipointComm extends Module implements Observer, MediaListener {
             @Override
             public void handleResponse(Packet packet) {
                 if (packet.state.code != PipelineState.Ok.code) {
-                    ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.ServerFault.code);
-                    error.data = activeCall;
+                    if (null != activeCall) {
+                        ModuleError error = new ModuleError(MultipointComm.NAME, MultipointCommState.ServerFault.code);
+                        error.data = activeCall;
 
-                    activeCall.setEndTime(System.currentTimeMillis());
-                    activeCall.lastError = error;
+                        activeCall.setEndTime(System.currentTimeMillis());
+                        activeCall.lastError = error;
 
-                    executeOnMainThread(() -> {
-                        field.close();
-                    });
+                        executeOnMainThread(() -> {
+                            field.close();
+                        });
 
-                    execute(failureHandler, error);
-                    notifyObservers(new ObservableEvent(MultipointCommEvent.Failed, error));
-                    activeCall = null;
+                        execute(failureHandler, error);
+                        notifyObservers(new ObservableEvent(MultipointCommEvent.Failed, error));
+                        activeCall = null;
+                    }
                     return;
                 }
 
@@ -1039,7 +1078,7 @@ public class MultipointComm extends Module implements Observer, MediaListener {
         }
 
         if (LogUtils.isDebugLevel()) {
-            LogUtils.d(TAG, "Touch comm filed: " + commField.getName());
+            LogUtils.d(TAG, "#touch - Touch comm filed: " + commField.getName());
         }
 
         executeOnMainThread(() -> {
@@ -1613,8 +1652,9 @@ public class MultipointComm extends Module implements Observer, MediaListener {
         RTCDevice rtcDevice = null;
 
         JSONObject data = packet.extractServiceData();
+        Signaling answerSignaling = null;
         try {
-            Signaling answerSignaling = new Signaling(data);
+            answerSignaling = new Signaling(data);
             if (this.activeCall.field.isPrivate()) {
                 this.answerSignaling = answerSignaling;
                 // 被叫媒体约束
@@ -1648,12 +1688,13 @@ public class MultipointComm extends Module implements Observer, MediaListener {
         }
 
         if (LogUtils.isDebugLevel()) {
-            LogUtils.d(TAG, "Answer from " + answerSignaling.contact.id);
+            LogUtils.d(TAG, "Answer from " + answerSignaling.contact.id + " [" + rtcDevice.getMode() + "]");
         }
 
         final RTCDevice currentDevice = rtcDevice;
+        final SessionDescription sessionDescription = answerSignaling.sessionDescription;
         executeOnMainThread(() -> {
-            currentDevice.doAnswer(answerSignaling.sessionDescription, new RTCDeviceHandler() {
+            currentDevice.doAnswer(sessionDescription, new RTCDeviceHandler() {
                 @Override
                 public void handleRTCDevice(RTCDevice device) {
                     // 对于 recvonly 的 Peer 不回调 Connected 事件

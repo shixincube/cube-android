@@ -3,7 +3,7 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
-        <entry key="../../../../../../../layout/custom_preview.xml" value="0.31927083333333334" />
+        <entry key="../../../../../../../layout/custom_preview.xml" value="0.375" />
         <entry key="../../../../../.gradle/caches/transforms-3/d76f35a08c08216004feed386d7db8d0/transformed/appcompat-1.2.0/res/layout/support_simple_spinner_dropdown_item.xml" value="0.19569672131147542" />
         <entry key="app/camerapicker/src/main/res/drawable/ic_camera.xml" value="0.240234375" />
         <entry key="app/camerapicker/src/main/res/drawable/ic_flash_auto.xml" value="0.240234375" />
@@ -180,7 +180,7 @@
         <entry key="cube/engine/src/main/res/layout/cube_comm_window_layout.xml" value="0.1" />
         <entry key="cube/engine/src/main/res/layout/cube_contact_call_layout.xml" value="0.335" />
         <entry key="cube/engine/src/main/res/layout/cube_float_comm_window_layout.xml" value="0.1" />
-        <entry key="cube/engine/src/main/res/layout/cube_group_call_layout.xml" value="0.335" />
+        <entry key="cube/engine/src/main/res/layout/cube_group_call_layout.xml" value="0.165" />
         <entry key="cube/engine/src/main/res/layout/cube_group_call_waiting_animation.xml" value="0.1762295081967213" />
         <entry key="cube/engine/src/main/res/layout/cube_new_call_layout.xml" value="0.1" />
         <entry key="cube/engine/src/main/res/layout/cube_preview_layout.xml" value="0.16837431693989072" />

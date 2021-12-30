@@ -48,6 +48,7 @@ import cube.core.ModuleError;
 import cube.core.handler.DefaultFailureHandler;
 import cube.engine.CubeEngine;
 import cube.engine.R;
+import cube.engine.service.FloatingVideoWindowListener;
 import cube.engine.service.FloatingVideoWindowService;
 import cube.multipointcomm.RTCDevice;
 import cube.multipointcomm.VideoContainerAgent;
@@ -374,6 +375,13 @@ public class GroupCallingController implements Controller, Runnable, VideoContai
                     service.hide();
                 }
             });
+        });
+
+        this.mainLayout.findViewById(R.id.btnInvite).setOnClickListener((view) -> {
+            FloatingVideoWindowListener listener = service.getBinder().getListener();
+            if (null != listener) {
+                listener.onInviteClick(view, group, members);
+            }
         });
     }
 

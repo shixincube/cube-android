@@ -166,10 +166,6 @@ public class FloatingVideoWindowService extends Service
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (null == intent) {
-            return super.onStartCommand(intent, flags, startId);
-        }
-
         String action = intent.getAction();
         if (null == action) {
             return super.onStartCommand(intent, flags, startId);
@@ -214,6 +210,10 @@ public class FloatingVideoWindowService extends Service
         if (null == this.binder) {
             this.binder = new FloatingVideoWindowBinder();
         }
+        return this.binder;
+    }
+
+    public FloatingVideoWindowBinder getBinder() {
         return this.binder;
     }
 
@@ -654,6 +654,11 @@ public class FloatingVideoWindowService extends Service
         // 设置视频容器代理
         CubeEngine.getInstance().getMultipointComm().setVideoContainerAgent(this.groupCallingController);
 
+        // XJW
+        if (jsonString.length() > 2) {
+            return true;
+        }
+
         // 发起通话
         CubeEngine.getInstance().getMultipointComm().makeCall(this.group, this.mediaConstraint,
                 new DefaultCallHandler(true) {
@@ -933,6 +938,8 @@ public class FloatingVideoWindowService extends Service
         if (LogUtils.isDebugLevel()) {
             LogUtils.d(TAG, "#onEndpointArrived : " + endpoint.getContact().getId());
         }
+
+
     }
 
     @Override

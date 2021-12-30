@@ -28,10 +28,13 @@ package com.shixincube.app.ui.activity;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.IBinder;
 import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -68,11 +71,16 @@ import com.shixincube.imagepicker.ui.ImagePreviewActivity;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.BindView;
 import cn.bingoogolapple.refreshlayout.BGANormalRefreshViewHolder;
 import cn.bingoogolapple.refreshlayout.BGARefreshLayout;
+import cube.contact.model.Contact;
+import cube.contact.model.Group;
 import cube.engine.CubeEngine;
+import cube.engine.service.FloatingVideoWindowBinder;
+import cube.engine.service.FloatingVideoWindowListener;
 import cube.engine.service.FloatingVideoWindowService;
 import cube.messaging.model.Conversation;
 import cube.messaging.model.ConversationState;
@@ -85,7 +93,7 @@ import kr.co.namee.permissiongen.PermissionSuccess;
 /**
  * 消息面板。
  */
-public class MessagePanelActivity extends BaseActivity<MessagePanelView, MessagePanelPresenter> implements MessagePanelView, BGARefreshLayout.BGARefreshLayoutDelegate {
+public class MessagePanelActivity extends BaseActivity<MessagePanelView, MessagePanelPresenter> implements MessagePanelView, BGARefreshLayout.BGARefreshLayoutDelegate, ServiceConnection {
 
     public final static int REQUEST_IMAGE_PICKER = 1000;
     public final static int REQUEST_TAKE_PHOTO = 2000;
@@ -137,6 +145,8 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
     @BindView(R.id.rlFiles)
     RelativeLayout filesButton;
 
+    private FloatingVideoWindowBinder binder;
+
     private SoftwareKeyboard softwareKeyboard;
 
     private Conversation conversation;
@@ -178,6 +188,12 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
     public void initData() {
         this.presenter.markAllRead();
         this.presenter.loadMessages();
+
+        runOnUiThread(() -> {
+            // 绑定视频通话的监听器
+            Intent serviceIntent = new Intent(this, FloatingVideoWindowService.class);
+            bindService(serviceIntent, MessagePanelActivity.this, BIND_AUTO_CREATE);
+        });
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -415,7 +431,10 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
 
     @Override
     public void onDestroy() {
+        unbindService(this);
+
         super.onDestroy();
+
         if (null != this.presenter) {
             try {
                 this.presenter.close();
@@ -543,6 +562,25 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
         UIUtils.showToast(UIUtils.getString(R.string.apply_camera_permission));
 
         startActivityForResult(new Intent(Settings.ACTION_PRIVACY_SETTINGS), REQUEST_AUDIO_VIDEO_PERMISSION);
+    }
+
+    @Override
+    public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+        this.binder = (FloatingVideoWindowBinder) iBinder;
+        this.binder.setListener(new FloatingVideoWindowListener() {
+            @Override
+            public void onInviteClick(View button, Group group, List<Contact> participantList) {
+                System.out.println("XJW : " + participantList.size());
+            }
+        });
+    }
+
+    @Override
+    public void onServiceDisconnected(ComponentName componentName) {
+        if (null != this.binder) {
+            this.binder.setListener(null);
+            this.binder = null;
+        }
     }
 
     @Override

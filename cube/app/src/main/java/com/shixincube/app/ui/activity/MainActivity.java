@@ -69,7 +69,7 @@ import cube.util.LogUtils;
  * 主界面。
  */
 public class MainActivity extends BaseActivity<MainView, MainPresenter> implements
-        ViewPager.OnPageChangeListener, MainView,ContactDataHandler {
+        ViewPager.OnPageChangeListener, MainView, ContactDataHandler {
 
     public final static int REQUEST_CREATE_GROUP_CONVERSATION = 1000;
 

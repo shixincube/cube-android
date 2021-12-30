@@ -26,35 +26,17 @@
 
 package cube.engine.service;
 
-import android.os.Binder;
+import android.view.View;
 
-import cube.engine.handler.ContactDataHandler;
+import java.util.List;
+
+import cube.contact.model.Contact;
+import cube.contact.model.Group;
 
 /**
- * 悬浮窗 Binder 。
+ * 悬浮视频窗口监听器。
  */
-public class FloatingVideoWindowBinder extends Binder {
+public interface FloatingVideoWindowListener {
 
-    private ContactDataHandler contactDataHandler;
-
-    private FloatingVideoWindowListener listener;
-
-    public FloatingVideoWindowBinder() {
-    }
-
-    public void setContactDataHandler(ContactDataHandler contactDataHandler) {
-        this.contactDataHandler = contactDataHandler;
-    }
-
-    public ContactDataHandler getContactDataHandler() {
-        return this.contactDataHandler;
-    }
-
-    public void setListener(FloatingVideoWindowListener listener) {
-        this.listener = listener;
-    }
-
-    public FloatingVideoWindowListener getListener() {
-        return this.listener;
-    }
+    void onInviteClick(View button, Group group, List<Contact> participantList);
 }

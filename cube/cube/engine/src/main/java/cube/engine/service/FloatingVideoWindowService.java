@@ -172,14 +172,18 @@ public class FloatingVideoWindowService extends Service
         }
 
         if (action.equals(ACTION_PREPARE)) {
+            this.displayView.setVisibility(View.VISIBLE);
+
             this.newCallController.getMainLayout().setVisibility(View.VISIBLE);
             this.contactCallingController.getMainLayout().setVisibility(View.GONE);
             this.groupCallingController.getMainLayout().setVisibility(View.GONE);
         }
         else if (action.equals(ACTION_SHOW_CALLER)) {
+            this.displayView.setVisibility(View.VISIBLE);
             showCaller(intent);
         }
         else if (action.equals(ACTION_SHOW_INVITER)) {
+            this.displayView.setVisibility(View.VISIBLE);
             showInviter(intent);
         }
 
@@ -208,13 +212,29 @@ public class FloatingVideoWindowService extends Service
     @Override
     public IBinder onBind(Intent intent) {
         if (null == this.binder) {
-            this.binder = new FloatingVideoWindowBinder();
+            this.binder = new FloatingVideoWindowBinder(this);
         }
         return this.binder;
     }
 
     public FloatingVideoWindowBinder getBinder() {
         return this.binder;
+    }
+
+    public MediaConstraint getMediaConstraint() {
+        return this.mediaConstraint;
+    }
+
+    public void suspendDisplay() {
+        this.displayView.setVisibility(View.INVISIBLE);
+    }
+
+    public void resumeDisplay() {
+        this.displayView.setVisibility(View.VISIBLE);
+    }
+
+    public List<Contact> getParticipants() {
+        return this.groupCallingController.getParticipants();
     }
 
     /**
@@ -649,15 +669,15 @@ public class FloatingVideoWindowService extends Service
         }
 
         // 设置数据
-        this.groupCallingController.set(this.group, members, avatarResIds);
+        this.groupCallingController.start(this.group, members, avatarResIds);
 
         // 设置视频容器代理
         CubeEngine.getInstance().getMultipointComm().setVideoContainerAgent(this.groupCallingController);
 
         // XJW
-        if (jsonString.length() > 2) {
-            return true;
-        }
+//        if (jsonString.length() > 0) {
+//            return true;
+//        }
 
         // 发起通话
         CubeEngine.getInstance().getMultipointComm().makeCall(this.group, this.mediaConstraint,

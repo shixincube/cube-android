@@ -39,10 +39,14 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import cube.contact.model.Contact;
 import cube.contact.model.Group;
+import cube.contact.model.Self;
 import cube.core.Module;
 import cube.core.ModuleError;
 import cube.core.handler.DefaultFailureHandler;
@@ -98,10 +102,13 @@ public class GroupCallingController implements Controller, Runnable, VideoContai
     private Group group;
     private List<Contact> members;
 
+    private Map<Long, Long> invitationTimeMap;
+
     public GroupCallingController(FloatingVideoWindowService service, AudioManager audioManager, ViewGroup mainLayout) {
         this.service = service;
         this.audioManager = audioManager;
         this.mainLayout = mainLayout;
+        this.invitationTimeMap = new HashMap<>();
 
         this.initView();
         this.initListener();
@@ -140,9 +147,18 @@ public class GroupCallingController implements Controller, Runnable, VideoContai
             ImageView imageView = this.minimizeLayout.findViewById(R.id.ivType);
             imageView.setImageResource(R.mipmap.ic_audio_call);
         }
+
+        this.invitationTimeMap.clear();
     }
 
-    public void set(Group group, List<Contact> contactList, List<Integer> avatarResIds) {
+    /**
+     * 启动。
+     *
+     * @param group
+     * @param contactList
+     * @param avatarResIds
+     */
+    public void start(Group group, List<Contact> contactList, List<Integer> avatarResIds) {
         this.group = group;
         this.members = contactList;
         this.gridLayout.setNeededCount(this.members.size());
@@ -150,6 +166,10 @@ public class GroupCallingController implements Controller, Runnable, VideoContai
         for (int i = 0; i < avatarResIds.size(); ++i) {
             this.gridLayout.getAvatarView(i).setImageResource(avatarResIds.get(i));
         }
+    }
+
+    public List<Contact> getParticipants() {
+        return this.members;
     }
 
     public void changeSize(boolean minimum, int widthInPixel, int heightInPixel) {
@@ -253,6 +273,16 @@ public class GroupCallingController implements Controller, Runnable, VideoContai
         this.callingTimeText.setText("");
         this.callingTimeText.setVisibility(View.VISIBLE);
         this.timing = 0;
+
+        Self self = CubeEngine.getInstance().getContactService().getSelf();
+        Long timestamp = System.currentTimeMillis();
+        for (Contact contact : this.members) {
+            if (contact.id.longValue() == self.id.longValue()) {
+                continue;
+            }
+            this.invitationTimeMap.put(contact.id, timestamp);
+        }
+
         return this;
     }
 
@@ -293,6 +323,31 @@ public class GroupCallingController implements Controller, Runnable, VideoContai
         String text = buf.toString();
         this.callingTimeText.setText(text);
         this.miniCallingTimeText.setText(text);
+
+        long timestamp = System.currentTimeMillis();
+        Iterator<Map.Entry<Long, Long>> iter = this.invitationTimeMap.entrySet().iterator();
+        while (iter.hasNext()) {
+            Map.Entry<Long, Long> entry = iter.next();
+            long time = entry.getValue().longValue();
+            if (timestamp - time > 10000) {
+                Long id = entry.getKey();
+                // 删除超时参与人
+                int index = -1;
+                for (int i = 0; i < members.size(); ++i) {
+                    Contact contact = members.get(i);
+                    if (contact.id.longValue() == id.longValue()) {
+                        index = i;
+                        break;
+                    }
+                }
+
+                if (index > -1) {
+                    members.remove(index);
+                    this.gridLayout.closeView(index);
+                    iter.remove();
+                }
+            }
+        }
     }
 
     @Override
@@ -378,9 +433,12 @@ public class GroupCallingController implements Controller, Runnable, VideoContai
         });
 
         this.mainLayout.findViewById(R.id.btnInvite).setOnClickListener((view) -> {
-            FloatingVideoWindowListener listener = service.getBinder().getListener();
-            if (null != listener) {
-                listener.onInviteClick(view, group, members);
+            int maxNum = mediaConstraint.videoEnabled ? 6 : 9;
+            if (members.size() < maxNum) {
+                FloatingVideoWindowListener listener = service.getBinder().getListener();
+                if (null != listener) {
+                    listener.onInviteClick(view, service, group, members);
+                }
             }
         });
     }

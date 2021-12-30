@@ -38,5 +38,5 @@ import cube.contact.model.Group;
  */
 public interface FloatingVideoWindowListener {
 
-    void onInviteClick(View button, Group group, List<Contact> participantList);
+    void onInviteClick(View button, FloatingVideoWindowService service, Group group, List<Contact> participantList);
 }

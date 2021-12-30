@@ -78,6 +78,9 @@ import cn.bingoogolapple.refreshlayout.BGANormalRefreshViewHolder;
 import cn.bingoogolapple.refreshlayout.BGARefreshLayout;
 import cube.contact.model.Contact;
 import cube.contact.model.Group;
+import cube.core.Module;
+import cube.core.ModuleError;
+import cube.core.handler.DefaultFailureHandler;
 import cube.engine.CubeEngine;
 import cube.engine.service.FloatingVideoWindowBinder;
 import cube.engine.service.FloatingVideoWindowListener;
@@ -85,7 +88,10 @@ import cube.engine.service.FloatingVideoWindowService;
 import cube.messaging.model.Conversation;
 import cube.messaging.model.ConversationState;
 import cube.messaging.model.ConversationType;
+import cube.multipointcomm.handler.DefaultCommFieldHandler;
+import cube.multipointcomm.model.CommField;
 import cube.multipointcomm.util.MediaConstraint;
+import cube.util.LogUtils;
 import kr.co.namee.permissiongen.PermissionFail;
 import kr.co.namee.permissiongen.PermissionGen;
 import kr.co.namee.permissiongen.PermissionSuccess;
@@ -94,6 +100,8 @@ import kr.co.namee.permissiongen.PermissionSuccess;
  * 消息面板。
  */
 public class MessagePanelActivity extends BaseActivity<MessagePanelView, MessagePanelPresenter> implements MessagePanelView, BGARefreshLayout.BGARefreshLayoutDelegate, ServiceConnection {
+
+    private final static String TAG = MessagePanelActivity.class.getSimpleName();
 
     public final static int REQUEST_IMAGE_PICKER = 1000;
     public final static int REQUEST_TAKE_PHOTO = 2000;
@@ -105,6 +113,7 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
     public final static int REQUEST_AUDIO_VIDEO_PERMISSION = 9100;
 
     public final static int REQUEST_SELECT_GROUP_MEMBERS_FOR_CALL = 9500;
+    public final static int REQUEST_SELECT_GROUP_MEMBERS_FOR_INVITE = 9600;
 
     @BindView(R.id.llMessagePanel)
     LinearLayout messagePanelLayout;
@@ -525,6 +534,38 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
                     startService(intent);
                 }
                 break;
+            case REQUEST_SELECT_GROUP_MEMBERS_FOR_INVITE:
+                if (resultCode == RESULT_OK) {
+                    // 在通话时邀请新的参与人
+                    long[] memberIds = data.getLongArrayExtra("members");
+                    long groupId = data.getLongExtra("groupId", 0);
+                    Group group = CubeEngine.getInstance().getContactService().getGroup(groupId);
+
+                    List<Contact> participants = this.binder.getService().getParticipants();
+                    List<Contact> newParticipants = new ArrayList<>();
+                    for (long id : memberIds) {
+                        Contact contact = CubeEngine.getInstance().getContactService().getContact(id);
+                        if (!participants.contains(contact)) {
+                            newParticipants.add(contact);
+                        }
+                    }
+
+                    CubeEngine.getInstance().getMultipointComm().inviteCall(group, newParticipants,
+                            new DefaultCommFieldHandler(true) {
+                        @Override
+                        public void handleCommField(CommField commField) {
+
+                        }
+                    }, new DefaultFailureHandler(true) {
+                        @Override
+                        public void handleFailure(Module module, ModuleError error) {
+                            LogUtils.w(TAG, "#inviteCall - REQUEST_SELECT_GROUP_MEMBERS_FOR_INVITE : " + error.code);
+                        }
+                    });
+                }
+
+                this.binder.getService().resumeDisplay();
+                break;
             default:
                 break;
         }
@@ -553,6 +594,7 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
             Intent intent = new Intent(MessagePanelActivity.this, OperateContactActivity.class);
             intent.putExtra("groupId", conversation.getGroup().getId().longValue());
             intent.putExtra("onlyThisGroup", true);
+            intent.putExtra("maxSelectedNum", this.mediaConstraint.videoEnabled ? 5 : 8);
             startActivityForResult(intent, REQUEST_SELECT_GROUP_MEMBERS_FOR_CALL);
         }
     }
@@ -569,8 +611,20 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
         this.binder = (FloatingVideoWindowBinder) iBinder;
         this.binder.setListener(new FloatingVideoWindowListener() {
             @Override
-            public void onInviteClick(View button, Group group, List<Contact> participantList) {
-                System.out.println("XJW : " + participantList.size());
+            public void onInviteClick(View button, FloatingVideoWindowService service, Group group, List<Contact> participantList) {
+                long[] memberIdList = new long[participantList.size()];
+                for (int i = 0; i < memberIdList.length; ++i) {
+                    memberIdList[i] = participantList.get(i).getId().longValue();
+                }
+                Intent intent = new Intent(MessagePanelActivity.this, OperateContactActivity.class);
+                intent.putExtra("groupId", group.getId().longValue());
+                intent.putExtra("onlyThisGroup", true);
+                intent.putExtra("lockedIdList", memberIdList);
+                intent.putExtra("maxSelectedNum", service.getMediaConstraint().videoEnabled ? 5 : 8);
+                startActivityForResult(intent, REQUEST_SELECT_GROUP_MEMBERS_FOR_INVITE);
+
+                // 挂起
+                service.suspendDisplay();
             }
         });
     }

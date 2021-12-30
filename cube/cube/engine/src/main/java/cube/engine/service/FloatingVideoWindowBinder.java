@@ -35,11 +35,18 @@ import cube.engine.handler.ContactDataHandler;
  */
 public class FloatingVideoWindowBinder extends Binder {
 
+    private FloatingVideoWindowService service;
+
     private ContactDataHandler contactDataHandler;
 
     private FloatingVideoWindowListener listener;
 
-    public FloatingVideoWindowBinder() {
+    public FloatingVideoWindowBinder(FloatingVideoWindowService service) {
+        this.service = service;
+    }
+
+    public FloatingVideoWindowService getService() {
+        return this.service;
     }
 
     public void setContactDataHandler(ContactDataHandler contactDataHandler) {

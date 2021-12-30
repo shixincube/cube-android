@@ -78,6 +78,9 @@ public class OperateContactPresenter extends BasePresenter<OperateContactView> {
 
     private List<Contact> allContacts;
     private List<Contact> selectedMembers;
+    private List<Contact> lockedMembers;
+
+    private int maxSelectedNum;
 
     private Group group;
 
@@ -85,12 +88,17 @@ public class OperateContactPresenter extends BasePresenter<OperateContactView> {
     private AdapterForRecyclerView<Contact> selectedAdapter;
 
     public OperateContactPresenter(BaseActivity activity, List<Contact> selectedMembers,
-                                   boolean createMode, boolean onlyThisGroup) {
+                                   boolean createMode, boolean onlyThisGroup, int maxSelectedNum) {
         super(activity);
         this.createMode = createMode;
         this.onlyThisGroup = onlyThisGroup;
         this.allContacts = new ArrayList<>();
         this.selectedMembers = selectedMembers;
+        this.maxSelectedNum = maxSelectedNum;
+    }
+
+    public void setLockedMembers(List<Contact> lockedMembers) {
+        this.lockedMembers = lockedMembers;
     }
 
     public List<Contact> getSelectedMembers() {
@@ -218,6 +226,10 @@ public class OperateContactPresenter extends BasePresenter<OperateContactView> {
                         helper.setEnabled(R.id.llRoot, false);
                     }
 
+                    if (null != lockedMembers && lockedMembers.contains(item)) {
+                        selector.setEnabled(false);
+                    }
+
                     // 判断是否显示索引字母
                     String indexLetter = "";
                     String currentLetter = String.valueOf(Account.getNameSpelling(item).charAt(0));
@@ -300,12 +312,19 @@ public class OperateContactPresenter extends BasePresenter<OperateContactView> {
             return;
         }
 
+        if (null != this.lockedMembers && this.lockedMembers.contains(contact)) {
+            return;
+        }
+
         // 反选
         if (this.selectedMembers.contains(contact)) {
             this.selectedMembers.remove(contact);
         }
         else {
-            this.selectedMembers.add(contact);
+            // 判断是否达到最大数量
+            if (this.selectedMembers.size() < this.maxSelectedNum) {
+                this.selectedMembers.add(contact);
+            }
         }
 
         this.notifyDataSetChanged();
@@ -314,6 +333,12 @@ public class OperateContactPresenter extends BasePresenter<OperateContactView> {
     private void onClickSelectedContact(ViewHolder helper, ViewGroup parent, View itemView, int position) {
         if (this.createMode && position == 0) {
             // 如果是点击第一个联系人，不允许删除
+            return;
+        }
+
+        Contact contact = this.selectedMembers.get(position);
+
+        if (null != this.lockedMembers && this.lockedMembers.contains(contact)) {
             return;
         }
 

@@ -319,7 +319,7 @@ public class ConversationDetailsPresenter extends BasePresenter<ConversationDeta
                         }
 
                         Intent intent = new Intent(activity, OperateContactActivity.class);
-                        intent.putExtra("memberIdList", selectedIdArray);
+                        intent.putExtra("selectedIdList", selectedIdArray);
                         activity.startActivityForResult(intent, ConversationDetailsActivity.REQUEST_CREATE_OR_UPDATE_GROUP);
                     }
                     else {

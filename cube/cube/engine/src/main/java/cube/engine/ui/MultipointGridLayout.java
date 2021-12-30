@@ -89,6 +89,12 @@ public class MultipointGridLayout extends RelativeLayout {
         animView.setVisibility(View.GONE);
     }
 
+    public void closeView(int index) {
+        this.stopWaiting(index);
+        ViewGroup layout = (ViewGroup) getChildAt(index);
+        layout.setVisibility(View.GONE);
+    }
+
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);

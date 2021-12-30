@@ -63,20 +63,35 @@ public class OperateContactActivity extends BaseActivity<OperateContactView, Ope
 
     public Group group = null;
 
+    private List<Contact> lockedMembers;
     private List<Contact> selectedMembers;
+
+    private int maxSelectedNum = 5;
 
     public OperateContactActivity() {
         super();
+        this.lockedMembers = new ArrayList<>();
         this.selectedMembers = new ArrayList<>();
     }
 
     @Override
     public void init() {
-        long[] memberIdList = getIntent().getLongArrayExtra("memberIdList");
+        long[] memberIdList = getIntent().getLongArrayExtra("selectedIdList");
         if (null != memberIdList) {
             for (long id : memberIdList) {
                 Contact contact = CubeEngine.getInstance().getContactService().getContact(id);
                 this.selectedMembers.add(contact);
+            }
+        }
+
+        memberIdList = getIntent().getLongArrayExtra("lockedIdList");
+        if (null != memberIdList) {
+            for (long id : memberIdList) {
+                Contact contact = CubeEngine.getInstance().getContactService().getContact(id);
+                this.lockedMembers.add(contact);
+                if (!this.selectedMembers.contains(contact)) {
+                    this.selectedMembers.add(contact);
+                }
             }
         }
 
@@ -88,6 +103,7 @@ public class OperateContactActivity extends BaseActivity<OperateContactView, Ope
         }
 
         this.onlyThisGroup = getIntent().getBooleanExtra("onlyThisGroup", false);
+        this.maxSelectedNum = getIntent().getIntExtra("maxSelectedNum", 99);
     }
 
     @Override
@@ -124,6 +140,7 @@ public class OperateContactActivity extends BaseActivity<OperateContactView, Ope
                         idList[i] = member.getId();
                     }
                     intent.putExtra("members", idList);
+                    intent.putExtra("groupId", group.getId().longValue());
                     setResult(RESULT_OK, intent);
                 }
                 else {
@@ -137,8 +154,10 @@ public class OperateContactActivity extends BaseActivity<OperateContactView, Ope
 
     @Override
     protected OperateContactPresenter createPresenter() {
-        return new OperateContactPresenter(this, this.selectedMembers,
-                this.createMode, this.onlyThisGroup);
+        OperateContactPresenter presenter = new OperateContactPresenter(this, this.selectedMembers,
+                this.createMode, this.onlyThisGroup, this.maxSelectedNum);
+        presenter.setLockedMembers(this.lockedMembers);
+        return presenter;
     }
 
     @Override

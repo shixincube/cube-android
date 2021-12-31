@@ -50,6 +50,7 @@ import android.widget.RelativeLayout;
 
 import androidx.annotation.NonNull;
 
+import com.shixincube.app.CubeApp;
 import com.shixincube.app.R;
 import com.shixincube.app.model.MessageConversation;
 import com.shixincube.app.ui.base.BaseActivity;
@@ -632,7 +633,9 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
                 startActivityForResult(intent, REQUEST_SELECT_GROUP_MEMBERS_FOR_INVITE);
 
                 // 挂起
-                service.suspendDisplay();
+                CubeApp.getMainThreadHandler().postDelayed(() -> {
+                    service.suspendDisplay();
+                }, 500);
             }
         });
     }

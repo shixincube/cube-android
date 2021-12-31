@@ -178,6 +178,10 @@ public class GroupCallingController implements Controller, Runnable, VideoContai
         this.members.add(contact);
         this.gridLayout.showGrid(contact.getId())
                 .setImageResource(avatarResId);
+        this.gridLayout.playWaiting(contact.getId());
+
+        // 设置邀请时间
+        this.invitationTimeMap.put(contact.id, System.currentTimeMillis());
     }
 
     public List<Contact> getParticipants() {

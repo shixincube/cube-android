@@ -161,10 +161,12 @@ public class GroupCallingController implements Controller, Runnable, VideoContai
     public void start(Group group, List<Contact> contactList, List<Integer> avatarResIds) {
         this.group = group;
         this.members = contactList;
-        this.gridLayout.setNeededCount(this.members.size());
 
-        for (int i = 0; i < avatarResIds.size(); ++i) {
-            this.gridLayout.getAvatarView(i).setImageResource(avatarResIds.get(i));
+        for (int i = 0; i < contactList.size(); ++i) {
+            Contact contact = contactList.get(i);
+            this.gridLayout.showGrid(contact.getId())
+                .setImageResource(avatarResIds.get(i));
+            this.gridLayout.playWaiting(contact.getId());
         }
     }
 
@@ -173,7 +175,9 @@ public class GroupCallingController implements Controller, Runnable, VideoContai
             return;
         }
 
-        
+        this.members.add(contact);
+        this.gridLayout.showGrid(contact.getId())
+                .setImageResource(avatarResId);
     }
 
     public List<Contact> getParticipants() {
@@ -202,7 +206,7 @@ public class GroupCallingController implements Controller, Runnable, VideoContai
     public void stopWaiting(Contact contact) {
         int index = this.members.indexOf(contact);
         if (index >= 0) {
-            this.gridLayout.stopWaiting(index);
+            this.gridLayout.stopWaiting(contact.getId());
         }
     }
 
@@ -341,8 +345,9 @@ public class GroupCallingController implements Controller, Runnable, VideoContai
                 Long id = entry.getKey();
                 // 删除超时参与人
                 int index = -1;
-                for (int i = 0; i < members.size(); ++i) {
-                    Contact contact = members.get(i);
+                Contact contact = null;
+                for (int i = 0; i < this.members.size(); ++i) {
+                    contact = this.members.get(i);
                     if (contact.id.longValue() == id.longValue()) {
                         index = i;
                         break;
@@ -350,8 +355,8 @@ public class GroupCallingController implements Controller, Runnable, VideoContai
                 }
 
                 if (index > -1) {
-                    members.remove(index);
-                    this.gridLayout.closeView(index);
+                    this.members.remove(index);
+                    this.gridLayout.closeGrid(contact.getId());
                     iter.remove();
                 }
             }
@@ -372,9 +377,9 @@ public class GroupCallingController implements Controller, Runnable, VideoContai
     public ViewGroup getVideoContainer(CommFieldEndpoint endpoint) {
         int index = this.members.indexOf(endpoint.getContact());
         if (index >= 0) {
-            this.gridLayout.stopWaiting(index);
-            this.gridLayout.getAvatarView(index).setVisibility(View.GONE);
-            ViewGroup viewGroup = this.gridLayout.getVideoContainer(index);
+            this.gridLayout.stopWaiting(endpoint.getContact().getId());
+            this.gridLayout.getAvatarView(endpoint.getContact().getId()).setVisibility(View.GONE);
+            ViewGroup viewGroup = this.gridLayout.getVideoContainer(endpoint.getContact().getId());
             viewGroup.setVisibility(View.VISIBLE);
             return viewGroup;
         }

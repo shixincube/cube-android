@@ -140,6 +140,7 @@ public class FloatingVideoWindowService extends Service
         this.initWindow();
 
         CubeEngine.getInstance().getMultipointComm().addCallListener(this);
+        CubeEngine.getInstance().getMultipointComm().addMultipointCallListener(this);
     }
 
     private void initWindow() {
@@ -205,6 +206,7 @@ public class FloatingVideoWindowService extends Service
             }
         }
 
+        CubeEngine.getInstance().getMultipointComm().removeMultipointCallListener(this);
         CubeEngine.getInstance().getMultipointComm().removeCallListener(this);
     }
 
@@ -860,9 +862,6 @@ public class FloatingVideoWindowService extends Service
             }, 1000, 1000);
         }
         else if (this.groupCallingController.isShown()) {
-            // 显示控件
-            this.groupCallingController.showControls(callRecord);
-
             Runnable task = this.groupCallingController.startCallTiming();
             Handler handler = new Handler(getApplicationContext().getMainLooper());
             this.callCountingTimer = new Timer();
@@ -950,6 +949,11 @@ public class FloatingVideoWindowService extends Service
     public void onInvite(CommField commField, List<Contact> inviteeList) {
         if (LogUtils.isDebugLevel()) {
             LogUtils.d(TAG, "#onInvite : " + inviteeList.size());
+        }
+
+        for (Contact contact : inviteeList) {
+            int resId = this.binder.getContactDataHandler().extractContactAvatarResourceId(contact);
+            this.groupCallingController.addParticipant(contact, resId);
         }
     }
 

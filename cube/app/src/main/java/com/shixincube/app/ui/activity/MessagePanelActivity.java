@@ -550,11 +550,18 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
                         }
                     }
 
+                    if (LogUtils.isDebugLevel()) {
+                        LogUtils.d(TAG, "#onActivityResult - REQUEST_SELECT_GROUP_MEMBERS_FOR_INVITE : "
+                                + newParticipants.size());
+                    }
+
                     CubeEngine.getInstance().getMultipointComm().inviteCall(group, newParticipants,
                             new DefaultCommFieldHandler(true) {
                         @Override
                         public void handleCommField(CommField commField) {
-
+                            if (LogUtils.isDebugLevel()) {
+                                LogUtils.d(TAG, "#inviteCall - REQUEST_SELECT_GROUP_MEMBERS_FOR_INVITE");
+                            }
                         }
                     }, new DefaultFailureHandler(true) {
                         @Override
@@ -564,6 +571,7 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
                     });
                 }
 
+                // 恢复界面
                 this.binder.getService().resumeDisplay();
                 break;
             default:

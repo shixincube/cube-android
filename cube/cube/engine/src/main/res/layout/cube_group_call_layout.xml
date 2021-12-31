@@ -125,12 +125,19 @@
                         android:scaleType="centerCrop"
                         android:src="@mipmap/avatar"
                         android:tag="200" />
-                    <View
-                        android:layout_width="133.2dp"
-                        android:layout_height="25.2dp"
-                        android:layout_centerInParent="true"
-                        android:background="@color/gray"
-                        android:tag="300" />
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:background="@color/waiting_background"
+                        android:tag="300">
+                        <View
+                            android:layout_width="111dp"
+                            android:layout_height="21dp"
+                            android:layout_centerInParent="true"
+                            android:background="@color/gray"
+                            android:tag="310" />
+                    </RelativeLayout>
                 </RelativeLayout>
 
                 <RelativeLayout
@@ -148,12 +155,19 @@
                         android:scaleType="centerCrop"
                         android:src="@mipmap/avatar"
                         android:tag="200" />
-                    <View
-                        android:layout_width="133.2dp"
-                        android:layout_height="25.2dp"
-                        android:layout_centerInParent="true"
-                        android:background="@color/gray"
-                        android:tag="300" />
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:background="@color/waiting_background"
+                        android:tag="300">
+                        <View
+                            android:layout_width="111dp"
+                            android:layout_height="21dp"
+                            android:layout_centerInParent="true"
+                            android:background="@color/gray"
+                            android:tag="310" />
+                    </RelativeLayout>
                 </RelativeLayout>
 
                 <RelativeLayout
@@ -171,12 +185,19 @@
                         android:scaleType="centerCrop"
                         android:src="@mipmap/avatar"
                         android:tag="200" />
-                    <View
-                        android:layout_width="133.2dp"
-                        android:layout_height="25.2dp"
-                        android:layout_centerInParent="true"
-                        android:background="@color/gray"
-                        android:tag="300" />
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:background="@color/waiting_background"
+                        android:tag="300">
+                        <View
+                            android:layout_width="111dp"
+                            android:layout_height="21dp"
+                            android:layout_centerInParent="true"
+                            android:background="@color/gray"
+                            android:tag="310" />
+                    </RelativeLayout>
                 </RelativeLayout>
 
                 <RelativeLayout
@@ -194,12 +215,19 @@
                         android:scaleType="centerCrop"
                         android:src="@mipmap/avatar"
                         android:tag="200" />
-                    <View
-                        android:layout_width="133.2dp"
-                        android:layout_height="25.2dp"
-                        android:layout_centerInParent="true"
-                        android:background="@color/gray"
-                        android:tag="300" />
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:background="@color/waiting_background"
+                        android:tag="300">
+                        <View
+                            android:layout_width="111dp"
+                            android:layout_height="21dp"
+                            android:layout_centerInParent="true"
+                            android:background="@color/gray"
+                            android:tag="310" />
+                    </RelativeLayout>
                 </RelativeLayout>
 
                 <RelativeLayout
@@ -217,12 +245,19 @@
                         android:scaleType="centerCrop"
                         android:src="@mipmap/avatar"
                         android:tag="200" />
-                    <View
-                        android:layout_width="133.2dp"
-                        android:layout_height="25.2dp"
-                        android:layout_centerInParent="true"
-                        android:background="@color/gray"
-                        android:tag="300" />
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:background="@color/waiting_background"
+                        android:tag="300">
+                        <View
+                            android:layout_width="111dp"
+                            android:layout_height="21dp"
+                            android:layout_centerInParent="true"
+                            android:background="@color/gray"
+                            android:tag="310" />
+                    </RelativeLayout>
                 </RelativeLayout>
 
                 <RelativeLayout
@@ -240,12 +275,109 @@
                         android:scaleType="centerCrop"
                         android:src="@mipmap/avatar"
                         android:tag="200" />
-                    <View
-                        android:layout_width="133.2dp"
-                        android:layout_height="25.2dp"
-                        android:layout_centerInParent="true"
-                        android:background="@color/gray"
-                        android:tag="300" />
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:background="@color/waiting_background"
+                        android:tag="300">
+                        <View
+                            android:layout_width="111dp"
+                            android:layout_height="21dp"
+                            android:layout_centerInParent="true"
+                            android:background="@color/gray"
+                            android:tag="310" />
+                    </RelativeLayout>
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:visibility="gone"
+                        android:tag="100" />
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:src="@mipmap/avatar"
+                        android:tag="200" />
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:background="@color/waiting_background"
+                        android:tag="300">
+                        <View
+                            android:layout_width="111dp"
+                            android:layout_height="21dp"
+                            android:layout_centerInParent="true"
+                            android:background="@color/gray"
+                            android:tag="310" />
+                    </RelativeLayout>
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:visibility="gone"
+                        android:tag="100" />
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:src="@mipmap/avatar"
+                        android:tag="200" />
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:background="@color/waiting_background"
+                        android:tag="300">
+                        <View
+                            android:layout_width="111dp"
+                            android:layout_height="21dp"
+                            android:layout_centerInParent="true"
+                            android:background="@color/gray"
+                            android:tag="310" />
+                    </RelativeLayout>
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:visibility="gone"
+                        android:tag="100" />
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:src="@mipmap/avatar"
+                        android:tag="200" />
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:background="@color/waiting_background"
+                        android:tag="300">
+                        <View
+                            android:layout_width="111dp"
+                            android:layout_height="21dp"
+                            android:layout_centerInParent="true"
+                            android:background="@color/gray"
+                            android:tag="310" />
+                    </RelativeLayout>
                 </RelativeLayout>
             </cube.engine.ui.MultipointGridLayout>
 

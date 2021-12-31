@@ -168,6 +168,14 @@ public class GroupCallingController implements Controller, Runnable, VideoContai
         }
     }
 
+    public void addParticipant(Contact contact, int avatarResId) {
+        if (this.members.contains(contact)) {
+            return;
+        }
+
+        
+    }
+
     public List<Contact> getParticipants() {
         return this.members;
     }
@@ -201,7 +209,7 @@ public class GroupCallingController implements Controller, Runnable, VideoContai
     public void showControls(CallRecord callRecord) {
         RTCDevice device = callRecord.field.getLocalDevice();
 
-        if (this.mediaConstraint.audioEnabled) {
+        if (this.mediaConstraint.audioEnabled && !this.microphoneLayout.isShown()) {
             // 出站音频流是否启用，即是否启用麦克风采集数据
             boolean audioEnabled = device.outboundAudioEnabled();
 
@@ -231,7 +239,7 @@ public class GroupCallingController implements Controller, Runnable, VideoContai
             this.speakerLayout.startAnimation(animation);
         }
 
-        if (this.mediaConstraint.videoEnabled) {
+        if (this.mediaConstraint.videoEnabled && !this.cameraButton.isShown()) {
             // 出站视频流是否可用
             boolean videoEnabled = device.outboundVideoEnabled();
             this.cameraButton.setSelected(videoEnabled);

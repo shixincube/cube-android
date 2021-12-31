@@ -26,6 +26,9 @@
 
 package cube.multipointcomm;
 
+import java.util.List;
+
+import cube.contact.model.Contact;
 import cube.multipointcomm.model.CommField;
 import cube.multipointcomm.model.CommFieldEndpoint;
 
@@ -33,6 +36,8 @@ import cube.multipointcomm.model.CommFieldEndpoint;
  * 多方通话监听器。
  */
 public interface MultipointCallListener {
+
+    void onInvite(CommField commField, List<Contact> inviteeList);
 
     void onInvited(CommField commField);
 

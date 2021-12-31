@@ -675,12 +675,14 @@ public class MultipointComm extends Module implements Observer, MediaListener {
 
                 // 设置邀请列表
                 List<Long> invitees = new ArrayList<>();
+                List<Contact> inviteeContacts = new ArrayList<>();
                 for (Contact contact : contacts) {
                     if (privateField.getSelf().equals(contact)) {
                         // 跳过自己
                         continue;
                     }
 
+                    inviteeContacts.add(contact);
                     invitees.add(contact.id);
                 }
                 signaling.invitees = invitees;
@@ -714,6 +716,10 @@ public class MultipointComm extends Module implements Observer, MediaListener {
                                 successHandler.handleCommField(commField);
                             });
                         }
+
+                        execute(() -> {
+                            notifyObservers(new ObservableEvent(MultipointCommEvent.Invite, commField, inviteeContacts));
+                        });
                     }
                 });
             }
@@ -1544,6 +1550,13 @@ public class MultipointComm extends Module implements Observer, MediaListener {
             executeOnMainThread(() -> {
                 for (CallListener listener : callListeners) {
                     listener.onFailed((ModuleError) event.getData());
+                }
+            });
+        }
+        else if (MultipointCommEvent.Invite.equals(eventName)) {
+            executeOnMainThread(() -> {
+                for (MultipointCallListener listener : multipointCallListeners) {
+                    listener.onInvite((CommField) event.getData(), (List<Contact>) event.getSecondaryData());
                 }
             });
         }

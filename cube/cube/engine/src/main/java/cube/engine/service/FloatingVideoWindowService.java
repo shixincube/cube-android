@@ -947,6 +947,13 @@ public class FloatingVideoWindowService extends Service
     }
 
     @Override
+    public void onInvite(CommField commField, List<Contact> inviteeList) {
+        if (LogUtils.isDebugLevel()) {
+            LogUtils.d(TAG, "#onInvite : " + inviteeList.size());
+        }
+    }
+
+    @Override
     public void onInvited(CommField commField) {
         if (LogUtils.isDebugLevel()) {
             LogUtils.d(TAG, "#onInvited");

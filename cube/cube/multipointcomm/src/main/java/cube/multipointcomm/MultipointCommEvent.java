@@ -86,6 +86,13 @@ public class MultipointCommEvent {
     public final static String Unfollowed = "Unfollowed";
 
     /**
+     * 发起邀请加入通话。
+     * 事件数据：{@link cube.multipointcomm.model.CommField} - 发出邀请的通讯场域的实例。
+     * 事件附加数据：{@link java.util.List<cube.contact.model.Contact>} - 被邀请人清单。
+     */
+    public final static String Invite = "Invite";
+
+    /**
      * 被邀请加入通话。
      * 事件数据：{@link cube.multipointcomm.model.CommField} - 发出邀请的通讯场域的实例。
      */

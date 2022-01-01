@@ -370,9 +370,10 @@ public class FloatingVideoWindowService extends Service
 
             this.newCallController.showWithAnimation(caller, callRecord.getCallerConstraint(), resId);
         }
-        else {
-            // TODO
-        }
+    }
+
+    private void showNewInvitation(CommField commField) {
+
     }
 
     /**
@@ -962,6 +963,8 @@ public class FloatingVideoWindowService extends Service
         if (LogUtils.isDebugLevel()) {
             LogUtils.d(TAG, "#onInvited");
         }
+
+        this.showNewInvitation(commField);
     }
 
     @Override

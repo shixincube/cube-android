@@ -373,7 +373,15 @@ public class FloatingVideoWindowService extends Service
     }
 
     private void showNewInvitation(CommField commField) {
+        this.newCallController.getMainLayout().setVisibility(View.VISIBLE);
+        this.contactCallingController.getMainLayout().setVisibility(View.GONE);
+        this.groupCallingController.getMainLayout().setVisibility(View.GONE);
 
+        Size size = this.newCallController.reset();
+        if (null != size) {
+            this.layoutParams.width = size.getWidth();
+            this.layoutParams.height = size.getHeight();
+        }
     }
 
     /**

@@ -39,7 +39,7 @@ public interface MultipointCallListener {
 
     void onInvite(CommField commField, List<Contact> inviteeList);
 
-    void onInvited(CommField commField);
+    void onInvited(CommField commField, Contact inviter);
 
     void onEndpointArrived(CommField commField, CommFieldEndpoint endpoint);
 

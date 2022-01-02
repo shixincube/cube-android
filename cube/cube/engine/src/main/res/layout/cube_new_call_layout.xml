@@ -61,7 +61,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:maxLines="2"
-                    android:text="@string/on_new_call_video_from_contact"
+                    android:text="@string/on_new_audio_call"
                     android:textColor="@color/white"
                     android:textSize="16sp" />
 

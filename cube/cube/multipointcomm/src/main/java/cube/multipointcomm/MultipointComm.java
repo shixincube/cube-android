@@ -1563,7 +1563,7 @@ public class MultipointComm extends Module implements Observer, MediaListener {
         else if (MultipointCommEvent.Invited.equals(eventName)) {
             executeOnMainThread(() -> {
                 for (MultipointCallListener listener : multipointCallListeners) {
-                    listener.onInvited((CommField) event.getData());
+                    listener.onInvited((CommField) event.getData(), (Contact) event.getSecondaryData());
                 }
             });
         }
@@ -1836,9 +1836,12 @@ public class MultipointComm extends Module implements Observer, MediaListener {
 
             fillCommField(signaling.field, true);
 
+            Contact inviter = this.contactService.getContact(signaling.contact.id);
+
             this.activeCall = new CallRecord(this.privateField.getSelf(), signaling.field);
 
-            notifyObservers(new ObservableEvent(MultipointCommEvent.Invited, this.activeCall.field));
+            notifyObservers(new ObservableEvent(MultipointCommEvent.Invited,
+                    this.activeCall.field, inviter));
         } catch (JSONException e) {
             e.printStackTrace();
         }

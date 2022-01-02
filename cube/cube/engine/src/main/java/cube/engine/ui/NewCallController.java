@@ -32,6 +32,7 @@ import android.graphics.Point;
 import android.net.Uri;
 import android.provider.Settings;
 import android.util.Size;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
@@ -49,6 +50,7 @@ import cube.engine.service.FloatingVideoWindowService;
 import cube.engine.util.ScreenUtil;
 import cube.multipointcomm.handler.DefaultCallHandler;
 import cube.multipointcomm.model.CallRecord;
+import cube.multipointcomm.model.CommField;
 import cube.multipointcomm.util.MediaConstraint;
 
 /**
@@ -68,6 +70,7 @@ public class NewCallController implements Controller {
     private ImageButton answerButton;
 
     private Contact caller;
+    private CommField commField;
 
     private MediaConstraint mediaConstraint;
 
@@ -116,6 +119,7 @@ public class NewCallController implements Controller {
         this.caller = caller;
         this.mediaConstraint = mediaConstraint;
         this.avatarResourceId = avatarResourceId;
+        this.commField = null;
 
         if (avatarResourceId > 0) {
             this.avatarView.setImageResource(avatarResourceId);
@@ -124,13 +128,38 @@ public class NewCallController implements Controller {
             this.avatarView.setImageResource(R.mipmap.avatar);
         }
 
+        this.typeView.setVisibility(View.VISIBLE);
         if (mediaConstraint.videoEnabled) {
             this.typeView.setImageResource(R.mipmap.ic_video_call);
-            this.tipsText.setText(this.getResources().getString(R.string.on_new_call_video_from_contact, caller.getPriorityName()));
+            this.tipsText.setText(this.getResources().getString(R.string.on_new_video_call, caller.getPriorityName()));
         }
         else {
             this.typeView.setImageResource(R.mipmap.ic_audio_call);
-            this.tipsText.setText(this.getResources().getString(R.string.on_new_call_audio_from_contact, caller.getPriorityName()));
+            this.tipsText.setText(this.getResources().getString(R.string.on_new_audio_call, caller.getPriorityName()));
+        }
+
+        TranslateAnimation animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0,
+                Animation.RELATIVE_TO_SELF, 0,
+                Animation.RELATIVE_TO_SELF, -1,
+                Animation.RELATIVE_TO_SELF, 0);
+        animation.setDuration(300);
+        this.mainLayout.startAnimation(animation);
+    }
+
+    public void showWithAnimation(CommField commField, Contact inviter) {
+        this.commField = commField;
+        this.caller = inviter;
+        this.mediaConstraint = commField.getMediaConstraint();
+
+        this.typeView.setVisibility(View.GONE);
+
+        if (this.mediaConstraint.videoEnabled) {
+            this.avatarView.setImageResource(R.mipmap.ic_video_call);
+            this.tipsText.setText(this.getResources().getString(R.string.on_video_call_invitation, caller.getPriorityName()));
+        }
+        else {
+            this.avatarView.setImageResource(R.mipmap.ic_audio_call);
+            this.tipsText.setText(this.getResources().getString(R.string.on_audio_call_invitation, caller.getPriorityName()));
         }
 
         TranslateAnimation animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0,
@@ -182,7 +211,12 @@ public class NewCallController implements Controller {
             answerButton.setEnabled(false);
             hangupButton.setEnabled(false);
 
-            service.showCallee(this.caller, this.mediaConstraint, this.avatarResourceId);
+            if (null == commField) {
+                service.showCallee(this.caller, this.mediaConstraint, this.avatarResourceId);
+            }
+            else {
+                service.startInviteeByCommField(commField);
+            }
         });
     }
 

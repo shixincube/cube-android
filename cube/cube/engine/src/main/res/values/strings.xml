@@ -8,8 +8,10 @@
     <string name="on_ringing_with_count">对方振铃，等待接通 (%1$d)</string>
     <string name="on_timeout">对方未应答</string>
     <string name="on_failed_with_error">通话失败: (%1$d)</string>
-    <string name="on_new_call_audio_from_contact">“%1$s”邀请您进行语音通话</string>
-    <string name="on_new_call_video_from_contact">“%1$s”邀请您进行视频通话</string>
+    <string name="on_new_audio_call">“%1$s”邀请您进行语音通话</string>
+    <string name="on_new_video_call">“%1$s”邀请您进行视频通话</string>
+    <string name="on_audio_call_invitation">“%1$s”邀请您加入群组语音通话</string>
+    <string name="on_video_call_invitation">“%1$s”邀请您加入群组视频通话</string>
 
     <string name="microphone_opened">已开启</string>
     <string name="microphone_closed">已静音</string>

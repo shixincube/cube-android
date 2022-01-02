@@ -339,6 +339,10 @@ public class FloatingVideoWindowService extends Service
         }
     }
 
+    public void showInvitee() {
+
+    }
+
     /**
      * 显示有新的通话邀请。
      *
@@ -372,7 +376,7 @@ public class FloatingVideoWindowService extends Service
         }
     }
 
-    private void showNewInvitation(CommField commField) {
+    private void showNewInvitation(CommField commField, Contact inviter) {
         this.newCallController.getMainLayout().setVisibility(View.VISIBLE);
         this.contactCallingController.getMainLayout().setVisibility(View.GONE);
         this.groupCallingController.getMainLayout().setVisibility(View.GONE);
@@ -382,6 +386,11 @@ public class FloatingVideoWindowService extends Service
             this.layoutParams.width = size.getWidth();
             this.layoutParams.height = size.getHeight();
         }
+
+        // 播放振铃
+        this.soundPlayer.playRinging();
+
+        this.newCallController.showWithAnimation(commField, inviter);
     }
 
     /**
@@ -732,6 +741,10 @@ public class FloatingVideoWindowService extends Service
         return true;
     }
 
+    public void startInviteeByCommField(CommField commField) {
+
+    }
+
     @Override
     public boolean onKeyEvent(KeyEvent event) {
         if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
@@ -967,12 +980,12 @@ public class FloatingVideoWindowService extends Service
     }
 
     @Override
-    public void onInvited(CommField commField) {
+    public void onInvited(CommField commField, Contact inviter) {
         if (LogUtils.isDebugLevel()) {
             LogUtils.d(TAG, "#onInvited");
         }
 
-        this.showNewInvitation(commField);
+        this.showNewInvitation(commField, inviter);
     }
 
     @Override

@@ -95,6 +95,7 @@ public class MultipointCommEvent {
     /**
      * 被邀请加入通话。
      * 事件数据：{@link cube.multipointcomm.model.CommField} - 发出邀请的通讯场域的实例。
+     * 事件附加数据：{@link cube.contact.model.Contact} - 邀请人。
      */
     public final static String Invited = "Invited";
 

@@ -339,8 +339,44 @@ public class FloatingVideoWindowService extends Service
         }
     }
 
-    public void showInvitee() {
+    /**
+     * 显示未被邀请加入群通话。
+     *
+     * @param commField
+     */
+    public void showInvitee(CommField commField) {
+        Runnable task = () -> {
+            this.groupCallingController.getMainLayout().setVisibility(View.VISIBLE);
+            Size size = this.groupCallingController.reset();
+            if (null == size) {
+                Point screenSize = ScreenUtil.getScreenSize(this);
+                this.layoutParams.width = screenSize.x;
+                this.layoutParams.height = screenSize.y;
+            }
 
+            this.previewMode = false;
+            this.windowManager.updateViewLayout(this.displayView, this.layoutParams);
+
+            if (!this.startInviteeByCommField(commField)) {
+                this.windowManager.removeView(this.displayView);
+            }
+        };
+
+        // 停止振铃音效
+        this.soundPlayer.stopRinging();
+
+        if (this.newCallController.isShown()) {
+            // 隐藏界面
+            int delay = this.newCallController.hideWithAnimation();
+            Handler handler = new Handler(getApplicationContext().getMainLooper());
+            handler.postDelayed(() -> {
+                newCallController.getMainLayout().setVisibility(View.GONE);
+                task.run();
+            }, delay);
+        }
+        else {
+            task.run();
+        }
     }
 
     /**
@@ -741,8 +777,36 @@ public class FloatingVideoWindowService extends Service
         return true;
     }
 
-    public void startInviteeByCommField(CommField commField) {
+    private boolean startInviteeByCommField(CommField commField) {
+        List<Contact> members = new ArrayList<>();
+        // 添加"自己"
+        members.add(CubeEngine.getInstance().getContactService().getSelf());
+        for (CommFieldEndpoint endpoint : commField.getEndpoints()) {
+            if (members.contains(endpoint.getContact())) {
+                continue;
+            }
 
+            members.add(endpoint.getContact());
+        }
+
+        this.mediaConstraint = commField.getMediaConstraint();
+
+        this.groupCallingController.config(this.mediaConstraint);
+
+        List<Integer> avatarResIds = new ArrayList<>();
+        for (Contact contact : members) {
+            avatarResIds.add(extractContactAvatarResourceId(contact));
+        }
+
+        // 设置数据
+        this.groupCallingController.start(this.group, members, avatarResIds);
+
+        // 设置视频容器代理
+        CubeEngine.getInstance().getMultipointComm().setVideoContainerAgent(this.groupCallingController);
+
+
+
+        return true;
     }
 
     @Override

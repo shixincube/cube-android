@@ -215,7 +215,7 @@ public class NewCallController implements Controller {
                 service.showCallee(this.caller, this.mediaConstraint, this.avatarResourceId);
             }
             else {
-                service.startInviteeByCommField(commField);
+                service.showInvitee(commField);
             }
         });
     }

@@ -319,6 +319,18 @@ public class MultipointComm extends Module implements Observer, MediaListener {
     /**
      * 发起通话。
      *
+     * @param commField
+     * @param mediaConstraint
+     * @param successHandler
+     * @param failureHandler
+     */
+    public void makeCall(CommField commField, MediaConstraint mediaConstraint, CallHandler successHandler, FailureHandler failureHandler) {
+        this.makeCall((AbstractContact) commField, mediaConstraint, successHandler, failureHandler);
+    }
+
+    /**
+     * 发起通话。
+     *
      * @param target
      * @param mediaConstraint
      * @param successHandler

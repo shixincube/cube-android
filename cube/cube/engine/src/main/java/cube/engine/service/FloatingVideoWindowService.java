@@ -804,7 +804,26 @@ public class FloatingVideoWindowService extends Service
         // 设置视频容器代理
         CubeEngine.getInstance().getMultipointComm().setVideoContainerAgent(this.groupCallingController);
 
-
+        // 加入通话
+        CubeEngine.getInstance().getMultipointComm().makeCall(commField, this.mediaConstraint,
+                new DefaultCallHandler(true) {
+                    @Override
+                    public void handleCall(CallRecord callRecord) {
+                        // 停止等待动画
+                        groupCallingController.stopWaiting(members.get(0));
+                        // 显示控件
+                        groupCallingController.showControls(callRecord);
+                    }
+                }, new DefaultFailureHandler(true) {
+                    @Override
+                    public void handleFailure(Module module, ModuleError error) {
+                        groupCallingController.setTipsText(error);
+                        Handler handler = new Handler(getMainLooper());
+                        handler.postDelayed(() -> {
+                            hide();
+                        }, 3000);
+                    }
+                });
 
         return true;
     }

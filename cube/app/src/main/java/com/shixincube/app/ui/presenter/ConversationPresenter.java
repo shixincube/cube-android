@@ -64,7 +64,7 @@ import cube.messaging.ConversationEventListener;
 import cube.messaging.MessagingService;
 import cube.messaging.handler.DefaultConversationHandler;
 import cube.messaging.model.Conversation;
-import cube.messaging.model.ConversationReminded;
+import cube.messaging.model.ConversationReminding;
 import cube.messaging.model.ConversationState;
 import cube.messaging.model.ConversationType;
 import cube.util.LogUtils;
@@ -131,7 +131,7 @@ public class ConversationPresenter extends BasePresenter<ConversationView> imple
                     }
 
                     // 会话提醒类型
-                    if (item.conversation.getReminded() == ConversationReminded.Normal) {
+                    if (item.conversation.getReminding() == ConversationReminding.Normal) {
                         if (item.conversation.getUnreadCount() > 0) {
                             helper.setText(R.id.tvBadge, Integer.toString(item.conversation.getUnreadCount()));
                             helper.setViewVisibility(R.id.tvBadge, View.VISIBLE);
@@ -140,7 +140,7 @@ public class ConversationPresenter extends BasePresenter<ConversationView> imple
                             helper.setViewVisibility(R.id.tvBadge, View.GONE);
                         }
                     }
-                    else if (item.conversation.getReminded() == ConversationReminded.Closed) {
+                    else if (item.conversation.getReminding() == ConversationReminding.Closed) {
                         if (item.conversation.getUnreadCount() > 0) {
                             helper.setViewVisibility(R.id.tvHintBadge, View.VISIBLE);
                         }

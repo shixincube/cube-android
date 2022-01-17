@@ -62,7 +62,7 @@ import cube.engine.util.PromiseFuture;
 import cube.engine.util.PromiseHandler;
 import cube.messaging.handler.DefaultConversationHandler;
 import cube.messaging.model.Conversation;
-import cube.messaging.model.ConversationReminded;
+import cube.messaging.model.ConversationReminding;
 import cube.messaging.model.ConversationType;
 
 /**
@@ -95,7 +95,7 @@ public class ConversationDetailsPresenter extends BasePresenter<ConversationDeta
         }).thenOnMainThread(new Future<List<Contact>>() {
             @Override
             public void come(List<Contact> data) {
-                getView().getCloseRemindSwitchButton().setChecked(!(conversation.getReminded() == ConversationReminded.Normal));
+                getView().getCloseRemindSwitchButton().setChecked(!(conversation.getReminding() == ConversationReminding.Normal));
                 getView().getTopConversationSwitchButton().setChecked(conversation.focused());
 
                 if (conversation.getType() == ConversationType.Group) {

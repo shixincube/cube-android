@@ -87,7 +87,7 @@ import cube.messaging.handler.SendHandler;
 import cube.messaging.hook.InstantiateHook;
 import cube.messaging.model.CacheableFileLabelCapsule;
 import cube.messaging.model.Conversation;
-import cube.messaging.model.ConversationReminded;
+import cube.messaging.model.ConversationReminding;
 import cube.messaging.model.ConversationState;
 import cube.messaging.model.ConversationType;
 import cube.messaging.model.FileAttachment;
@@ -676,10 +676,10 @@ public class MessagingService extends Module {
         }
 
         if (null != contact) {
-            conversation = new Conversation(this.contactService.getSelf(), contact, ConversationReminded.Normal);
+            conversation = new Conversation(this.contactService.getSelf(), contact, ConversationReminding.Normal);
         }
         else if (null != group) {
-            conversation = new Conversation(this.contactService.getSelf(), group, ConversationReminded.Normal);
+            conversation = new Conversation(this.contactService.getSelf(), group, ConversationReminding.Normal);
         }
 
         if (null != conversation) {
@@ -1210,18 +1210,18 @@ public class MessagingService extends Module {
      * 更新会话的提示状态。
      *
      * @param conversation 指定会话。
-     * @param remindedState 指定新的提示状态。
+     * @param remindingState 指定新的提示状态。
      * @return 设置成功返回 {@code true} ，否则返回 {@code false} 。
      */
-    public boolean updateConversation(Conversation conversation, ConversationReminded remindedState) {
-        if (conversation.getReminded() == remindedState) {
+    public boolean updateConversation(Conversation conversation, ConversationReminding remindingState) {
+        if (conversation.getReminding() == remindingState) {
             return false;
         }
 
         final MutableBoolean mutex = new MutableBoolean(false);
 
         // 设置
-        conversation.setReminded(remindedState);
+        conversation.setReminding(remindingState);
 
         conversation.entityLifeExpiry += LIFESPAN;
 
@@ -1291,7 +1291,7 @@ public class MessagingService extends Module {
                 try {
                     Conversation responseConversation = new Conversation(packet.extractServiceData());
                     conversation.setState(responseConversation.getState());
-                    conversation.setReminded(responseConversation.getReminded());
+                    conversation.setReminding(responseConversation.getReminding());
                     conversation.setTimestamp(responseConversation.getTimestamp());
                 } catch (JSONException e) {
                     LogUtils.w(TAG, "#updateConverstion", e);

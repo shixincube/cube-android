@@ -29,7 +29,7 @@ package cube.messaging.model;
 /**
  * 会话提醒类型。
  */
-public enum ConversationReminded {
+public enum ConversationReminding {
 
     /**
      * 正常接收。
@@ -53,12 +53,12 @@ public enum ConversationReminded {
 
     public final int code;
 
-    ConversationReminded(int code) {
+    ConversationReminding(int code) {
         this.code = code;
     }
 
-    public static ConversationReminded parse(int code) {
-        for (ConversationReminded type : ConversationReminded.values()) {
+    public static ConversationReminding parse(int code) {
+        for (ConversationReminding type : ConversationReminding.values()) {
             if (type.code == code) {
                 return type;
             }

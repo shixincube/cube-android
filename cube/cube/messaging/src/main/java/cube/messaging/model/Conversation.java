@@ -75,7 +75,7 @@ public class Conversation extends Entity {
     /**
      * 会话提醒类型。
      */
-    private ConversationReminded reminded;
+    private ConversationReminding reminding;
 
     /**
      * 未读消息数量。
@@ -102,7 +102,7 @@ public class Conversation extends Entity {
         super(json);
         this.type = ConversationType.parse(json.getInt("type"));
         this.state = ConversationState.parse(json.getInt("state"));
-        this.reminded = ConversationReminded.parse(json.getInt("remind"));
+        this.reminding = ConversationReminding.parse(json.getInt("reminding"));
         this.pivotalId = json.getLong("pivotal");
         this.unreadCount = json.getInt("unread");
 
@@ -134,16 +134,16 @@ public class Conversation extends Entity {
      * @param type
      * @param state
      * @param pivotalId
-     * @param reminded
+     * @param reminding
      * @param unreadCount
      * @param recentMessage
      */
-    public Conversation(Long id, long timestamp, ConversationType type, ConversationState state, Long pivotalId, ConversationReminded reminded, int unreadCount, Message recentMessage) {
+    public Conversation(Long id, long timestamp, ConversationType type, ConversationState state, Long pivotalId, ConversationReminding reminding, int unreadCount, Message recentMessage) {
         super(id, timestamp);
         this.type = type;
         this.state = state;
         this.pivotalId = pivotalId;
-        this.reminded = reminded;
+        this.reminding = reminding;
         this.unreadCount = unreadCount;
         this.recentMessage = recentMessage;
     }
@@ -153,14 +153,14 @@ public class Conversation extends Entity {
      *
      * @param self
      * @param contact
-     * @param reminded
+     * @param reminding
      */
-    public Conversation(Self self, Contact contact, ConversationReminded reminded) {
+    public Conversation(Self self, Contact contact, ConversationReminding reminding) {
         super(contact.id);
         this.pivotalId = contact.id;
         this.contact = contact;
         this.type = ConversationType.Contact;
-        this.reminded = reminded;
+        this.reminding = reminding;
         this.state = ConversationState.Normal;
         this.recentMessage = new NullMessage(self, contact);
         this.unreadCount = 0;
@@ -171,14 +171,14 @@ public class Conversation extends Entity {
      *
      * @param self
      * @param group
-     * @param reminded
+     * @param reminding
      */
-    public Conversation(Self self, Group group, ConversationReminded reminded) {
+    public Conversation(Self self, Group group, ConversationReminding reminding) {
         super(group.id);
         this.pivotalId = group.id;
         this.group = group;
         this.type = ConversationType.Group;
-        this.reminded = reminded;
+        this.reminding = reminding;
         this.state = ConversationState.Normal;
         this.recentMessage = new NullMessage(self, group);
         this.unreadCount = 0;
@@ -238,8 +238,8 @@ public class Conversation extends Entity {
      *
      * @return 返回会话提醒类型。
      */
-    public ConversationReminded getReminded() {
-        return this.reminded;
+    public ConversationReminding getReminding() {
+        return this.reminding;
     }
 
     /**
@@ -345,8 +345,8 @@ public class Conversation extends Entity {
         this.state = state;
     }
 
-    public void setReminded(ConversationReminded reminded) {
-        this.reminded = reminded;
+    public void setReminding(ConversationReminding reminding) {
+        this.reminding = reminding;
     }
 
     @Override
@@ -389,7 +389,7 @@ public class Conversation extends Entity {
             json.put("domain", AuthService.getDomain());
             json.put("type", this.type.code);
             json.put("state", this.state.code);
-            json.put("remind", this.reminded.code);
+            json.put("reminding", this.reminding.code);
             json.put("pivotal", this.pivotalId.longValue());
             json.put("unread", this.unreadCount);
 

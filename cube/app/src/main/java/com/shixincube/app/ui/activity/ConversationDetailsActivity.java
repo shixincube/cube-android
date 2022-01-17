@@ -56,7 +56,7 @@ import cube.engine.util.PromiseFuture;
 import cube.engine.util.PromiseHandler;
 import cube.messaging.handler.DefaultConversationHandler;
 import cube.messaging.model.Conversation;
-import cube.messaging.model.ConversationReminded;
+import cube.messaging.model.ConversationReminding;
 import cube.messaging.model.ConversationType;
 import cube.util.LogUtils;
 
@@ -183,12 +183,12 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean checked) {
                 if (checked) {
-                    if (conversation.getReminded() == ConversationReminded.Closed) {
+                    if (conversation.getReminding() == ConversationReminding.Closed) {
                         return;
                     }
                 }
                 else {
-                    if (conversation.getReminded() == ConversationReminded.Normal) {
+                    if (conversation.getReminding() == ConversationReminding.Normal) {
                         return;
                     }
                 }
@@ -197,17 +197,17 @@ public class ConversationDetailsActivity extends BaseActivity<ConversationDetail
                     @Override
                     public void emit(PromiseFuture<Boolean> promise) {
                         boolean result = CubeEngine.getInstance().getMessagingService().updateConversation(conversation,
-                                checked ? ConversationReminded.Closed : ConversationReminded.Normal);
+                                checked ? ConversationReminding.Closed : ConversationReminding.Normal);
                         promise.resolve(result);
                     }
                 }).then(new Future<Boolean>() {
                     @Override
                     public void come(Boolean data) {
                         if (data.booleanValue()) {
-                            LogUtils.i(TAG, "Change reminding success : " + conversation.getReminded().name());
+                            LogUtils.i(TAG, "Change reminding success : " + conversation.getReminding().name());
                         }
                         else {
-                            LogUtils.w(TAG, "Change reminding failure : " + conversation.getReminded().name());
+                            LogUtils.w(TAG, "Change reminding failure : " + conversation.getReminding().name());
                         }
                     }
                 }).launch();

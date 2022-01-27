@@ -604,7 +604,7 @@ public class MessagingService extends Module {
         }, new StableFailureHandler() {
             @Override
             public void handleFailure(Module module, ModuleError error) {
-                ModuleError current = new ModuleError(NAME, error.code);
+                ModuleError current = new ModuleError(NAME, MessagingServiceState.NoGroup.code);
                 current.data = conversation;
                 if (failureHandler.isInMainThread()) {
                     executeOnMainThread(() -> {

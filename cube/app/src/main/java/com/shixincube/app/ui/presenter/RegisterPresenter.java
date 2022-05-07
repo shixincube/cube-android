@@ -32,9 +32,15 @@ import com.shixincube.app.AppConsts;
 import com.shixincube.app.R;
 import com.shixincube.app.api.Explorer;
 import com.shixincube.app.api.StateCode;
+import com.shixincube.app.manager.AccountHelper;
+import com.shixincube.app.model.Account;
+import com.shixincube.app.model.response.AccountInfoResponse;
+import com.shixincube.app.model.response.LoginResponse;
+import com.shixincube.app.ui.activity.MainActivity;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.RegisterView;
+import com.shixincube.app.util.DeviceUtils;
 import com.shixincube.app.util.HashUtils;
 import com.shixincube.app.util.RegularUtils;
 import com.shixincube.app.util.UIUtils;
@@ -48,8 +54,10 @@ import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.ObservableEmitter;
 import io.reactivex.rxjava3.core.ObservableOnSubscribe;
+import io.reactivex.rxjava3.core.ObservableSource;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.functions.Consumer;
+import io.reactivex.rxjava3.functions.Function;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
 /**
@@ -96,13 +104,19 @@ public class RegisterPresenter extends BasePresenter<RegisterView> {
         }
 
         // 生成密码 MD5 码
-        password = HashUtils.makeMD5(password);
+        final String passwordMD5 = HashUtils.makeMD5(password);
 
-        Explorer.getInstance().registerAccount(phoneNumber, password, nickname, code)
+        Explorer.getInstance().registerAccount(phoneNumber, passwordMD5, nickname, code)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(registerResponse -> {
-                // TODO
+                if (registerResponse.code == StateCode.Success) {
+                    // 注册成功，使用注册信息登录
+                    login(phoneNumber, passwordMD5);
+                }
+                else {
+                    UIUtils.showToast(UIUtils.getString(R.string.register_failed_with_code, registerResponse.code));
+                }
             }, this::registerError);
     }
 
@@ -204,5 +218,50 @@ public class RegisterPresenter extends BasePresenter<RegisterView> {
             this.timer.cancel();
             this.timer = null;
         }
+    }
+
+    private void login(String phoneNumber, String passwordMD5Code) {
+        this.activity.showWaitingDialog(UIUtils.getString(R.string.please_wait_a_moment));
+
+        String device = DeviceUtils.getDeviceDescription(this.activity.getApplicationContext());
+
+        // 登录
+        Explorer.getInstance().login(phoneNumber, passwordMD5Code, device)
+                .flatMap(new Function<LoginResponse, ObservableSource<AccountInfoResponse>>() {
+                    @Override
+                    public ObservableSource<AccountInfoResponse> apply(LoginResponse loginResponse)
+                            throws Throwable {
+                        if (loginResponse.code == StateCode.Success) {
+                            // 保存令牌
+                            AccountHelper.getInstance(activity.getApplicationContext())
+                                    .saveToken(loginResponse.token, loginResponse.expire);
+                            // 使用令牌获取账号信息
+                            return Explorer.getInstance().getAccountInfo(loginResponse.token);
+                        }
+                        else {
+                            return Observable.error(
+                                    new Exception(UIUtils.getString(R.string.login_error)));
+                        }
+                    }
+                })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(accountInfoResponse -> {
+                    activity.hideWaitingDialog();
+
+                    // 账号
+                    Account account = accountInfoResponse.toAccount();
+                    AccountHelper.getInstance(activity.getApplicationContext())
+                            .setCurrentAccount(account);
+
+                    activity.jumpToActivityAndClearTask(MainActivity.class);
+                    activity.finish();
+                }, this::loginError);
+    }
+
+    private void loginError(Throwable throwable) {
+        this.activity.hideWaitingDialog();
+        LogUtils.e(throwable.getLocalizedMessage());
+        UIUtils.showToast(throwable.getLocalizedMessage());
     }
 }

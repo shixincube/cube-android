@@ -425,7 +425,7 @@ public class MessagingService extends Module {
     /**
      * 创建关联群组的会话。
      *
-     * @param memberList 指定群成员列表
+     * @param memberList 指定群成员列表。
      * @param successHandler 指定操作成功回调句柄。
      * @param failureHandler 指定操作失败回调句柄。
      */

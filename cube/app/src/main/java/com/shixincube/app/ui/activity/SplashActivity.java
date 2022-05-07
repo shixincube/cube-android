@@ -118,7 +118,6 @@ public class SplashActivity extends BaseActivity {
         this.loginButton.setOnClickListener(v -> {
             if (!permissionOk) {
                 requestPermission();
-                return;
             }
 
             jumpToActivity(LoginActivity.class);
@@ -128,7 +127,6 @@ public class SplashActivity extends BaseActivity {
         this.registerButton.setOnClickListener(v -> {
             if (!permissionOk) {
                 requestPermission();
-                return;
             }
 
             jumpToActivity(RegisterActivity.class);

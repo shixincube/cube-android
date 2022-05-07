@@ -26,6 +26,7 @@
 
 package com.shixincube.app.api;
 
+import com.shixincube.app.model.response.BuildInAccountResponse;
 import com.shixincube.app.model.response.CheckPhoneResponse;
 import com.shixincube.app.model.response.AccountInfoResponse;
 import com.shixincube.app.model.response.LoginResponse;
@@ -100,6 +101,14 @@ public interface AppInterface {
      */
     @POST("/account/info/")
     Observable<AccountInfoResponse> setAccountInfo(@Body RequestBody body);
+
+    /**
+     * 获取内置的演示用账号数据。
+     *
+     * @return
+     */
+    @GET("/account/buildin/")
+    Observable<BuildInAccountResponse> getBuildInAccount();
 
     /**
      * 搜索指定 ID 的账号。

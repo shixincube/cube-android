@@ -51,6 +51,8 @@ import cube.util.Observer;
  */
 public class MainPresenter extends BasePresenter<MainView> implements Observer {
 
+    private boolean useDemoData = true;
+
     private Timer timer;
 
     public MainPresenter(BaseActivity activity) {
@@ -93,6 +95,14 @@ public class MainPresenter extends BasePresenter<MainView> implements Observer {
                 }
             }, 10 * 1000);
         }
+    }
+
+    public void loadDemoData() {
+        if (!this.useDemoData) {
+            return;
+        }
+
+
     }
 
     @Override

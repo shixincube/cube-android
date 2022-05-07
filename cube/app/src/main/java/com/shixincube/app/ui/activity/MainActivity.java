@@ -196,6 +196,9 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
         }).thenOnMainThread(new Future<Boolean>() {
             @Override
             public void come(Boolean data) {
+                // 尝试加载 Demo 数据
+                presenter.loadDemoData();
+
                 if (data.booleanValue()) {
                     LogUtils.d("MainActivity", "First sign-in");
                     presenter.monitorConversation();

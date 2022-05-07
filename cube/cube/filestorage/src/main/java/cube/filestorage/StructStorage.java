@@ -249,7 +249,7 @@ public class StructStorage extends AbstractStorage {
      *
      * @param directory 指定目录。
      */
-    public void writeDirectory(Directory directory) {
+    public synchronized void writeDirectory(Directory directory) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         Cursor cursor = db.query("directory", new String[]{ "id" },

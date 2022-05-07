@@ -271,7 +271,7 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
      */
     public Directory getSelfRoot() {
         int count = 500;
-        while (null == this.self) {
+        while (null == this.self || null == this.storage) {
             try {
                 Thread.sleep(10);
             } catch (InterruptedException e) {
@@ -284,7 +284,7 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
             }
         }
 
-        if (null == this.self) {
+        if (null == this.self || null == this.storage) {
             return null;
         }
 

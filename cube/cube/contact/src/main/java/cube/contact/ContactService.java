@@ -107,7 +107,7 @@ public class ContactService extends Module {
     /** 默认提供的群组分区名称，签入时会自动加载该分区。 */
     private final String defaultGroupZoneName = "groups";
 
-    private long retrospectDuration = 30 * 24 * 60 * 60000;
+    private long retrospectDuration = 30L * 24 * 60 * 60000;
 
     private ContactStorage storage;
 

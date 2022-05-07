@@ -115,7 +115,8 @@ public class RegisterPresenter extends BasePresenter<RegisterView> {
                     login(phoneNumber, passwordMD5);
                 }
                 else {
-                    UIUtils.showToast(UIUtils.getString(R.string.register_failed_with_code, registerResponse.code));
+                    UIUtils.showToast(UIUtils.getString(
+                            R.string.register_failed_with_code, registerResponse.code));
                 }
             }, this::registerError);
     }

@@ -733,6 +733,34 @@ public class ContactStorage extends AbstractStorage {
     }
 
     /**
+     * 删除指定名称的联系人分区。
+     *
+     * @param zoneName
+     */
+    public void removeContactZone(String zoneName) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        Cursor cursor = db.query("contact_zone", new String[]{ "id" },
+                "name=?", new String[]{ zoneName }, null, null, null);
+        if (cursor.moveToFirst()) {
+            // 存在该分区
+
+            Long zoneId = cursor.getLong(0);
+            cursor.close();
+
+            // 删除 Contact Zone
+            db.delete("contact_zone", "id=?",
+                    new String[] { zoneId.toString() });
+
+            // 删除参与者
+            db.delete("contact_zone_participant", "contact_zone_id=?",
+                    new String[]{ zoneId.toString() });
+        }
+
+        this.closeWritableDatabase(db);
+    }
+
+    /**
      * 更新联系人分区。
      *
      * @param zone

@@ -1176,6 +1176,41 @@ public class ContactService extends Module {
     }
 
     /**
+     * 重置联系人分区数据。
+     * 客户端将删除本地数据，重新从服务器获取最新数据。
+     *
+     * @param zoneName
+     */
+    public void resetContactZone(String zoneName) {
+        if (zoneName.equals(this.defaultContactZoneName)) {
+            this.defaultContactZone = null;
+        }
+        else if (zoneName.equals(this.defaultGroupZoneName)) {
+            this.defaultGroupZone = null;
+        }
+
+        // 删除缓存里的数据
+        this.zoneCache.remove(zoneName);
+
+        // 从数据库里删除
+        this.storage.removeContactZone(zoneName);
+
+        // 从服务器获取数据
+        this.getContactZone(zoneName, new DefaultContactZoneHandler() {
+            @Override
+            public void handleContactZone(ContactZone contactZone) {
+                LogUtils.d(TAG, "#resetContactZone - Reset contact zone: " + zoneName);
+            }
+        }, new DefaultFailureHandler() {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                LogUtils.e(TAG, "#resetContactZone - Reset contact zone error: "
+                        + zoneName + " - " + error.code);
+            }
+        });
+    }
+
+    /**
      * 创建指定名称的联系人分区。
      *
      * @param zoneName 指定分区名称。

@@ -36,6 +36,7 @@ import com.shixincube.app.model.request.RegisterRequest;
 import com.shixincube.app.model.request.SetAccountInfoRequest;
 import com.shixincube.app.model.response.AccountInfoResponse;
 import com.shixincube.app.model.response.CheckPhoneResponse;
+import com.shixincube.app.model.response.ContactZoneResponse;
 import com.shixincube.app.model.response.LoginResponse;
 import com.shixincube.app.model.response.RegisterResponse;
 import com.shixincube.app.model.response.SearchAccountResultResponse;
@@ -175,6 +176,20 @@ public class Explorer {
         request.name = name;
         request.avatar = avatar;
         return this.api.setAccountInfo(getRequestBody(request));
+    }
+
+    /**
+     * 激活内置的演示数据。
+     *
+     * @param contactId
+     * @param domain
+     * @param zoneName
+     * @return
+     */
+    public Observable<ContactZoneResponse> activateBuildInData(long contactId,
+                                                               String domain,
+                                                               String zoneName) {
+        return this.api.activateBuildInData(contactId, domain, zoneName);
     }
 
     /**

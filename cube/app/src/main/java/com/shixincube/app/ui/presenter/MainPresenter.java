@@ -31,6 +31,8 @@ import static android.content.Context.BIND_AUTO_CREATE;
 import android.content.Intent;
 
 import com.shixincube.app.CubeApp;
+import com.shixincube.app.api.Explorer;
+import com.shixincube.app.manager.AccountHelper;
 import com.shixincube.app.manager.CubeConnection;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
@@ -39,12 +41,14 @@ import com.shixincube.app.ui.view.MainView;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import cube.contact.model.ContactZone;
 import cube.engine.CubeEngine;
 import cube.engine.service.CubeService;
 import cube.messaging.MessagingServiceEvent;
 import cube.util.LogUtils;
 import cube.util.ObservableEvent;
 import cube.util.Observer;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 /**
  * 主界面。
@@ -102,7 +106,25 @@ public class MainPresenter extends BasePresenter<MainView> implements Observer {
             return;
         }
 
+        ContactZone contactZone = CubeEngine.getInstance().
+                getContactService().getDefaultContactZone();
+        if (null != contactZone) {
+            int num = contactZone.getParticipants().size();
+            if (num == 0) {
+                // 激活内置数据
+                Explorer.getInstance().activateBuildInData(
+                        AccountHelper.getInstance().getCurrentAccount().id,
+                        CubeEngine.getInstance().getConfig().domain,
+                        contactZone.getName())
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(Schedulers.io())
+                        .subscribe(ContactZoneResponse -> {
 
+                        }, throwable -> {
+
+                        });
+            }
+        }
     }
 
     @Override

@@ -26,19 +26,19 @@
 
 package com.shixincube.app.model.response;
 
-import com.shixincube.app.model.Account;
-
-import java.util.List;
-
 /**
- * 内置的演示用账号数据。
+ * 联系人分区。
  */
-public class BuildInAccountResponse {
+public class ContactZoneResponse {
 
-    public List<Account> list;
+    public String name;
 
-    public int total;
+    public String displayName;
 
-    public BuildInAccountResponse() {
+    public int state;
+
+    public boolean peerMode;
+
+    public ContactZoneResponse() {
     }
 }

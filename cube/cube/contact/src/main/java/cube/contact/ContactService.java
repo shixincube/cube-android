@@ -1181,7 +1181,7 @@ public class ContactService extends Module {
      *
      * @param zoneName
      */
-    public void resetContactZone(String zoneName) {
+    public void resetContactZoneLocalData(String zoneName) {
         if (zoneName.equals(this.defaultContactZoneName)) {
             this.defaultContactZone = null;
         }

@@ -116,13 +116,15 @@ public class MainPresenter extends BasePresenter<MainView> implements Observer {
                         AccountHelper.getInstance().getCurrentAccount().id,
                         CubeEngine.getInstance().getConfig().domain,
                         contactZone.getName())
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(Schedulers.io())
-                        .subscribe(ContactZoneResponse -> {
-
-                        }, throwable -> {
-
-                        });
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(Schedulers.io())
+                    .subscribe(ContactZoneResponse -> {
+                        // 重置本地数据
+                        CubeEngine.getInstance().getContactService()
+                                .resetContactZoneLocalData(contactZone.getName());
+                    }, throwable -> {
+                        LogUtils.e("#activateBuildInData", throwable);
+                    });
             }
         }
     }

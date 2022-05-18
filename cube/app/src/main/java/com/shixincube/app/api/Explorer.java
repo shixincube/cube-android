@@ -28,6 +28,7 @@ package com.shixincube.app.api;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.shixincube.app.AppConsts;
 import com.shixincube.app.CubeApp;
 import com.shixincube.app.manager.AccountHelper;
 import com.shixincube.app.model.request.CheckPhoneRequest;
@@ -68,7 +69,7 @@ public class Explorer {
 
     private static Explorer instance;
 
-    public final static String HOST_URL = "http://10.0.2.2:7777/";
+    public final static String HOST_URL = "http://" + AppConsts.HOST_ADDRESS + ":7777/";
 
     private AppInterface api;
 

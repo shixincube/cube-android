@@ -144,6 +144,10 @@ public abstract class Module extends Subject {
      */
     protected abstract void config(@Nullable JSONObject configData);
 
+    protected Kernel getKernel() {
+        return this.kernel;
+    }
+
     protected Pipeline getPipeline() {
         return this.pipeline;
     }

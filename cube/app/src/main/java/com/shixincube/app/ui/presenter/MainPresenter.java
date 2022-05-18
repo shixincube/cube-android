@@ -146,7 +146,7 @@ public class MainPresenter extends BasePresenter<MainView> implements Observer {
             this.timer = null;
         }
 
-        CubeEngine.getInstance().getMessagingService().detachWithName(MessagingServiceEvent.RemoteConversationsCompleted,
-                this);
+        CubeEngine.getInstance().getMessagingService().detachWithName(
+                MessagingServiceEvent.RemoteConversationsCompleted, this);
     }
 }

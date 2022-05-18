@@ -50,6 +50,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import cube.contact.ContactService;
 import cube.contact.ContactServiceEvent;
 import cube.contact.model.Self;
+import cube.core.KernelConfig;
 import cube.core.Module;
 import cube.core.ModuleError;
 import cube.core.Packet;
@@ -217,6 +218,11 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
             // 模拟器里将 127.0.0.1 修改为 10.0.2.2
             this.fileURL = this.fileURL.replace("127.0.0.1", "10.0.2.2");
             this.fileSecureURL = this.fileSecureURL.replace("127.0.0.1", "10.0.2.2");
+        }
+        else {
+            KernelConfig config = this.getKernel().getConfig();
+            this.fileURL = this.fileURL.replace("127.0.0.1", config.address);
+            this.fileSecureURL = this.fileSecureURL.replace("127.0.0.1", config.address);
         }
     }
 

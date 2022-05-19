@@ -69,7 +69,7 @@ public class Explorer {
 
     private static Explorer instance;
 
-    public final static String HOST_URL = "http://" + AppConsts.HOST_ADDRESS + ":7777/";
+    public final static String HOST_URL = "http://" + AppConsts.APP_SERVER_ADDRESS + ":7777/";
 
     private AppInterface api;
 

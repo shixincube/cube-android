@@ -59,9 +59,14 @@ public final class AppConsts {
     public final static String VERSION = String.format("%d.%d.%d", VERSION_MAJOR, VERSION_MINOR, VERSION_REVISION);
 
     /**
-     * 主机地址。
+     * 是否启用数据摆渡模式。
      */
-    public final static String HOST_ADDRESS = "192.168.0.111";
+    public final static boolean FERRY_MODE = true;
+
+    /**
+     * App 服务器地址。
+     */
+    public final static String APP_SERVER_ADDRESS = "192.168.0.102";
 
     /**
      * 默认国际电话区号。

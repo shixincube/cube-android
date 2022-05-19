@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.shixincube.app">
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
@@ -38,7 +39,7 @@
         </meta-data>
 
         <!-- Cube Config Begin -->
-        <meta-data android:name="CUBE_ADDRESS" android:value="192.168.0.111"></meta-data>
+        <meta-data android:name="CUBE_ADDRESS" android:value="192.168.0.102"></meta-data>
         <meta-data android:name="CUBE_PORT" android:value="7000"></meta-data>
         <meta-data android:name="CUBE_DOMAIN" android:value="shixincube.com"></meta-data>
         <meta-data android:name="CUBE_APPKEY" android:value="shixin-cubeteam-opensource-appkey"></meta-data>
@@ -159,7 +160,7 @@
         <activity
             android:name=".ui.activity.PreferenceActivity"
             android:screenOrientation="portrait">
-        </activity>OptionThemeActivity
+        </activity>
         <activity
             android:name=".ui.activity.OptionThemeActivity"
             android:screenOrientation="portrait">
@@ -171,6 +172,15 @@
         <activity
             android:name=".ui.activity.SelectAvatarActivity"
             android:screenOrientation="portrait">
+        </activity>
+        <activity
+            android:name=".ui.activity.FerryActivity"
+            android:screenOrientation="portrait">
+        </activity>
+        <activity
+            android:name="com.journeyapps.barcodescanner.CaptureActivity"
+            android:screenOrientation="portrait"
+            tools:replace="android:screenOrientation">
         </activity>
     </application>
 

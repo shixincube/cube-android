@@ -36,6 +36,7 @@ import android.widget.RelativeLayout;
 import androidx.annotation.NonNull;
 
 import com.jaeger.library.StatusBarUtil;
+import com.shixincube.app.AppConsts;
 import com.shixincube.app.R;
 import com.shixincube.app.api.Explorer;
 import com.shixincube.app.manager.AccountHelper;
@@ -215,7 +216,12 @@ public class SplashActivity extends BaseActivity {
                     if (!jumpToMain) {
                         if (valid.booleanValue() && engineStarted.get()) {
                             jumpToMain = true;
-                            jumpToActivityAndClearTask(MainActivity.class);
+                            if (AppConsts.FERRY_MODE) {
+                                jumpToActivityAndClearTask(FerryActivity.class);
+                            }
+                            else {
+                                jumpToActivityAndClearTask(MainActivity.class);
+                            }
                         }
                     }
                 }
@@ -238,7 +244,12 @@ public class SplashActivity extends BaseActivity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                jumpToActivityAndClearTask(MainActivity.class);
+                                if (AppConsts.FERRY_MODE) {
+                                    jumpToActivityAndClearTask(FerryActivity.class);
+                                }
+                                else {
+                                    jumpToActivityAndClearTask(MainActivity.class);
+                                }
                             }
                         });
                     }

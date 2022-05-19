@@ -49,6 +49,11 @@
     <string name="countries_and_regions">国家/地区</string>
     <string name="login_error">请确认您的手机号码和密码后再尝试登录</string>
 
+    <!-- Box 相关 -->
+    <string name="ferry_jumping">正在加入……</string>
+    <string name="ferry_title">我的通讯盒</string>
+    <string name="ferry_btn_join">加入通讯域</string>
+
     <!-- 消息面板 -->
     <string name="please_to_talk">按住 说话</string>
     <string name="retry">重试</string>
@@ -214,4 +219,5 @@
     <string name="letter_A">A</string>
     <string name="number_1">1</string>
     <string name="number_99">99</string>
+    <string name="scan_qr_prompt">请将二维码置于取景框内</string>
 </resources>

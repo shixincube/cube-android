@@ -26,20 +26,60 @@
 
 package com.shixincube.app.ui.presenter;
 
+import androidx.appcompat.app.AlertDialog;
+
+import com.shixincube.app.R;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.FerryView;
+import com.shixincube.app.util.UIUtils;
+
+import cube.engine.util.CodeUtils;
+import cube.util.LogUtils;
 
 /**
  * Ferry Presenter
  */
 public class FerryPresenter extends BasePresenter<FerryView> {
 
+    private final static String TAG = FerryPresenter.class.getSimpleName();
+
     public FerryPresenter(BaseActivity activity) {
         super(activity);
     }
 
     public void processQRCodeResult(String string) {
+        LogUtils.d(TAG, "QR code: " + string);
 
+        if (string.length() < 16) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+            builder.setTitle(UIUtils.getString(R.string.prompt));
+            builder.setMessage(UIUtils.getString(R.string.unrecognized_code));
+            builder.setNegativeButton(UIUtils.getString(R.string.sure), null);
+            builder.show();
+            return;
+        }
+
+        String protocol = CodeUtils.extractProtocol(string);
+        if (!protocol.equalsIgnoreCase("cube")) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+            builder.setTitle(UIUtils.getString(R.string.prompt));
+            builder.setMessage(UIUtils.getString(R.string.unrecognized_code));
+            builder.setNegativeButton(UIUtils.getString(R.string.sure), null);
+            builder.show();
+            return;
+        }
+
+        String[] data = CodeUtils.extractResourceSegments(string);
+        if (null == data || data.length != 2) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+            builder.setTitle(UIUtils.getString(R.string.prompt));
+            builder.setMessage(UIUtils.getString(R.string.unsupported_qr_format));
+            builder.setNegativeButton(UIUtils.getString(R.string.sure), null);
+            builder.show();
+            return;
+        }
+
+        
     }
 }

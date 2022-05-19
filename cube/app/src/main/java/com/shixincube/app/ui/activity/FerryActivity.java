@@ -142,7 +142,7 @@ public class FerryActivity extends BaseActivity<FerryView, FerryPresenter> imple
 
     @Override
     public Button getScanQRButton() {
-        return null;
+        return this.btnScanQRCode;
     }
 
     @Override

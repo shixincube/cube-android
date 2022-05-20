@@ -31,9 +31,11 @@ import android.util.Log;
 
 import org.json.JSONObject;
 
+import java.io.File;
 import java.util.concurrent.Executors;
 
 import cube.auth.AuthService;
+import cube.auth.model.AuthDomain;
 import cube.contact.ContactService;
 import cube.contact.ContactServiceEvent;
 import cube.contact.handler.SignHandler;
@@ -43,7 +45,9 @@ import cube.core.KernelConfig;
 import cube.core.ModuleError;
 import cube.core.handler.KernelHandler;
 import cube.engine.handler.EngineHandler;
+import cube.engine.util.FileUtils;
 import cube.engine.util.Promise;
+import cube.ferry.FerryService;
 import cube.fileprocessor.FileProcessor;
 import cube.filestorage.FileStorage;
 import cube.messaging.MessagingService;
@@ -73,6 +77,7 @@ public class CubeEngine implements Observer {
         this.kernel.installModule(new FileProcessor());
         this.kernel.installModule(new MessagingService());
         this.kernel.installModule(new MultipointComm());
+        this.kernel.installModule(new FerryService());
     }
 
     public static CubeEngine getInstance() {
@@ -219,6 +224,15 @@ public class CubeEngine implements Observer {
     }
 
     /**
+     * 获取摆渡服务模块。
+     *
+     * @return 返回摆渡服务模块。
+     */
+    public FerryService getFerryService() {
+        return (FerryService) this.kernel.getModule(FerryService.NAME);
+    }
+
+    /**
      * 是否已经有账号签入。
      *
      * @return 如果有账号签入返回 {@code true} 。
@@ -241,6 +255,13 @@ public class CubeEngine implements Observer {
         ContactService contactService = this.getContactService();
         Self self = new Self(contactId, name, context);
         return contactService.signIn(self, handler);
+    }
+
+    public void resetConfig(Context context, AuthDomain authDomain) {
+        // 写入配置文件
+        File path = FileUtils.getFilePath(context, "cube");
+        File configFile = new File(path, "cube.config");
+        
     }
 
     @Override

@@ -213,6 +213,18 @@ public final class LogUtils {
     }
 
     /**
+     * 以级别为 ERROR 的形式输出日志信息和异常信息。
+     * @param tag 日志标签。
+     * @param log 日志内容。
+     * @param throwable 异常描述。
+     */
+    public static void e(String tag, String log, Throwable throwable) {
+        if (sLogLevel >= LEVEL_ERROR && null != throwable) {
+            Log.e(tag, log, throwable);
+        }
+    }
+
+    /**
      * 以级别为 ERROR 的形式打印日志。
      * @param log 日志内容。
      */

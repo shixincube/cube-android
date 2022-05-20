@@ -44,6 +44,7 @@ import cube.core.KernelConfig;
 import cube.engine.CubeEngine;
 import cube.engine.handler.EngineHandler;
 import cube.engine.util.FileUtils;
+import cube.util.LogUtils;
 
 /**
  * 自动化配置魔方服务。
@@ -53,6 +54,8 @@ public class CubeService extends Service {
     public final static String ACTION_START = "start";
 
     public final static String ACTION_STOP = "stop";
+
+    public final static String ACTION_RESET = "reset";
 
     private CubeBinder binder;
 
@@ -133,6 +136,17 @@ public class CubeService extends Service {
                         }
                     }).start();
                 }
+                else if (action.equals(CubeService.ACTION_RESET)) {
+                    (new Thread() {
+                        @Override
+                        public void run() {
+                            //
+                            CubeEngine.getInstance().stop();
+
+
+                        }
+                    }).start();
+                }
             }
         }
 
@@ -183,6 +197,8 @@ public class CubeService extends Service {
             File path = FileUtils.getFilePath(context, "cube");
             File configFile = new File(path, "cube.config");
             if (configFile.exists()) {
+                LogUtils.d("CubeService", "#readConfig - Load config domain");
+
                 JSONObject data = FileUtils.readJSONFile(configFile);
                 String address = data.getString("CUBE_ADDRESS");
                 int port = data.getInt("CUBE_PORT");

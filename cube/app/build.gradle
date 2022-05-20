@@ -78,6 +78,7 @@ dependencies {
     implementation project(path: ':cube:fileprocessor')
     implementation fileTree(dir: '../libs', include: '*.jar')
     implementation project(path: ':cube:multipointcomm')
+    implementation project(path: ':cube:ferry')
     annotationProcessor 'com.jakewharton:butterknife-compiler:10.2.3'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.12.0'
     testImplementation 'junit:junit:4.13.2'

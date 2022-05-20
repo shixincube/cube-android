@@ -26,7 +26,6 @@
 
 package cube.contact;
 
-import android.util.Log;
 import android.util.MutableBoolean;
 
 import androidx.annotation.Nullable;
@@ -185,6 +184,7 @@ public class ContactService extends Module {
         }
 
         this.signInReady.set(false);
+        this.firstSignIn = false;
     }
 
     @Override
@@ -246,7 +246,7 @@ public class ContactService extends Module {
      */
     public boolean signIn(Self self, SignHandler handler) {
         if (null != this.self && !this.self.equals(self)) {
-            Log.w("ContactService", "Can NOT use different contact to sign-in");
+            LogUtils.w("ContactService", "Can NOT use different contact to sign-in");
             return false;
         }
 
@@ -369,7 +369,7 @@ public class ContactService extends Module {
                 payload.put("self", this.self.toJSON());
                 payload.put("token", authToken.toJSON());
             } catch (JSONException e) {
-                Log.e(ContactService.class.getSimpleName(), "#signIn", e);
+                LogUtils.e(ContactService.class.getSimpleName(), "#signIn", e);
             }
             Packet signInPacket = new Packet(ContactServiceAction.SignIn, payload);
             this.pipeline.send(ContactService.NAME, signInPacket);
@@ -871,7 +871,7 @@ public class ContactService extends Module {
             packetData.put("id", contactId.longValue());
             packetData.put("domain", this.getAuthToken().domain);
         } catch (JSONException e) {
-            Log.w(TAG, "#getContact", e);
+            LogUtils.w(TAG, "#getContact", e);
         }
 
         Packet requestPacket = new Packet(ContactServiceAction.GetContact, packetData);
@@ -2253,7 +2253,7 @@ public class ContactService extends Module {
             packetData.put("id", groupId.longValue());
             packetData.put("domain", this.getAuthToken().domain);
         } catch (JSONException e) {
-            Log.w(TAG, "#getGroup", e);
+            LogUtils.w(TAG, "#getGroup", e);
         }
 
         Packet requestPacket = new Packet(ContactServiceAction.GetGroup, packetData);
@@ -2979,7 +2979,7 @@ public class ContactService extends Module {
                 this.self = new Self(payload);
             }
         } catch (JSONException e) {
-            Log.e(ContactService.class.getSimpleName(), "#triggerSignIn", e);
+            LogUtils.e(ContactService.class.getSimpleName(), "#triggerSignIn", e);
         }
 
         MutableBoolean gotAppendix = new MutableBoolean(false);

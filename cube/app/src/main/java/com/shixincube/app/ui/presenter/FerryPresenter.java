@@ -30,8 +30,8 @@ import android.content.DialogInterface;
 
 import androidx.appcompat.app.AlertDialog;
 
-import com.shixincube.app.CubeApp;
 import com.shixincube.app.R;
+import com.shixincube.app.manager.CubeConnection;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.FerryView;
@@ -145,11 +145,19 @@ public class FerryPresenter extends BasePresenter<FerryView> {
         Promise.create(new PromiseHandler<AuthDomain>() {
             @Override
             public void emit(PromiseFuture<AuthDomain> promise) {
-                CubeEngine.getInstance().resetConfig(CubeApp.getContext(), authDomain);
+                CubeConnection connection = new CubeConnection();
+                connection.setSuccessHandler(() -> {
+                    promise.resolve(authDomain);
+                });
 
-                promise.resolve(authDomain);
+                CubeEngine.getInstance().resetConfig(activity, authDomain, connection);
             }
         }).thenOnMainThread(new Future<AuthDomain>() {
+            @Override
+            public void come(AuthDomain data) {
+
+            }
+        }).catchRejectOnMainThread(new Future<AuthDomain>() {
             @Override
             public void come(AuthDomain data) {
 

@@ -74,7 +74,7 @@ public class CubeService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-//        Log.d("CubeService", "onCreate");
+//        LogUtils.d("CubeService", "onCreate");
 
         this.startCompatibility = getApplicationInfo().targetSdkVersion < Build.VERSION_CODES.ECLAIR;
     }
@@ -82,7 +82,7 @@ public class CubeService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
-//        Log.d("CubeService", "onStartCommand : " + flags + " | " + startId);
+//        LogUtils.d("CubeService", "onStartCommand : " + flags + " | " + startId);
 
         if (null != intent) {
             String action = intent.getAction();
@@ -133,6 +133,9 @@ public class CubeService extends Service {
                         @Override
                         public void run() {
                             CubeEngine.getInstance().stop();
+
+                            startPrepare = false;
+                            startFinish = false;
                         }
                     }).start();
                 }
@@ -140,10 +143,42 @@ public class CubeService extends Service {
                     (new Thread() {
                         @Override
                         public void run() {
-                            //
+                            // 停止引擎
                             CubeEngine.getInstance().stop();
 
+                            startPrepare = false;
+                            startFinish = false;
 
+                            // 读取配置
+                            CubeEngine.getInstance().setConfig(readConfig());
+
+                            startPrepare = true;
+
+                            CubeEngine.getInstance().start(getApplicationContext(), new EngineHandler() {
+                                @Override
+                                public void handleSuccess(CubeEngine engine) {
+                                    synchronized (mutex) {
+                                        startFinish = true;
+                                        if (null != binder && null != binder.engineHandler) {
+                                            binder.engineHandler.handleSuccess(CubeEngine.getInstance());
+                                            binder.engineHandler = null;
+                                        }
+                                    }
+                                }
+
+                                @Override
+                                public void handleFailure(int code, String description) {
+                                    synchronized (mutex) {
+                                        startFinish = true;
+                                        startFailure = new Failure(code, description);
+
+                                        if (null != binder && null != binder.engineHandler) {
+                                            binder.engineHandler.handleFailure(code, description);
+                                            binder.engineHandler = null;
+                                        }
+                                    }
+                                }
+                            });
                         }
                     }).start();
                 }
@@ -156,7 +191,7 @@ public class CubeService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-//        Log.d("CubeService", "onDestroy");
+//        LogUtils.d("CubeService", "onDestroy");
     }
 
     @Nullable

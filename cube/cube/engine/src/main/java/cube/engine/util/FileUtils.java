@@ -34,9 +34,12 @@ import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 
 /**
  * 文件实用函数库。
@@ -79,7 +82,9 @@ public class FileUtils {
         BufferedReader reader = null;
 
         try {
-            reader = new BufferedReader(new FileReader(file));
+            InputStreamReader isr = new InputStreamReader(new FileInputStream(file),
+                    StandardCharsets.UTF_8);
+            reader = new BufferedReader(isr);
             String line = null;
             while ((line = reader.readLine()) != null) {
                 buf.append(line);
@@ -98,5 +103,30 @@ public class FileUtils {
         }
 
         return new JSONObject(buf.toString());
+    }
+
+    public static boolean writeJSONFile(File file, JSONObject json) {
+        FileOutputStream fos = null;
+
+        try {
+            fos = new FileOutputStream(file);
+            fos.write(json.toString().getBytes(StandardCharsets.UTF_8));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return false;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            if (null != fos) {
+                try {
+                    fos.close();
+                } catch (IOException e) {
+                    // Nothing
+                }
+            }
+        }
+
+        return true;
     }
 }

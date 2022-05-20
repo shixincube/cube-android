@@ -26,9 +26,14 @@
 
 package cube.engine;
 
-import android.content.Context;
-import android.util.Log;
+import static android.content.Context.BIND_AUTO_CREATE;
 
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
+
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -45,6 +50,7 @@ import cube.core.KernelConfig;
 import cube.core.ModuleError;
 import cube.core.handler.KernelHandler;
 import cube.engine.handler.EngineHandler;
+import cube.engine.service.CubeService;
 import cube.engine.util.FileUtils;
 import cube.engine.util.Promise;
 import cube.ferry.FerryService;
@@ -52,6 +58,7 @@ import cube.fileprocessor.FileProcessor;
 import cube.filestorage.FileStorage;
 import cube.messaging.MessagingService;
 import cube.multipointcomm.MultipointComm;
+import cube.util.LogUtils;
 import cube.util.ObservableEvent;
 import cube.util.Observer;
 
@@ -103,7 +110,7 @@ public class CubeEngine implements Observer {
      * @return
      */
     public boolean start(Context context, EngineHandler handler) {
-        Log.i("CubeEngine", "#start : " + this.config.print());
+        LogUtils.i("CubeEngine", "#start : " + this.config.print());
 
         // 线程池赋值
         Promise.setExecutor(Executors.newCachedThreadPool());
@@ -111,7 +118,7 @@ public class CubeEngine implements Observer {
         this.started = this.kernel.startup(context, this.config, new KernelHandler() {
             @Override
             public void handleCompletion(Kernel kernel) {
-                Log.i("CubeEngine", "Cube engine started");
+                LogUtils.i("CubeEngine", "Cube engine started");
 
                 // 启动联系人模块
                 getContactService().start();
@@ -124,7 +131,7 @@ public class CubeEngine implements Observer {
                 // 启动失败
                 started = false;
 
-                Log.i("CubeEngine", "Cube engine start failed : " + error.code);
+                LogUtils.i("CubeEngine", "Cube engine start failed : " + error.code);
                 handler.handleFailure(error.code, (null != error.description) ? error.description : error.moduleName);
             }
         });
@@ -257,11 +264,35 @@ public class CubeEngine implements Observer {
         return contactService.signIn(self, handler);
     }
 
-    public void resetConfig(Context context, AuthDomain authDomain) {
+    public void resetConfig(Activity activity, AuthDomain authDomain,
+                            ServiceConnection serviceConnection) {
         // 写入配置文件
-        File path = FileUtils.getFilePath(context, "cube");
+        File path = FileUtils.getFilePath(activity, "cube");
         File configFile = new File(path, "cube.config");
-        
+        JSONObject data = new JSONObject();
+        try {
+            data.put("CUBE_ADDRESS", authDomain.mainEndpoint.host);
+            data.put("CUBE_PORT", authDomain.mainEndpoint.port);
+            data.put("CUBE_DOMAIN", authDomain.domainName);
+            data.put("CUBE_APPKEY", authDomain.appKey);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        if (!FileUtils.writeJSONFile(configFile, data)) {
+            LogUtils.w("CubeEngine", "#resetConfig - Write config file failed: "
+                    + configFile.getName());
+            return;
+        }
+
+        activity.runOnUiThread(() -> {
+            Intent intent = new Intent(activity, CubeService.class);
+            intent.setAction(CubeService.ACTION_RESET);
+            activity.startService(intent);
+
+            Intent bindIntent = new Intent(activity, CubeService.class);
+            activity.bindService(bindIntent, serviceConnection, BIND_AUTO_CREATE);
+        });
     }
 
     @Override

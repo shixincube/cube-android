@@ -91,6 +91,11 @@ public class CubeConnection implements ServiceConnection {
                 // 启动多方通信模块
                 engine.getMultipointComm().start();
 
+                if (AppConsts.FERRY_MODE) {
+                    // 启动摆渡机模块
+                    engine.getFerryService().start();
+                }
+
                 // 签入账号
                 signIn(() -> {
                     // 暖机

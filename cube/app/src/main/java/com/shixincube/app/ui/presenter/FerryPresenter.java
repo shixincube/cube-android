@@ -32,6 +32,7 @@ import androidx.appcompat.app.AlertDialog;
 
 import com.shixincube.app.R;
 import com.shixincube.app.manager.CubeConnection;
+import com.shixincube.app.ui.activity.MainActivity;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.FerryView;
@@ -114,13 +115,13 @@ public class FerryPresenter extends BasePresenter<FerryView> {
         builder.setPositiveButton(UIUtils.getString(R.string.sure), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int index) {
+                // 提示等待
+                activity.showWaitingDialog(UIUtils.getString(R.string.please_wait_a_moment));
+
                 FerryService service = CubeEngine.getInstance().getFerryService();
                 service.getAuthDomain(domainName, new DomainHandler() {
                     @Override
                     public void handleDomain(AuthDomain authDomain, List<DomainMember> members) {
-                        // 更新域
-                        activity.showWaitingDialog(UIUtils.getString(R.string.please_wait_a_moment));
-
                         // 更新域
                         updateDomain(authDomain);
                     }
@@ -132,6 +133,9 @@ public class FerryPresenter extends BasePresenter<FerryView> {
                 }, new DefaultFailureHandler(true) {
                     @Override
                     public void handleFailure(Module module, ModuleError error) {
+                        // 隐藏对话框
+                        activity.hideWaitingDialog();
+
                         UIUtils.showToast(UIUtils.getString(R.string.ferry_get_domain_error));
                     }
                 });
@@ -149,18 +153,34 @@ public class FerryPresenter extends BasePresenter<FerryView> {
                 connection.setSuccessHandler(() -> {
                     promise.resolve(authDomain);
                 });
+                connection.setFailureHandler(() -> {
+                    promise.reject(authDomain);
+                });
 
-                CubeEngine.getInstance().resetConfig(activity, authDomain, connection);
+                if (!CubeEngine.getInstance().resetConfig(activity, authDomain, connection)) {
+                    // 写配置文件失败
+                    promise.reject(authDomain);
+                }
             }
         }).thenOnMainThread(new Future<AuthDomain>() {
             @Override
             public void come(AuthDomain data) {
+                // 隐藏对话框
+                activity.hideWaitingDialog();
 
+                // 跳转到主界面
+                activity.jumpToActivityAndClearTask(MainActivity.class);
             }
         }).catchRejectOnMainThread(new Future<AuthDomain>() {
             @Override
             public void come(AuthDomain data) {
+                // 隐藏对话框
+                activity.hideWaitingDialog();
 
+                UIUtils.showToast(UIUtils.getString(R.string.ferry_join_domain_failed));
+
+                LogUtils.d(TAG, "#updateDomain - Reset engine failed: "
+                        + authDomain.domainName);
             }
         }).launch();
     }

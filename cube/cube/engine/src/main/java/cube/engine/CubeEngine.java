@@ -264,7 +264,15 @@ public class CubeEngine implements Observer {
         return contactService.signIn(self, handler);
     }
 
-    public void resetConfig(Activity activity, AuthDomain authDomain,
+    /**
+     * 重置配置。
+     *
+     * @param activity 指定当前操作的 Activity 实例。
+     * @param authDomain 指定新的访问域。
+     * @param serviceConnection 服务连接。
+     * @return 返回是否写入配置文件成功。
+     */
+    public boolean resetConfig(Activity activity, AuthDomain authDomain,
                             ServiceConnection serviceConnection) {
         // 写入配置文件
         File path = FileUtils.getFilePath(activity, "cube");
@@ -282,7 +290,7 @@ public class CubeEngine implements Observer {
         if (!FileUtils.writeJSONFile(configFile, data)) {
             LogUtils.w("CubeEngine", "#resetConfig - Write config file failed: "
                     + configFile.getName());
-            return;
+            return false;
         }
 
         activity.runOnUiThread(() -> {
@@ -293,6 +301,8 @@ public class CubeEngine implements Observer {
             Intent bindIntent = new Intent(activity, CubeService.class);
             activity.bindService(bindIntent, serviceConnection, BIND_AUTO_CREATE);
         });
+
+        return true;
     }
 
     @Override

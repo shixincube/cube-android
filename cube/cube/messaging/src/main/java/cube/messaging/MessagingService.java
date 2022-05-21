@@ -251,8 +251,13 @@ public class MessagingService extends Module {
         // 关闭存储
         this.storage.close();
 
+        this.sendingList.clear();
+
         this.conversations.clear();
         this.conversationMessageListMap.clear();
+
+        this.ready = false;
+        this.preparing.set(false);
     }
 
     @Override

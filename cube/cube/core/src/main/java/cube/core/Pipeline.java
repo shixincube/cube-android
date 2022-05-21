@@ -40,7 +40,7 @@ public abstract class Pipeline {
 
     private final static String DRIFTLESS_LISTENER = "*";
 
-    private Map<String, List<PipelineListener>> listeners;
+    protected Map<String, List<PipelineListener>> listeners;
 
     protected String address;
 

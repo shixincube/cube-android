@@ -82,6 +82,7 @@ public class FerryService extends Module {
 
         if (null != this.pipelineListener) {
             this.pipeline.removeListener(NAME, this.pipelineListener);
+            this.pipelineListener = null;
         }
     }
 
@@ -142,6 +143,7 @@ public class FerryService extends Module {
 
                     List<DomainMember> members = new ArrayList<>();
                     JSONArray array = data.getJSONArray("members");
+                    // TODO read list
 
                     if (successHandler.isInMainThread()) {
                         executeOnMainThread(() -> {

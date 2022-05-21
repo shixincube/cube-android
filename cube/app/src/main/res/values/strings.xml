@@ -224,5 +224,6 @@
     <string name="ferry_btn_join">加入通讯域</string>
     <string name="ferry_get_domain_error">获取域数据失败</string>
     <string name="ferry_tip_join_domain">是否加入“%1$s”通讯盒子？</string>
+    <string name="ferry_join_domain_failed">加入通讯域失败</string>
 
 </resources>

@@ -45,7 +45,7 @@ import cube.util.LogUtils;
  * 用于维护实体在内存里存储的生命周期。
  * 当实体过期或者占用内存空间超过阀值时释放实体引用。
  */
-public final class EntityInspector extends TimerTask {
+public final class EntityInspector implements Runnable {
 
     /**
      * 最大内存阀值。
@@ -71,9 +71,19 @@ public final class EntityInspector extends TimerTask {
      * 启动。
      */
     public void start() {
-        if (null == this.timer) {
+        synchronized (this) {
+            if (null != this.timer) {
+                this.timer.cancel();
+                this.timer.purge();
+            }
+
             this.timer = new Timer();
-            this.timer.schedule(this, this.period, this.period);
+            this.timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    EntityInspector.this.run();
+                }
+            }, this.period, this.period);
         }
     }
 
@@ -81,10 +91,16 @@ public final class EntityInspector extends TimerTask {
      * 停止。
      */
     public void stop() {
-        if (null != this.timer) {
-            this.timer.cancel();
-            this.timer = null;
+        synchronized (this) {
+            if (null != this.timer) {
+                this.timer.cancel();
+                this.timer.purge();
+                this.timer = null;
+            }
         }
+
+        this.depositedMapArray.clear();
+        this.depositedListArray.clear();
     }
 
     /**

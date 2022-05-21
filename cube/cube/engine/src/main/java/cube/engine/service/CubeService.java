@@ -129,25 +129,31 @@ public class CubeService extends Service {
                     }).start();
                 }
                 else if (action.equals(CubeService.ACTION_STOP)) {
+                    synchronized (mutex) {
+                        startPrepare = false;
+                        startFinish = false;
+                        startFailure = null;
+                    }
+
                     (new Thread() {
                         @Override
                         public void run() {
                             CubeEngine.getInstance().stop();
-
-                            startPrepare = false;
-                            startFinish = false;
                         }
                     }).start();
                 }
                 else if (action.equals(CubeService.ACTION_RESET)) {
+                    synchronized (mutex) {
+                        startPrepare = false;
+                        startFinish = false;
+                        startFailure = null;
+                    }
+
                     (new Thread() {
                         @Override
                         public void run() {
                             // 停止引擎
                             CubeEngine.getInstance().stop();
-
-                            startPrepare = false;
-                            startFinish = false;
 
                             // 读取配置
                             CubeEngine.getInstance().setConfig(readConfig());

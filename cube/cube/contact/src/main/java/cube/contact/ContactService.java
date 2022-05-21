@@ -185,6 +185,10 @@ public class ContactService extends Module {
 
         this.signInReady.set(false);
         this.firstSignIn = false;
+
+        this.self = null;
+        this.defaultContactZone = null;
+        this.defaultGroupZone = null;
     }
 
     @Override
@@ -274,6 +278,7 @@ public class ContactService extends Module {
 
         if (!this.kernel.isReady()) {
             // 内核未就绪
+            LogUtils.e("ContactService", "Kernel is not ready");
             return false;
         }
 

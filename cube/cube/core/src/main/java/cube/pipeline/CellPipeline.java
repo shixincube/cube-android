@@ -76,7 +76,6 @@ public class CellPipeline extends Pipeline implements TalkListener {
 
         NucleusConfig config = new NucleusConfig();
         this.nucleus = new Nucleus(context, config);
-        this.nucleus.getTalkService().addListener(this);
 
         this.executor = Executors.newCachedThreadPool();
         this.responseCallbackMap = new ConcurrentHashMap<>();
@@ -95,6 +94,11 @@ public class CellPipeline extends Pipeline implements TalkListener {
         this.opening = true;
         this.enabled = true;
 
+        if (null == this.executor) {
+            this.executor = Executors.newCachedThreadPool();
+        }
+
+        this.nucleus.getTalkService().addListener(this);
         this.nucleus.getTalkService().call(this.address, this.port);
     }
 
@@ -103,6 +107,16 @@ public class CellPipeline extends Pipeline implements TalkListener {
         this.enabled = false;
 
         this.nucleus.getTalkService().hangup(this.address, this.port, true);
+        this.nucleus.getTalkService().removeListener(this);
+
+        if (null != this.executor) {
+            this.executor.shutdown();
+            this.executor = null;
+        }
+
+        this.responseCallbackMap.clear();
+
+        this.tokenCode = null;
     }
 
     @Override

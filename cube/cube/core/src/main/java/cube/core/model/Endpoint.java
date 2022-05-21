@@ -73,4 +73,9 @@ public class Endpoint extends Entity {
         }
         return json;
     }
+
+    @Override
+    public String toString() {
+        return this.host + ":" + this.port;
+    }
 }

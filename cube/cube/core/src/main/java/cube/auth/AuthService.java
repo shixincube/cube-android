@@ -99,6 +99,10 @@ public class AuthService extends Module {
                 this.timer = null;
             }
         }
+
+        this.token = null;
+
+        AuthService.sDomain = null;
     }
 
     @Override

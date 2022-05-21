@@ -49,6 +49,7 @@ import cube.auth.AuthToken;
 import cube.auth.handler.AuthTokenHandler;
 import cube.core.handler.KernelHandler;
 import cube.pipeline.CellPipeline;
+import cube.util.LogUtils;
 
 /**
  * 内核。内核管理所有的模块和通信管道。
@@ -158,8 +159,11 @@ public class Kernel implements PipelineListener {
      */
     public void shutdown() {
         if (!this.working) {
+            LogUtils.d("Kernel", "#shutdown - Working state is false");
             return;
         }
+
+        LogUtils.d("Kernel", "#shutdown - " + this.config.domain);
 
         this.inspector.stop();
 
@@ -169,6 +173,7 @@ public class Kernel implements PipelineListener {
 
         if (null != this.pipeline) {
             this.pipeline.close();
+            this.pipeline.removeListener(this);
             this.pipeline = null;
         }
 

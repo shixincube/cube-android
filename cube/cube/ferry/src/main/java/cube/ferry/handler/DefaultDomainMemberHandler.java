@@ -24,16 +24,25 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app.ui.view;
-
-import android.widget.Button;
+package cube.ferry.handler;
 
 /**
- * Ferry View
+ * 默认的域成员句柄。
  */
-public interface FerryView {
+public abstract class DefaultDomainMemberHandler implements DomainMemberHandler {
 
-    Button getScanQRButton();
+    private final boolean inMainThread;
 
-    Button getInputInvitationButton();
+    public DefaultDomainMemberHandler() {
+        this.inMainThread = true;
+    }
+
+    public DefaultDomainMemberHandler(boolean inMainThread) {
+        this.inMainThread = inMainThread;
+    }
+
+    @Override
+    public boolean isInMainThread() {
+        return this.inMainThread;
+    }
 }

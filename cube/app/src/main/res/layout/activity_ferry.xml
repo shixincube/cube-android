@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="?attr/colorThemeBackground"
@@ -13,30 +14,33 @@
         android:id="@+id/llJumping"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_gravity="center"
+        android:gravity="center"
         android:visibility="gone">
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:gravity="center_horizontal"
+            android:layout_gravity="center"
+            android:gravity="center"
             android:orientation="vertical">
 
             <ImageView
-                android:layout_width="80dp"
-                android:layout_height="80dp"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_gravity="center"
                 android:scaleType="centerCrop"
                 android:src="@mipmap/cube"/>
 
             <TextView
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:text="@string/ferry_jumping"
+                android:layout_marginTop="40dp"
+                android:layout_marginBottom="40dp"
+                android:text="@string/ferry_entering"
                 android:textAlignment="center"
                 android:textColor="?attr/colorText"
-                android:textSize="20sp"/>
+                android:textSize="18sp"/>
         </LinearLayout>
 
     </LinearLayout>
@@ -54,24 +58,92 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_weight="0.5"
+            android:gravity="center_horizontal"
             android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:scaleType="centerCrop"
+                android:src="@mipmap/cube"/>
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/item_margin_top_and_bottom"
+                android:layout_marginBottom="@dimen/item_margin_top_and_bottom"
                 android:layout_gravity="center"
                 android:text="@string/ferry_title"
                 android:textAlignment="center"
                 android:textColor="?attr/colorText"
-                android:textSize="20sp"/>
+                android:textSize="22sp"/>
 
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="0.25"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:layout_marginStart="40dp"
+                android:layout_marginEnd="40dp"
+                android:text="@string/ferry_explain_title"
+                android:textColor="?attr/colorText"
+                android:textSize="18sp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:layout_marginStart="40dp"
+                android:layout_marginEnd="40dp"
+                android:layout_marginTop="20dp"
+                android:text="@string/ferry_explain_p1"
+                android:textColor="?attr/colorText"
+                android:textSize="16sp"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:layout_marginStart="40dp"
+                android:layout_marginEnd="40dp"
+                android:layout_marginTop="10dp"
+                android:text="@string/ferry_explain_p2"
+                android:textColor="?attr/colorText"
+                android:textSize="16sp"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:layout_marginStart="40dp"
+                android:layout_marginEnd="40dp"
+                android:layout_marginTop="10dp"
+                android:text="@string/ferry_explain_p3"
+                android:textColor="?attr/colorText"
+                android:textSize="16sp"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:layout_marginStart="40dp"
+                android:layout_marginEnd="40dp"
+                android:layout_marginTop="10dp"
+                android:text="@string/ferry_explain_p4"
+                android:textColor="?attr/colorText"
+                android:textSize="16sp"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0.5"
             android:paddingStart="20dp"
             android:paddingEnd="20dp"
             android:orientation="vertical">
@@ -80,11 +152,21 @@
                 android:id="@+id/btnScanQR"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
-                android:layout_marginBottom="20dp"
                 android:layout_marginTop="20dp"
                 android:background="@drawable/selector_primary_button"
                 android:enabled="true"
-                android:text="@string/ferry_btn_join"
+                android:text="@string/ferry_btn_scan"
+                android:textColor="?attr/colorButtonPrimaryText"
+                android:textSize="18sp"/>
+
+            <Button
+                android:id="@+id/btnInput"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="20dp"
+                android:background="@drawable/selector_primary_button"
+                android:enabled="true"
+                android:text="@string/ferry_btn_input"
                 android:textColor="?attr/colorButtonPrimaryText"
                 android:textSize="18sp"/>
 

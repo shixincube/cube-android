@@ -219,11 +219,17 @@
     <string name="unsupported_qr_format">不支持的编码格式</string>
 
     <!-- Box 相关 -->
-    <string name="ferry_jumping">正在加入……</string>
-    <string name="ferry_title">我的通讯盒</string>
-    <string name="ferry_btn_join">加入通讯域</string>
+    <string name="ferry_entering">正在加入魔方讯盒……</string>
+    <string name="ferry_title">魔方讯盒</string>
+    <string name="ferry_explain_title">您需要加入魔方讯盒的通讯域才能使用相关功能。</string>
+    <string name="ferry_explain_p1">您可以通过以下方式获得魔方讯盒服务器：</string>
+    <string name="ferry_explain_p2">1、访问魔方讯盒官方网站，从官方商场购买魔方讯盒服务器，官网地址：www.shixincube.com</string>
+    <string name="ferry_explain_p3">2、通过电子邮箱 cube@spap.com 联系官方客服。</string>
+    <string name="ferry_explain_p4">3、扫描好友分享的魔方讯盒邀请二维码或者输入邀请二维码。</string>
+    <string name="ferry_btn_scan">扫码加入通讯域</string>
+    <string name="ferry_btn_input">输入邀请码</string>
     <string name="ferry_get_domain_error">获取域数据失败</string>
-    <string name="ferry_tip_join_domain">是否加入“%1$s”通讯盒子？</string>
+    <string name="ferry_tip_join_domain">是否加入“%1$s”通讯域？</string>
     <string name="ferry_join_domain_failed">加入通讯域失败</string>
 
 </resources>

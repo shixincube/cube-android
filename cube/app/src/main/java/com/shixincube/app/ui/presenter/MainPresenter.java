@@ -30,6 +30,7 @@ import static android.content.Context.BIND_AUTO_CREATE;
 
 import android.content.Intent;
 
+import com.shixincube.app.AppConsts;
 import com.shixincube.app.CubeApp;
 import com.shixincube.app.api.Explorer;
 import com.shixincube.app.manager.AccountHelper;
@@ -55,7 +56,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
  */
 public class MainPresenter extends BasePresenter<MainView> implements Observer {
 
-    private boolean useDemoData = true;
+    private boolean useDemoData = !AppConsts.FERRY_MODE;
 
     private Timer timer;
 

@@ -42,6 +42,7 @@ import com.shixincube.app.R;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.presenter.FerryPresenter;
 import com.shixincube.app.ui.view.FerryView;
+import com.shixincube.app.util.UIUtils;
 
 import butterknife.BindView;
 import cube.engine.CubeEngine;
@@ -85,6 +86,9 @@ public class FerryActivity extends BaseActivity<FerryView, FerryPresenter> imple
     @BindView(R.id.btnScanQR)
     Button btnScanQRCode;
 
+    @BindView(R.id.btnInput)
+    Button btnInputInvitation;
+
     public FerryActivity() {
         super();
     }
@@ -119,14 +123,18 @@ public class FerryActivity extends BaseActivity<FerryView, FerryPresenter> imple
     @Override
     public void initListener() {
         this.btnScanQRCode.setOnClickListener((view) -> {
-            presenter.processQRCodeResult("cube://domain.demo-ferryhouse-cube");
-//            ScanOptions options = new ScanOptions();
-//            options.setDesiredBarcodeFormats(ScanOptions.QR_CODE);
-//            options.setCameraId(0);
-//            options.setOrientationLocked(true);
-//            options.setBeepEnabled(true);
-//            options.setPrompt(UIUtils.getString(R.string.scan_qr_prompt));
-//            barcodeLauncher.launch(options);
+//            presenter.processQRCodeResult("cube://domain.demo-ferryhouse-cube");
+            ScanOptions options = new ScanOptions();
+            options.setDesiredBarcodeFormats(ScanOptions.QR_CODE);
+            options.setCameraId(0);
+            options.setOrientationLocked(true);
+            options.setBeepEnabled(true);
+            options.setPrompt(UIUtils.getString(R.string.scan_qr_prompt));
+            barcodeLauncher.launch(options);
+        });
+
+        this.btnInputInvitation.setOnClickListener((view) -> {
+            UIUtils.showToast(UIUtils.getString(R.string.developing));
         });
     }
 
@@ -143,6 +151,11 @@ public class FerryActivity extends BaseActivity<FerryView, FerryPresenter> imple
     @Override
     public Button getScanQRButton() {
         return this.btnScanQRCode;
+    }
+
+    @Override
+    public Button getInputInvitationButton() {
+        return this.btnInputInvitation;
     }
 
     @Override

@@ -24,16 +24,15 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app.ui.view;
+package cube.ferry.handler;
 
-import android.widget.Button;
+import cube.core.handler.CallbackHandler;
+import cube.ferry.model.DomainMember;
 
 /**
- * Ferry View
+ * 域成员句柄。
  */
-public interface FerryView {
+public interface DomainMemberHandler extends CallbackHandler {
 
-    Button getScanQRButton();
-
-    Button getInputInvitationButton();
+    void handleDomainMember(DomainMember member);
 }

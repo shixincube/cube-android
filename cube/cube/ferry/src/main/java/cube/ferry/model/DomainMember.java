@@ -26,6 +26,9 @@
 
 package cube.ferry.model;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import cube.core.model.Entity;
 
 /**
@@ -33,7 +36,88 @@ import cube.core.model.Entity;
  */
 public class DomainMember extends Entity {
 
-    public DomainMember() {
+    private String domainName;
 
+    private Long contactId;
+
+    private JoinWay joinWay;
+
+    private long joinTime;
+
+    private Role role;
+
+    private int state;
+
+    public DomainMember(String domainName, Long contactId, JoinWay joinWay, long joinTime, Role role) {
+        super(contactId);
+        this.domainName = domainName;
+        this.contactId = contactId;
+        this.joinWay = joinWay;
+        this.joinTime = joinTime;
+        this.role = role;
+        this.state = 0;
+    }
+
+    public DomainMember(JSONObject json) throws JSONException {
+        super(json);
+        this.domainName = json.getString("domain");
+        this.contactId = json.getLong("contactId");
+        this.joinWay = JoinWay.parse(json.getInt("joinWay"));
+        this.joinTime = json.getLong("joinTime");
+        this.role = Role.parse(json.getInt("role"));
+        this.state = json.getInt("state");
+    }
+
+    public String getDomainName() {
+        return this.domainName;
+    }
+
+    public Long getContactId() {
+        return this.contactId;
+    }
+
+    public void setJoinWay(JoinWay joinWay) {
+        this.joinWay = joinWay;
+    }
+
+    public JoinWay getJoinWay() {
+        return this.joinWay;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
+    }
+
+    public Role getRole() {
+        return this.role;
+    }
+
+    public void setState(int state) {
+        this.state = state;
+    }
+
+    public int getState() {
+        return this.state;
+    }
+
+    @Override
+    public JSONObject toJSON() {
+        JSONObject json = super.toJSON();
+        try {
+            json.put("domain", this.domainName);
+            json.put("contactId", this.contactId.longValue());
+            json.put("joinWay", this.joinWay.code);
+            json.put("joinTime", this.joinTime);
+            json.put("role", this.role.code);
+            json.put("state", this.state);
+        } catch (JSONException e) {
+            // Nothing
+        }
+        return json;
+    }
+
+    @Override
+    public JSONObject toCompactJSON() {
+        return this.toJSON();
     }
 }

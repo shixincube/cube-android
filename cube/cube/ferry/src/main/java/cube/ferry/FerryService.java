@@ -43,7 +43,9 @@ import cube.core.PipelineState;
 import cube.core.handler.FailureHandler;
 import cube.core.handler.PipelineHandler;
 import cube.ferry.handler.DomainHandler;
+import cube.ferry.handler.DomainMemberHandler;
 import cube.ferry.model.DomainMember;
+import cube.ferry.model.JoinWay;
 import cube.util.LogUtils;
 
 /**
@@ -143,7 +145,10 @@ public class FerryService extends Module {
 
                     List<DomainMember> members = new ArrayList<>();
                     JSONArray array = data.getJSONArray("members");
-                    // TODO read list
+                    for (int i = 0; i < array.length(); ++i) {
+                        JSONObject memberJson = array.getJSONObject(i);
+                        members.add(new DomainMember(memberJson));
+                    }
 
                     if (successHandler.isInMainThread()) {
                         executeOnMainThread(() -> {
@@ -152,6 +157,72 @@ public class FerryService extends Module {
                     }
                     else {
                         successHandler.handleDomain(authDomain, members);
+                    }
+                } catch (JSONException e) {
+                    LogUtils.w(TAG, e);
+                    ModuleError error = new ModuleError(FerryService.NAME,
+                            FerryServiceState.DataFormatError.code);
+                    execute(failureHandler, error);
+                }
+            }
+        });
+    }
+
+    /**
+     * 加入指定域。
+     *
+     * @param domainName 指定域名称。
+     * @param contactId 指定联系人 ID 。
+     * @param successHandler 操作成功回调句柄。
+     * @param failureHandler 操作失败回调句柄。
+     */
+    public void joinDomain(String domainName, long contactId,
+                           DomainMemberHandler successHandler,
+                           FailureHandler failureHandler) {
+        if (!this.pipeline.isReady()) {
+            // 数据通道未就绪
+            ModuleError error = new ModuleError(NAME, FerryServiceState.NoNetwork.code);
+            execute(failureHandler, error);
+            return;
+        }
+
+        JSONObject packetData = new JSONObject();
+        try {
+            packetData.put("domain", domainName);
+            packetData.put("contactId", contactId);
+            packetData.put("way", JoinWay.QRCode.code);
+        } catch (JSONException e) {
+            LogUtils.w(TAG, "#joinDomain", e);
+        }
+
+        Packet requestPacket = new Packet(FerryServiceAction.JoinDomain, packetData);
+        this.pipeline.send(FerryService.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    ModuleError error = new ModuleError(FerryService.NAME, packet.state.code);
+                    execute(failureHandler, error);
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != FerryServiceState.Ok.code) {
+                    ModuleError error = new ModuleError(FerryService.NAME, stateCode);
+                    execute(failureHandler, error);
+                    return;
+                }
+
+                JSONObject data = packet.extractServiceData();
+                try {
+                    DomainMember domainMember = new DomainMember(data);
+
+                    if (successHandler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            successHandler.handleDomainMember(domainMember);
+                        });
+                    }
+                    else {
+                        successHandler.handleDomainMember(domainMember);
                     }
                 } catch (JSONException e) {
                     LogUtils.w(TAG, e);

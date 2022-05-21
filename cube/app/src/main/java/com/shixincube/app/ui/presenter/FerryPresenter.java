@@ -31,6 +31,7 @@ import android.content.DialogInterface;
 import androidx.appcompat.app.AlertDialog;
 
 import com.shixincube.app.R;
+import com.shixincube.app.manager.AccountHelper;
 import com.shixincube.app.manager.CubeConnection;
 import com.shixincube.app.ui.activity.MainActivity;
 import com.shixincube.app.ui.base.BaseActivity;
@@ -51,6 +52,7 @@ import cube.engine.util.Promise;
 import cube.engine.util.PromiseFuture;
 import cube.engine.util.PromiseHandler;
 import cube.ferry.FerryService;
+import cube.ferry.handler.DefaultDomainMemberHandler;
 import cube.ferry.handler.DomainHandler;
 import cube.ferry.model.DomainMember;
 import cube.util.LogUtils;
@@ -122,13 +124,31 @@ public class FerryPresenter extends BasePresenter<FerryView> {
                 service.getAuthDomain(domainName, new DomainHandler() {
                     @Override
                     public void handleDomain(AuthDomain authDomain, List<DomainMember> members) {
-                        // 更新域
-                        updateDomain(authDomain);
+                        // 加入域
+                        service.joinDomain(domainName,
+                                AccountHelper.getInstance().getCurrentAccount().id,
+                                new DefaultDomainMemberHandler() {
+                                    @Override
+                                    public void handleDomainMember(DomainMember member) {
+                                        // 重置域
+                                        resetDomain(authDomain, members);
+                                    }
+                                }, new DefaultFailureHandler(true) {
+                                    @Override
+                                    public void handleFailure(Module module, ModuleError error) {
+                                        // 隐藏对话框
+                                        activity.hideWaitingDialog();
+
+                                        UIUtils.showToast(UIUtils.getString(R.string.ferry_join_domain_failed));
+
+                                        LogUtils.d(TAG, "#joinDomain - " + error.code);
+                                    }
+                                });
                     }
 
                     @Override
                     public boolean isInMainThread() {
-                        return true;
+                        return false;
                     }
                 }, new DefaultFailureHandler(true) {
                     @Override
@@ -145,7 +165,7 @@ public class FerryPresenter extends BasePresenter<FerryView> {
         builder.show();
     }
 
-    private void updateDomain(AuthDomain authDomain) {
+    private void resetDomain(AuthDomain authDomain, List<DomainMember> memberList) {
         Promise.create(new PromiseHandler<AuthDomain>() {
             @Override
             public void emit(PromiseFuture<AuthDomain> promise) {
@@ -179,7 +199,7 @@ public class FerryPresenter extends BasePresenter<FerryView> {
 
                 UIUtils.showToast(UIUtils.getString(R.string.ferry_join_domain_failed));
 
-                LogUtils.d(TAG, "#updateDomain - Reset engine failed: "
+                LogUtils.d(TAG, "#resetDomain - Reset engine failed: "
                         + authDomain.domainName);
             }
         }).launch();

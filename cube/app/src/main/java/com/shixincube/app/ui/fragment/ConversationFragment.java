@@ -27,6 +27,7 @@
 package com.shixincube.app.ui.fragment;
 
 import android.os.Bundle;
+import android.widget.LinearLayout;
 
 import com.shixincube.app.R;
 import com.shixincube.app.ui.activity.MainActivity;
@@ -47,6 +48,9 @@ import cube.util.Observer;
  * 最近消息会话界面。
  */
 public class ConversationFragment extends BaseFragment<ConversationView, ConversationPresenter> implements ConversationView, Observer {
+
+    @BindView(R.id.llState)
+    LinearLayout layoutState;
 
     @BindView(R.id.rvConversations)
     RecyclerView recentConversationView;

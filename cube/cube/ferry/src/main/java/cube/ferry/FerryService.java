@@ -44,6 +44,7 @@ import cube.core.handler.FailureHandler;
 import cube.core.handler.PipelineHandler;
 import cube.ferry.handler.DomainHandler;
 import cube.ferry.handler.DomainMemberHandler;
+import cube.ferry.handler.DetectHandler;
 import cube.ferry.model.DomainMember;
 import cube.ferry.model.JoinWay;
 import cube.util.LogUtils;
@@ -96,6 +97,29 @@ public class FerryService extends Module {
     @Override
     public boolean isReady() {
         return true;
+    }
+
+    /**
+     * 探测域。
+     *
+     * @param handler
+     */
+    public void detectDomain(DetectHandler handler) {
+        if (!this.pipeline.isReady()) {
+            if (handler.isInMainThread()) {
+                executeOnMainThread(() -> {
+                    handler.handlePing(false, 0);
+                });
+            }
+            else {
+                execute(() -> {
+                    handler.handlePing(false, 0);
+                });
+            }
+            return;
+        }
+
+
     }
 
     /**

@@ -29,6 +29,7 @@ package com.shixincube.app.ui.presenter;
 import android.text.TextUtils;
 
 import com.shixincube.app.AppConsts;
+import com.shixincube.app.CubeApp;
 import com.shixincube.app.R;
 import com.shixincube.app.api.Explorer;
 import com.shixincube.app.api.StateCode;
@@ -37,6 +38,7 @@ import com.shixincube.app.model.Account;
 import com.shixincube.app.model.response.AccountInfoResponse;
 import com.shixincube.app.model.response.LoginResponse;
 import com.shixincube.app.ui.activity.MainActivity;
+import com.shixincube.app.ui.activity.SplashActivity;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.RegisterView;
@@ -255,8 +257,15 @@ public class RegisterPresenter extends BasePresenter<RegisterView> {
                     AccountHelper.getInstance(activity.getApplicationContext())
                             .setCurrentAccount(account);
 
-                    activity.jumpToActivityAndClearTask(MainActivity.class);
-                    activity.finish();
+                    if (AppConsts.FERRY_MODE) {
+                        CubeApp.getMainThreadHandler().post(() -> {
+                            // 跳转到闪屏，以便从闪屏连接引擎
+                            activity.jumpToActivityAndClearTask(SplashActivity.class);
+                        });
+                    }
+                    else {
+                        activity.jumpToActivityAndClearTask(MainActivity.class);
+                    }
                 }, this::loginError);
     }
 

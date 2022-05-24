@@ -24,34 +24,19 @@
  * SOFTWARE.
  */
 
-package cube.ferry;
+package com.shixincube.app.model;
 
 /**
- * 数据摆渡服务动作定义。
+ * ICE 服务器。
  */
-public final class FerryServiceAction {
+public class IceServer {
 
-    /**
-     * 查询域。
-     */
-    public final static String QueryDomain = "queryDomain";
+    public String urls;
 
-    /**
-     * 加入域。
-     */
-    public final static String JoinDomain = "joinDomain";
+    public String credential;
 
-    /**
-     * 退出域。
-     */
-    public final static String QuitDomain = "quitDomain";
+    public String username;
 
-    /**
-     * Ping
-     */
-    public final static String Ping = "ping";
-
-
-    private FerryServiceAction() {
+    public IceServer() {
     }
 }

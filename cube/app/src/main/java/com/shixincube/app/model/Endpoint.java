@@ -24,34 +24,17 @@
  * SOFTWARE.
  */
 
-package cube.ferry;
+package com.shixincube.app.model;
 
 /**
- * 数据摆渡服务动作定义。
+ * 接入点。
  */
-public final class FerryServiceAction {
+public class Endpoint {
 
-    /**
-     * 查询域。
-     */
-    public final static String QueryDomain = "queryDomain";
+    public String host;
 
-    /**
-     * 加入域。
-     */
-    public final static String JoinDomain = "joinDomain";
+    public int port;
 
-    /**
-     * 退出域。
-     */
-    public final static String QuitDomain = "quitDomain";
-
-    /**
-     * Ping
-     */
-    public final static String Ping = "ping";
-
-
-    private FerryServiceAction() {
+    public Endpoint() {
     }
 }

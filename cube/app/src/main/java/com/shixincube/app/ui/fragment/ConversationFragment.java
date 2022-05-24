@@ -27,8 +27,10 @@
 package com.shixincube.app.ui.fragment;
 
 import android.os.Bundle;
+import android.view.View;
 import android.widget.LinearLayout;
 
+import com.shixincube.app.AppConsts;
 import com.shixincube.app.R;
 import com.shixincube.app.ui.activity.MainActivity;
 import com.shixincube.app.ui.base.BaseFragment;
@@ -40,7 +42,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import butterknife.BindView;
 import cube.engine.CubeEngine;
+import cube.ferry.handler.DefaultDetectHandler;
 import cube.messaging.MessagingServiceEvent;
+import cube.util.LogUtils;
 import cube.util.ObservableEvent;
 import cube.util.Observer;
 
@@ -100,6 +104,23 @@ public class ConversationFragment extends BaseFragment<ConversationView, Convers
         }
 
         CubeEngine.getInstance().getMessagingService().setConversationEventListener(this.presenter);
+
+        if (AppConsts.FERRY_MODE) {
+            CubeEngine.getInstance().getFerryService().detectDomain(new DefaultDetectHandler() {
+                @Override
+                public void handleResult(boolean online, long duration) {
+                    LogUtils.d("ConversationFragment", "#detectDomain : "
+                            + online + " - " + duration);
+
+                    if (online) {
+                        layoutState.setVisibility(View.GONE);
+                    }
+                    else {
+                        layoutState.setVisibility(View.VISIBLE);
+                    }
+                }
+            });
+        }
     }
 
     @Override

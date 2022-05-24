@@ -31,6 +31,7 @@ import com.google.gson.GsonBuilder;
 import com.shixincube.app.AppConsts;
 import com.shixincube.app.CubeApp;
 import com.shixincube.app.manager.AccountHelper;
+import com.shixincube.app.model.Domain;
 import com.shixincube.app.model.request.CheckPhoneRequest;
 import com.shixincube.app.model.request.LoginRequest;
 import com.shixincube.app.model.request.RegisterRequest;
@@ -211,6 +212,17 @@ public class Explorer {
      */
     public Observable<SearchAccountResultResponse> searchAccount(String phoneNumber) {
         return this.api.searchAccount(AccountHelper.getInstance().getTokenCode(), phoneNumber);
+    }
+
+    /**
+     * 获取指定域数据。
+     *
+     * @param domainName
+     * @param appKey
+     * @return
+     */
+    public Observable<Domain> getDomain(String domainName, String appKey) {
+        return this.api.getDomain(domainName, appKey);
     }
 
     private RequestBody getRequestBody(Object object) {

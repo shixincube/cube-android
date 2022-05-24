@@ -33,5 +33,5 @@ import cube.core.handler.CallbackHandler;
  */
 public interface DetectHandler extends CallbackHandler {
 
-    void handlePing(boolean online, long duration);
+    void handleResult(boolean online, long duration);
 }

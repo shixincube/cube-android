@@ -26,6 +26,7 @@
 
 package com.shixincube.app.api;
 
+import com.shixincube.app.model.Domain;
 import com.shixincube.app.model.response.AccountInfoResponse;
 import com.shixincube.app.model.response.CheckPhoneResponse;
 import com.shixincube.app.model.response.ContactZoneResponse;
@@ -134,6 +135,16 @@ public interface AppInterface {
      */
     @GET("/account/search/")
     Observable<SearchAccountResultResponse> searchAccount(@Query("token") String token, @Query("phone") String phoneNumber);
+
+    /**
+     * 获取指定的域数据。
+     *
+     * @param domainName
+     * @param appKey
+     * @return
+     */
+    @GET("/cube/domain/")
+    Observable<Domain> getDomain(@Query("domain") String domainName, @Query("appKey") String appKey);
 
     /**
      * 下载文件。

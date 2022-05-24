@@ -29,22 +29,14 @@ package cube.engine.service;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.IBinder;
 
 import androidx.annotation.Nullable;
 
-import org.json.JSONObject;
-
-import java.io.File;
-
 import cube.core.KernelConfig;
 import cube.engine.CubeEngine;
 import cube.engine.handler.EngineHandler;
-import cube.engine.util.FileUtils;
-import cube.util.LogUtils;
 
 /**
  * 自动化配置魔方服务。
@@ -233,36 +225,7 @@ public class CubeService extends Service {
 
     private KernelConfig readConfig() {
         Context context = getApplicationContext();
-        KernelConfig config = null;
-        try {
-            File path = FileUtils.getFilePath(context, "cube");
-            File configFile = new File(path, "cube.config");
-            if (configFile.exists()) {
-                LogUtils.d("CubeService", "#readConfig - Load config domain");
-
-                JSONObject data = FileUtils.readJSONFile(configFile);
-                String address = data.getString("CUBE_ADDRESS");
-                int port = data.getInt("CUBE_PORT");
-                String domain = data.getString("CUBE_DOMAIN");
-                String appKey = data.getString("CUBE_APPKEY");
-                config = new KernelConfig(address, port, domain, appKey);
-            }
-            else {
-                ApplicationInfo appInfo = context.getPackageManager().getApplicationInfo(context.getPackageName(),
-                        PackageManager.GET_META_DATA);
-                String address = appInfo.metaData.getString("CUBE_ADDRESS");
-                int port = appInfo.metaData.containsKey("CUBE_PORT") ? appInfo.metaData.getInt("CUBE_PORT") : 7000;
-                String domain = appInfo.metaData.getString("CUBE_DOMAIN");
-                String appKey = appInfo.metaData.getString("CUBE_APPKEY");
-
-                if (null != address && null != domain && null != appKey) {
-                    config = new KernelConfig(address, port, domain, appKey);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return config;
+        return CubeEngine.getInstance().loadConfig(context);
     }
 
     private class Failure {

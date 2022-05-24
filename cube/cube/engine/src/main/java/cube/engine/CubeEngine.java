@@ -32,6 +32,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -303,6 +305,81 @@ public class CubeEngine implements Observer {
         });
 
         return true;
+    }
+
+    /**
+     * 读取内核配置信息。
+     *
+     * @param context 应用程序上下文。
+     * @return 返回内核配置。
+     */
+    public KernelConfig loadConfig(Context context) {
+        KernelConfig config = null;
+        try {
+            File path = FileUtils.getFilePath(context, "cube");
+            File configFile = new File(path, "cube.config");
+            if (configFile.exists()) {
+                LogUtils.d("CubeEngine", "#loadConfig - Load config from config file");
+
+                JSONObject data = FileUtils.readJSONFile(configFile);
+                String address = data.getString("CUBE_ADDRESS");
+                int port = data.getInt("CUBE_PORT");
+                String domain = data.getString("CUBE_DOMAIN");
+                String appKey = data.getString("CUBE_APPKEY");
+                config = new KernelConfig(address, port, domain, appKey);
+            }
+            else {
+                ApplicationInfo appInfo = context.getPackageManager().getApplicationInfo(context.getPackageName(),
+                        PackageManager.GET_META_DATA);
+                String address = appInfo.metaData.getString("CUBE_ADDRESS");
+                int port = appInfo.metaData.containsKey("CUBE_PORT") ? appInfo.metaData.getInt("CUBE_PORT") : 7000;
+                String domain = appInfo.metaData.getString("CUBE_DOMAIN");
+                String appKey = appInfo.metaData.getString("CUBE_APPKEY");
+
+                if (null != address && null != domain && null != appKey) {
+                    config = new KernelConfig(address, port, domain, appKey);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return config;
+    }
+
+    /**
+     * 保存新的配置数据。
+     *
+     * @param context
+     * @param address
+     * @param port
+     * @param domainName
+     * @param appKey
+     * @return
+     */
+    public boolean saveConfig(Context context, String address, int port,
+                           String domainName, String appKey) {
+        // 写入配置文件
+        File path = FileUtils.getFilePath(context, "cube");
+        File configFile = new File(path, "cube.config");
+        JSONObject data = new JSONObject();
+        try {
+            data.put("CUBE_ADDRESS", address);
+            data.put("CUBE_PORT", port);
+            data.put("CUBE_DOMAIN", domainName);
+            data.put("CUBE_APPKEY", appKey);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        if (!FileUtils.writeJSONFile(configFile, data)) {
+            LogUtils.w("CubeEngine", "#saveConfig - Write config file failed: "
+                    + configFile.getName());
+            return false;
+        }
+        else {
+            LogUtils.i("CubeEngine", "#saveConfig success");
+            return true;
+        }
     }
 
     @Override

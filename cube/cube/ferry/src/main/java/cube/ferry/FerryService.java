@@ -26,6 +26,9 @@
 
 package cube.ferry;
 
+import android.util.MutableBoolean;
+import android.util.MutableLong;
+
 import androidx.annotation.Nullable;
 
 import org.json.JSONArray;
@@ -35,6 +38,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
+import cube.auth.AuthService;
 import cube.auth.model.AuthDomain;
 import cube.core.Module;
 import cube.core.ModuleError;
@@ -42,9 +46,9 @@ import cube.core.Packet;
 import cube.core.PipelineState;
 import cube.core.handler.FailureHandler;
 import cube.core.handler.PipelineHandler;
+import cube.ferry.handler.DetectHandler;
 import cube.ferry.handler.DomainHandler;
 import cube.ferry.handler.DomainMemberHandler;
-import cube.ferry.handler.DetectHandler;
 import cube.ferry.model.DomainMember;
 import cube.ferry.model.JoinWay;
 import cube.util.LogUtils;
@@ -108,18 +112,82 @@ public class FerryService extends Module {
         if (!this.pipeline.isReady()) {
             if (handler.isInMainThread()) {
                 executeOnMainThread(() -> {
-                    handler.handlePing(false, 0);
+                    handler.handleResult(false, 0);
                 });
             }
             else {
                 execute(() -> {
-                    handler.handlePing(false, 0);
+                    handler.handleResult(false, 0);
                 });
             }
             return;
         }
 
+        JSONObject packetData = new JSONObject();
+        try {
+            packetData.put("domain", AuthService.getDomain());
+            packetData.put("touch", true);
+        } catch (JSONException e) {
+            LogUtils.w(TAG, "#getAuthDomain", e);
+        }
 
+        Packet requestPacket = new Packet(FerryServiceAction.Ping, packetData);
+        this.pipeline.send(FerryService.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    LogUtils.w(TAG, "#detectDomain - " + packet.state.code);
+                    if (handler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            handler.handleResult(false, 0);
+                        });
+                    }
+                    else {
+                        execute(() -> {
+                            handler.handleResult(false, 0);
+                        });
+                    }
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != FerryServiceState.Ok.code) {
+                    LogUtils.w(TAG, "#detectDomain - " + stateCode);
+                    if (handler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            handler.handleResult(false, 0);
+                        });
+                    }
+                    else {
+                        execute(() -> {
+                            handler.handleResult(false, 0);
+                        });
+                    }
+                    return;
+                }
+
+                JSONObject data = packet.extractServiceData();
+                MutableBoolean online = new MutableBoolean(false);
+                MutableLong duration = new MutableLong(0);
+                try {
+                    online.value = data.getBoolean("online");
+                    duration.value = data.getLong("duration");
+                } catch (JSONException e) {
+                    LogUtils.w(TAG, "#detectDomain", e);
+                }
+
+                if (handler.isInMainThread()) {
+                    executeOnMainThread(() -> {
+                        handler.handleResult(online.value, duration.value);
+                    });
+                }
+                else {
+                    execute(() -> {
+                        handler.handleResult(online.value, duration.value);
+                    });
+                }
+            }
+        });
     }
 
     /**

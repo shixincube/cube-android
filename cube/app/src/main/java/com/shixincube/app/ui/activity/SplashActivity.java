@@ -50,6 +50,8 @@ import java.util.Date;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import butterknife.BindView;
+import cube.core.KernelConfig;
+import cube.engine.CubeEngine;
 import cube.engine.service.CubeService;
 import cube.engine.util.Future;
 import cube.engine.util.Promise;
@@ -97,7 +99,9 @@ public class SplashActivity extends BaseActivity {
         this.requestPermission();
 
         // 启动
-        this.launch();
+        checkEngineConfig(() -> {
+            launch();
+        });
     }
 
     @Override
@@ -289,5 +293,34 @@ public class SplashActivity extends BaseActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void checkEngineConfig(Runnable callback) {
+        KernelConfig config = CubeEngine.getInstance().loadConfig(getApplicationContext());
+
+        Explorer.getInstance().getDomain(config.domain, config.appKey)
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.io())
+                .doOnError(error -> {
+                    LogUtils.w(TAG, "#checkEngineConfig", error);
+
+                    runOnUiThread(() -> {
+                        callback.run();
+                    });
+                })
+                .subscribe(domain -> {
+                    if (!domain.mainEndpoint.host.equals(config.address) ||
+                        domain.mainEndpoint.port != config.port) {
+                        // 配置信息与当前信息不符
+                        LogUtils.i(TAG, "Reset config file");
+                        CubeEngine.getInstance().saveConfig(getApplicationContext(),
+                                domain.mainEndpoint.host, domain.mainEndpoint.port,
+                                domain.domainName, domain.appKey);
+                    }
+
+                    runOnUiThread(() -> {
+                        callback.run();
+                    });
+                });
     }
 }

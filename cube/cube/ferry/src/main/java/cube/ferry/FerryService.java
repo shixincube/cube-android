@@ -26,9 +26,6 @@
 
 package cube.ferry;
 
-import android.util.MutableBoolean;
-import android.util.MutableLong;
-
 import androidx.annotation.Nullable;
 
 import org.json.JSONArray;
@@ -37,6 +34,8 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 import cube.auth.AuthService;
 import cube.auth.model.AuthDomain;
@@ -67,8 +66,11 @@ public class FerryService extends Module {
 
     private FerryPipelineListener pipelineListener;
 
+    private List<FerryEventListener> listeners;
+
     public FerryService() {
         super(NAME);
+        this.listeners = new ArrayList<>();
     }
 
     @Override
@@ -104,9 +106,35 @@ public class FerryService extends Module {
     }
 
     /**
+     * 添加事件监听器。
+     *
+     * @param listener 监听器实例。
+     */
+    public void addEventListener(FerryEventListener listener) {
+        synchronized (this.listeners) {
+            if (this.listeners.contains(listener)) {
+                return;
+            }
+
+            this.listeners.add(listener);
+        }
+    }
+
+    /**
+     * 移除事件监听器。
+     *
+     * @param listener 监听器实例。
+     */
+    public void removeEventListener(FerryEventListener listener) {
+        synchronized (this.listeners) {
+            this.listeners.remove(listener);
+        }
+    }
+
+    /**
      * 探测域。
      *
-     * @param handler
+     * @param handler 探测结果回调句柄。
      */
     public void detectDomain(DetectHandler handler) {
         if (!this.pipeline.isReady()) {
@@ -167,23 +195,23 @@ public class FerryService extends Module {
                 }
 
                 JSONObject data = packet.extractServiceData();
-                MutableBoolean online = new MutableBoolean(false);
-                MutableLong duration = new MutableLong(0);
+                AtomicBoolean online = new AtomicBoolean(false);
+                AtomicLong duration = new AtomicLong(0);
                 try {
-                    online.value = data.getBoolean("online");
-                    duration.value = data.getLong("duration");
+                    online.set(data.getBoolean("online"));
+                    duration.set(data.getLong("duration"));
                 } catch (JSONException e) {
                     LogUtils.w(TAG, "#detectDomain", e);
                 }
 
                 if (handler.isInMainThread()) {
                     executeOnMainThread(() -> {
-                        handler.handleResult(online.value, duration.value);
+                        handler.handleResult(online.get(), duration.get());
                     });
                 }
                 else {
                     execute(() -> {
-                        handler.handleResult(online.value, duration.value);
+                        handler.handleResult(online.get(), duration.get());
                     });
                 }
             }
@@ -193,9 +221,9 @@ public class FerryService extends Module {
     /**
      * 获取指定名称的访问域。
      *
-     * @param domainName
-     * @param successHandler
-     * @param failureHandler
+     * @param domainName 指定域名称。
+     * @param successHandler 指定成功回调句柄。
+     * @param failureHandler 指定失败回调句柄。
      */
     public void getAuthDomain(String domainName, DomainHandler successHandler,
                               FailureHandler failureHandler) {
@@ -324,5 +352,33 @@ public class FerryService extends Module {
                 }
             }
         });
+    }
+
+    protected void triggerOnline(Packet packet) {
+        JSONObject data = packet.extractServiceData();
+        try {
+            String domainName = data.getString("domain");
+            for (FerryEventListener listener : this.listeners) {
+                executeOnMainThread(() -> {
+                    listener.onFerryOnline(domainName);
+                });
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    protected void triggerOffline(Packet packet) {
+        JSONObject data = packet.extractServiceData();
+        try {
+            String domainName = data.getString("domain");
+            for (FerryEventListener listener : this.listeners) {
+                executeOnMainThread(() -> {
+                    listener.onFerryOffline(domainName);
+                });
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 }

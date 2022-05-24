@@ -27,41 +27,21 @@
 package cube.ferry;
 
 /**
- * 数据摆渡服务动作定义。
+ * 摆渡服务事件监听器。
  */
-public final class FerryServiceAction {
+public interface FerryEventListener {
 
     /**
-     * 域服务器上线。
+     * 摆渡服务的服务容器上线。
+     *
+     * @param domainName 工作域。
      */
-    public final static String Online = "online";
+    void onFerryOnline(String domainName);
 
     /**
-     * 域服务器离线。
+     * 摆渡服务的服务容器离线。
+     *
+     * @param domainName 工作域。
      */
-    public final static String Offline = "offline";
-
-    /**
-     * 查询域。
-     */
-    public final static String QueryDomain = "queryDomain";
-
-    /**
-     * 加入域。
-     */
-    public final static String JoinDomain = "joinDomain";
-
-    /**
-     * 退出域。
-     */
-    public final static String QuitDomain = "quitDomain";
-
-    /**
-     * Ping
-     */
-    public final static String Ping = "ping";
-
-
-    private FerryServiceAction() {
-    }
+    void onFerryOffline(String domainName);
 }

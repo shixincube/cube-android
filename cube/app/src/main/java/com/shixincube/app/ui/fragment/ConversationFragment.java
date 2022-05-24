@@ -42,6 +42,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import butterknife.BindView;
 import cube.engine.CubeEngine;
+import cube.ferry.FerryEventListener;
 import cube.ferry.handler.DefaultDetectHandler;
 import cube.messaging.MessagingServiceEvent;
 import cube.util.LogUtils;
@@ -51,7 +52,8 @@ import cube.util.Observer;
 /**
  * 最近消息会话界面。
  */
-public class ConversationFragment extends BaseFragment<ConversationView, ConversationPresenter> implements ConversationView, Observer {
+public class ConversationFragment extends BaseFragment<ConversationView, ConversationPresenter>
+        implements ConversationView, Observer, FerryEventListener {
 
     @BindView(R.id.llState)
     LinearLayout layoutState;
@@ -89,6 +91,10 @@ public class ConversationFragment extends BaseFragment<ConversationView, Convers
 
         CubeEngine.getInstance().getMessagingService().setConversationEventListener(null);
         CubeEngine.getInstance().getMessagingService().detachWithName(MessagingServiceEvent.Ready, this);
+
+        if (AppConsts.FERRY_MODE) {
+            CubeEngine.getInstance().getFerryService().removeEventListener(this);
+        }
     }
 
     @Override
@@ -120,6 +126,8 @@ public class ConversationFragment extends BaseFragment<ConversationView, Convers
                     }
                 }
             });
+
+            CubeEngine.getInstance().getFerryService().addEventListener(this);
         }
     }
 
@@ -154,5 +162,15 @@ public class ConversationFragment extends BaseFragment<ConversationView, Convers
                 }
             }
         }
+    }
+
+    @Override
+    public void onFerryOnline(String domainName) {
+        layoutState.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void onFerryOffline(String domainName) {
+        layoutState.setVisibility(View.VISIBLE);
     }
 }

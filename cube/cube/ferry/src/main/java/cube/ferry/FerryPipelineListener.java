@@ -43,7 +43,12 @@ public class FerryPipelineListener implements PipelineListener {
 
     @Override
     public void onReceived(Pipeline pipeline, String source, Packet packet) {
-
+        if (FerryServiceAction.Online.equals(packet.name)) {
+            this.service.triggerOnline(packet);
+        }
+        else if (FerryServiceAction.Offline.equals(packet.name)) {
+            this.service.triggerOffline(packet);
+        }
     }
 
     @Override

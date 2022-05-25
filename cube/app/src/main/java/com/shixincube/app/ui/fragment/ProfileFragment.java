@@ -30,6 +30,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.shixincube.app.R;
+import com.shixincube.app.ui.activity.BoxActivity;
 import com.shixincube.app.ui.activity.MainActivity;
 import com.shixincube.app.ui.activity.PreferenceActivity;
 import com.shixincube.app.ui.activity.ProfileInfoActivity;
@@ -58,6 +59,10 @@ public class ProfileFragment extends BaseFragment<ProfileView, ProfilePresenter>
 
     @BindView(R.id.oivSetting)
     OptionItemView settingItemView;
+    @BindView(R.id.oivBox)
+    OptionItemView boxItemView;
+    @BindView(R.id.oivHelp)
+    OptionItemView helpItemView;
 
     public ProfileFragment() {
         super();
@@ -71,6 +76,10 @@ public class ProfileFragment extends BaseFragment<ProfileView, ProfilePresenter>
 
         this.settingItemView.setOnClickListener((view) -> {
             ((MainActivity) getActivity()).jumpToActivityAndClearTop(PreferenceActivity.class);
+        });
+
+        this.boxItemView.setOnClickListener((view) -> {
+            ((MainActivity) getActivity()).jumpToActivityAndClearTop(BoxActivity.class);
         });
     }
 

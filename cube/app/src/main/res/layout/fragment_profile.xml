@@ -82,4 +82,44 @@
         auto:start_text_size="16sp"
         auto:end_src="@mipmap/indicator"/>
 
+    <View
+        style="?attr/styleLine"
+        android:layout_marginStart="@dimen/item_margin_start_and_end"
+        android:layout_marginEnd="@dimen/item_margin_start_and_end"/>
+
+    <!-- Cube Box -->
+    <com.shixincube.app.widget.optionitemview.OptionItemView
+        android:id="@+id/oivBox"
+        style="@style/OptionItem"
+        android:background="?attr/selectorOptionItem"
+        android:clickable="true"
+        android:focusable="true"
+        auto:start_image_margin_left="@dimen/option_item_margin_start"
+        auto:start_image_margin_right="@dimen/option_item_margin_end"
+        auto:start_src="@mipmap/ic_box"
+        auto:start_text="@string/box"
+        auto:start_text_color="?attr/colorText"
+        auto:start_text_size="16sp"
+        auto:end_src="@mipmap/indicator"/>
+
+    <View
+        style="?attr/styleLine"
+        android:layout_marginStart="@dimen/item_margin_start_and_end"
+        android:layout_marginEnd="@dimen/item_margin_start_and_end"/>
+
+    <!-- Help -->
+    <com.shixincube.app.widget.optionitemview.OptionItemView
+        android:id="@+id/oivHelp"
+        style="@style/OptionItem"
+        android:background="?attr/selectorOptionItem"
+        android:clickable="true"
+        android:focusable="true"
+        auto:start_image_margin_left="@dimen/option_item_margin_start"
+        auto:start_image_margin_right="@dimen/option_item_margin_end"
+        auto:start_src="@mipmap/ic_help"
+        auto:start_text="@string/help"
+        auto:start_text_color="?attr/colorText"
+        auto:start_text_size="16sp"
+        auto:end_src="@mipmap/indicator"/>
+
 </LinearLayout>

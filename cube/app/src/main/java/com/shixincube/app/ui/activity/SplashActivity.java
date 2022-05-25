@@ -99,9 +99,14 @@ public class SplashActivity extends BaseActivity {
         this.requestPermission();
 
         // 启动
-        checkEngineConfig(() -> {
-            launch();
-        });
+        if (AppConsts.FERRY_MODE) {
+            checkEngineConfig(() -> {
+                launch();
+            });
+        }
+        else {
+            this.launch();
+        }
     }
 
     @Override
@@ -309,13 +314,17 @@ public class SplashActivity extends BaseActivity {
                     });
                 })
                 .subscribe(domain -> {
-                    if (!domain.mainEndpoint.host.equals(config.address) ||
-                        domain.mainEndpoint.port != config.port) {
-                        // 配置信息与当前信息不符
-                        LogUtils.i(TAG, "Reset config file");
-                        CubeEngine.getInstance().saveConfig(getApplicationContext(),
-                                domain.mainEndpoint.host, domain.mainEndpoint.port,
-                                domain.domainName, domain.appKey);
+                    if (!domain.mainEndpoint.host.equals("127.0.0.1")) {
+                        // 跳过调试地址 127.0.0.1
+
+                        if (!domain.mainEndpoint.host.equals(config.address) ||
+                                domain.mainEndpoint.port != config.port) {
+                            // 配置信息与当前信息不符
+                            LogUtils.i(TAG, "Reset config file");
+                            CubeEngine.getInstance().saveConfig(getApplicationContext(),
+                                    domain.mainEndpoint.host, domain.mainEndpoint.port,
+                                    domain.domainName, domain.appKey);
+                        }
                     }
 
                     runOnUiThread(() -> {

@@ -109,6 +109,8 @@
     <string name="cube_id">魔方号</string>
     <string name="select_avatar">选择头像</string>
     <string name="modify_name">修改名称</string>
+    <string name="box">魔方讯盒</string>
+    <string name="help">帮助</string>
 
     <!-- 用户信息 -->
     <string name="nickname_colon">昵称：%1$s</string>
@@ -232,5 +234,8 @@
     <string name="ferry_tip_join_domain">是否加入“%1$s”通讯域？</string>
     <string name="ferry_join_domain_failed">加入通讯域失败</string>
     <string name="ferry_detect_failed">您的魔方讯盒已离线</string>
+
+    <!-- Box 数据界面 -->
+    <string name="box_domain">通讯域</string>
 
 </resources>

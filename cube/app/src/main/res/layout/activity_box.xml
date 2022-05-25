@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:auto="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorThemeBackground"
+    android:orientation="vertical">
+
+    <include layout="@layout/include_toolbar"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="20dp"
+        android:background="?attr/colorThemeBackground"
+        android:orientation="vertical"
+        android:visibility="gone"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorBackground"
+        android:orientation="vertical">
+
+        <!-- 深色模式 -->
+        <com.shixincube.app.widget.optionitemview.OptionItemView
+            android:id="@+id/oivDomain"
+            style="@style/OptionItem"
+            android:background="?attr/selectorOptionItem"
+            android:focusable="false"
+            android:clickable="false"
+            auto:start_text="@string/box_domain"
+            auto:start_text_color="?attr/colorText"
+            auto:start_text_size="16sp"
+            auto:start_text_margin_left="@dimen/option_item_margin_start"
+            auto:end_text=""
+            auto:end_text_color="?attr/colorTextSecondary"
+            auto:end_text_size="16sp"/>
+
+        <View
+            style="?attr/styleLine"
+            android:layout_marginStart="@dimen/item_margin_start_and_end"
+            android:layout_marginEnd="@dimen/item_margin_start_and_end"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorBackground"
+        android:layout_marginTop="@dimen/activity_vertical_margin"
+        android:orientation="vertical">
+
+    </LinearLayout>
+
+</LinearLayout>

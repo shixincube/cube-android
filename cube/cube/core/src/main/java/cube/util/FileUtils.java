@@ -24,7 +24,7 @@
  * SOFTWARE.
  */
 
-package cube.engine.util;
+package cube.util;
 
 import android.content.Context;
 import android.os.Environment;

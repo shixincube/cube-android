@@ -15,15 +15,20 @@
         android:orientation="vertical"
         android:visibility="gone"/>
 
+    <View
+        style="?attr/styleLine"
+        android:layout_marginStart="0dp"
+        android:layout_marginEnd="0dp"/>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?attr/colorBackground"
         android:orientation="vertical">
 
-        <!-- 深色模式 -->
+        <!-- 域名称 -->
         <com.shixincube.app.widget.optionitemview.OptionItemView
-            android:id="@+id/oivDomain"
+            android:id="@+id/oivDomainName"
             style="@style/OptionItem"
             android:background="?attr/selectorOptionItem"
             android:focusable="false"
@@ -40,6 +45,8 @@
             style="?attr/styleLine"
             android:layout_marginStart="@dimen/item_margin_start_and_end"
             android:layout_marginEnd="@dimen/item_margin_start_and_end"/>
+
+
 
     </LinearLayout>
 

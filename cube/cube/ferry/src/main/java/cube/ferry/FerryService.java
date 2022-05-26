@@ -32,6 +32,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -48,8 +49,10 @@ import cube.core.handler.PipelineHandler;
 import cube.ferry.handler.DetectHandler;
 import cube.ferry.handler.DomainHandler;
 import cube.ferry.handler.DomainMemberHandler;
+import cube.ferry.model.DomainInfo;
 import cube.ferry.model.DomainMember;
 import cube.ferry.model.JoinWay;
+import cube.util.FileUtils;
 import cube.util.LogUtils;
 
 /**
@@ -225,7 +228,7 @@ public class FerryService extends Module {
      * @param successHandler 指定成功回调句柄。
      * @param failureHandler 指定失败回调句柄。
      */
-    public void getAuthDomain(String domainName, DomainHandler successHandler,
+    public void getDomain(String domainName, DomainHandler successHandler,
                               FailureHandler failureHandler) {
         if (!this.pipeline.isReady()) {
             // 数据通道未就绪
@@ -263,6 +266,9 @@ public class FerryService extends Module {
                     JSONObject domainJson = data.getJSONObject("domain");
                     AuthDomain authDomain = new AuthDomain(domainJson);
 
+                    JSONObject infoJson = data.getJSONObject("info");
+                    DomainInfo domainInfo = new DomainInfo(infoJson);
+
                     List<DomainMember> members = new ArrayList<>();
                     JSONArray array = data.getJSONArray("members");
                     for (int i = 0; i < array.length(); ++i) {
@@ -270,13 +276,16 @@ public class FerryService extends Module {
                         members.add(new DomainMember(memberJson));
                     }
 
+                    // 保存数据
+                    saveDomainInfo(domainInfo);
+
                     if (successHandler.isInMainThread()) {
                         executeOnMainThread(() -> {
-                            successHandler.handleDomain(authDomain, members);
+                            successHandler.handleDomain(authDomain, domainInfo, members);
                         });
                     }
                     else {
-                        successHandler.handleDomain(authDomain, members);
+                        successHandler.handleDomain(authDomain, domainInfo, members);
                     }
                 } catch (JSONException e) {
                     LogUtils.w(TAG, e);
@@ -352,6 +361,37 @@ public class FerryService extends Module {
                 }
             }
         });
+    }
+
+    /**
+     * 获取本地存储的域信息。
+     *
+     * @return
+     */
+    public DomainInfo getLocalDomainInfo() {
+        return this.loadDomainInfo();
+    }
+
+    private boolean saveDomainInfo(DomainInfo info) {
+        File path = FileUtils.getFilePath(getContext(), "cube");
+        File file = new File(path, "domain");
+        return FileUtils.writeJSONFile(file, info.toJSON());
+    }
+
+    private DomainInfo loadDomainInfo() {
+        DomainInfo info = null;
+
+        File path = FileUtils.getFilePath(getContext(), "cube");
+        File file = new File(path, "domain");
+        try {
+            JSONObject json = FileUtils.readJSONFile(file);
+            info = new DomainInfo(json);
+        } catch (JSONException e) {
+            LogUtils.e(TAG, "#loadDomainInfo", e);
+            return null;
+        }
+
+        return info;
     }
 
     protected void triggerOnline(Packet packet) {

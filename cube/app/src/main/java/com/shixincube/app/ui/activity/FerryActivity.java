@@ -123,7 +123,6 @@ public class FerryActivity extends BaseActivity<FerryView, FerryPresenter> imple
     @Override
     public void initListener() {
         this.btnScanQRCode.setOnClickListener((view) -> {
-//            presenter.processQRCodeResult("cube://domain.demo-ferryhouse-cube");
             ScanOptions options = new ScanOptions();
             options.setDesiredBarcodeFormats(ScanOptions.QR_CODE);
             options.setCameraId(0);

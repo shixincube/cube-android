@@ -33,8 +33,8 @@ import androidx.appcompat.app.AlertDialog;
 import com.shixincube.app.R;
 import com.shixincube.app.manager.AccountHelper;
 import com.shixincube.app.manager.CubeConnection;
+import com.shixincube.app.ui.activity.FerryActivity;
 import com.shixincube.app.ui.activity.MainActivity;
-import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.FerryView;
 import com.shixincube.app.util.UIUtils;
@@ -54,6 +54,7 @@ import cube.engine.util.PromiseHandler;
 import cube.ferry.FerryService;
 import cube.ferry.handler.DefaultDomainMemberHandler;
 import cube.ferry.handler.DomainHandler;
+import cube.ferry.model.DomainInfo;
 import cube.ferry.model.DomainMember;
 import cube.util.LogUtils;
 
@@ -64,7 +65,7 @@ public class FerryPresenter extends BasePresenter<FerryView> {
 
     private final static String TAG = FerryPresenter.class.getSimpleName();
 
-    public FerryPresenter(BaseActivity activity) {
+    public FerryPresenter(FerryActivity activity) {
         super(activity);
     }
 
@@ -121,9 +122,9 @@ public class FerryPresenter extends BasePresenter<FerryView> {
                 activity.showWaitingDialog(UIUtils.getString(R.string.please_wait_a_moment));
 
                 FerryService service = CubeEngine.getInstance().getFerryService();
-                service.getAuthDomain(domainName, new DomainHandler() {
+                service.getDomain(domainName, new DomainHandler() {
                     @Override
-                    public void handleDomain(AuthDomain authDomain, List<DomainMember> members) {
+                    public void handleDomain(AuthDomain authDomain, DomainInfo domainInfo, List<DomainMember> members) {
                         // 加入域
                         service.joinDomain(domainName,
                                 AccountHelper.getInstance().getCurrentAccount().id,

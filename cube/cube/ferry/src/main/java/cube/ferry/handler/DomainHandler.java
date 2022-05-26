@@ -30,6 +30,7 @@ import java.util.List;
 
 import cube.auth.model.AuthDomain;
 import cube.core.handler.CallbackHandler;
+import cube.ferry.model.DomainInfo;
 import cube.ferry.model.DomainMember;
 
 /**
@@ -37,5 +38,5 @@ import cube.ferry.model.DomainMember;
  */
 public interface DomainHandler extends CallbackHandler {
 
-    void handleDomain(AuthDomain authDomain, List<DomainMember> members);
+    void handleDomain(AuthDomain authDomain, DomainInfo domainInfo, List<DomainMember> members);
 }

@@ -24,39 +24,17 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app.ui.activity;
+package com.shixincube.app.ui.presenter;
 
-import com.shixincube.app.R;
-import com.shixincube.app.ui.base.BaseActivity;
-import com.shixincube.app.ui.presenter.BoxPresenter;
+import com.shixincube.app.ui.activity.BoxActivity;
+import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.BoxView;
-import com.shixincube.app.util.UIUtils;
 
-/**
- * 关于界面。
- */
-public class BoxActivity extends BaseActivity<BoxView, BoxPresenter> implements BoxView {
+public class BoxPresenter extends BasePresenter<BoxView> {
 
-    public BoxActivity() {
-        super();
-    }
+    private final static String TAG = BoxPresenter.class.getSimpleName();
 
-    @Override
-    public void initView() {
-        this.setToolbarTitle(UIUtils.getString(R.string.box));
-    }
-
-    @Override
-    public void initListener() {
-    }
-
-    @Override
-    protected BoxPresenter createPresenter() {
-        return new BoxPresenter(this);
-    }
-
-    @Override
-    protected int provideContentViewId() {
-        return R.layout.activity_box;
+    public BoxPresenter(BoxActivity activity) {
+        super(activity);
     }
 }

@@ -30,11 +30,23 @@ import com.shixincube.app.ui.activity.BoxActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.BoxView;
 
+import cube.engine.CubeEngine;
+import cube.ferry.model.DomainInfo;
+
 public class BoxPresenter extends BasePresenter<BoxView> {
 
     private final static String TAG = BoxPresenter.class.getSimpleName();
 
     public BoxPresenter(BoxActivity activity) {
         super(activity);
+    }
+
+    public void loadData() {
+        DomainInfo domainInfo = CubeEngine.getInstance().getFerryService().getLocalDomainInfo();
+        if (null == domainInfo) {
+            return;
+        }
+
+        this.getView().getDomainNameView().setEndText(domainInfo.getDomainName());
     }
 }

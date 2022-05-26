@@ -31,11 +31,17 @@ import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.presenter.BoxPresenter;
 import com.shixincube.app.ui.view.BoxView;
 import com.shixincube.app.util.UIUtils;
+import com.shixincube.app.widget.optionitemview.OptionItemView;
+
+import butterknife.BindView;
 
 /**
- * 关于界面。
+ * 盒子界面。
  */
 public class BoxActivity extends BaseActivity<BoxView, BoxPresenter> implements BoxView {
+
+    @BindView(R.id.oivDomainName)
+    OptionItemView domainNameView;
 
     public BoxActivity() {
         super();
@@ -51,6 +57,11 @@ public class BoxActivity extends BaseActivity<BoxView, BoxPresenter> implements 
     }
 
     @Override
+    public void initData() {
+        this.presenter.loadData();
+    }
+
+    @Override
     protected BoxPresenter createPresenter() {
         return new BoxPresenter(this);
     }
@@ -58,5 +69,10 @@ public class BoxActivity extends BaseActivity<BoxView, BoxPresenter> implements 
     @Override
     protected int provideContentViewId() {
         return R.layout.activity_box;
+    }
+
+    @Override
+    public OptionItemView getDomainNameView() {
+        return this.domainNameView;
     }
 }

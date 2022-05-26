@@ -26,8 +26,12 @@
 
 package com.shixincube.app.ui.view;
 
+import com.shixincube.app.widget.optionitemview.OptionItemView;
+
 /**
  * 讯盒视图。
  */
 public interface BoxView {
+
+    OptionItemView getDomainNameView();
 }

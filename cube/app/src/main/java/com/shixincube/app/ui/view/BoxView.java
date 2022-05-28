@@ -34,4 +34,10 @@ import com.shixincube.app.widget.optionitemview.OptionItemView;
 public interface BoxView {
 
     OptionItemView getDomainNameView();
+
+    OptionItemView getDomainBeginningView();
+
+    OptionItemView getDomainEndingView();
+
+    OptionItemView getDomainLimitView();
 }

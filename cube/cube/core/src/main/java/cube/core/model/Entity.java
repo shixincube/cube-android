@@ -39,7 +39,7 @@ import cube.util.JSONable;
  */
 public class Entity implements JSONable, Cacheable, TimeSortable {
 
-    public final static long LIFESPAN_IN_MSEC = 7 * 24 * 60 * 60 * 1000;
+    public final static long LIFESPAN_IN_MSEC = 24 * 60 * 60 * 1000;
 
     /**
      * 实体 ID 。
@@ -127,7 +127,7 @@ public class Entity implements JSONable, Cacheable, TimeSortable {
      */
     public Entity(JSONObject json) throws JSONException {
         this.entityCreation = System.currentTimeMillis();
-        this.entityLifeExpiry = this.entityCreation + 5L * 60L * 1000L;
+        this.entityLifeExpiry = this.entityCreation + 5 * 60 * 1000;
 
         if (json.has("id"))
             this.id = json.getLong("id");

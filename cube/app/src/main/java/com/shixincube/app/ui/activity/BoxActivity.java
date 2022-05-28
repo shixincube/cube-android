@@ -43,6 +43,15 @@ public class BoxActivity extends BaseActivity<BoxView, BoxPresenter> implements 
     @BindView(R.id.oivDomainName)
     OptionItemView domainNameView;
 
+    @BindView(R.id.oivBeginning)
+    OptionItemView domainBeginningView;
+
+    @BindView(R.id.oivEnding)
+    OptionItemView domainEndingView;
+
+    @BindView(R.id.oivLimit)
+    OptionItemView domainLimitView;
+
     public BoxActivity() {
         super();
     }
@@ -74,5 +83,20 @@ public class BoxActivity extends BaseActivity<BoxView, BoxPresenter> implements 
     @Override
     public OptionItemView getDomainNameView() {
         return this.domainNameView;
+    }
+
+    @Override
+    public OptionItemView getDomainBeginningView() {
+        return this.domainBeginningView;
+    }
+
+    @Override
+    public OptionItemView getDomainEndingView() {
+        return this.domainEndingView;
+    }
+
+    @Override
+    public OptionItemView getDomainLimitView() {
+        return this.domainLimitView;
     }
 }

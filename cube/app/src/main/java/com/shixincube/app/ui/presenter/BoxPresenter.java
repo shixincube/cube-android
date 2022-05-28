@@ -30,6 +30,10 @@ import com.shixincube.app.ui.activity.BoxActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.BoxView;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 import cube.engine.CubeEngine;
 import cube.ferry.model.DomainInfo;
 
@@ -37,8 +41,11 @@ public class BoxPresenter extends BasePresenter<BoxView> {
 
     private final static String TAG = BoxPresenter.class.getSimpleName();
 
+    private SimpleDateFormat dateFormat;
+
     public BoxPresenter(BoxActivity activity) {
         super(activity);
+        this.dateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH时mm分", Locale.CHINA);
     }
 
     public void loadData() {
@@ -48,5 +55,14 @@ public class BoxPresenter extends BasePresenter<BoxView> {
         }
 
         this.getView().getDomainNameView().setEndText(domainInfo.getDomainName());
+
+        this.getView().getDomainBeginningView().setEndText(
+                this.dateFormat.format(new Date(domainInfo.getBeginning())));
+
+        this.getView().getDomainEndingView().setEndText(
+                this.dateFormat.format(new Date(domainInfo.getBeginning() + domainInfo.getDuration())));
+
+        this.getView().getDomainLimitView().setEndText(
+                Integer.toString(domainInfo.getLimit()) + " 人");
     }
 }

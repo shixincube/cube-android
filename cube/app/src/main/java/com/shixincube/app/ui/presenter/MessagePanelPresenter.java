@@ -98,7 +98,8 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
     }
 
     public void markAllRead() {
-        CubeEngine.getInstance().getMessagingService().markRead(this.conversation, new DefaultConversationHandler(false) {
+        CubeEngine.getInstance().getMessagingService().markRead(this.conversation,
+                new DefaultConversationHandler(false) {
             @Override
             public void handleConversation(Conversation conversation) {
                 // Nothing
@@ -113,7 +114,8 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
 
     public void loadMessages() {
         this.messageList.clear();
-        MessageListResult result = CubeEngine.getInstance().getMessagingService().getRecentMessages(this.conversation, this.pageSize);
+        MessageListResult result = CubeEngine.getInstance().getMessagingService()
+                .getRecentMessages(this.conversation, this.pageSize);
         this.messageList.addAll(result.getList());
         this.hasMoreMessage = result.hasMore();
 
@@ -194,6 +196,11 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
     private boolean checkState() {
         if (this.conversation.getState() == ConversationState.Destroyed) {
             return false;
+        }
+
+        // 如果 House 失效，不允许发送消息
+        if (AppConsts.FERRY_MODE) {
+
         }
 
         return true;

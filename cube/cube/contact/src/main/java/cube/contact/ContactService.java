@@ -46,6 +46,7 @@ import cube.contact.handler.ContactListHandler;
 import cube.contact.handler.ContactZoneHandler;
 import cube.contact.handler.ContactZoneListHandler;
 import cube.contact.handler.ContactZoneParticipantHandler;
+import cube.contact.handler.DefaultContactHandler;
 import cube.contact.handler.DefaultContactZoneHandler;
 import cube.contact.handler.GroupHandler;
 import cube.contact.handler.SignHandler;
@@ -854,6 +855,25 @@ public class ContactService extends Module {
 
         // 从服务器更新
         this.refreshContact(contactId, successHandler, failureHandler);
+    }
+
+    /**
+     * 更新指定联系人的缓存数据。
+     *
+     * @param contactId 指定联系人 ID 。
+     */
+    public void updateContactCache(Long contactId) {
+        this.refreshContact(contactId, new DefaultContactHandler(false) {
+            @Override
+            public void handleContact(Contact contact) {
+                // Noting
+            }
+        }, new StableFailureHandler() {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                // Noting
+            }
+        });
     }
 
     /**

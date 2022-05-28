@@ -71,9 +71,12 @@ public class FerryService extends Module {
 
     private List<FerryEventListener> listeners;
 
+    private AtomicBoolean houseOnline;
+
     public FerryService() {
         super(NAME);
         this.listeners = new ArrayList<>();
+        this.houseOnline = new AtomicBoolean(false);
     }
 
     @Override
@@ -132,6 +135,15 @@ public class FerryService extends Module {
         synchronized (this.listeners) {
             this.listeners.remove(listener);
         }
+    }
+
+    /**
+     * House 主机是否在线。
+     *
+     * @return 如果 House 主机在线返回 {@code true} 。
+     */
+    public boolean isHouseOnline() {
+        return this.houseOnline.get();
     }
 
     /**
@@ -198,10 +210,9 @@ public class FerryService extends Module {
                 }
 
                 JSONObject data = packet.extractServiceData();
-                AtomicBoolean online = new AtomicBoolean(false);
                 AtomicLong duration = new AtomicLong(0);
                 try {
-                    online.set(data.getBoolean("online"));
+                    houseOnline.set(data.getBoolean("online"));
                     duration.set(data.getLong("duration"));
                 } catch (JSONException e) {
                     LogUtils.w(TAG, "#detectDomain", e);
@@ -209,12 +220,12 @@ public class FerryService extends Module {
 
                 if (handler.isInMainThread()) {
                     executeOnMainThread(() -> {
-                        handler.handleResult(online.get(), duration.get());
+                        handler.handleResult(houseOnline.get(), duration.get());
                     });
                 }
                 else {
                     execute(() -> {
-                        handler.handleResult(online.get(), duration.get());
+                        handler.handleResult(houseOnline.get(), duration.get());
                     });
                 }
             }
@@ -395,6 +406,8 @@ public class FerryService extends Module {
     }
 
     protected void triggerOnline(Packet packet) {
+        this.houseOnline.set(true);
+
         JSONObject data = packet.extractServiceData();
         try {
             String domainName = data.getString("domain");
@@ -409,6 +422,8 @@ public class FerryService extends Module {
     }
 
     protected void triggerOffline(Packet packet) {
+        this.houseOnline.set(false);
+
         JSONObject data = packet.extractServiceData();
         try {
             String domainName = data.getString("domain");

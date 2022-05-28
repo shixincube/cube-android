@@ -145,7 +145,16 @@ public class ContactDetailsActivity extends BaseActivity<ContactDetailsView, Con
             else {
                 this.mode = MODE_STRANGE_CONTACT;
             }
+
             this.contact = CubeEngine.getInstance().getContactService().getContact(contactId);
+
+            // 更新数据
+            (new Thread() {
+                @Override
+                public void run() {
+                    CubeEngine.getInstance().getContactService().updateContactCache(contactId);
+                }
+            }).start();
         }
         else {
             this.mode = MODE_PENDING_CONTACT;

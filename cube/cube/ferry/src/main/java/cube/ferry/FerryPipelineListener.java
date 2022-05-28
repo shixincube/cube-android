@@ -29,6 +29,7 @@ package cube.ferry;
 import cube.core.Packet;
 import cube.core.Pipeline;
 import cube.core.PipelineListener;
+import cube.ferry.handler.DefaultDetectHandler;
 
 /**
  * 摆渡模块数据通道监听器。
@@ -53,7 +54,17 @@ public class FerryPipelineListener implements PipelineListener {
 
     @Override
     public void onOpened(Pipeline pipeline) {
-        // Nothing
+        (new Thread() {
+            @Override
+            public void run() {
+                service.detectDomain(new DefaultDetectHandler(false) {
+                    @Override
+                    public void handleResult(boolean online, long duration) {
+                        // Nothing
+                    }
+                });
+            }
+        }).start();
     }
 
     @Override

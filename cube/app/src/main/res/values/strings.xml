@@ -219,6 +219,7 @@
     <string name="scan_qr_prompt">请将二维码置于取景框内</string>
     <string name="unrecognized_code">无法识别的编码内容</string>
     <string name="unsupported_qr_format">不支持的编码格式</string>
+    <string name="network_failure">无法连接服务器，请确认网络连接是否可用</string>
 
     <!-- Box 相关 -->
     <string name="ferry_entering">正在加入魔方讯盒……</string>

@@ -91,7 +91,7 @@ public class FerryPresenter extends BasePresenter<FerryView> {
             return;
         }
 
-        String[] data = CodeUtils.extractResourceSegments(string);
+        String[] data = CodeUtils.extractCubeResourceSegments(string);
         if (null == data || data.length != 2) {
             AlertDialog.Builder builder = new AlertDialog.Builder(activity);
             builder.setTitle(UIUtils.getString(R.string.prompt));

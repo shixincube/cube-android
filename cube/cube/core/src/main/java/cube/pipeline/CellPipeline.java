@@ -53,6 +53,7 @@ import cube.core.Pipeline;
 import cube.core.PipelineListener;
 import cube.core.PipelineState;
 import cube.core.handler.PipelineHandler;
+import cube.util.LogUtils;
 
 /**
  * 基于 Cell 的数据通道。
@@ -217,6 +218,8 @@ public class CellPipeline extends Pipeline implements TalkListener {
 
     @Override
     public void onFailed(Speakable speakable, TalkError talkError) {
+        LogUtils.d("CellPipeline", "#onFailed - " + talkError.getErrorCode());
+
         List<PipelineListener> listeners = this.getAllListeners();
         for (PipelineListener listener : listeners) {
             listener.onFaultOccurred(this, talkError.getErrorCode(), "Pipeline error");

@@ -26,6 +26,8 @@
 
 package cube.engine.util;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -51,7 +53,7 @@ public class CodeUtils {
         return new String(buf, 0, length, StandardCharsets.UTF_8);
     }
 
-    public static String[] extractResourceSegments(String codeString) {
+    public static String[] extractCubeResourceSegments(String codeString) {
         int index = codeString.indexOf("//");
         if (index < 0) {
             return null;
@@ -59,5 +61,18 @@ public class CodeUtils {
 
         String string = codeString.substring(index + 2);
         return string.split("\\.");
+    }
+
+    public static String extractURLLastPath(String codeString) {
+        String path = null;
+        try {
+            URL url = new URL(codeString);
+            path = url.getPath().trim();
+            int index = path.lastIndexOf("/");
+            path = path.substring(index + 1);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        return path;
     }
 }

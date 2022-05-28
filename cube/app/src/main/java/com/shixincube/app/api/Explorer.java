@@ -50,6 +50,8 @@ import java.util.concurrent.TimeUnit;
 import cell.util.NetworkUtils;
 import cube.util.LogUtils;
 import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.functions.Consumer;
+import io.reactivex.rxjava3.plugins.RxJavaPlugins;
 import okhttp3.Cache;
 import okhttp3.CacheControl;
 import okhttp3.Interceptor;
@@ -84,6 +86,13 @@ public class Explorer {
                 .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
                 .build()
                 .create(AppInterface.class);
+
+        RxJavaPlugins.setErrorHandler(new Consumer<Throwable>() {
+            @Override
+            public void accept(Throwable throwable) throws Throwable {
+                LogUtils.e("Explorer", throwable);
+            }
+        });
     }
 
     public final static Explorer getInstance() {

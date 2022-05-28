@@ -46,6 +46,7 @@ import com.shixincube.app.util.UIUtils;
 
 import butterknife.BindView;
 import cube.engine.CubeEngine;
+import cube.util.LogUtils;
 
 /**
  * Ferry 模式检查。
@@ -95,6 +96,8 @@ public class FerryActivity extends BaseActivity<FerryView, FerryPresenter> imple
 
     @Override
     public void init() {
+        LogUtils.d(TAG, "#init");
+
         if (CubeEngine.getInstance().getConfig().domain.equals("shixincube.com")) {
             this.validBox = false;
         }

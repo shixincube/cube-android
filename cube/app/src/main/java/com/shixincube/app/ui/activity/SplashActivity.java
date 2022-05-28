@@ -34,6 +34,7 @@ import android.widget.Button;
 import android.widget.RelativeLayout;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 
 import com.jaeger.library.StatusBarUtil;
 import com.shixincube.app.AppConsts;
@@ -100,8 +101,20 @@ public class SplashActivity extends BaseActivity {
 
         // 启动
         if (AppConsts.FERRY_MODE) {
-            checkEngineConfig(() -> {
-                launch();
+            checkEngineConfig(new ResultCallback() {
+                @Override
+                public void onResult(boolean ok) {
+                    if (ok) {
+                        launch();
+                    }
+                    else {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(SplashActivity.this);
+                        builder.setTitle(UIUtils.getString(R.string.prompt));
+                        builder.setMessage(UIUtils.getString(R.string.network_failure));
+                        builder.setNegativeButton(UIUtils.getString(R.string.sure), null);
+                        builder.show();
+                    }
+                }
             });
         }
         else {
@@ -272,6 +285,7 @@ public class SplashActivity extends BaseActivity {
 
     private void login(String tokenCode) {
         String device = DeviceUtils.getDeviceDescription(this.getApplicationContext());
+        // 登录到 App 服务器
         Explorer.getInstance().login(tokenCode, device)
                 .subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.io())
@@ -283,24 +297,34 @@ public class SplashActivity extends BaseActivity {
                             "Login expire: " + (new Date(loginResponse.expire).toString()));
                 });
 
-        try {
-            Explorer.getInstance().getAccountInfo(tokenCode)
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(Schedulers.io())
-                    .doOnError(error -> {
-                        LogUtils.w(TAG, "#login - getAccountInfo", error);
-                    })
-                    .subscribe(accountInfoResponse -> {
-                        // 更新本地数据
-                        AccountHelper.getInstance().updateCurrentAccount(accountInfoResponse.name,
-                                accountInfoResponse.avatar);
-                    });
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        // 更新账号数据
+        Explorer.getInstance().getAccountInfo(tokenCode)
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.io())
+                .doOnError(error -> {
+                    LogUtils.w(TAG, "#login - getAccountInfo", error);
+                })
+                .subscribe(accountInfoResponse -> {
+                    // 更新本地数据
+                    AccountHelper.getInstance().updateCurrentAccount(accountInfoResponse.name,
+                            accountInfoResponse.avatar);
+
+                    if (valid && !jumpToMain) {
+                        jumpToMain = true;
+
+                        runOnUiThread(() -> {
+                            if (AppConsts.FERRY_MODE) {
+                                jumpToActivityAndClearTask(FerryActivity.class);
+                            }
+                            else {
+                                jumpToActivityAndClearTask(MainActivity.class);
+                            }
+                        });
+                    }
+                });
     }
 
-    private void checkEngineConfig(Runnable callback) {
+    private void checkEngineConfig(ResultCallback callback) {
         KernelConfig config = CubeEngine.getInstance().loadConfig(getApplicationContext());
 
         Explorer.getInstance().getDomain(config.domain, config.appKey)
@@ -310,7 +334,7 @@ public class SplashActivity extends BaseActivity {
                     LogUtils.w(TAG, "#checkEngineConfig", error);
 
                     runOnUiThread(() -> {
-                        callback.run();
+                        callback.onResult(false);
                     });
                 })
                 .subscribe(domain -> {
@@ -328,8 +352,16 @@ public class SplashActivity extends BaseActivity {
                     }
 
                     runOnUiThread(() -> {
-                        callback.run();
+                        callback.onResult(true);
                     });
                 });
+    }
+
+
+    public abstract class ResultCallback {
+        public ResultCallback() {
+        }
+
+        public abstract void onResult(boolean ok);
     }
 }

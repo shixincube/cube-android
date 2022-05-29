@@ -60,4 +60,26 @@
 
     </LinearLayout>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:layout_marginTop="@dimen/activity_vertical_margin"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/btnQuit"
+            android:layout_width="280dp"
+            android:layout_height="@dimen/strip_button_height"
+            android:layout_gravity="center_horizontal"
+            android:gravity="center"
+            android:background="@drawable/selector_primary_button"
+            android:enabled="true"
+            android:text="@string/ferry_btn_quit"
+            android:textColor="?attr/colorButtonPrimaryText"
+            android:textSize="16sp"/>
+
+    </LinearLayout>
+
 </LinearLayout>

@@ -57,6 +57,11 @@ public enum FerryServiceState {
     InvalidToken(12),
 
     /**
+     * 未找到成员。
+     */
+    NotFindMember(14),
+
+    /**
      * 未知的状态。
      */
     Unknown(99),
@@ -69,7 +74,12 @@ public enum FerryServiceState {
     /**
      * 数据格式错误。
      */
-    DataFormatError(105)
+    DataFormatError(105),
+
+    /**
+     * 不是该域成员。
+     */
+    NoMember(106)
 
     ;
 

@@ -24,6 +24,15 @@
         <item name="android:backgroundDimAmount">0.6</item>
     </style>
 
+    <!-- AlertDialog 确定按钮样式 -->
+    <style name="AlertDialogPositiveButtonStyle" parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
+        <item name="android:textColor">@color/button_primary</item>
+    </style>
+    <!-- AlertDialog 取消按钮样式 -->
+    <style name="AlertDialogNegativeButtonStyle" parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
+        <item name="android:textColor">@color/button_secondary</item>
+    </style>
+
     <!--全屏样式-->
     <style name="Fullscreen" parent="CubeTheme">
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>

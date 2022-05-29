@@ -261,21 +261,19 @@ public class SplashActivity extends BaseActivity {
         this.connection.setSuccessHandler(() -> {
             engineStarted.set(true);
             synchronized (SplashActivity.this) {
-                if (!jumpToMain) {
-                    if (valid) {
-                        jumpToMain = true;
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (AppConsts.FERRY_MODE) {
-                                    jumpToActivityAndClearTask(FerryActivity.class);
-                                }
-                                else {
-                                    jumpToActivityAndClearTask(MainActivity.class);
-                                }
+                if (!jumpToMain && valid) {
+                    jumpToMain = true;
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (AppConsts.FERRY_MODE) {
+                                jumpToActivityAndClearTask(FerryActivity.class);
                             }
-                        });
-                    }
+                            else {
+                                jumpToActivityAndClearTask(MainActivity.class);
+                            }
+                        }
+                    });
                 }
             }
         });
@@ -309,17 +307,19 @@ public class SplashActivity extends BaseActivity {
                     AccountHelper.getInstance().updateCurrentAccount(accountInfoResponse.name,
                             accountInfoResponse.avatar);
 
-                    if (valid && !jumpToMain) {
-                        jumpToMain = true;
+                    synchronized (SplashActivity.this) {
+                        if (valid && !jumpToMain) {
+                            jumpToMain = true;
 
-                        runOnUiThread(() -> {
-                            if (AppConsts.FERRY_MODE) {
-                                jumpToActivityAndClearTask(FerryActivity.class);
-                            }
-                            else {
-                                jumpToActivityAndClearTask(MainActivity.class);
-                            }
-                        });
+                            runOnUiThread(() -> {
+                                if (AppConsts.FERRY_MODE) {
+                                    jumpToActivityAndClearTask(FerryActivity.class);
+                                }
+                                else {
+                                    jumpToActivityAndClearTask(MainActivity.class);
+                                }
+                            });
+                        }
                     }
                 });
     }

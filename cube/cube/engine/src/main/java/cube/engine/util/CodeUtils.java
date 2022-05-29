@@ -63,6 +63,25 @@ public class CodeUtils {
         return string.split("\\.");
     }
 
+    public static boolean isBoxDomain(String codeString) {
+        try {
+            URL url = new URL(codeString);
+            if (url.getHost().equalsIgnoreCase("box.shixincube.com")) {
+                if (url.getPath().startsWith("/box")) {
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            return false;
+        }
+
+        return false;
+    }
+
+    public static String extractBoxDomain(String codeString) {
+        return extractURLLastPath(codeString);
+    }
+
     public static String extractURLLastPath(String codeString) {
         String path = null;
         try {

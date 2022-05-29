@@ -26,6 +26,12 @@
 
 package com.shixincube.app.ui.activity;
 
+import android.view.View;
+import android.widget.Button;
+
+import androidx.appcompat.app.AlertDialog;
+
+import com.shixincube.app.AppConsts;
 import com.shixincube.app.R;
 import com.shixincube.app.manager.PreferenceHelper;
 import com.shixincube.app.manager.ThemeMode;
@@ -47,6 +53,9 @@ public class PreferenceActivity extends BaseActivity {
     @BindView(R.id.oivAbout)
     OptionItemView aboutItem;
 
+    @BindView(R.id.btnQuit)
+    Button quitFerryButton;
+
     public PreferenceActivity() {
         super();
     }
@@ -61,6 +70,13 @@ public class PreferenceActivity extends BaseActivity {
     @Override
     public void initView() {
         setToolbarTitle(UIUtils.getString(R.string.setting));
+
+        if (AppConsts.FERRY_MODE) {
+            this.quitFerryButton.setVisibility(View.VISIBLE);
+        }
+        else {
+            this.quitFerryButton.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -88,6 +104,10 @@ public class PreferenceActivity extends BaseActivity {
         this.aboutItem.setOnClickListener((view) -> {
             jumpToActivity(AboutActivity.class);
         });
+
+        this.quitFerryButton.setOnClickListener((view) -> {
+            quitFerryDomain();
+        });
     }
 
     @Override
@@ -98,5 +118,14 @@ public class PreferenceActivity extends BaseActivity {
     @Override
     protected int provideContentViewId() {
         return R.layout.activity_preference;
+    }
+
+    private void quitFerryDomain() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(UIUtils.getString(R.string.prompt));
+        builder.setMessage(UIUtils.getString(R.string.ferry_do_you_want_to_quit));
+        builder.setPositiveButton(UIUtils.getString(R.string.sure), null);
+        builder.setNegativeButton(UIUtils.getString(R.string.cancel), null);
+        builder.show();
     }
 }

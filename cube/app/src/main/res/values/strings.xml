@@ -222,8 +222,8 @@
     <string name="network_failure">无法连接服务器，请确认网络连接是否可用</string>
 
     <!-- Box 相关 -->
-    <string name="ferry_entering">正在加入魔方讯盒……</string>
     <string name="ferry_title">魔方讯盒</string>
+    <string name="ferry_entering">正在加入魔方讯盒……</string>
     <string name="ferry_explain_title">您需要加入魔方讯盒的通讯域才能使用相关功能。</string>
     <string name="ferry_explain_p1">您可以通过以下方式获得魔方讯盒服务器：</string>
     <string name="ferry_explain_p2">1、访问魔方讯盒官方网站，从官方商场购买魔方讯盒服务器，官网地址：www.shixincube.com</string>
@@ -231,10 +231,12 @@
     <string name="ferry_explain_p4">3、扫描好友分享的魔方讯盒邀请二维码或者输入邀请二维码。</string>
     <string name="ferry_btn_scan">扫码加入通讯域</string>
     <string name="ferry_btn_input">输入邀请码</string>
+    <string name="ferry_btn_quit">退出当前通讯域</string>
     <string name="ferry_get_domain_error">获取域数据失败</string>
     <string name="ferry_tip_join_domain">是否加入“%1$s”通讯域？</string>
     <string name="ferry_join_domain_failed">加入通讯域失败</string>
     <string name="ferry_detect_failed">您的魔方讯盒已离线</string>
+    <string name="ferry_do_you_want_to_quit">您是否确认退出当前通讯域？</string>
 
     <!-- Box 数据界面 -->
     <string name="box_domain">通讯域</string>

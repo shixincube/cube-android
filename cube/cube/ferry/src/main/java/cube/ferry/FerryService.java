@@ -40,6 +40,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import cube.auth.AuthService;
 import cube.auth.model.AuthDomain;
+import cube.contact.ContactService;
 import cube.core.Module;
 import cube.core.ModuleError;
 import cube.core.Packet;
@@ -73,10 +74,13 @@ public class FerryService extends Module {
 
     private AtomicBoolean houseOnline;
 
+    private boolean membership;
+
     public FerryService() {
         super(NAME);
         this.listeners = new ArrayList<>();
         this.houseOnline = new AtomicBoolean(false);
+        this.membership = false;
     }
 
     @Override
@@ -99,6 +103,9 @@ public class FerryService extends Module {
             this.pipeline.removeListener(NAME, this.pipelineListener);
             this.pipelineListener = null;
         }
+
+        this.houseOnline.set(false);
+        this.membership = false;
     }
 
     @Override
@@ -218,6 +225,9 @@ public class FerryService extends Module {
                     LogUtils.w(TAG, "#detectDomain", e);
                 }
 
+                // 成员身份
+                membership = true;
+
                 if (handler.isInMainThread()) {
                     executeOnMainThread(() -> {
                         handler.handleResult(houseOnline.get(), duration.get());
@@ -336,6 +346,76 @@ public class FerryService extends Module {
         }
 
         Packet requestPacket = new Packet(FerryServiceAction.JoinDomain, packetData);
+        this.pipeline.send(FerryService.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    ModuleError error = new ModuleError(FerryService.NAME, packet.state.code);
+                    execute(failureHandler, error);
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != FerryServiceState.Ok.code) {
+                    ModuleError error = new ModuleError(FerryService.NAME, stateCode);
+                    execute(failureHandler, error);
+                    return;
+                }
+
+                JSONObject data = packet.extractServiceData();
+                try {
+                    DomainMember domainMember = new DomainMember(data);
+
+                    if (successHandler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            successHandler.handleDomainMember(domainMember);
+                        });
+                    }
+                    else {
+                        successHandler.handleDomainMember(domainMember);
+                    }
+                } catch (JSONException e) {
+                    LogUtils.w(TAG, e);
+                    ModuleError error = new ModuleError(FerryService.NAME,
+                            FerryServiceState.DataFormatError.code);
+                    execute(failureHandler, error);
+                }
+            }
+        });
+    }
+
+    /**
+     * 退出当前所在的域。
+     *
+     * @param successHandler 操作成功回调句柄。
+     * @param failureHandler 操作失败回调句柄。
+     */
+    public void quitDomain(DomainMemberHandler successHandler,
+                           FailureHandler failureHandler) {
+        if (!this.pipeline.isReady()) {
+            // 数据通道未就绪
+            ModuleError error = new ModuleError(NAME, FerryServiceState.NoNetwork.code);
+            execute(failureHandler, error);
+            return;
+        }
+
+        if (!this.membership) {
+            ModuleError error = new ModuleError(NAME, FerryServiceState.NoMember.code);
+            execute(failureHandler, error);
+            return;
+        }
+
+        ContactService contactService = (ContactService) this.kernel.getModule(ContactService.NAME);
+
+        JSONObject packetData = new JSONObject();
+        try {
+            packetData.put("domain", AuthService.getDomain());
+            packetData.put("contactId", contactService.getSelf().getId().longValue());
+        } catch (JSONException e) {
+            LogUtils.w(TAG, "#quitDomain", e);
+        }
+
+        Packet requestPacket = new Packet(FerryServiceAction.QuitDomain, packetData);
         this.pipeline.send(FerryService.NAME, requestPacket, new PipelineHandler() {
             @Override
             public void handleResponse(Packet packet) {

@@ -432,6 +432,12 @@ public class FerryService extends Module {
                     return;
                 }
 
+                // 更新状态
+                membership = false;
+
+                // 清空配置文件
+                ((AuthService)kernel.getModule(AuthService.NAME)).clearAuthConfig();
+
                 JSONObject data = packet.extractServiceData();
                 try {
                     DomainMember domainMember = new DomainMember(data);
@@ -439,10 +445,12 @@ public class FerryService extends Module {
                     if (successHandler.isInMainThread()) {
                         executeOnMainThread(() -> {
                             successHandler.handleDomainMember(domainMember);
+                            houseOnline.set(false);
                         });
                     }
                     else {
                         successHandler.handleDomainMember(domainMember);
+                        houseOnline.set(false);
                     }
                 } catch (JSONException e) {
                     LogUtils.w(TAG, e);

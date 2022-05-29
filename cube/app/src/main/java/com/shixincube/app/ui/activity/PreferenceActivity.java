@@ -26,6 +26,7 @@
 
 package com.shixincube.app.ui.activity;
 
+import android.content.DialogInterface;
 import android.view.View;
 import android.widget.Button;
 
@@ -41,6 +42,12 @@ import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.optionitemview.OptionItemView;
 
 import butterknife.BindView;
+import cube.core.Module;
+import cube.core.ModuleError;
+import cube.core.handler.DefaultFailureHandler;
+import cube.engine.CubeEngine;
+import cube.ferry.handler.DefaultDomainMemberHandler;
+import cube.ferry.model.DomainMember;
 
 /**
  * 偏好设置。
@@ -124,7 +131,23 @@ public class PreferenceActivity extends BaseActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(UIUtils.getString(R.string.prompt));
         builder.setMessage(UIUtils.getString(R.string.ferry_do_you_want_to_quit));
-        builder.setPositiveButton(UIUtils.getString(R.string.sure), null);
+        builder.setPositiveButton(UIUtils.getString(R.string.sure), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int index) {
+                CubeEngine.getInstance().getFerryService().quitDomain(new DefaultDomainMemberHandler(true) {
+                    @Override
+                    public void handleDomainMember(DomainMember member) {
+                        // 跳转回 Ferry 界面
+                        jumpToActivityAndClearTask(FerryActivity.class);
+                    }
+                }, new DefaultFailureHandler(true) {
+                    @Override
+                    public void handleFailure(Module module, ModuleError error) {
+                        UIUtils.showToast(UIUtils.getString(R.string.ferry_quit_failed));
+                    }
+                });
+            }
+        });
         builder.setNegativeButton(UIUtils.getString(R.string.cancel), null);
         builder.show();
     }

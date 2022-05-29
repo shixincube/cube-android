@@ -237,6 +237,7 @@
     <string name="ferry_join_domain_failed">加入通讯域失败</string>
     <string name="ferry_detect_failed">您的魔方讯盒已离线</string>
     <string name="ferry_do_you_want_to_quit">您是否确认退出当前通讯域？</string>
+    <string name="ferry_quit_failed">无法退出通讯域</string>
 
     <!-- Box 数据界面 -->
     <string name="box_domain">通讯域</string>

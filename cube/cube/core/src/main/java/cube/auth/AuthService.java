@@ -31,6 +31,7 @@ import androidx.annotation.Nullable;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -40,6 +41,7 @@ import cube.core.ModuleError;
 import cube.core.Packet;
 import cube.core.PipelineState;
 import cube.core.handler.PipelineHandler;
+import cube.util.FileUtils;
 
 /**
  * 授权服务模块。
@@ -225,6 +227,18 @@ public class AuthService extends Module {
                 }
             }
         });
+    }
+
+    /**
+     * 清理配置文件。
+     * 该操作将删除从服务器上更新的授权域数据文件。
+     */
+    public void clearAuthConfig() {
+        File path = FileUtils.getFilePath(this.getContext(), "cube");
+        File configFile = new File(path, "cube.config");
+        if (configFile.exists()) {
+            configFile.delete();
+        }
     }
 
     protected void applyToken(String domain, String appKey, AuthTokenHandler handler) {

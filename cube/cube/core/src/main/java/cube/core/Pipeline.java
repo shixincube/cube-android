@@ -27,9 +27,9 @@
 package cube.core;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import cube.core.handler.PipelineHandler;
 
@@ -49,7 +49,7 @@ public abstract class Pipeline {
     protected String tokenCode;
 
     public Pipeline() {
-        this.listeners = new HashMap<>();
+        this.listeners = new ConcurrentHashMap<>();
     }
 
     public void setRemoteAddress(String address, int port) {

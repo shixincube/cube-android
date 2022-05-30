@@ -239,6 +239,8 @@ public class AuthService extends Module {
         if (configFile.exists()) {
             configFile.delete();
         }
+
+
     }
 
     protected void applyToken(String domain, String appKey, AuthTokenHandler handler) {

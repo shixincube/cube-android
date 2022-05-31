@@ -178,6 +178,10 @@
             android:screenOrientation="portrait">
         </activity>
         <activity
+            android:name=".ui.activity.InvitationCodeActivity"
+            android:screenOrientation="portrait">
+        </activity>
+        <activity
             android:name=".ui.activity.BoxActivity"
             android:screenOrientation="portrait">
         </activity>

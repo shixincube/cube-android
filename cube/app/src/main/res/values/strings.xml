@@ -231,6 +231,8 @@
     <string name="ferry_explain_p4">3、扫描好友分享的魔方讯盒邀请二维码或者输入邀请二维码。</string>
     <string name="ferry_btn_scan">扫码加入通讯域</string>
     <string name="ferry_btn_input">输入邀请码</string>
+    <string name="ferry_box_invi_code">邀请码</string>
+    <string name="ferry_please_input_invi_code">请输入讯盒邀请码</string>
     <string name="ferry_btn_quit">退出当前通讯域</string>
     <string name="ferry_get_domain_error">获取域数据失败</string>
     <string name="ferry_tip_join_domain">是否加入“%1$s”通讯域？</string>

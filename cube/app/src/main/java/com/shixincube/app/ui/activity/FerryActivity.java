@@ -136,7 +136,8 @@ public class FerryActivity extends BaseActivity<FerryView, FerryPresenter> imple
         });
 
         this.btnInputInvitation.setOnClickListener((view) -> {
-            UIUtils.showToast(UIUtils.getString(R.string.developing));
+            Intent intent = new Intent(this, InvitationCodeActivity.class);
+            startActivityForResult(intent, InvitationCodeActivity.RESULT);
         });
     }
 
@@ -163,5 +164,10 @@ public class FerryActivity extends BaseActivity<FerryView, FerryPresenter> imple
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == InvitationCodeActivity.RESULT && null != data) {
+            String code = data.getStringExtra(InvitationCodeActivity.EXTRA_CODE);
+            this.presenter.processInvitationCode(code);
+        }
     }
 }

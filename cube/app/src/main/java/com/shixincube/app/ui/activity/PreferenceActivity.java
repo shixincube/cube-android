@@ -42,11 +42,13 @@ import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.optionitemview.OptionItemView;
 
 import butterknife.BindView;
+import cube.auth.model.AuthDomain;
 import cube.core.Module;
 import cube.core.ModuleError;
 import cube.core.handler.DefaultFailureHandler;
 import cube.engine.CubeEngine;
 import cube.ferry.handler.DefaultDomainMemberHandler;
+import cube.ferry.model.DomainInfo;
 import cube.ferry.model.DomainMember;
 
 /**
@@ -137,7 +139,7 @@ public class PreferenceActivity extends BaseActivity {
                 CubeEngine.getInstance().getFerryService().quitDomain(PreferenceActivity.this,
                         new DefaultDomainMemberHandler(true) {
                     @Override
-                    public void handleDomainMember(DomainMember member) {
+                    public void handleDomainMember(AuthDomain authDomain, DomainInfo domainInfo, DomainMember member) {
                         // 跳转回 Ferry 界面
                         jumpToActivityAndClearTask(FerryActivity.class);
                     }

@@ -31,15 +31,12 @@ import android.content.DialogInterface;
 import androidx.appcompat.app.AlertDialog;
 
 import com.shixincube.app.R;
-import com.shixincube.app.manager.AccountHelper;
 import com.shixincube.app.manager.CubeConnection;
 import com.shixincube.app.ui.activity.FerryActivity;
 import com.shixincube.app.ui.activity.MainActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.FerryView;
 import com.shixincube.app.util.UIUtils;
-
-import java.util.List;
 
 import cube.auth.model.AuthDomain;
 import cube.core.Module;
@@ -53,7 +50,6 @@ import cube.engine.util.PromiseFuture;
 import cube.engine.util.PromiseHandler;
 import cube.ferry.FerryService;
 import cube.ferry.handler.DefaultDomainMemberHandler;
-import cube.ferry.handler.DomainHandler;
 import cube.ferry.model.DomainInfo;
 import cube.ferry.model.DomainMember;
 import cube.util.LogUtils;
@@ -122,51 +118,37 @@ public class FerryPresenter extends BasePresenter<FerryView> {
                 activity.showWaitingDialog(UIUtils.getString(R.string.please_wait_a_moment));
 
                 FerryService service = CubeEngine.getInstance().getFerryService();
-                service.getDomain(domainName, new DomainHandler() {
-                    @Override
-                    public void handleDomain(AuthDomain authDomain, DomainInfo domainInfo, List<DomainMember> members) {
-                        // 加入域
-                        service.joinDomain(domainName,
-                                AccountHelper.getInstance().getCurrentAccount().id,
-                                new DefaultDomainMemberHandler() {
-                                    @Override
-                                    public void handleDomainMember(DomainMember member) {
-                                        // 重置域
-                                        resetDomain(authDomain, members);
-                                    }
-                                }, new DefaultFailureHandler(true) {
-                                    @Override
-                                    public void handleFailure(Module module, ModuleError error) {
-                                        // 隐藏对话框
-                                        activity.hideWaitingDialog();
+                // 加入域
+                service.joinDomain(domainName,
+                    new DefaultDomainMemberHandler() {
+                        @Override
+                        public void handleDomainMember(AuthDomain authDomain, DomainInfo domainInfo, DomainMember member) {
+                            // 重置域
+                            resetDomain(authDomain);
+                        }
+                    }, new DefaultFailureHandler(true) {
+                        @Override
+                        public void handleFailure(Module module, ModuleError error) {
+                            // 隐藏对话框
+                            activity.hideWaitingDialog();
 
-                                        UIUtils.showToast(UIUtils.getString(R.string.ferry_join_domain_failed));
+                            UIUtils.showToast(UIUtils.getString(R.string.ferry_join_domain_failed));
 
-                                        LogUtils.d(TAG, "#joinDomain - " + error.code);
-                                    }
-                                });
-                    }
-
-                    @Override
-                    public boolean isInMainThread() {
-                        return false;
-                    }
-                }, new DefaultFailureHandler(true) {
-                    @Override
-                    public void handleFailure(Module module, ModuleError error) {
-                        // 隐藏对话框
-                        activity.hideWaitingDialog();
-
-                        UIUtils.showToast(UIUtils.getString(R.string.ferry_get_domain_error));
-                    }
-                });
+                            LogUtils.d(TAG, "#joinDomain - " + error.code);
+                        }
+                    });
             }
         });
         builder.setNegativeButton(UIUtils.getString(R.string.cancel), null);
         builder.show();
     }
 
-    private void resetDomain(AuthDomain authDomain, List<DomainMember> memberList) {
+    public void processInvitationCode(String code) {
+        // 提示等待
+        activity.showWaitingDialog(UIUtils.getString(R.string.please_wait_a_moment));
+    }
+
+    private void resetDomain(AuthDomain authDomain) {
         Promise.create(new PromiseHandler<AuthDomain>() {
             @Override
             public void emit(PromiseFuture<AuthDomain> promise) {

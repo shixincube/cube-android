@@ -26,7 +26,9 @@
 
 package cube.ferry.handler;
 
+import cube.auth.model.AuthDomain;
 import cube.core.handler.CallbackHandler;
+import cube.ferry.model.DomainInfo;
 import cube.ferry.model.DomainMember;
 
 /**
@@ -34,5 +36,5 @@ import cube.ferry.model.DomainMember;
  */
 public interface DomainMemberHandler extends CallbackHandler {
 
-    void handleDomainMember(DomainMember member);
+    void handleDomainMember(AuthDomain authDomain, DomainInfo domainInfo, DomainMember member);
 }

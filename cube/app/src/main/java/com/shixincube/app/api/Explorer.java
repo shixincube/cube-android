@@ -250,7 +250,7 @@ public class Explorer {
                 .addInterceptor(REWRITE_HEADER_CONTROL_INTERCEPTOR)
                 .addInterceptor(REWRITE_CACHE_CONTROL_INTERCEPTOR)
                 .addInterceptor(new LoggingInterceptor())
-                .connectTimeout(3, TimeUnit.SECONDS)
+                .connectTimeout(5, TimeUnit.SECONDS)
                 .cache(cache)
                 .build();
         return client;

@@ -321,14 +321,13 @@ public class FerryService extends Module {
     }
 
     /**
-     * 加入指定域。
+     * 将当前联系人加入指定域。
      *
      * @param domainName 指定域名称。
-     * @param contactId 指定联系人 ID 。
      * @param successHandler 操作成功回调句柄。
      * @param failureHandler 操作失败回调句柄。
      */
-    public void joinDomain(String domainName, long contactId,
+    public void joinDomain(String domainName,
                            DomainMemberHandler successHandler,
                            FailureHandler failureHandler) {
         if (!this.pipeline.isReady()) {
@@ -338,10 +337,12 @@ public class FerryService extends Module {
             return;
         }
 
+        ContactService contactService = (ContactService) this.kernel.getModule(ContactService.NAME);
+
         JSONObject packetData = new JSONObject();
         try {
             packetData.put("domain", domainName);
-            packetData.put("contactId", contactId);
+            packetData.put("contactId", contactService.getSelf().getId().longValue());
             packetData.put("way", JoinWay.QRCode.code);
         } catch (JSONException e) {
             LogUtils.w(TAG, "#joinDomain", e);
@@ -366,15 +367,86 @@ public class FerryService extends Module {
 
                 JSONObject data = packet.extractServiceData();
                 try {
-                    DomainMember domainMember = new DomainMember(data);
+                    AuthDomain authDomain = new AuthDomain(data.getJSONObject("domain"));
+                    DomainInfo domainInfo = new DomainInfo(data.getJSONObject("info"));
+                    DomainMember domainMember = new DomainMember(data.getJSONObject("member"));
 
                     if (successHandler.isInMainThread()) {
                         executeOnMainThread(() -> {
-                            successHandler.handleDomainMember(domainMember);
+                            successHandler.handleDomainMember(authDomain, domainInfo, domainMember);
                         });
                     }
                     else {
-                        successHandler.handleDomainMember(domainMember);
+                        successHandler.handleDomainMember(authDomain, domainInfo, domainMember);
+                    }
+                } catch (JSONException e) {
+                    LogUtils.w(TAG, e);
+                    ModuleError error = new ModuleError(FerryService.NAME,
+                            FerryServiceState.DataFormatError.code);
+                    execute(failureHandler, error);
+                }
+            }
+        });
+    }
+
+    /**
+     * 使用邀请码将当前联系人加入指定域。
+     *
+     * @param invitationCode 指定邀请码。
+     * @param successHandler 操作成功回调句柄。
+     * @param failureHandler 操作失败回调句柄。
+     */
+    public void joinDomainByCode(String invitationCode,
+                                 DomainMemberHandler successHandler,
+                                 FailureHandler failureHandler) {
+        if (!this.pipeline.isReady()) {
+            // 数据通道未就绪
+            ModuleError error = new ModuleError(NAME, FerryServiceState.NoNetwork.code);
+            execute(failureHandler, error);
+            return;
+        }
+
+        ContactService contactService = (ContactService) this.kernel.getModule(ContactService.NAME);
+
+        JSONObject packetData = new JSONObject();
+        try {
+            packetData.put("invitationCode", invitationCode);
+            packetData.put("contactId", contactService.getSelf().getId().longValue());
+            packetData.put("way", JoinWay.InvitationCode.code);
+        } catch (JSONException e) {
+            LogUtils.w(TAG, "#joinDomainByCode", e);
+        }
+
+        Packet requestPacket = new Packet(FerryServiceAction.JoinDomain, packetData);
+        this.pipeline.send(FerryService.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    ModuleError error = new ModuleError(FerryService.NAME, packet.state.code);
+                    execute(failureHandler, error);
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != FerryServiceState.Ok.code) {
+                    ModuleError error = new ModuleError(FerryService.NAME, stateCode);
+                    execute(failureHandler, error);
+                    return;
+                }
+
+                JSONObject data = packet.extractServiceData();
+                try {
+                    AuthDomain authDomain = new AuthDomain(data.getJSONObject("domain"));
+                    DomainInfo domainInfo = new DomainInfo(data.getJSONObject("info"));
+                    DomainMember domainMember = new DomainMember(data.getJSONObject("member"));
+
+                    if (successHandler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            successHandler.handleDomainMember(authDomain, domainInfo, domainMember);
+                        });
+                    }
+                    else {
+                        successHandler.handleDomainMember(authDomain, domainInfo, domainMember);
                     }
                 } catch (JSONException e) {
                     LogUtils.w(TAG, e);
@@ -443,16 +515,18 @@ public class FerryService extends Module {
 
                 JSONObject data = packet.extractServiceData();
                 try {
-                    DomainMember domainMember = new DomainMember(data);
+                    AuthDomain authDomain = new AuthDomain(data.getJSONObject("domain"));
+                    DomainInfo domainInfo = new DomainInfo(data.getJSONObject("info"));
+                    DomainMember domainMember = new DomainMember(data.getJSONObject("member"));
 
                     if (successHandler.isInMainThread()) {
                         executeOnMainThread(() -> {
-                            successHandler.handleDomainMember(domainMember);
+                            successHandler.handleDomainMember(authDomain, domainInfo, domainMember);
                             houseOnline.set(false);
                         });
                     }
                     else {
-                        successHandler.handleDomainMember(domainMember);
+                        successHandler.handleDomainMember(authDomain, domainInfo, domainMember);
                         houseOnline.set(false);
                     }
                 } catch (JSONException e) {

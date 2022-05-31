@@ -52,6 +52,8 @@ public class AuthDomain extends Entity {
 
     public final JSONArray iceServers;
 
+    public final boolean ferry;
+
     public AuthDomain(JSONObject json) throws JSONException {
         super(json);
         this.domainName = json.getString("domainName");
@@ -61,6 +63,7 @@ public class AuthDomain extends Entity {
         this.httpEndpoint = new Endpoint(json.getJSONObject("httpEndpoint"));
         this.httpsEndpoint = new Endpoint(json.getJSONObject("httpsEndpoint"));
         this.iceServers = json.getJSONArray("iceServers");
+        this.ferry = json.getBoolean("ferry");
     }
 
     @Override

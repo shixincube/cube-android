@@ -119,24 +119,23 @@ public class FerryPresenter extends BasePresenter<FerryView> {
 
                 FerryService service = CubeEngine.getInstance().getFerryService();
                 // 加入域
-                service.joinDomain(domainName,
-                    new DefaultDomainMemberHandler() {
-                        @Override
-                        public void handleDomainMember(AuthDomain authDomain, DomainInfo domainInfo, DomainMember member) {
-                            // 重置域
-                            resetDomain(authDomain);
-                        }
-                    }, new DefaultFailureHandler(true) {
-                        @Override
-                        public void handleFailure(Module module, ModuleError error) {
-                            // 隐藏对话框
-                            activity.hideWaitingDialog();
+                service.joinDomain(domainName, new DefaultDomainMemberHandler() {
+                    @Override
+                    public void handleDomainMember(AuthDomain authDomain, DomainInfo domainInfo, DomainMember member) {
+                        // 重置域
+                        resetDomain(authDomain);
+                    }
+                }, new DefaultFailureHandler(true) {
+                    @Override
+                    public void handleFailure(Module module, ModuleError error) {
+                        // 隐藏对话框
+                        activity.hideWaitingDialog();
 
-                            UIUtils.showToast(UIUtils.getString(R.string.ferry_join_domain_failed));
+                        UIUtils.showToast(UIUtils.getString(R.string.ferry_join_domain_failed));
 
-                            LogUtils.d(TAG, "#joinDomain - " + error.code);
-                        }
-                    });
+                        LogUtils.d(TAG, "#joinDomain - " + error.code);
+                    }
+                });
             }
         });
         builder.setNegativeButton(UIUtils.getString(R.string.cancel), null);
@@ -146,6 +145,26 @@ public class FerryPresenter extends BasePresenter<FerryView> {
     public void processInvitationCode(String code) {
         // 提示等待
         activity.showWaitingDialog(UIUtils.getString(R.string.please_wait_a_moment));
+
+        FerryService service = CubeEngine.getInstance().getFerryService();
+        // 加入域
+        service.joinDomainByCode(code, new DefaultDomainMemberHandler() {
+            @Override
+            public void handleDomainMember(AuthDomain authDomain, DomainInfo domainInfo, DomainMember member) {
+                // 重置域
+                resetDomain(authDomain);
+            }
+        }, new DefaultFailureHandler(true) {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                // 隐藏对话框
+                activity.hideWaitingDialog();
+
+                UIUtils.showToast(UIUtils.getString(R.string.ferry_join_domain_failed));
+
+                LogUtils.d(TAG, "#joinDomainByCode - " + error.code);
+            }
+        });
     }
 
     private void resetDomain(AuthDomain authDomain) {

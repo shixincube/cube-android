@@ -26,6 +26,8 @@
 
 package cube.ferry;
 
+import android.app.Activity;
+
 import androidx.annotation.Nullable;
 
 import org.json.JSONArray;
@@ -387,10 +389,11 @@ public class FerryService extends Module {
     /**
      * 退出当前所在的域。
      *
+     * @param activity 执行该操作的 Activity 实例。
      * @param successHandler 操作成功回调句柄。
      * @param failureHandler 操作失败回调句柄。
      */
-    public void quitDomain(DomainMemberHandler successHandler,
+    public void quitDomain(Activity activity, DomainMemberHandler successHandler,
                            FailureHandler failureHandler) {
         if (!this.pipeline.isReady()) {
             // 数据通道未就绪
@@ -435,8 +438,8 @@ public class FerryService extends Module {
                 // 更新状态
                 membership = false;
 
-                // 清空配置文件
-                ((AuthService)kernel.getModule(AuthService.NAME)).clearAuthConfig();
+                // 重置授权配置
+                ((AuthService) kernel.getModule(AuthService.NAME)).resetAuthConfig(activity);
 
                 JSONObject data = packet.extractServiceData();
                 try {

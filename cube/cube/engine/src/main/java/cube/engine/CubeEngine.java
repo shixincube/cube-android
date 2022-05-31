@@ -42,6 +42,7 @@ import java.io.File;
 import java.util.concurrent.Executors;
 
 import cube.auth.AuthService;
+import cube.auth.event.ResetAuthConfigEvent;
 import cube.auth.model.AuthDomain;
 import cube.contact.ContactService;
 import cube.contact.ContactServiceEvent;
@@ -138,17 +139,21 @@ public class CubeEngine implements Observer {
             }
         });
 
+        this.getAuthService().attachWithName(ResetAuthConfigEvent.NAME, this);
         this.getContactService().attachWithName(ContactServiceEvent.SignIn, this);
 
         return this.started;
     }
 
     public void stop() {
+        LogUtils.i("CubeEngine", "#stop : " + this.config.domain);
+
         this.kernel.shutdown();
 
         Promise.getExecutor().shutdown();
 
         this.getContactService().detachWithName(ContactServiceEvent.SignIn, this);
+        this.getAuthService().detachWithName(ResetAuthConfigEvent.NAME, this);
     }
 
     public void suspend() {
@@ -185,6 +190,15 @@ public class CubeEngine implements Observer {
      */
     public boolean isReady() {
         return this.started && this.kernel.isReady();
+    }
+
+    /**
+     * 获取授权管理模块。
+     *
+     * @return 返回授权管理模块。
+     */
+    public AuthService getAuthService() {
+        return (AuthService) this.kernel.getModule(AuthService.NAME);
     }
 
     /**
@@ -386,6 +400,17 @@ public class CubeEngine implements Observer {
     public void update(ObservableEvent event) {
         if (ContactServiceEvent.SignIn.equals(event.getName())) {
             // 账号签入成功，可进行一些数据更新操作，默认不需要，各模块会自动完成更新
+        }
+        else if (ResetAuthConfigEvent.NAME.equals(event.getName())) {
+            // 加载默认配置
+            this.config = loadConfig(this.kernel.getContext());
+
+            Activity activity = (Activity) event.getData();
+            activity.runOnUiThread(() -> {
+                Intent intent = new Intent(activity, CubeService.class);
+                intent.setAction(CubeService.ACTION_RESET);
+                activity.startService(intent);
+            });
         }
     }
 }

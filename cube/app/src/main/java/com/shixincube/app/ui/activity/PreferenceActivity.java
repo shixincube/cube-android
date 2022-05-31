@@ -134,7 +134,8 @@ public class PreferenceActivity extends BaseActivity {
         builder.setPositiveButton(UIUtils.getString(R.string.sure), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int index) {
-                CubeEngine.getInstance().getFerryService().quitDomain(new DefaultDomainMemberHandler(true) {
+                CubeEngine.getInstance().getFerryService().quitDomain(PreferenceActivity.this,
+                        new DefaultDomainMemberHandler(true) {
                     @Override
                     public void handleDomainMember(DomainMember member) {
                         // 跳转回 Ferry 界面

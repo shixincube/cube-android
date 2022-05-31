@@ -26,6 +26,8 @@
 
 package cube.auth;
 
+import android.app.Activity;
+
 import androidx.annotation.Nullable;
 
 import org.json.JSONException;
@@ -35,6 +37,7 @@ import java.io.File;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import cube.auth.event.ResetAuthConfigEvent;
 import cube.auth.handler.AuthTokenHandler;
 import cube.core.Module;
 import cube.core.ModuleError;
@@ -230,17 +233,20 @@ public class AuthService extends Module {
     }
 
     /**
-     * 清理配置文件。
+     * 重置配置文件为默认配置。
      * 该操作将删除从服务器上更新的授权域数据文件。
+     *
+     * @param activity 指定 Activity 实例。
      */
-    public void clearAuthConfig() {
+    public void resetAuthConfig(Activity activity) {
         File path = FileUtils.getFilePath(this.getContext(), "cube");
         File configFile = new File(path, "cube.config");
         if (configFile.exists()) {
             configFile.delete();
+
+            ResetAuthConfigEvent event = new ResetAuthConfigEvent(activity);
+            notifyObservers(event);
         }
-
-
     }
 
     protected void applyToken(String domain, String appKey, AuthTokenHandler handler) {

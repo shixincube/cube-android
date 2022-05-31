@@ -24,7 +24,20 @@
  * SOFTWARE.
  */
 
-package cube.core;
+package cube.auth.event;
 
-public class ModuleEvent {
+import android.app.Activity;
+
+import cube.util.ObservableEvent;
+
+/**
+ * 重置授权配置事件。
+ */
+public class ResetAuthConfigEvent extends ObservableEvent {
+
+    public final static String NAME = "ResetAuthConfig";
+
+    public ResetAuthConfigEvent(Activity activity) {
+        super(NAME, activity);
+    }
 }

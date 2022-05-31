@@ -271,7 +271,7 @@ public class Kernel implements PipelineListener {
         return service.getToken();
     }
 
-    protected Context getContext() {
+    public Context getContext() {
         return this.context;
     }
 

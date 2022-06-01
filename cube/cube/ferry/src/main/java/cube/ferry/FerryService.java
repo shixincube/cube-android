@@ -367,8 +367,8 @@ public class FerryService extends Module {
 
                 JSONObject data = packet.extractServiceData();
                 try {
-                    AuthDomain authDomain = new AuthDomain(data.getJSONObject("domain"));
-                    DomainInfo domainInfo = new DomainInfo(data.getJSONObject("info"));
+                    AuthDomain authDomain = new AuthDomain(data.getJSONObject("authDomain"));
+                    DomainInfo domainInfo = new DomainInfo(data.getJSONObject("domainInfo"));
                     DomainMember domainMember = new DomainMember(data.getJSONObject("member"));
 
                     if (successHandler.isInMainThread()) {
@@ -436,8 +436,8 @@ public class FerryService extends Module {
 
                 JSONObject data = packet.extractServiceData();
                 try {
-                    AuthDomain authDomain = new AuthDomain(data.getJSONObject("domain"));
-                    DomainInfo domainInfo = new DomainInfo(data.getJSONObject("info"));
+                    AuthDomain authDomain = new AuthDomain(data.getJSONObject("authDomain"));
+                    DomainInfo domainInfo = new DomainInfo(data.getJSONObject("domainInfo"));
                     DomainMember domainMember = new DomainMember(data.getJSONObject("member"));
 
                     if (successHandler.isInMainThread()) {
@@ -515,8 +515,8 @@ public class FerryService extends Module {
 
                 JSONObject data = packet.extractServiceData();
                 try {
-                    AuthDomain authDomain = new AuthDomain(data.getJSONObject("domain"));
-                    DomainInfo domainInfo = new DomainInfo(data.getJSONObject("info"));
+                    AuthDomain authDomain = new AuthDomain(data.getJSONObject("authDomain"));
+                    DomainInfo domainInfo = new DomainInfo(data.getJSONObject("domainInfo"));
                     DomainMember domainMember = new DomainMember(data.getJSONObject("member"));
 
                     if (successHandler.isInMainThread()) {

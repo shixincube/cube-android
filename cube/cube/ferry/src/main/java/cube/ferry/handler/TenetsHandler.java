@@ -24,49 +24,17 @@
  * SOFTWARE.
  */
 
-package cube.ferry;
+package cube.ferry.handler;
+
+import java.util.List;
+
+import cube.core.handler.CallbackHandler;
+import cube.ferry.model.Tenet;
 
 /**
- * 数据摆渡服务动作定义。
+ * 信条数据句柄。
  */
-public final class FerryServiceAction {
+public interface TenetsHandler extends CallbackHandler {
 
-    /**
-     * 域服务器上线。
-     */
-    public final static String Online = "online";
-
-    /**
-     * 域服务器离线。
-     */
-    public final static String Offline = "offline";
-
-    /**
-     * 取出信条。
-     */
-    public final static String TakeOutTenet = "takeOutTenet";
-
-    /**
-     * 查询域。
-     */
-    public final static String QueryDomain = "queryDomain";
-
-    /**
-     * 加入域。
-     */
-    public final static String JoinDomain = "joinDomain";
-
-    /**
-     * 退出域。
-     */
-    public final static String QuitDomain = "quitDomain";
-
-    /**
-     * Ping
-     */
-    public final static String Ping = "ping";
-
-
-    private FerryServiceAction() {
-    }
+    void handleTenets(List<Tenet> tenetList);
 }

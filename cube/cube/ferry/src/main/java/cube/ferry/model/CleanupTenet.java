@@ -1,20 +1,20 @@
 /*
- * This file is part of Cube.
- *
+ * This source file is part of Cube.
+ * <p>
  * The MIT License (MIT)
- *
+ * <p>
  * Copyright (c) 2020-2022 Cube Team.
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,49 +24,42 @@
  * SOFTWARE.
  */
 
-package cube.ferry;
+package cube.ferry.model;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
- * 数据摆渡服务动作定义。
+ * 清空信条。
  */
-public final class FerryServiceAction {
+public class CleanupTenet extends Tenet {
 
-    /**
-     * 域服务器上线。
-     */
-    public final static String Online = "online";
+    public final static String PORT = "Cleanup";
 
-    /**
-     * 域服务器离线。
-     */
-    public final static String Offline = "offline";
+    private boolean all;
 
-    /**
-     * 取出信条。
-     */
-    public final static String TakeOutTenet = "takeOutTenet";
+    public CleanupTenet(String domain, long timestamp) {
+        super(PORT, domain, timestamp);
+        this.all = true;
+    }
 
-    /**
-     * 查询域。
-     */
-    public final static String QueryDomain = "queryDomain";
+    public CleanupTenet(JSONObject json) throws JSONException {
+        super(json);
+        this.all = json.getBoolean("all");
+    }
 
-    /**
-     * 加入域。
-     */
-    public final static String JoinDomain = "joinDomain";
+    public boolean isAll() {
+        return this.all;
+    }
 
-    /**
-     * 退出域。
-     */
-    public final static String QuitDomain = "quitDomain";
-
-    /**
-     * Ping
-     */
-    public final static String Ping = "ping";
-
-
-    private FerryServiceAction() {
+    @Override
+    public JSONObject toJSON() {
+        JSONObject json = super.toJSON();
+        try {
+            json.put("all", this.all);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return json;
     }
 }

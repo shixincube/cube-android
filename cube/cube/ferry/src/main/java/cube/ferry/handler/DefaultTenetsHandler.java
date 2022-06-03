@@ -24,49 +24,25 @@
  * SOFTWARE.
  */
 
-package cube.ferry;
+package cube.ferry.handler;
 
 /**
- * 数据摆渡服务动作定义。
+ * 默认信条句柄。
  */
-public final class FerryServiceAction {
+public abstract class DefaultTenetsHandler implements TenetsHandler {
 
-    /**
-     * 域服务器上线。
-     */
-    public final static String Online = "online";
+    private final boolean inMainThread;
 
-    /**
-     * 域服务器离线。
-     */
-    public final static String Offline = "offline";
+    public DefaultTenetsHandler() {
+        this.inMainThread = true;
+    }
 
-    /**
-     * 取出信条。
-     */
-    public final static String TakeOutTenet = "takeOutTenet";
+    public DefaultTenetsHandler(boolean inMainThread) {
+        this.inMainThread = inMainThread;
+    }
 
-    /**
-     * 查询域。
-     */
-    public final static String QueryDomain = "queryDomain";
-
-    /**
-     * 加入域。
-     */
-    public final static String JoinDomain = "joinDomain";
-
-    /**
-     * 退出域。
-     */
-    public final static String QuitDomain = "quitDomain";
-
-    /**
-     * Ping
-     */
-    public final static String Ping = "ping";
-
-
-    private FerryServiceAction() {
+    @Override
+    public boolean isInMainThread() {
+        return this.inMainThread;
     }
 }

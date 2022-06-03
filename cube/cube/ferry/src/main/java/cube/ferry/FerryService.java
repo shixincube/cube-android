@@ -52,6 +52,7 @@ import cube.core.handler.PipelineHandler;
 import cube.ferry.handler.DetectHandler;
 import cube.ferry.handler.DomainHandler;
 import cube.ferry.handler.DomainMemberHandler;
+import cube.ferry.handler.TenetsHandler;
 import cube.ferry.model.DomainInfo;
 import cube.ferry.model.DomainMember;
 import cube.ferry.model.JoinWay;
@@ -546,6 +547,11 @@ public class FerryService extends Module {
      */
     public DomainInfo getLocalDomainInfo() {
         return this.loadDomainInfo();
+    }
+
+    protected void takeOutTenets(TenetsHandler successHandler,
+                                 FailureHandler failureHandler) {
+
     }
 
     private boolean saveDomainInfo(DomainInfo info) {

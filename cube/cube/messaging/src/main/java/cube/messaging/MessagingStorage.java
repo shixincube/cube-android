@@ -79,6 +79,18 @@ public class MessagingStorage extends AbstractStorage {
     }
 
     /**
+     * 清空所有表数据。
+     */
+    public void cleanup() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete("message", null, null);
+        db.delete("conversation", null, null);
+        db.delete("recent_messager", null, null);
+        db.delete("draft", null, null);
+        this.closeWritableDatabase(db);
+    }
+
+    /**
      * 查询最近的会话列表。
      *
      * @param limit 指定最大查询数量。

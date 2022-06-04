@@ -49,6 +49,8 @@ public class MessagingObserver implements Observer {
 
     private final static String TAG = "MessagingObserver";
 
+    public final static String FerryCleanup = "FerryCleanup";
+
     private MessagingService service;
 
     public MessagingObserver(MessagingService service) {
@@ -60,6 +62,17 @@ public class MessagingObserver implements Observer {
         Module module = (Module) event.getSubject();
         if (ContactService.NAME.equals(module.name)) {
             this.fireContactEvent(event);
+        }
+        else {
+            String eventName = event.getName();
+            if (FerryCleanup.equals(eventName)) {
+                this.service.getKernel().getExecutor().execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        service.cleanup();
+                    }
+                });
+            }
         }
     }
 

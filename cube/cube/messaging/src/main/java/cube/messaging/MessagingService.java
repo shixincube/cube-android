@@ -108,7 +108,7 @@ public class MessagingService extends Module {
 
     private final static String TAG = MessagingService.class.getSimpleName();
 
-    private long retrospectDuration = 30 * 24 * 60 * 60000;
+    private long retrospectDuration = 30L * 24 * 60 * 60000;
 
     private long blockTimeout = 3 * 60 * 1000;
 
@@ -227,6 +227,12 @@ public class MessagingService extends Module {
         this.kernel.getInspector().depositList(this.conversations);
         this.kernel.getInspector().depositMap(this.capsuleCache);
 
+        // 监听 Ferry 模块
+        Module ferryModule = getKernel().getModule("Ferry");
+        if (null != ferryModule) {
+            ferryModule.attachWithName(MessagingObserver.FerryCleanup, this.observer);
+        }
+
         return true;
     }
 
@@ -258,6 +264,11 @@ public class MessagingService extends Module {
 
         this.ready = false;
         this.preparing.set(false);
+
+        Module ferryModule = getKernel().getModule("Ferry");
+        if (null != ferryModule) {
+            ferryModule.detachWithName(MessagingObserver.FerryCleanup, this.observer);
+        }
     }
 
     @Override
@@ -2061,6 +2072,14 @@ public class MessagingService extends Module {
                 }
             });
         }
+    }
+
+    /**
+     * 清空所有消息数据。
+     */
+    public void cleanup() {
+        LogUtils.d(TAG, "#cleanup");
+        // TODO
     }
 
     private void tryAddConversation(Conversation conversation) {

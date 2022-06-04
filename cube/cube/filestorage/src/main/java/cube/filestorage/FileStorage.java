@@ -1088,11 +1088,6 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
         return this.getAuthToken().code;
     }
 
-    @Override
-    protected void execute(Runnable task) {
-        super.execute(task);
-    }
-
     /**
      * 获取文件标签。
      *

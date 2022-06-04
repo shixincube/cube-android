@@ -26,15 +26,20 @@
 
 package cube.ferry;
 
+import org.json.JSONException;
+
 import cube.core.Packet;
 import cube.core.Pipeline;
 import cube.core.PipelineListener;
-import cube.ferry.handler.DefaultDetectHandler;
+import cube.ferry.model.Tenet;
+import cube.util.LogUtils;
 
 /**
  * 摆渡模块数据通道监听器。
  */
 public class FerryPipelineListener implements PipelineListener {
+
+    private final static String TAG = FerryPipelineListener.class.getSimpleName();
 
     private FerryService service;
 
@@ -50,21 +55,24 @@ public class FerryPipelineListener implements PipelineListener {
         else if (FerryServiceAction.Offline.equals(packet.name)) {
             this.service.triggerOffline(packet);
         }
+        else if (FerryServiceAction.Tenet.equals(packet.name)) {
+            try {
+                Tenet tenet = this.service.createTenet(packet.extractServiceData());
+                if (null != tenet) {
+                    this.service.triggerTenet(tenet);
+                }
+                else {
+                    LogUtils.e(TAG, "#onReceived - tenet is null");
+                }
+            } catch (JSONException e) {
+                LogUtils.w(TAG, "#onReceived - " + packet.name, e);
+            }
+        }
     }
 
     @Override
     public void onOpened(Pipeline pipeline) {
-        (new Thread() {
-            @Override
-            public void run() {
-                service.detectDomain(new DefaultDetectHandler(false) {
-                    @Override
-                    public void handleResult(boolean online, long duration) {
-                        // Nothing
-                    }
-                });
-            }
-        }).start();
+        // Nothing
     }
 
     @Override

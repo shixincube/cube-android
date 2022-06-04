@@ -27,51 +27,12 @@
 package cube.ferry;
 
 /**
- * 数据摆渡服务动作定义。
+ * 摆渡服务事件。
  */
-public final class FerryServiceAction {
+public final class FerryServiceEvent {
 
     /**
-     * 域服务器上线。
+     * 清空数据。
      */
-    public final static String Online = "online";
-
-    /**
-     * 域服务器离线。
-     */
-    public final static String Offline = "offline";
-
-    /**
-     * 执行信条。
-     */
-    public final static String Tenet = "tenet";
-
-    /**
-     * 取出信条。
-     */
-    public final static String TakeOutTenet = "takeOutTenet";
-
-    /**
-     * 查询域。
-     */
-    public final static String QueryDomain = "queryDomain";
-
-    /**
-     * 加入域。
-     */
-    public final static String JoinDomain = "joinDomain";
-
-    /**
-     * 退出域。
-     */
-    public final static String QuitDomain = "quitDomain";
-
-    /**
-     * Ping
-     */
-    public final static String Ping = "ping";
-
-
-    private FerryServiceAction() {
-    }
+    public final static String Cleanup = "FerryCleanup";
 }

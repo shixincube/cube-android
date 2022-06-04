@@ -144,7 +144,7 @@ public abstract class Module extends Subject {
      */
     protected abstract void config(@Nullable JSONObject configData);
 
-    protected Kernel getKernel() {
+    public Kernel getKernel() {
         return this.kernel;
     }
 
@@ -160,7 +160,7 @@ public abstract class Module extends Subject {
         return this.kernel.getAuthToken();
     }
 
-    protected void execute(Runnable task) {
+    public void execute(Runnable task) {
         this.taskQueue.offer(task);
 
         this.kernel.getExecutor().execute(() -> {

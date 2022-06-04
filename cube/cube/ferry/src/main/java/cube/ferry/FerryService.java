@@ -43,6 +43,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import cube.auth.AuthService;
 import cube.auth.model.AuthDomain;
 import cube.contact.ContactService;
+import cube.contact.ContactServiceEvent;
 import cube.core.Module;
 import cube.core.ModuleError;
 import cube.core.Packet;
@@ -53,11 +54,14 @@ import cube.ferry.handler.DetectHandler;
 import cube.ferry.handler.DomainHandler;
 import cube.ferry.handler.DomainMemberHandler;
 import cube.ferry.handler.TenetsHandler;
+import cube.ferry.model.CleanupTenet;
 import cube.ferry.model.DomainInfo;
 import cube.ferry.model.DomainMember;
 import cube.ferry.model.JoinWay;
+import cube.ferry.model.Tenet;
 import cube.util.FileUtils;
 import cube.util.LogUtils;
+import cube.util.ObservableEvent;
 
 /**
  * 数据摆渡服务。
@@ -79,11 +83,14 @@ public class FerryService extends Module {
 
     private boolean membership;
 
+    private FerryObserver observer;
+
     public FerryService() {
         super(NAME);
         this.listeners = new ArrayList<>();
         this.houseOnline = new AtomicBoolean(false);
         this.membership = false;
+        this.observer = new FerryObserver(this);
     }
 
     @Override
@@ -94,6 +101,9 @@ public class FerryService extends Module {
 
         this.pipelineListener = new FerryPipelineListener(this);
         this.pipeline.addListener(NAME, this.pipelineListener);
+
+        ContactService contactService = (ContactService) getKernel().getModule(ContactService.NAME);
+        contactService.attachWithName(ContactServiceEvent.SelfReady, this.observer);
 
         return true;
     }
@@ -109,6 +119,9 @@ public class FerryService extends Module {
 
         this.houseOnline.set(false);
         this.membership = false;
+
+        ContactService contactService = (ContactService) getKernel().getModule(ContactService.NAME);
+        contactService.detachWithName(ContactServiceEvent.SelfReady, this.observer);
     }
 
     @Override
@@ -549,9 +562,94 @@ public class FerryService extends Module {
         return this.loadDomainInfo();
     }
 
+    /**
+     * 取出自己的信条。
+     *
+     * @param successHandler
+     * @param failureHandler
+     */
     protected void takeOutTenets(TenetsHandler successHandler,
                                  FailureHandler failureHandler) {
+        if (!this.pipeline.isReady()) {
+            // 数据通道未就绪
+            ModuleError error = new ModuleError(NAME, FerryServiceState.NoNetwork.code);
+            execute(failureHandler, error);
+            return;
+        }
 
+        JSONObject packetData = new JSONObject();
+        try {
+            packetData.put("domain", AuthService.getDomain());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        Packet requestPacket = new Packet(FerryServiceAction.TakeOutTenet, packetData);
+        this.pipeline.send(FerryService.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    ModuleError error = new ModuleError(FerryService.NAME, packet.state.code);
+                    execute(failureHandler, error);
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != FerryServiceState.Ok.code) {
+                    ModuleError error = new ModuleError(FerryService.NAME, stateCode);
+                    execute(failureHandler, error);
+                    return;
+                }
+
+                JSONObject data = packet.extractServiceData();
+                try {
+                    List<Tenet> tenetList = new ArrayList<>();
+                    JSONArray array = data.getJSONArray("tenets");
+                    for (int i = 0; i < array.length(); ++i) {
+                        JSONObject json = array.getJSONObject(i);
+                        Tenet tenet = createTenet(json);
+                        if (null != tenet) {
+                            tenetList.add(tenet);
+                        }
+                    }
+
+                    if (successHandler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            successHandler.handleTenets(tenetList);
+                        });
+                    }
+                    else {
+                        successHandler.handleTenets(tenetList);
+                    }
+                } catch (JSONException e) {
+                    LogUtils.w(TAG, e);
+                    ModuleError error = new ModuleError(FerryService.NAME,
+                            FerryServiceState.DataFormatError.code);
+                    execute(failureHandler, error);
+                }
+            }
+        });
+    }
+
+    /**
+     * 触发信条。
+     *
+     * @param tenet
+     */
+    protected void triggerTenet(Tenet tenet) {
+        if (tenet instanceof CleanupTenet) {
+            ObservableEvent event = new ObservableEvent(FerryServiceEvent.Cleanup, tenet);
+            notifyObservers(event);
+        }
+    }
+
+    protected Tenet createTenet(JSONObject json) throws JSONException {
+        String port = Tenet.extractPort(json);
+        if (CleanupTenet.PORT.equals(port)) {
+            return new CleanupTenet(json);
+        }
+
+        return null;
     }
 
     private boolean saveDomainInfo(DomainInfo info) {

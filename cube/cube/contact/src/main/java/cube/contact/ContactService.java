@@ -202,11 +202,6 @@ public class ContactService extends Module {
         // Nothing
     }
 
-    @Override
-    protected void execute(Runnable runnable) {
-        super.execute(runnable);
-    }
-
     /**
      * 设置联系人数据提供者。
      *

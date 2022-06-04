@@ -50,7 +50,7 @@ public abstract class Module extends Subject {
     /**
      * 内存寿命。
      */
-    protected final static long LIFESPAN = 5L * 60L * 1000L;
+    protected final static long LIFESPAN = 5L * 60 * 1000;
 
     /**
      * 模块名。

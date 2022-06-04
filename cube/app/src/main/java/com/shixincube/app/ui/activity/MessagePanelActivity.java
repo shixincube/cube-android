@@ -249,7 +249,7 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
                     sendButton.setVisibility(View.VISIBLE);
                     moreButtonView.setVisibility(View.GONE);
                     // 发送正在输入消息提示
-                    CubeEngine.getInstance().getMessagingService().sendTypingStatus(conversation);
+                    CubeEngine.getInstance().getMessagingService().startTypingStatus(conversation);
                 }
                 else {
                     sendButton.setVisibility(View.GONE);

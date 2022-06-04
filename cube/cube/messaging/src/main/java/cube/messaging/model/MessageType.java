@@ -37,6 +37,11 @@ public enum MessageType {
     Text,
 
     /**
+     * 阅后即焚。
+     */
+    Burn,
+
+    /**
      * 文件。
      */
     File,
@@ -80,6 +85,11 @@ public enum MessageType {
      * 系统。
      */
     System,
+
+    /**
+     * 空白。
+     */
+    Blank,
 
     /**
      * 其他。

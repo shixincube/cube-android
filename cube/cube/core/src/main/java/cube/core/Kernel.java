@@ -40,6 +40,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 import cell.util.Cryptology;
 import cell.util.log.LogLevel;
@@ -76,12 +77,15 @@ public class Kernel implements PipelineListener {
 
     private ExecutorService executor;
 
+    private ScheduledExecutorService scheduledExecutor;
+
     protected Looper looper;
 
     public Kernel() {
         this.working = false;
         this.moduleMap = new HashMap<>();
         this.executor = Executors.newFixedThreadPool(MAX_THREADS);
+        this.scheduledExecutor = Executors.newScheduledThreadPool(1);
         this.inspector = new EntityInspector();
         this.defaultInstance = this;
     }
@@ -177,8 +181,10 @@ public class Kernel implements PipelineListener {
             this.pipeline = null;
         }
 
-        this.executor.shutdown();
-        this.executor = null;
+        if (null != this.executor) {
+            this.executor.shutdown();
+            this.executor = null;
+        }
 
         this.working = false;
     }
@@ -277,6 +283,10 @@ public class Kernel implements PipelineListener {
 
     public ExecutorService getExecutor() {
         return this.executor;
+    }
+
+    public ScheduledExecutorService getScheduledExecutor() {
+        return this.scheduledExecutor;
     }
 
     /**

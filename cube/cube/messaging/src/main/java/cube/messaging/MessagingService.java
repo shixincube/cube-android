@@ -1485,7 +1485,17 @@ public class MessagingService extends Module {
         });
     }
 
-    public void sendTypingStatus(Conversation conversation) {
+    /**
+     * 擦除消息内容。
+     *
+     * @param message 指定消息实例。
+     * @param delayInMills 指定延迟操作时间。
+     */
+    public void eraseMessageContent(Message message, long delayInMills) {
+
+    }
+
+    public void startTypingStatus(Conversation conversation) {
         // TODO
     }
 

@@ -26,46 +26,53 @@
 
 package cube.messaging.extension;
 
+import org.json.JSONException;
+
+import cube.messaging.model.Message;
+import cube.messaging.model.MessageType;
+
 /**
- * 消息类型。
+ * 阅后即焚消息。
  */
-public final class MessageTypeName {
+public class BurnMessage extends TypeableMessage {
 
-    /**
-     * 一般文本类型。
-     */
-    public final static String Text = "text";
+    public BurnMessage(String text, int readingTime) {
+        super(MessageType.Burn);
 
-    /**
-     * 阅后即焚类型。
-     */
-    public final static String Burn = "burn";
+        try {
+            this.payload.put("type", MessageTypeName.Burn);
+            this.payload.put("content", text);
+            this.payload.put("readingTime", readingTime);
+        } catch (JSONException e) {
+            // Nothing
+        }
 
-    /**
-     * 超文本消息类型。
-     */
-    public final static String Hypertext = "hypertext";
+        this.summary = text;
+    }
 
-    /**
-     * 文件消息。
-     */
-    public final static String File = "file";
+    public BurnMessage(Message message) {
+        super(message, MessageType.Burn);
 
-    /**
-     * 图片消息。
-     */
-    public final static String Image = "image";
+        try {
+            this.payload.put("type", MessageTypeName.Burn);
 
-    /**
-     * 通知消息。
-     */
-    public final static String Notification = "notification";
+            this.summary = this.payload.getString("content");
+        } catch (JSONException e) {
+            // Nothing
+        }
+    }
 
-    /**
-     * 空白消息。
-     */
-    public final static String Blank = "blank";
+    public String getContent() {
+        return this.summary;
+    }
 
-    private MessageTypeName() {
+    public int getReadingTime() {
+        try {
+            return this.payload.getInt("readingTime");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return 0;
     }
 }

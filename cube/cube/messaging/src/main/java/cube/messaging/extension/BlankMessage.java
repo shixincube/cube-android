@@ -26,46 +26,22 @@
 
 package cube.messaging.extension;
 
+import org.json.JSONException;
+
+import cube.messaging.model.MessageType;
+
 /**
- * 消息类型。
+ * 空白消息。
  */
-public final class MessageTypeName {
+public class BlankMessage extends TypeableMessage {
 
-    /**
-     * 一般文本类型。
-     */
-    public final static String Text = "text";
+    public BlankMessage() {
+        super(MessageType.Blank);
 
-    /**
-     * 阅后即焚类型。
-     */
-    public final static String Burn = "burn";
-
-    /**
-     * 超文本消息类型。
-     */
-    public final static String Hypertext = "hypertext";
-
-    /**
-     * 文件消息。
-     */
-    public final static String File = "file";
-
-    /**
-     * 图片消息。
-     */
-    public final static String Image = "image";
-
-    /**
-     * 通知消息。
-     */
-    public final static String Notification = "notification";
-
-    /**
-     * 空白消息。
-     */
-    public final static String Blank = "blank";
-
-    private MessageTypeName() {
+        try {
+            this.payload.put("type", MessageTypeName.Blank);
+        } catch (JSONException e) {
+            // Nothing
+        }
     }
 }

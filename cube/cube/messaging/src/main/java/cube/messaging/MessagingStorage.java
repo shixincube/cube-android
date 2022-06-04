@@ -80,13 +80,16 @@ public class MessagingStorage extends AbstractStorage {
 
     /**
      * 清空所有表数据。
+     *
+     * @param timestamp 指定有效时间戳。
      */
-    public void cleanup() {
+    public void cleanup(long timestamp) {
+        String strTimestamp = Long.toString(timestamp);
         SQLiteDatabase db = this.getWritableDatabase();
-        db.delete("message", null, null);
-        db.delete("conversation", null, null);
-        db.delete("recent_messager", null, null);
-        db.delete("draft", null, null);
+        db.delete("message", "rts<?", new String[]{ strTimestamp });
+        db.delete("conversation", "`timestamp`<?", new String[]{ strTimestamp });
+        db.delete("recent_messager", "`time`<?", new String[]{ strTimestamp });
+        db.delete("draft", "`time`<?", new String[]{ strTimestamp });
         this.closeWritableDatabase(db);
     }
 

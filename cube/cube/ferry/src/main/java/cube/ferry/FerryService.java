@@ -638,7 +638,7 @@ public class FerryService extends Module {
      */
     protected void triggerTenet(Tenet tenet) {
         if (tenet instanceof CleanupTenet) {
-            ObservableEvent event = new ObservableEvent(FerryServiceEvent.Cleanup, tenet);
+            ObservableEvent event = new ObservableEvent(FerryServiceEvent.Cleanup, tenet.toJSON());
             notifyObservers(event);
         }
     }

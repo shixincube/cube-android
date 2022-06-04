@@ -26,6 +26,9 @@
 
 package cube.messaging;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import cube.contact.ContactService;
 import cube.contact.ContactServiceEvent;
 import cube.contact.model.ContactZone;
@@ -69,7 +72,13 @@ public class MessagingObserver implements Observer {
                 this.service.getKernel().getExecutor().execute(new Runnable() {
                     @Override
                     public void run() {
-                        service.cleanup();
+                        JSONObject data = (JSONObject) event.getData();
+                        try {
+                            long timestamp = data.getLong("timestamp");
+                            service.cleanup(timestamp);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
                     }
                 });
             }

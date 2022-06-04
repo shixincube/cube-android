@@ -37,6 +37,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -50,6 +51,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import cell.util.Utils;
 import cube.contact.ContactService;
 import cube.contact.handler.StableGroupHandler;
 import cube.contact.model.AbstractContact;
@@ -2076,10 +2078,14 @@ public class MessagingService extends Module {
 
     /**
      * 清空所有消息数据。
+     *
+     * @param timestamp 指定时间戳。
      */
-    public void cleanup() {
-        LogUtils.d(TAG, "#cleanup");
-        // TODO
+    protected void cleanup(long timestamp) {
+        LogUtils.d(TAG, "#cleanup - " + Utils.gsDateFormat.format(new Date(timestamp)));
+
+        // 从数据库删除
+        this.storage.cleanup(timestamp);
     }
 
     private void tryAddConversation(Conversation conversation) {

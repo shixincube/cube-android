@@ -62,7 +62,7 @@ public class Entity implements JSONable, Cacheable, TimeSortable {
     protected long expiry;
 
     /**
-     * 关联上下文数据。
+     * 上下文数据。
      */
     protected JSONObject context;
 

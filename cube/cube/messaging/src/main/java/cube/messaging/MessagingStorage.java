@@ -232,6 +232,11 @@ public class MessagingStorage extends AbstractStorage {
                         ConversationReminding.parse(cursor.getInt(cursor.getColumnIndex("reminding"))),
                         cursor.getInt(cursor.getColumnIndex("unread")),
                         recentMessage);
+
+                String ctxString = cursor.getString(cursor.getColumnIndex("context"));
+                if (null != ctxString) {
+                    conversation.setContext(new JSONObject(ctxString));
+                }
             } catch (Exception e) {
                 // Nothing
             }
@@ -281,6 +286,10 @@ public class MessagingStorage extends AbstractStorage {
             values.put("reminding", conversation.getReminding().code);
             values.put("recent_message", conversation.getRecentMessage().toJSON().toString());
             values.put("unread", conversation.getUnreadCount());
+            if (null != conversation.getContext()) {
+                values.put("context", conversation.getContext().toString());
+            }
+
             // update
             db.update("conversation", values, "id=?", new String[]{ conversation.id.toString() });
         }
@@ -298,6 +307,10 @@ public class MessagingStorage extends AbstractStorage {
             values.put("reminding", conversation.getReminding().code);
             values.put("recent_message", conversation.getRecentMessage().toJSON().toString());
             values.put("unread", conversation.getUnreadCount());
+            if (null != conversation.getContext()) {
+                values.put("context", conversation.getContext().toString());
+            }
+
             // insert
             db.insert("conversation", null, values);
         }
@@ -351,6 +364,10 @@ public class MessagingStorage extends AbstractStorage {
         values.put("reminding", conversation.getReminding().code);
         values.put("recent_message", conversation.getRecentMessage().toJSON().toString());
         values.put("unread", conversation.getUnreadCount());
+        if (null != conversation.getContext()) {
+            values.put("context", conversation.getContext().toString());
+        }
+
         // update
         db.update("conversation", values, "id=?", new String[]{ conversation.id.toString() });
 
@@ -399,6 +416,9 @@ public class MessagingStorage extends AbstractStorage {
                 values.put("reminding", conversation.getReminding().code);
                 values.put("recent_message", conversation.getRecentMessage().toJSON().toString());
                 values.put("unread", conversation.getUnreadCount());
+                if (null != conversation.getContext()) {
+                    values.put("context", conversation.getContext().toString());
+                }
                 db.update("conversation", values, "id=?", new String[]{ conversation.id.toString() });
             }
             else {
@@ -414,6 +434,9 @@ public class MessagingStorage extends AbstractStorage {
                 values.put("reminding", conversation.getReminding().code);
                 values.put("recent_message", conversation.getRecentMessage().toJSON().toString());
                 values.put("unread", conversation.getUnreadCount());
+                if (null != conversation.getContext()) {
+                    values.put("context", conversation.getContext().toString());
+                }
                 db.insert("conversation", null, values);
             }
         }
@@ -461,6 +484,10 @@ public class MessagingStorage extends AbstractStorage {
             values.put("reminding", conversation.getReminding().code);
             values.put("recent_message", message.toJSON().toString());
             values.put("unread", unread ? 1 : 0);
+            if (null != conversation.getContext()) {
+                values.put("context", conversation.getContext().toString());
+            }
+
             db.insert("conversation", null, values);
         }
 
@@ -920,7 +947,7 @@ public class MessagingStorage extends AbstractStorage {
         database.execSQL("CREATE TABLE IF NOT EXISTS `message` (`id` BIGINT PRIMARY KEY, `timestamp` BIGINT, `owner` BIGINT, `from` BIGINT, `to` BIGINT, `source` BIGINT, `lts` BIGINT, `rts` BIGINT, `state` INT, `remote_state` INT DEFAULT 10, `scope` INT DEFAULT 0, `payload` TEXT, `attachment` TEXT DEFAULT NULL)");
 
         // 会话表
-        database.execSQL("CREATE TABLE IF NOT EXISTS `conversation` (`id` BIGINT PRIMARY KEY, `timestamp` BIGINT, `type` INT, `state` INT, `pivotal_id` BIGINT, `reminding` INT, `recent_message` TEXT, `unread` INT DEFAULT 0, `avatar_name` TEXT DEFAULT NULL, `avatar_url` TEXT DEFAULT NULL)");
+        database.execSQL("CREATE TABLE IF NOT EXISTS `conversation` (`id` BIGINT PRIMARY KEY, `timestamp` BIGINT, `type` INT, `state` INT, `pivotal_id` BIGINT, `reminding` INT, `context` TEXT DEFAULT NULL, `recent_message` TEXT, `unread` INT DEFAULT 0, `avatar_name` TEXT DEFAULT NULL, `avatar_url` TEXT DEFAULT NULL)");
 
         // 最近消息表，当前联系人和其他每一个联系人的最近消息
         // messager_id - 消息相关发件人或收件人 ID

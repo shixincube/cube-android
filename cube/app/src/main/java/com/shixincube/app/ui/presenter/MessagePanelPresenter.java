@@ -446,8 +446,17 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
         }
     }
 
-    public boolean switchBurnMode() {
-        return false;
+    public void switchBurnMode() {
+        this.burnMode = !this.burnMode;
+
+        if (this.burnMode) {
+            getView().getBurnButtonView().setImageResource(R.mipmap.message_tool_burn_enable);
+            UIUtils.showToast(UIUtils.getString(R.string.tip_burn_enabled));
+        }
+        else {
+            getView().getBurnButtonView().setImageResource(R.mipmap.message_tool_burn_disable);
+            UIUtils.showToast(UIUtils.getString(R.string.tip_burn_disabled));
+        }
     }
 
     public void close() throws IOException {

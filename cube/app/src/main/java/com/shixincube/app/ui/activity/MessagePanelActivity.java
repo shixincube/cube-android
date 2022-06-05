@@ -283,7 +283,7 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
 
         // 阅后即焚模式切换
         burnButtonView.setOnClickListener((view) -> {
-
+            presenter.switchBurnMode();
         });
 
         // 发送按钮事件

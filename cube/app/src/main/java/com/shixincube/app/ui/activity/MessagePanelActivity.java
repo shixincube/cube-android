@@ -134,6 +134,9 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
     @BindView(R.id.ivEmoji)
     ImageView emojiButtonView;
 
+    @BindView(R.id.ivBurnMode)
+    ImageView burnButtonView;
+
     @BindView(R.id.ivMore)
     ImageView moreButtonView;
 
@@ -198,6 +201,8 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
     public void initData() {
         this.presenter.markAllRead();
         this.presenter.loadMessages();
+
+        this.presenter.refreshState();
 
         runOnUiThread(() -> {
             // 绑定视频通话的监听器
@@ -274,6 +279,11 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
                     }
                 }, 100);
             }
+        });
+
+        // 阅后即焚模式切换
+        burnButtonView.setOnClickListener((view) -> {
+
         });
 
         // 发送按钮事件
@@ -681,5 +691,10 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
     @Override
     public BGARefreshLayout getRefreshLayout() {
         return this.refreshLayout;
+    }
+
+    @Override
+    public ImageView getBurnButtonView() {
+        return this.burnButtonView;
     }
 }

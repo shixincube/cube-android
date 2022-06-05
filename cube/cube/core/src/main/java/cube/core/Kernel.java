@@ -126,6 +126,10 @@ public class Kernel implements PipelineListener {
             this.executor = Executors.newFixedThreadPool(MAX_THREADS);
         }
 
+        if (null == this.scheduledExecutor) {
+            this.scheduledExecutor = Executors.newScheduledThreadPool(1);
+        }
+
         // 处理模块
         this.bundle();
 
@@ -184,6 +188,11 @@ public class Kernel implements PipelineListener {
         if (null != this.executor) {
             this.executor.shutdown();
             this.executor = null;
+        }
+
+        if (null != this.scheduledExecutor) {
+            this.scheduledExecutor.shutdown();
+            this.scheduledExecutor = null;
         }
 
         this.working = false;

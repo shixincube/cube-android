@@ -1502,8 +1502,8 @@ public class MessagingService extends Module {
     /**
      * 向指定会话的参与人发送消息。
      *
-     * @param conversation
-     * @param message
+     * @param conversation 指定消息会话。
+     * @param message 指定发送的消息实例。
      * @param <T> 消息实例类型。
      */
     public <T extends Message> void sendMessage(final Conversation conversation, final T message) {

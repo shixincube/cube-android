@@ -44,6 +44,9 @@ import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.adapter.OnItemClickListener;
 import com.shixincube.app.widget.adapter.ViewHolder;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -90,11 +93,37 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
 
     private List<Message> messageList;
 
+    private boolean burnMode;
+
     public MessagePanelPresenter(BaseActivity activity, Conversation conversation) {
         super(activity);
         this.conversation = conversation;
         this.messageList = new ArrayList<>();
+        this.burnMode = false;
         CubeEngine.getInstance().getMessagingService().addEventListener(conversation, this);
+    }
+
+    public boolean isBurnMode() {
+        return this.burnMode;
+    }
+
+    public void refreshState() {
+        JSONObject context = this.conversation.getContext();
+        if (null != context) {
+            try {
+                this.burnMode = context.has(AppConsts.BURN_MODE)
+                        && context.getBoolean(AppConsts.BURN_MODE);
+
+                if (this.burnMode) {
+                    getView().getBurnButtonView().setImageResource(R.mipmap.message_tool_burn_enable);
+                }
+                else {
+                    getView().getBurnButtonView().setImageResource(R.mipmap.message_tool_burn_disable);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public void markAllRead() {
@@ -415,6 +444,10 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
                 }
             }
         }
+    }
+
+    public boolean switchBurnMode() {
+        return false;
     }
 
     public void close() throws IOException {

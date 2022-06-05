@@ -86,6 +86,13 @@
                 android:src="@mipmap/message_tool_emotion"/>
 
             <ImageView
+                android:id="@+id/ivBurnMode"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:layout_margin="5dp"
+                android:src="@mipmap/message_tool_burn_disable"/>
+
+            <ImageView
                 android:id="@+id/ivMore"
                 android:layout_width="35dp"
                 android:layout_height="35dp"

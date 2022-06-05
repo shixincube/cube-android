@@ -27,6 +27,7 @@
 package com.shixincube.app.ui.view;
 
 import android.widget.EditText;
+import android.widget.ImageView;
 
 import com.shixincube.app.widget.recyclerview.RecyclerView;
 
@@ -42,4 +43,6 @@ public interface MessagePanelView {
     EditText getInputContentView();
 
     BGARefreshLayout getRefreshLayout();
+
+    ImageView getBurnButtonView();
 }

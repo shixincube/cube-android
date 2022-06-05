@@ -107,4 +107,9 @@ public final class AppConsts {
      * 摄像机照片文件保存位置。
      */
     public final static String CAMERA_PHOTO_DIR = FileUtils.getDir("camera_photo");
+
+    /**
+     * 阅后即焚模式配置属性属性名。
+     */
+    public final static String BURN_MODE = "burnMode";
 }

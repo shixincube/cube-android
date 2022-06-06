@@ -46,6 +46,8 @@ import java.nio.charset.StandardCharsets;
  */
 public class FileUtils {
 
+    private final static String TAG = "FileUtils";
+
     private FileUtils() {
     }
 
@@ -90,9 +92,9 @@ public class FileUtils {
                 buf.append(line);
             }
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            LogUtils.e(TAG, "#readJSONFile", e);
         } catch (IOException e) {
-            e.printStackTrace();
+            LogUtils.e(TAG, "#readJSONFile", e);
         } finally {
             if (null != reader) {
                 try {
@@ -100,6 +102,10 @@ public class FileUtils {
                 } catch (IOException e) {
                 }
             }
+        }
+
+        if (buf.length() <= 2) {
+            return null;
         }
 
         return new JSONObject(buf.toString());

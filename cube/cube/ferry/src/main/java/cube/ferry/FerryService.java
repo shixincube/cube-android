@@ -665,6 +665,10 @@ public class FerryService extends Module {
         File file = new File(path, "domain");
         try {
             JSONObject json = FileUtils.readJSONFile(file);
+            if (null == json) {
+                return null;
+            }
+
             info = new DomainInfo(json);
         } catch (JSONException e) {
             LogUtils.e(TAG, "#loadDomainInfo", e);

@@ -34,12 +34,12 @@ import android.widget.Button;
 import android.widget.RelativeLayout;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 
 import com.jaeger.library.StatusBarUtil;
 import com.shixincube.app.AppConsts;
 import com.shixincube.app.R;
 import com.shixincube.app.api.Explorer;
+import com.shixincube.app.api.RetryWithDelay;
 import com.shixincube.app.manager.AccountHelper;
 import com.shixincube.app.manager.CubeConnection;
 import com.shixincube.app.ui.base.BaseActivity;
@@ -49,6 +49,7 @@ import com.shixincube.app.util.UIUtils;
 
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import butterknife.BindView;
 import cube.core.KernelConfig;
@@ -101,18 +102,20 @@ public class SplashActivity extends BaseActivity {
 
         // 启动
         if (AppConsts.FERRY_MODE) {
+            AtomicInteger count = new AtomicInteger(0);
             checkEngineConfig(new ResultCallback() {
                 @Override
                 public void onResult(boolean ok) {
-                    if (ok) {
-                        launch();
+                    if (!ok) {
+                        UIUtils.showToast(UIUtils.getString(R.string.network_failure), 3000);
+
+                        if (count.incrementAndGet() >= 2) {
+                            // 重试两次
+                            launch();
+                        }
                     }
                     else {
-                        AlertDialog.Builder builder = new AlertDialog.Builder(SplashActivity.this);
-                        builder.setTitle(UIUtils.getString(R.string.prompt));
-                        builder.setMessage(UIUtils.getString(R.string.network_failure));
-                        builder.setNegativeButton(UIUtils.getString(R.string.sure), null);
-                        builder.show();
+                        launch();
                     }
                 }
             });
@@ -337,6 +340,7 @@ public class SplashActivity extends BaseActivity {
                         callback.onResult(false);
                     });
                 })
+                .retryWhen(new RetryWithDelay(3500, 2))
                 .subscribe(domain -> {
                     if (!domain.mainEndpoint.host.equals("127.0.0.1")) {
                         // 跳过调试地址 127.0.0.1

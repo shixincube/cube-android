@@ -229,7 +229,9 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
 
         // 如果 House 失效，不允许发送消息
         if (AppConsts.FERRY_MODE) {
-
+            if (!CubeEngine.getInstance().getFerryService().isHouseOnline()) {
+                return false;
+            }
         }
 
         return true;
@@ -275,27 +277,32 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
             return;
         }
 
-        HyperTextMessage textMessage = new HyperTextMessage(text);
-        CubeEngine.getInstance().getMessagingService().sendMessage(conversation, textMessage,
-                new SimpleSendHandler<Conversation, HyperTextMessage>() {
-                    @Override
-                    public void handleSending(Conversation destination, HyperTextMessage message) {
-                        // 将消息添加到界面
-                        adapter.addLastItem(message);
-                        moveToBottom();
-                    }
+        if (this.burnMode) {
 
-                    @Override
-                    public void handleSent(Conversation destination, HyperTextMessage message) {
-                        // Nothing
-                    }
-                }, new DefaultFailureHandler(true) {
-                    @Override
-                    public void handleFailure(Module module, ModuleError error) {
-                        // 消息错误，更新显示状态
-                        updateMessageStatus(textMessage);
-                    }
-                });
+        }
+        else {
+            HyperTextMessage textMessage = new HyperTextMessage(text);
+            CubeEngine.getInstance().getMessagingService().sendMessage(conversation, textMessage,
+                    new SimpleSendHandler<Conversation, HyperTextMessage>() {
+                        @Override
+                        public void handleSending(Conversation destination, HyperTextMessage message) {
+                            // 将消息添加到界面
+                            adapter.addLastItem(message);
+                            moveToBottom();
+                        }
+
+                        @Override
+                        public void handleSent(Conversation destination, HyperTextMessage message) {
+                            // Nothing
+                        }
+                    }, new DefaultFailureHandler(true) {
+                        @Override
+                        public void handleFailure(Module module, ModuleError error) {
+                            // 消息错误，更新显示状态
+                            updateMessageStatus(textMessage);
+                        }
+                    });
+        }
     }
 
     public void sendFileMessage(File file) {

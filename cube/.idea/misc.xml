@@ -146,8 +146,9 @@
         <entry key="app/src/main/res/layout/item_member.xml" value="0.5" />
         <entry key="app/src/main/res/layout/item_member_frame.xml" value="0.1" />
         <entry key="app/src/main/res/layout/item_member_selected.xml" value="0.17725409836065573" />
-        <entry key="app/src/main/res/layout/item_message_image_receive.xml" value="0.1" />
-        <entry key="app/src/main/res/layout/item_message_image_send.xml" value="0.5" />
+        <entry key="app/src/main/res/layout/item_message_burn_send.xml" value="0.15027322404371585" />
+        <entry key="app/src/main/res/layout/item_message_image_receive.xml" value="0.22" />
+        <entry key="app/src/main/res/layout/item_message_image_send.xml" value="0.22" />
         <entry key="app/src/main/res/layout/item_message_item_receive.xml" value="0.5" />
         <entry key="app/src/main/res/layout/item_message_item_send.xml" value="0.5" />
         <entry key="app/src/main/res/layout/item_message_no_support.xml" value="0.18032786885245902" />

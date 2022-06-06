@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:auto="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <!-- 消息时间 -->
+    <TextView
+        android:id="@+id/tvTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_margin="10dp"
+        android:background="@drawable/shape_notification_bg"
+        android:gravity="center"
+        android:paddingBottom="2dp"
+        android:paddingLeft="5dp"
+        android:paddingRight="5dp"
+        android:paddingTop="2dp"
+        android:text=""
+        android:textColor="@color/text_accent"
+        android:textSize="12sp"/>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:gravity="end"
+        android:orientation="horizontal"
+        android:paddingTop="10dp"
+        android:paddingRight="5dp"
+        android:paddingBottom="20dp"
+        android:paddingLeft="5dp">
+
+        <!-- 重试 -->
+        <LinearLayout
+            android:id="@+id/llError"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/tvRetry"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="@string/retry"/>
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/ivError"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center"
+                android:layout_margin="5dp"
+                android:src="@mipmap/ic_error"/>
+        </LinearLayout>
+
+        <!-- 已读/未读 -->
+        <LinearLayout
+            android:id="@+id/llRead"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:layout_marginEnd="10dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/tvRead"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/message_read"
+                android:textColor="?attr/colorTextSecondary"
+                android:textSize="12sp"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="10dp"
+            android:gravity="end"
+            android:orientation="vertical">
+
+            <!-- 昵称 -->
+            <TextView
+                android:id="@+id/tvName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:text="@string/app_name"
+                android:textColor="?attr/colorTextSecondary"
+                android:textSize="12sp"
+                android:visibility="visible"/>
+
+            <!-- 图片 -->
+            <com.shixincube.app.widget.BubbleImageView
+                android:id="@+id/bivImage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:adjustViewBounds="true"
+                android:maxHeight="150dp"
+                android:minHeight="80dp"
+                android:minWidth="80dp"
+                android:scaleType="fitCenter"
+                android:src="@mipmap/default_image"
+                auto:bubble_angle="4dp"
+                auto:bubble_arrowLocation="none"
+                auto:bubble_arrowHeight="10dp"
+                auto:bubble_arrowOffset="-5dp"
+                auto:bubble_arrowTop="20dp"
+                auto:bubble_arrowWidth="8dp"/>
+
+        </LinearLayout>
+
+        <!-- 头像 -->
+        <com.shixincube.app.widget.AdvancedImageView
+            android:id="@+id/ivAvatar"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
+            android:src="@mipmap/avatar_default"
+            auto:corner_radius="4dp"
+            auto:border_color="@color/avatar"
+            auto:border_width="1dp"/>
+
+    </LinearLayout>
+
+</LinearLayout>

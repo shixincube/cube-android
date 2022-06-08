@@ -52,7 +52,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import cell.core.net.MessageService;
 import cube.core.Module;
 import cube.core.ModuleError;
 import cube.core.handler.DefaultFailureHandler;
@@ -64,7 +63,6 @@ import cube.engine.util.PromiseHandler;
 import cube.messaging.MessageEventListener;
 import cube.messaging.MessageListResult;
 import cube.messaging.MessagingService;
-import cube.messaging.extension.BurnListener;
 import cube.messaging.extension.BurnMessage;
 import cube.messaging.extension.FileMessage;
 import cube.messaging.extension.HyperTextMessage;
@@ -531,7 +529,7 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
     }
 
     private void monitorBurnMessage(BurnMessage burnMessage) {
-        burnMessage.setListener(new BurnListener() {
+        /*burnMessage.setListener(new BurnListener() {
             @Override
             public void onCountdownTick(MessageService service, BurnMessage message, int current, int total) {
 
@@ -551,7 +549,7 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
             public void onCountdownCompleted(MessageService service, BurnMessage message) {
 
             }
-        });
+        });*/
     }
 
     @Override

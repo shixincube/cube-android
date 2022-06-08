@@ -36,8 +36,6 @@ import cube.messaging.model.MessageType;
  */
 public class BurnMessage extends TypeableMessage {
 
-    private BurnListener listener;
-
     public BurnMessage(String text) {
         this(text, calcReadingTime(text));
     }
@@ -66,14 +64,6 @@ public class BurnMessage extends TypeableMessage {
         } catch (JSONException e) {
             // Nothing
         }
-    }
-
-    public void setListener(BurnListener listener) {
-        this.listener = listener;
-    }
-
-    public BurnListener getListener() {
-        return this.listener;
     }
 
     /**

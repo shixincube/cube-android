@@ -24,14 +24,15 @@
  * SOFTWARE.
  */
 
-package cube.messaging.extension;
+package cube.messaging.handler;
 
 import cell.core.net.MessageService;
+import cube.messaging.model.Message;
 
 /**
- * 阅后即焚监听器。
+ * 擦除消息句柄。
  */
-public interface BurnListener {
+public interface EraseMessageHandler {
 
     /**
      * 当焚毁倒计时启动时回调。
@@ -39,17 +40,17 @@ public interface BurnListener {
      * @param service
      * @param message
      */
-    void onCountdownStarted(MessageService service, BurnMessage message);
+    void onCountdownStarted(MessageService service, Message message);
 
     /**
      * 当焚毁倒计时更新计数时回调。
      *
      * @param service
      * @param message
-     * @param current
+     * @param elapsed
      * @param total
      */
-    void onCountdownTick(MessageService service, BurnMessage message, int current, int total);
+    void onCountdownTick(MessageService service, Message message, int elapsed, int total);
 
     /**
      * 当焚毁倒计时完成时回调。
@@ -57,5 +58,5 @@ public interface BurnListener {
      * @param service
      * @param message
      */
-    void onCountdownCompleted(MessageService service, BurnMessage message);
+    void onCountdownCompleted(MessageService service, Message message);
 }

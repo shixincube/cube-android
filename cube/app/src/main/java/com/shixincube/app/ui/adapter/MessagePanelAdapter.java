@@ -250,12 +250,6 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
                         .override(250, 184)
                         .centerCrop()
                         .into((BubbleImageView) helper.getView(R.id.bivImage));
-
-//                if (message.getState() == MessageState.Sending) {
-//                    helper.setText(R.id.tvText, message.getContent());
-//                    helper.setText(R.id.tvCountdown, Integer.toString(message.getReadingTime()));
-//                    helper.setViewVisibility(R.id.bivImage, View.GONE);
-//                }
             }
         }
         else {

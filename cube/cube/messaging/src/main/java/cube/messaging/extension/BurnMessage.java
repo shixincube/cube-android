@@ -36,6 +36,12 @@ import cube.messaging.model.MessageType;
  */
 public class BurnMessage extends TypeableMessage {
 
+    private BurnListener listener;
+
+    public BurnMessage(String text) {
+        this(text, calcReadingTime(text));
+    }
+
     public BurnMessage(String text, int readingTime) {
         super(MessageType.Burn);
 
@@ -47,7 +53,7 @@ public class BurnMessage extends TypeableMessage {
             // Nothing
         }
 
-        this.summary = text;
+        this.summary = "[阅后即焚]";
     }
 
     public BurnMessage(Message message) {
@@ -56,14 +62,43 @@ public class BurnMessage extends TypeableMessage {
         try {
             this.payload.put("type", MessageTypeName.Burn);
 
-            this.summary = this.payload.getString("content");
+            this.summary = "[阅后即焚]";
         } catch (JSONException e) {
             // Nothing
         }
     }
 
+    public void setListener(BurnListener listener) {
+        this.listener = listener;
+    }
+
+    public BurnListener getListener() {
+        return this.listener;
+    }
+
+    /**
+     * 是否内容已被焚毁。
+     *
+     * @return
+     */
+    public boolean hasBurned() {
+        try {
+            String content = this.payload.getString("content");
+            return (content.length() == 0);
+        } catch (Exception e) {
+            // Nothing
+        }
+
+        return true;
+    }
+
     public String getContent() {
-        return this.summary;
+        try {
+            return this.payload.getString("content");
+        } catch (JSONException e) {
+            // Nothing
+        }
+        return null;
     }
 
     public int getReadingTime() {
@@ -74,5 +109,11 @@ public class BurnMessage extends TypeableMessage {
         }
 
         return 0;
+    }
+
+    private static int calcReadingTime(String text) {
+        int num = text.length();
+        int time = Math.round((num + 0.0f) * 1.6f);
+        return Math.max(time, 3);
     }
 }

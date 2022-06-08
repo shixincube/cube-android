@@ -10,7 +10,6 @@ import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
 
-
 /**
  * ViewHolder 的抽象类 (是 ViewHolderForAbsListView 和 ViewHolderForRecyclerView 的同一父类)
  */
@@ -84,7 +83,19 @@ public class ViewHolder extends RecyclerView.ViewHolder {
     /*================== 一切有可能的操作控件的方法 begin ==================*/
 
     /**
-     * 设置TextView文字，并返回this
+     * 设置 Tag 。
+     *
+     * @param viewId
+     * @param tag
+     * @return
+     */
+    public ViewHolder setTag(int viewId, Object tag) {
+        getView(viewId).setTag(tag);
+        return this;
+    }
+
+    /**
+     * 设置 TextView 文字
      */
     public ViewHolder setText(int viewId, String text) {
         TextView tv = getView(viewId);
@@ -93,7 +104,7 @@ public class ViewHolder extends RecyclerView.ViewHolder {
     }
 
     /**
-     * 设置TextView的文字颜色，并返回this
+     * 设置 TextView 的文字颜色
      */
     public ViewHolder setTextColor(int viewId, int colorId) {
         TextView tv = getView(viewId);

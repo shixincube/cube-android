@@ -52,6 +52,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import cell.core.net.MessageService;
 import cube.core.Module;
 import cube.core.ModuleError;
 import cube.core.handler.DefaultFailureHandler;
@@ -63,6 +64,8 @@ import cube.engine.util.PromiseHandler;
 import cube.messaging.MessageEventListener;
 import cube.messaging.MessageListResult;
 import cube.messaging.MessagingService;
+import cube.messaging.extension.BurnListener;
+import cube.messaging.extension.BurnMessage;
 import cube.messaging.extension.FileMessage;
 import cube.messaging.extension.HyperTextMessage;
 import cube.messaging.extension.ImageMessage;
@@ -278,7 +281,28 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
         }
 
         if (this.burnMode) {
+            BurnMessage burnMessage = new BurnMessage(text);
+            // 监听自焚
+            this.monitorBurnMessage(burnMessage);
+            CubeEngine.getInstance().getMessagingService().sendMessage(conversation, burnMessage,
+                    new SimpleSendHandler<Conversation, BurnMessage>() {
+                        @Override
+                        public void handleSending(Conversation destination, BurnMessage message) {
+                            // 将消息添加到界面
+                            adapter.addLastItem(message);
+                            moveToBottom();
+                        }
 
+                        @Override
+                        public void handleSent(Conversation destination, BurnMessage message) {
+                            // Nothing
+                        }
+                    }, new DefaultFailureHandler(true) {
+                        @Override
+                        public void handleFailure(Module module, ModuleError error) {
+                            updateMessageStatus(burnMessage);
+                        }
+                    });
         }
         else {
             HyperTextMessage textMessage = new HyperTextMessage(text);
@@ -330,7 +354,8 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
                 public void handleSending(Conversation destination, FileMessage message) {
                     long processedSize = message.getProcessedSize();
                     if (processedSize >= 0) {
-                        LogUtils.d(this.getClass().getSimpleName(), "#sendFileMessage - handleSending : " +
+                        LogUtils.d(this.getClass().getSimpleName(),
+                                "#sendFileMessage - handleSending : " +
                                 processedSize + "/" + message.getFileSize());
                     }
                 }
@@ -345,7 +370,8 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
             }, new DefaultFailureHandler(true) {
                 @Override
                 public void handleFailure(Module module, ModuleError error) {
-                    LogUtils.i(this.getClass().getSimpleName(), "#sendFileMessage - handleFailure : " + error.code);
+                    LogUtils.i(this.getClass().getSimpleName(),
+                            "#sendFileMessage - handleFailure : " + error.code);
 
                     // 更新状态
                     updateMessageStatus(fileMessage);
@@ -368,7 +394,8 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
         // 创建消息
         ImageMessage imageMessage = new ImageMessage(file, !useRawImage);
 
-        CubeEngine.getInstance().getMessagingService().sendMessage(conversation, imageMessage, new DefaultSendHandler<Conversation, ImageMessage>(true) {
+        CubeEngine.getInstance().getMessagingService().sendMessage(conversation, imageMessage,
+                new DefaultSendHandler<Conversation, ImageMessage>(true) {
             @Override
             public void handleProcessing(Conversation destination, ImageMessage message) {
                 // 将消息添加到界面
@@ -501,6 +528,30 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
                 activity.jumpToActivity(intent);
             }
         }
+    }
+
+    private void monitorBurnMessage(BurnMessage burnMessage) {
+        burnMessage.setListener(new BurnListener() {
+            @Override
+            public void onCountdownTick(MessageService service, BurnMessage message, int current, int total) {
+
+            }
+
+            @Override
+            public void onCountdownStarted(MessageService service, BurnMessage message) {
+                View mainView = getView().getMessageListView().findViewWithTag(message.id);
+                if (null == mainView) {
+                    return;
+                }
+
+
+            }
+
+            @Override
+            public void onCountdownCompleted(MessageService service, BurnMessage message) {
+
+            }
+        });
     }
 
     @Override

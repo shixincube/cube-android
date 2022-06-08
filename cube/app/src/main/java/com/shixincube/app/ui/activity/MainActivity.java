@@ -71,6 +71,8 @@ import cube.util.LogUtils;
 public class MainActivity extends BaseActivity<MainView, MainPresenter> implements
         ViewPager.OnPageChangeListener, MainView, ContactDataHandler {
 
+    private final static String TAG = "MainActivity";
+
     public final static int REQUEST_CREATE_GROUP_CONVERSATION = 1000;
 
     @BindView(R.id.ibPopupMenu)
@@ -135,6 +137,8 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
 
     @Override
     public void init() {
+        LogUtils.i(TAG, "#init");
+
         // 启动通话界面悬浮窗
         Intent cubeFloatingWindow = new Intent(this, FloatingVideoWindowService.class);
         cubeFloatingWindow.setAction(FloatingVideoWindowService.ACTION_PREPARE);

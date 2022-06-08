@@ -76,6 +76,9 @@ public class MessageTypePlugin implements Plugin<Message> {
                 else if (MessageTypeName.Text.equals(type)) {
                     return new TextMessage(message);
                 }
+                else if (MessageTypeName.Burn.equals(type)) {
+                    return new BurnMessage(message);
+                }
             } catch (JSONException e) {
                 // Nothing
             }

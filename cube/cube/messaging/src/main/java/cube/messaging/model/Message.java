@@ -207,7 +207,8 @@ public class Message extends Entity {
      * @param scope
      */
     public Message(Long id, long timestamp, String domain, long owner, long from, long to, long source,
-                   long localTS, long remoteTS, JSONObject payload, MessageState state, int scope, FileAttachment attachment) {
+                   long localTS, long remoteTS, JSONObject payload, MessageState state, int scope,
+                   FileAttachment attachment) {
         super(id, timestamp);
         this.domain = domain;
         this.owner = owner;

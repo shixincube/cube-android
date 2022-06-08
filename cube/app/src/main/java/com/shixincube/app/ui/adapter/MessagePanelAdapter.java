@@ -45,6 +45,7 @@ import com.shixincube.app.widget.adapter.ViewHolderForRecyclerView;
 import java.util.List;
 
 import cube.fileprocessor.util.CalculationUtils;
+import cube.messaging.extension.BurnMessage;
 import cube.messaging.extension.FileMessage;
 import cube.messaging.extension.HyperTextMessage;
 import cube.messaging.extension.ImageMessage;
@@ -52,11 +53,14 @@ import cube.messaging.extension.NotificationMessage;
 import cube.messaging.model.Message;
 import cube.messaging.model.MessageState;
 import cube.messaging.model.MessageType;
+import cube.util.LogUtils;
 
 /**
  * 消息面板数据适配器。
  */
 public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
+
+    private final static String TAG = "MessagePanelAdapter";
 
     private final long showTimeInterval = 10 * 60 * 1000;
 
@@ -88,16 +92,27 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
         else if (message instanceof NotificationMessage) {
             return R.layout.item_message_notification;
         }
+        else if (message instanceof BurnMessage) {
+            return message.isSelfTyper() ? R.layout.item_message_burn_send : R.layout.item_message_burn_receive;
+        }
 
         return R.layout.item_message_no_support;
     }
 
     private void setView(ViewHolderForRecyclerView helper, Message item, int position) {
+        setId(helper, item, position);
         setTime(helper, item, position);
         setAvatar(helper, item, position);
         setName(helper, item, position);
         setState(helper, item, position);
         setContent(helper, item, position);
+    }
+
+    private void setId(ViewHolderForRecyclerView helper, Message item, int position) {
+        View view = helper.getView(R.id.llMain);
+        if (null != view) {
+            helper.setTag(R.id.llMain, item.id);
+        }
     }
 
     private void setTime(ViewHolderForRecyclerView helper, Message item, int position) {
@@ -218,8 +233,35 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
             NotificationMessage message = (NotificationMessage) item;
             helper.setText(R.id.tvNotification, message.getContent());
         }
+        else if (item instanceof BurnMessage) {
+            BurnMessage message = (BurnMessage) item;
+            if (message.hasBurned()) {
+                helper.setViewVisibility(R.id.llBurnContent, View.GONE);
+
+                Glide.with(getContext()).load(R.mipmap.burn_message_read)
+                        .override(250, 184)
+                        .centerCrop()
+                        .into((BubbleImageView) helper.getView(R.id.bivImage));
+            }
+            else {
+                helper.setViewVisibility(R.id.llBurnContent, View.GONE);
+
+                Glide.with(getContext()).load(R.mipmap.burn_message_unread)
+                        .override(250, 184)
+                        .centerCrop()
+                        .into((BubbleImageView) helper.getView(R.id.bivImage));
+
+//                if (message.getState() == MessageState.Sending) {
+//                    helper.setText(R.id.tvText, message.getContent());
+//                    helper.setText(R.id.tvCountdown, Integer.toString(message.getReadingTime()));
+//                    helper.setViewVisibility(R.id.bivImage, View.GONE);
+//                }
+            }
+        }
         else {
             // TODO
+            LogUtils.w(TAG, "#setContent - Unknown message type: "
+                    + item.getClass().getSimpleName());
         }
     }
 

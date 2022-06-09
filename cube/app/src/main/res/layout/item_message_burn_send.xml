@@ -119,10 +119,13 @@
                 <!-- 阅读倒计时 -->
                 <TextView
                     android:id="@+id/tvCountdown"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
                     android:layout_marginEnd="10dp"
-                    android:textColor="?attr/colorTextSecondary"
+                    android:layout_gravity="bottom"
+                    android:gravity="center"
+                    android:background="@mipmap/burn_countdown"
+                    android:textColor="@color/white"
                     android:textSize="16sp"/>
 
                 <!-- 文本内容 -->

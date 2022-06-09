@@ -79,9 +79,11 @@ import cube.filestorage.handler.StableUploadFileHandler;
 import cube.filestorage.model.FileAnchor;
 import cube.filestorage.model.FileLabel;
 import cube.messaging.extension.MessageTypePlugin;
+import cube.messaging.extension.TypeableMessage;
 import cube.messaging.handler.ConversationHandler;
 import cube.messaging.handler.DefaultConversationHandler;
 import cube.messaging.handler.DefaultSendHandler;
+import cube.messaging.handler.EraseMessageHandler;
 import cube.messaging.handler.LoadAttachmentHandler;
 import cube.messaging.handler.MessageHandler;
 import cube.messaging.handler.MessageListResultHandler;
@@ -166,6 +168,11 @@ public class MessagingService extends Module {
      */
     private Queue<Message> sendingList;
 
+    /**
+     * 擦除控制器。
+     */
+    protected List<EraseController> eraseControllers;
+
     public MessagingService() {
         super(MessagingService.NAME);
         this.pipelineListener = new MessagingPipelineListener(this);
@@ -181,6 +188,7 @@ public class MessagingService extends Module {
         this.preloadConversationMessageNum = 10;
         this.capsuleCache = new ConcurrentHashMap<>();
         this.conversationMessageListeners = new ConcurrentHashMap<>();
+        this.eraseControllers = new ArrayList<>();
     }
 
     @Override
@@ -242,6 +250,14 @@ public class MessagingService extends Module {
     public void stop() {
         super.stop();
 
+        synchronized (this.eraseControllers) {
+            for (EraseController controller : this.eraseControllers) {
+                controller.destroy();
+            }
+
+            this.eraseControllers.clear();
+        }
+
         // 拆除插件
         this.dissolve();
 
@@ -281,6 +297,11 @@ public class MessagingService extends Module {
     @Override
     protected void config(@Nullable JSONObject configData) {
         // Nothing
+    }
+
+    @Override
+    public void executeOnMainThread(Runnable task) {
+        super.executeOnMainThread(task);
     }
 
     /**
@@ -341,8 +362,8 @@ public class MessagingService extends Module {
     /**
      * 设置预载消息的数量。
      *
-     * @param recentConversationNum
-     * @param messageNum
+     * @param recentConversationNum 指定预载会话数量。
+     * @param messageNum 指定每个预载入会话的消息数量。
      */
     public void setPreloadConversationMessageNum(int recentConversationNum, int messageNum) {
         this.preloadConversationRecentNum = recentConversationNum;
@@ -352,8 +373,8 @@ public class MessagingService extends Module {
     /**
      * 获取指定 ID 的消息实例。
      *
-     * @param messageId
-     * @return
+     * @param messageId 指定消息 ID 。
+     * @return 返回消息实例。
      */
     public Message getMessageById(Long messageId) {
         Message message = this.storage.readMessageNoFillById(messageId);
@@ -544,9 +565,9 @@ public class MessagingService extends Module {
     /**
      * 销毁指定 ID 的会话。
      *
-     * @param conversationId
-     * @param successHandler
-     * @param failureHandler
+     * @param conversationId 指定会话 ID 。
+     * @param successHandler 指定操作成功回调句柄。
+     * @param failureHandler 指定操作失败回调句柄。
      */
     protected void destroyConversation(Long conversationId, ConversationHandler successHandler, FailureHandler failureHandler) {
         for (Conversation conversation : this.conversations) {
@@ -1463,10 +1484,12 @@ public class MessagingService extends Module {
             // 从数据库查询
             MutableMessageListResult result = new MutableMessageListResult();
             if (ConversationType.Contact == conversation.getType()) {
-                result.value = storage.queryMessagesByReverseWithContact(conversation.getPivotalId(), message.getRemoteTimestamp(), limit);
+                result.value = storage.queryMessagesByReverseWithContact(conversation.getPivotalId(),
+                        message.getRemoteTimestamp(), limit);
             }
             else if (ConversationType.Group == conversation.getType()) {
-                result.value = storage.queryMessagesByReverseWithGroup(conversation.getPivotalId(), message.getRemoteTimestamp(), limit);
+                result.value = storage.queryMessagesByReverseWithGroup(conversation.getPivotalId(),
+                        message.getRemoteTimestamp(), limit);
             }
 
             MessageList list = conversationMessageListMap.get(conversation.id);
@@ -1489,9 +1512,67 @@ public class MessagingService extends Module {
      * 擦除消息内容。
      *
      * @param message 指定消息实例。
-     * @param delayInMills 指定延迟操作时间。
+     * @param delayInSeconds 指定延迟操作时间，单位：秒。
+     * @param successHandler 指定操作成功回调句柄。
+     * @param failureHandler 指定操作失败回调句柄。
      */
-    public void eraseMessageContent(Message message, long delayInMills) {
+    public void eraseMessageContent(Message message, int delayInSeconds,
+                                    EraseMessageHandler successHandler,
+                                    FailureHandler failureHandler) {
+        EraseController controller = new EraseController(this,
+                message, delayInSeconds, successHandler, failureHandler);
+        synchronized (this.eraseControllers) {
+            this.eraseControllers.add(controller);
+        }
+        this.execute(controller);
+    }
+
+    protected void burnMessage(Message message, MessageHandler successHandler, FailureHandler failureHandler) {
+        // 更新数据库
+        this.storage.updateMessage(message);
+
+        for (MessageList list : this.conversationMessageListMap.values()) {
+            // 会话里的消息
+            for (Message current : list.messages) {
+                if (current.id.equals(message.id)) {
+                    // 同一个消息
+                    if (current instanceof TypeableMessage) {
+                        ((TypeableMessage) current).erase();
+                    }
+                    break;
+                }
+            }
+        }
+
+        JSONObject packetData = new JSONObject();
+        try {
+            packetData.put("contactId", this.contactService.getSelf().id.longValue());
+            packetData.put("messageId", message.getId().longValue());
+            packetData.put("payload", message.getPayload());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        Packet packet = new Packet(MessagingAction.Burn, packetData);
+        this.pipeline.send(MessagingService.NAME, packet, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet responsePacket) {
+                if (responsePacket.state.code != PipelineState.Ok.code) {
+                    ModuleError error = new ModuleError(MessagingService.NAME, responsePacket.state.code);
+                    execute(failureHandler, error);
+                    return;
+                }
+
+                int code = responsePacket.extractServiceStateCode();
+                if (MessagingServiceState.Ok.code != code) {
+                    ModuleError error = new ModuleError(MessagingService.NAME, code);
+                    execute(failureHandler, error);
+                    return;
+                }
+
+                successHandler.handleMessage(message);
+            }
+        });
 
     }
 

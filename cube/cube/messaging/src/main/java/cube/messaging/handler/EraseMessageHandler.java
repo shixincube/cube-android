@@ -26,13 +26,14 @@
 
 package cube.messaging.handler;
 
-import cell.core.net.MessageService;
+import cube.core.handler.CallbackHandler;
+import cube.messaging.MessagingService;
 import cube.messaging.model.Message;
 
 /**
  * 擦除消息句柄。
  */
-public interface EraseMessageHandler {
+public interface EraseMessageHandler extends CallbackHandler {
 
     /**
      * 当焚毁倒计时启动时回调。
@@ -40,7 +41,7 @@ public interface EraseMessageHandler {
      * @param service
      * @param message
      */
-    void onCountdownStarted(MessageService service, Message message);
+    void onCountdownStarted(MessagingService service, Message message, int total);
 
     /**
      * 当焚毁倒计时更新计数时回调。
@@ -50,7 +51,7 @@ public interface EraseMessageHandler {
      * @param elapsed
      * @param total
      */
-    void onCountdownTick(MessageService service, Message message, int elapsed, int total);
+    void onCountdownTick(MessagingService service, Message message, int elapsed, int total);
 
     /**
      * 当焚毁倒计时完成时回调。
@@ -58,5 +59,5 @@ public interface EraseMessageHandler {
      * @param service
      * @param message
      */
-    void onCountdownCompleted(MessageService service, Message message);
+    void onCountdownCompleted(MessagingService service, Message message);
 }

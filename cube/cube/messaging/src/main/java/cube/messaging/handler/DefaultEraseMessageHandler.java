@@ -24,60 +24,25 @@
  * SOFTWARE.
  */
 
-package cube.messaging;
+package cube.messaging.handler;
 
 /**
- * 消息模块动作。
+ * 默认擦除消息句柄。
  */
-public final class MessagingAction {
+public abstract class DefaultEraseMessageHandler implements EraseMessageHandler {
 
-    /**
-     * 向服务器发送消息。
-     */
-    public final static String Push = "push";
+    private final boolean inMainThread;
 
-    /**
-     * 从服务器拉取消息。
-     */
-    public final static String Pull = "pull";
+    public DefaultEraseMessageHandler() {
+        this.inMainThread = true;
+    }
 
-    /**
-     * 收到在线消息。
-     */
-    public final static String Notify = "notify";
+    public DefaultEraseMessageHandler(boolean inMainThread) {
+        this.inMainThread = inMainThread;
+    }
 
-    /**
-     * 撤回消息。
-     */
-    public final static String Recall = "recall";
-
-    /**
-     * 删除消息。
-     */
-    public final static String Delete = "delete";
-
-    /**
-     * 标记已读。
-     */
-    public final static String Read = "read";
-
-    /**
-     * 焚毁消息内容。
-     */
-    public final static String Burn = "burn";
-
-    /**
-     * 查询消息状态信息。
-     */
-    public final static String QueryState = "queryState";
-
-    /**
-     * 获取会话列表。
-     */
-    public final static String GetConversations = "getConversations";
-
-    /**
-     * 更新会话数据。
-     */
-    public final static String UpdateConversation = "updateConversation";
+    @Override
+    public boolean isInMainThread() {
+        return this.inMainThread;
+    }
 }

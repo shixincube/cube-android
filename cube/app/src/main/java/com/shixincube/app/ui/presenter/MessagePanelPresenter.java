@@ -27,6 +27,7 @@
 package com.shixincube.app.ui.presenter;
 
 import android.content.Intent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -69,6 +70,7 @@ import cube.messaging.extension.HyperTextMessage;
 import cube.messaging.extension.ImageMessage;
 import cube.messaging.extension.NotificationMessage;
 import cube.messaging.handler.DefaultConversationHandler;
+import cube.messaging.handler.DefaultEraseMessageHandler;
 import cube.messaging.handler.DefaultMessageHandler;
 import cube.messaging.handler.DefaultMessageListResultHandler;
 import cube.messaging.handler.DefaultSendHandler;
@@ -95,6 +97,8 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
     private List<Message> messageList;
 
     private boolean burnMode;
+
+    private long lastTouchTime = 0;
 
     public MessagePanelPresenter(BaseActivity activity, Conversation conversation) {
         super(activity);
@@ -528,6 +532,56 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
         }
     }
 
+    public void fireItemTouch(View view, MotionEvent motionEvent,
+                              ViewHolder helper, Message item, int position) {
+        if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
+            long now = System.currentTimeMillis();
+            if (now - this.lastTouchTime < 500) {
+                // 双击
+                if (item instanceof BurnMessage) {
+                    this.openBurnMessage(helper, (BurnMessage) item);
+                }
+            }
+
+            this.lastTouchTime = now;
+        }
+    }
+
+    private void openBurnMessage(ViewHolder helper, BurnMessage burnMessage) {
+        if (burnMessage.hasBurned()) {
+            return;
+        }
+
+        helper.setViewVisibility(R.id.bivImage, View.GONE);
+        helper.setViewVisibility(R.id.llBurnContent, View.VISIBLE);
+        helper.setText(R.id.tvText, burnMessage.getContent());
+        helper.setText(R.id.tvCountdown, Integer.toString(burnMessage.getReadingTime()));
+
+        CubeEngine.getInstance().getMessagingService().eraseMessageContent(
+                burnMessage, burnMessage.getReadingTime(), new DefaultEraseMessageHandler(true) {
+                    @Override
+                    public void onCountdownStarted(MessagingService service, Message message, int total) {
+
+                    }
+
+                    @Override
+                    public void onCountdownTick(MessagingService service, Message message, int elapsed, int total) {
+                        int countdown = total - elapsed;
+                        helper.setText(R.id.tvCountdown, Integer.toString(countdown));
+                    }
+
+                    @Override
+                    public void onCountdownCompleted(MessagingService service, Message message) {
+
+                    }
+                }, new DefaultFailureHandler(true) {
+                    @Override
+                    public void handleFailure(Module module, ModuleError error) {
+
+                    }
+                });
+    }
+
     private void monitorBurnMessage(BurnMessage burnMessage) {
         /*burnMessage.setListener(new BurnListener() {
             @Override
@@ -554,8 +608,6 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
 
     @Override
     public void onItemClick(ViewHolder helper, ViewGroup parent, View itemView, int position) {
-//        Message message = this.messageList.get(position);
-//        this.fireItemClick(helper, message, position);
         ((MessagePanelActivity) activity).fireClickBlank();
     }
 

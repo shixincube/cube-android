@@ -26,6 +26,7 @@
 
 package com.shixincube.app.ui.adapter;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.view.View;
 import android.widget.ImageView;
@@ -259,6 +260,7 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
         }
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private void bindEvent(ViewHolderForRecyclerView helper, Message item, int position) {
         if (item instanceof ImageMessage) {
             BubbleImageView imageView = helper.getView(R.id.bivImage);
@@ -267,6 +269,13 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
         else if (item instanceof FileMessage) {
             LinearLayout layout = helper.getView(R.id.llContact);
             layout.setOnClickListener((view) -> this.presenter.fireItemClick(helper, item, position));
+        }
+        else if (item instanceof BurnMessage) {
+            BubbleImageView imageView = helper.getView(R.id.bivImage);
+            imageView.setOnTouchListener((view, motionEvent) -> {
+                this.presenter.fireItemTouch(view, motionEvent, helper, item, position);
+                return true;
+            });
         }
     }
 }

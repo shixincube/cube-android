@@ -43,7 +43,7 @@ public class MessageList implements Comparator<Message> {
 
     public boolean hasMore = false;
 
-    private long lifespan = 5L * 60L * 1000L;
+    private long lifespan = 5L * 60 * 1000;
 
     public MessageList() {
     }

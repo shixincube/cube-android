@@ -55,4 +55,11 @@ public class TypeableMessage extends Message {
         }
         return type;
     }
+
+    /**
+     * 擦除消息内容，由子类重载。
+     */
+    public void erase() {
+        // Nothing
+    }
 }

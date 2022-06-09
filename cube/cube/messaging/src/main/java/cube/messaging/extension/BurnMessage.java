@@ -101,6 +101,15 @@ public class BurnMessage extends TypeableMessage {
         return 0;
     }
 
+    @Override
+    public void erase() {
+        try {
+            this.payload.put("content", "");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
     private static int calcReadingTime(String text) {
         int num = text.length();
         int time = Math.round((num + 0.0f) * 1.6f);

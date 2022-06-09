@@ -242,7 +242,7 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
                 Glide.with(getContext()).load(R.mipmap.burn_message_read)
                         .override(250, 184)
                         .centerCrop()
-                        .into((BubbleImageView) helper.getView(R.id.bivImage));
+                        .into((ImageView) helper.getView(R.id.ivImage));
             }
             else {
                 helper.setViewVisibility(R.id.llBurnContent, View.GONE);
@@ -250,7 +250,7 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
                 Glide.with(getContext()).load(R.mipmap.burn_message_unread)
                         .override(250, 184)
                         .centerCrop()
-                        .into((BubbleImageView) helper.getView(R.id.bivImage));
+                        .into((ImageView) helper.getView(R.id.ivImage));
             }
         }
         else {
@@ -271,7 +271,7 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
             layout.setOnClickListener((view) -> this.presenter.fireItemClick(helper, item, position));
         }
         else if (item instanceof BurnMessage) {
-            BubbleImageView imageView = helper.getView(R.id.bivImage);
+            ImageView imageView = helper.getView(R.id.ivImage);
             imageView.setOnTouchListener((view, motionEvent) -> {
                 this.presenter.fireItemTouch(view, motionEvent, helper, item, position);
                 return true;

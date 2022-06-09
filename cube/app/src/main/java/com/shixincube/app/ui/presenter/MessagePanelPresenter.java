@@ -30,7 +30,9 @@ import android.content.Intent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
+import com.bumptech.glide.Glide;
 import com.shixincube.app.AppConsts;
 import com.shixincube.app.R;
 import com.shixincube.app.model.MessageConversation;
@@ -284,8 +286,6 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
 
         if (this.burnMode) {
             BurnMessage burnMessage = new BurnMessage(text);
-            // 监听自焚
-            this.monitorBurnMessage(burnMessage);
             CubeEngine.getInstance().getMessagingService().sendMessage(conversation, burnMessage,
                     new SimpleSendHandler<Conversation, BurnMessage>() {
                         @Override
@@ -552,7 +552,7 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
             return;
         }
 
-        helper.setViewVisibility(R.id.bivImage, View.GONE);
+        helper.setViewVisibility(R.id.ivImage, View.GONE);
         helper.setViewVisibility(R.id.llBurnContent, View.VISIBLE);
         helper.setText(R.id.tvText, burnMessage.getContent());
         helper.setText(R.id.tvCountdown, Integer.toString(burnMessage.getReadingTime()));
@@ -572,7 +572,13 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
 
                     @Override
                     public void onCountdownCompleted(MessagingService service, Message message) {
+                        helper.setViewVisibility(R.id.ivImage, View.VISIBLE);
+                        helper.setViewVisibility(R.id.llBurnContent, View.GONE);
 
+                        Glide.with(activity).load(R.mipmap.burn_message_read)
+                                .override(250, 184)
+                                .centerCrop()
+                                .into((ImageView) helper.getView(R.id.ivImage));
                     }
                 }, new DefaultFailureHandler(true) {
                     @Override
@@ -580,30 +586,6 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
 
                     }
                 });
-    }
-
-    private void monitorBurnMessage(BurnMessage burnMessage) {
-        /*burnMessage.setListener(new BurnListener() {
-            @Override
-            public void onCountdownTick(MessageService service, BurnMessage message, int current, int total) {
-
-            }
-
-            @Override
-            public void onCountdownStarted(MessageService service, BurnMessage message) {
-                View mainView = getView().getMessageListView().findViewWithTag(message.id);
-                if (null == mainView) {
-                    return;
-                }
-
-
-            }
-
-            @Override
-            public void onCountdownCompleted(MessageService service, BurnMessage message) {
-
-            }
-        });*/
     }
 
     @Override

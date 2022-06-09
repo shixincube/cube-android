@@ -135,63 +135,69 @@ public class EraseController implements Runnable {
         this.timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                if (countdown.get() < 0) {
+                if (countdown.get() <= 0) {
                     return;
                 }
+
+                int cd = countdown.decrementAndGet();
 
                 if (successHandler.isInMainThread()) {
                     service.executeOnMainThread(() -> {
                         successHandler.onCountdownTick(service, message,
-                                delayInSeconds - countdown.decrementAndGet(), delayInSeconds);
+                                delayInSeconds - cd, delayInSeconds);
                     });
                 }
                 else {
                     service.execute(() -> {
                         successHandler.onCountdownTick(service, message,
-                                delayInSeconds - countdown.decrementAndGet(), delayInSeconds);
+                                delayInSeconds - cd, delayInSeconds);
                     });
                 }
 
-                if (countdown.get() == 0) {
-                    // 擦除内容
-                    /*if (message instanceof TypeableMessage) {
-                        TypeableMessage typeableMessage = (TypeableMessage) message;
-                        typeableMessage.erase();
-                    }
-
-                    service.burnMessage(message, new DefaultMessageHandler() {
-                        @Override
-                        public void handleMessage(Message message) {
-                            synchronized (service.eraseControllers) {
-                                service.eraseControllers.remove(EraseController.this);
-                            }
-                        }
-                    }, new StableFailureHandler() {
-                        @Override
-                        public void handleFailure(Module module, ModuleError error) {
-                            synchronized (service.eraseControllers) {
-                                service.eraseControllers.remove(EraseController.this);
-                            }
-                        }
-                    });*/
-
-                    if (successHandler.isInMainThread()) {
-                        service.executeOnMainThread(() -> {
-                            successHandler.onCountdownCompleted(service, message);
-                        });
-                    }
-                    else {
-                        service.execute(() -> {
-                            successHandler.onCountdownCompleted(service, message);
-                        });
-                    }
-
-                    service.execute(() -> {
-                        timer.cancel();
-                        timer = null;
-                    });
+                if (cd == 0) {
+                    processCompleted();
                 }
             }
         }, 1000, 1000);
+    }
+
+    private void processCompleted() {
+        // 擦除内容
+        /*if (message instanceof TypeableMessage) {
+            TypeableMessage typeableMessage = (TypeableMessage) message;
+            typeableMessage.erase();
+        }
+
+        service.burnMessage(message, new DefaultMessageHandler() {
+            @Override
+            public void handleMessage(Message message) {
+                synchronized (service.eraseControllers) {
+                    service.eraseControllers.remove(EraseController.this);
+                }
+            }
+        }, new StableFailureHandler() {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                synchronized (service.eraseControllers) {
+                    service.eraseControllers.remove(EraseController.this);
+                }
+            }
+        });*/
+
+        if (successHandler.isInMainThread()) {
+            service.executeOnMainThread(() -> {
+                successHandler.onCountdownCompleted(service, message);
+            });
+        }
+        else {
+            service.execute(() -> {
+                successHandler.onCountdownCompleted(service, message);
+            });
+        }
+
+        service.execute(() -> {
+            timer.cancel();
+            timer = null;
+        });
     }
 }

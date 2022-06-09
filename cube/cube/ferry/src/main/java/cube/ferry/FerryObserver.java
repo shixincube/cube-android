@@ -56,6 +56,8 @@ public class FerryObserver implements Observer {
     public void update(ObservableEvent event) {
         String eventName = event.getName();
         if (ContactServiceEvent.SelfReady.equals(eventName)) {
+            this.service.ready = true;
+
             this.service.execute(new Runnable() {
                 @Override
                 public void run() {

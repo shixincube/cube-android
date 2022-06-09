@@ -85,12 +85,15 @@ public class FerryService extends Module {
 
     private FerryObserver observer;
 
+    protected volatile boolean ready;
+
     public FerryService() {
         super(NAME);
         this.listeners = new ArrayList<>();
         this.houseOnline = new AtomicBoolean(false);
         this.membership = false;
         this.observer = new FerryObserver(this);
+        this.ready = false;
     }
 
     @Override
@@ -131,7 +134,7 @@ public class FerryService extends Module {
 
     @Override
     public boolean isReady() {
-        return true;
+        return this.ready;
     }
 
     /**
@@ -175,86 +178,113 @@ public class FerryService extends Module {
      * @param handler 探测结果回调句柄。
      */
     public void detectDomain(DetectHandler handler) {
-        if (!this.pipeline.isReady()) {
-            if (handler.isInMainThread()) {
-                executeOnMainThread(() -> {
-                    handler.handleResult(false, 0);
-                });
+        this.execute(() -> {
+            if (!ready) {
+                int count = 4;
+                while (!ready) {
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    --count;
+                    if (count <= 0) {
+                        break;
+                    }
+                }
             }
-            else {
-                execute(() -> {
-                    handler.handleResult(false, 0);
-                });
-            }
-            return;
-        }
 
-        JSONObject packetData = new JSONObject();
-        try {
-            packetData.put("domain", AuthService.getDomain());
-            packetData.put("touch", true);
-        } catch (JSONException e) {
-            LogUtils.w(TAG, "#getAuthDomain", e);
-        }
-
-        Packet requestPacket = new Packet(FerryServiceAction.Ping, packetData);
-        this.pipeline.send(FerryService.NAME, requestPacket, new PipelineHandler() {
-            @Override
-            public void handleResponse(Packet packet) {
-                if (packet.state.code != PipelineState.Ok.code) {
-                    LogUtils.w(TAG, "#detectDomain - " + packet.state.code);
-                    if (handler.isInMainThread()) {
-                        executeOnMainThread(() -> {
-                            handler.handleResult(false, 0);
-                        });
-                    }
-                    else {
-                        execute(() -> {
-                            handler.handleResult(false, 0);
-                        });
-                    }
-                    return;
-                }
-
-                int stateCode = packet.extractServiceStateCode();
-                if (stateCode != FerryServiceState.Ok.code) {
-                    LogUtils.w(TAG, "#detectDomain - " + stateCode);
-                    if (handler.isInMainThread()) {
-                        executeOnMainThread(() -> {
-                            handler.handleResult(false, 0);
-                        });
-                    }
-                    else {
-                        execute(() -> {
-                            handler.handleResult(false, 0);
-                        });
-                    }
-                    return;
-                }
-
-                JSONObject data = packet.extractServiceData();
-                AtomicLong duration = new AtomicLong(0);
-                try {
-                    houseOnline.set(data.getBoolean("online"));
-                    duration.set(data.getLong("duration"));
-                } catch (JSONException e) {
-                    LogUtils.w(TAG, "#detectDomain", e);
-                }
-
-                // 成员身份
-                membership = true;
-
+            if (!ready) {
                 if (handler.isInMainThread()) {
                     executeOnMainThread(() -> {
-                        handler.handleResult(houseOnline.get(), duration.get());
+                        handler.handleResult(false, 0);
                     });
                 }
                 else {
-                    execute(() -> {
-                        handler.handleResult(houseOnline.get(), duration.get());
+                    handler.handleResult(false, 0);
+                }
+                return;
+            }
+
+            if (!this.pipeline.isReady()) {
+                if (handler.isInMainThread()) {
+                    executeOnMainThread(() -> {
+                        handler.handleResult(false, 0);
                     });
                 }
+                else {
+                    handler.handleResult(false, 0);
+                }
+                return;
             }
+
+            JSONObject packetData = new JSONObject();
+            try {
+                packetData.put("domain", AuthService.getDomain());
+                packetData.put("touch", true);
+            } catch (JSONException e) {
+                LogUtils.w(TAG, "#detectDomain", e);
+            }
+
+            Packet requestPacket = new Packet(FerryServiceAction.Ping, packetData);
+            this.pipeline.send(FerryService.NAME, requestPacket, new PipelineHandler() {
+                @Override
+                public void handleResponse(Packet packet) {
+                    if (packet.state.code != PipelineState.Ok.code) {
+                        LogUtils.w(TAG, "#detectDomain - " + packet.state.code);
+                        if (handler.isInMainThread()) {
+                            executeOnMainThread(() -> {
+                                handler.handleResult(false, 0);
+                            });
+                        }
+                        else {
+                            execute(() -> {
+                                handler.handleResult(false, 0);
+                            });
+                        }
+                        return;
+                    }
+
+                    int stateCode = packet.extractServiceStateCode();
+                    if (stateCode != FerryServiceState.Ok.code) {
+                        LogUtils.w(TAG, "#detectDomain - " + stateCode);
+                        if (handler.isInMainThread()) {
+                            executeOnMainThread(() -> {
+                                handler.handleResult(false, 0);
+                            });
+                        }
+                        else {
+                            execute(() -> {
+                                handler.handleResult(false, 0);
+                            });
+                        }
+                        return;
+                    }
+
+                    JSONObject data = packet.extractServiceData();
+                    AtomicLong duration = new AtomicLong(0);
+                    try {
+                        houseOnline.set(data.getBoolean("online"));
+                        duration.set(data.getLong("duration"));
+                    } catch (JSONException e) {
+                        LogUtils.w(TAG, "#detectDomain", e);
+                    }
+
+                    // 成员身份
+                    membership = true;
+
+                    if (handler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            handler.handleResult(houseOnline.get(), duration.get());
+                        });
+                    }
+                    else {
+                        execute(() -> {
+                            handler.handleResult(houseOnline.get(), duration.get());
+                        });
+                    }
+                }
+            });
         });
     }
 

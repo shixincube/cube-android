@@ -46,10 +46,14 @@ import android.widget.LinearLayout;
 import java.util.ArrayList;
 import java.util.List;
 
+import cube.util.LogUtils;
+
 /**
  * 软键盘工具。
  */
 public class SoftwareKeyboard implements View.OnTouchListener, ViewTreeObserver.OnGlobalLayoutListener {
+
+    private final static String TAG = "SoftwareKeyboard";
 
     private static final String SHARE_PREFERENCE_NAME = "CubeSoftwareKeyboard";
     private static final String SHARE_PREFERENCE_SOFT_INPUT_HEIGHT = "soft_input_height";
@@ -65,7 +69,7 @@ public class SoftwareKeyboard implements View.OnTouchListener, ViewTreeObserver.
 
     private SharedPreferences sharedPreferences;
 
-    // 内容布局view,即除了表情布局或者软键盘布局以外的布局，用于固定bar的高度，防止跳闪
+    // 内容布局 view，即除了表情布局或者软键盘布局以外的布局，用于固定bar的高度，防止跳闪
     private View contentView;
 
     private EditText hostEditText;
@@ -90,7 +94,7 @@ public class SoftwareKeyboard implements View.OnTouchListener, ViewTreeObserver.
         softwareInputDetector.inputManager = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
         softwareInputDetector.sharedPreferences = activity.getSharedPreferences(SHARE_PREFERENCE_NAME, Context.MODE_PRIVATE);
         activity.getWindow().getDecorView().getViewTreeObserver().addOnGlobalLayoutListener(softwareInputDetector);
-        softwareInputDetector.softInputHeight = softwareInputDetector.dip2px(300);
+        softwareInputDetector.softInputHeight = softwareInputDetector.dip2px(260);
         return softwareInputDetector;
     }
 
@@ -154,6 +158,8 @@ public class SoftwareKeyboard implements View.OnTouchListener, ViewTreeObserver.
                 View layout = getShownLayout();
 
                 if (null != layout) {
+                    LogUtils.d(TAG, "Layout shown");
+
                     // 显示软键盘时，锁定内容高度，防止跳闪。
                     lockContentHeight();
 
@@ -165,15 +171,9 @@ public class SoftwareKeyboard implements View.OnTouchListener, ViewTreeObserver.
                     if (null != current && layout != current) {
                         showLayout(current);
 
-//                        if (!contentView.isShown()) {
-//                            contentView.setVisibility(View.VISIBLE);
-//                        }
                         showView(contentView);
                     }
                     else {
-//                        if (contentView.isShown()) {
-//                            contentView.setVisibility(View.GONE);
-//                        }
                         hideView(contentView);
                     }
 
@@ -182,6 +182,8 @@ public class SoftwareKeyboard implements View.OnTouchListener, ViewTreeObserver.
                 }
                 else {
                     if (isSoftInputShown()) {
+                        LogUtils.d(TAG, "NO layout shown & soft input shown");
+
                         // 显示软键盘时，锁定内容高度，防止跳闪。
                         lockContentHeight();
 
@@ -194,7 +196,7 @@ public class SoftwareKeyboard implements View.OnTouchListener, ViewTreeObserver.
                         }
 
                         if (!contentView.isShown()) {
-                            contentView.getLayoutParams().height = softInputHeight;
+//                            contentView.getLayoutParams().height = softInputHeight;
 //                            contentView.setVisibility(View.VISIBLE);
                             showView(contentView);
                         }
@@ -202,6 +204,8 @@ public class SoftwareKeyboard implements View.OnTouchListener, ViewTreeObserver.
                         unlockContentHeightDelayed();
                     }
                     else {
+                        LogUtils.d(TAG, "NO layout shown & NO soft input shown - " + softInputHeight);
+
                         View current = findLayoutWithButton(view);
                         if (null != current) {
                             showLayout(current);
@@ -210,9 +214,6 @@ public class SoftwareKeyboard implements View.OnTouchListener, ViewTreeObserver.
                             showLayout(stuffList.get(0).layout);
                         }
 
-//                        if (!contentView.isShown()) {
-//                            contentView.setVisibility(View.VISIBLE);
-//                        }
                         showView(contentView);
                     }
                 }
@@ -297,7 +298,7 @@ public class SoftwareKeyboard implements View.OnTouchListener, ViewTreeObserver.
                 public void run() {
                     unlockContentHeightDelayed();
                 }
-            }, 200L);
+            }, 200);
         }
 
         return false;
@@ -355,7 +356,7 @@ public class SoftwareKeyboard implements View.OnTouchListener, ViewTreeObserver.
 
     private void showLayout(View layout) {
         if (this.softInputHeight == 0) {
-            int max = dip2px(300);
+            int max = dip2px(260);
             this.softInputHeight = this.sharedPreferences.getInt(SHARE_PREFERENCE_SOFT_INPUT_HEIGHT, max);
             if (this.softInputHeight > max) {
                 this.softInputHeight = max;
@@ -392,8 +393,10 @@ public class SoftwareKeyboard implements View.OnTouchListener, ViewTreeObserver.
      */
     private void lockContentHeight() {
         LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) this.contentView.getLayoutParams();
-        params.height = this.contentView.getHeight();
-        params.weight = 0.0f;
+        params.height = Math.min(this.softInputHeight, this.contentView.getHeight());
+        //params.weight = 0.0f;
+
+        LogUtils.d(TAG, "#lockContentHeight - view height: " + params.height);
     }
 
     /**
@@ -403,9 +406,9 @@ public class SoftwareKeyboard implements View.OnTouchListener, ViewTreeObserver.
         this.hostEditText.postDelayed(new Runnable() {
             @Override
             public void run() {
-                ((LinearLayout.LayoutParams) contentView.getLayoutParams()).weight = 1.0f;
+               // ((LinearLayout.LayoutParams) contentView.getLayoutParams()).weight = 1.0f;
             }
-        }, 200L);
+        }, 200);
     }
 
     /**

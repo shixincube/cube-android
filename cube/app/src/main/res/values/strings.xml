@@ -68,6 +68,7 @@
     <string name="tip_conversation_invalid">当前会话已失效</string>
     <string name="tip_burn_enabled">进入"阅后即焚"模式</string>
     <string name="tip_burn_disabled">退出"阅后即焚"模式</string>
+    <string name="message_burned">消息已焚毁</string>
 
     <!-- 联系人界面 -->
     <string name="new_contact">新的联系人</string>

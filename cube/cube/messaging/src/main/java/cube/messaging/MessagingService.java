@@ -1570,6 +1570,8 @@ public class MessagingService extends Module {
                     return;
                 }
 
+                LogUtils.i(TAG, "#burnMessage - " + message.id);
+
                 successHandler.handleMessage(message);
             }
         });

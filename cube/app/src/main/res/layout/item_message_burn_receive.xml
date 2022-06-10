@@ -61,19 +61,16 @@
                 android:textSize="12sp"
                 android:visibility="visible"/>
 
-            <com.shixincube.app.widget.BubbleImageView
-                android:id="@+id/bivImage"
+            <!-- 图片 -->
+            <ImageView
+                android:id="@+id/ivImage"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:adjustViewBounds="true"
                 android:minHeight="80dp"
                 android:minWidth="80dp"
                 android:scaleType="fitCenter"
-                android:src="@mipmap/default_image"
-                auto:bubble_angle="4dp"
-                auto:bubble_showShadow="false"
-                auto:bubble_showText="false"
-                auto:bubble_arrowLocation="none"/>
+                android:src="@mipmap/default_image"/>
 
             <LinearLayout
                 android:id="@+id/llBurnContent"

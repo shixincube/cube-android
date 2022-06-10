@@ -549,6 +549,7 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
 
     private void openBurnMessage(ViewHolder helper, BurnMessage burnMessage) {
         if (burnMessage.hasBurned()) {
+            UIUtils.showToast(UIUtils.getString(R.string.message_burned));
             return;
         }
 
@@ -561,7 +562,7 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
                 burnMessage, burnMessage.getReadingTime(), new DefaultEraseMessageHandler(true) {
                     @Override
                     public void onCountdownStarted(MessagingService service, Message message, int total) {
-
+                        // Nothing
                     }
 
                     @Override

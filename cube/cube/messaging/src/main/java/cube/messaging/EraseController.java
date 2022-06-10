@@ -163,11 +163,12 @@ public class EraseController implements Runnable {
 
     private void processCompleted() {
         // 擦除内容
-        /*if (message instanceof TypeableMessage) {
+        if (message instanceof TypeableMessage) {
             TypeableMessage typeableMessage = (TypeableMessage) message;
             typeableMessage.erase();
         }
 
+        // 焚毁消息内容
         service.burnMessage(message, new DefaultMessageHandler() {
             @Override
             public void handleMessage(Message message) {
@@ -182,7 +183,7 @@ public class EraseController implements Runnable {
                     service.eraseControllers.remove(EraseController.this);
                 }
             }
-        });*/
+        });
 
         if (successHandler.isInMainThread()) {
             service.executeOnMainThread(() -> {

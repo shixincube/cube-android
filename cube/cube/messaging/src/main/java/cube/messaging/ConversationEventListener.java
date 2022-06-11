@@ -36,6 +36,14 @@ import cube.messaging.model.Conversation;
 public interface ConversationEventListener {
 
     /**
+     * 当有相关会话的消息更新时该方法被回调。
+     *
+     * @param conversation 有消息更新的会话。
+     * @param service 消息服务。
+     */
+    void onConversationMessageUpdated(Conversation conversation, MessagingService service);
+
+    /**
      * 当有相关会话更新时该方法被回调。
      *
      * @param conversation 被更新的会话。

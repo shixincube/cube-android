@@ -304,6 +304,10 @@ public class MessagingService extends Module {
         super.executeOnMainThread(task);
     }
 
+    protected Self getSelf() {
+        return this.contactService.getSelf();
+    }
+
     /**
      * 设置会话事件监听器。
      *
@@ -928,7 +932,8 @@ public class MessagingService extends Module {
      * @param conversationHandler 指定回调句柄。
      * @param failureHandler 指定故障回调句柄。
      */
-    public void markRead(final Conversation conversation, ConversationHandler conversationHandler, FailureHandler failureHandler) {
+    public void markRead(final Conversation conversation, ConversationHandler conversationHandler,
+                         FailureHandler failureHandler) {
         conversation.entityLifeExpiry += LIFESPAN;
 
         if (conversation.getUnreadCount() == 0) {
@@ -1335,6 +1340,9 @@ public class MessagingService extends Module {
                 } catch (JSONException e) {
                     LogUtils.w(TAG, "#updateConverstion", e);
                 }
+
+                // 更新未读数量
+                conversation.setUnreadCount(storage.countUnread(conversation));
 
                 // 更新数据库
                 storage.updateConversation(conversation);
@@ -2727,6 +2735,8 @@ public class MessagingService extends Module {
                     JSONArray list = data.getJSONArray("list");
                     for (int i = 0; i < list.length(); ++i) {
                         Conversation conversation = new Conversation(list.getJSONObject(i));
+                        // 更新未读数量
+                        conversation.setUnreadCount(storage.countUnread(conversation));
                         fillConversation(conversation);
                         conversationList.add(conversation);
                     }
@@ -2846,6 +2856,13 @@ public class MessagingService extends Module {
                     }
                 });
             }
+
+            if (null != event.getSecondaryData() && null != this.conversationEventListener) {
+                Conversation conversation = (Conversation) event.getSecondaryData();
+                executeOnMainThread(() -> {
+                    conversationEventListener.onConversationMessageUpdated(conversation, this);
+                });
+            }
         }
         else if (MessagingServiceEvent.Processing.equals(eventName)) {
             Message message = (Message) event.getData();
@@ -2882,7 +2899,7 @@ public class MessagingService extends Module {
         }
     }
 
-    private void appendMessageToConversation(Long conversationId, Message message) {
+    private Conversation appendMessageToConversation(Long conversationId, Message message) {
         MessageList list = this.conversationMessageListMap.get(conversationId);
         if (null != list) {
             list.appendMessage(message);
@@ -2912,7 +2929,7 @@ public class MessagingService extends Module {
                 conversation.setTimestamp(message.getLocalTimestamp());
                 this.sortConversationList(this.conversations);
                 this.storage.updateConversationTimestamp(conversation);
-                return;
+                return conversation;
             }
 
             // 追加消息
@@ -2924,7 +2941,12 @@ public class MessagingService extends Module {
 
             // 更新会话数据库
             this.storage.updateRecentMessage(conversation);
+
+            // 更新未读数量
+            conversation.setUnreadCount(this.storage.countUnread(conversation));
         }
+
+        return conversation;
     }
 
     /**
@@ -2967,9 +2989,10 @@ public class MessagingService extends Module {
         if (!exists) {
             // 更新会话清单
             long pivotalId = compMessage.isFromGroup() ? compMessage.getSource() : compMessage.getPartnerId();
-            this.appendMessageToConversation(pivotalId, compMessage);
+            Conversation conversation = this.appendMessageToConversation(pivotalId, compMessage);
 
-            ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Notify, compMessage);
+            ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Notify,
+                    compMessage, conversation);
             this.notifyObservers(event);
         }
     }

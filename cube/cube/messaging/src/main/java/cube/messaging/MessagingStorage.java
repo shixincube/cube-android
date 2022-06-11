@@ -445,6 +445,40 @@ public class MessagingStorage extends AbstractStorage {
     }
 
     /**
+     * 计算指定会话未读消息数量。
+     *
+     * @param conversation 指定会话。
+     * @return 返回未读消息数量。
+     */
+    public int countUnread(Conversation conversation) {
+        int count = 0;
+
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = null;
+        if (conversation.getType() == ConversationType.Group) {
+            cursor = db.rawQuery("SELECT COUNT(id) FROM `message` WHERE `source`=? AND `from`<>? AND `state`=? AND scope=0",
+                    new String[] { conversation.getPivotalId().toString(),
+                            this.service.getSelf().id.toString(),
+                            Integer.toString(MessageState.Sent.code) });
+        }
+        else {
+            cursor = db.rawQuery("SELECT COUNT(id) FROM `message` WHERE `source`=0 AND `from`=? AND `state`=? AND scope=0",
+                    new String[] { conversation.getPivotalId().toString(),
+                            Integer.toString(MessageState.Sent.code) });
+        }
+
+        if (cursor.moveToFirst()) {
+            count = cursor.getInt(0);
+        }
+        cursor.close();
+
+        this.closeReadableDatabase(db);
+
+        return count;
+    }
+
+    /**
      * 更新指定会的最近消息。
      *
      * @param conversation

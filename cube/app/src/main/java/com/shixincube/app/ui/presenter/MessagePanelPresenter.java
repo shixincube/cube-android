@@ -161,7 +161,7 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
 
             getView().getMessageListView().setAdapter(this.adapter);
 
-            UIUtils.postTaskDelay(() -> moveToBottom(), 500);
+            UIUtils.postTaskDelay(() -> moveToBottom(), 300);
         }
         else {
             this.adapter.notifyDataSetChangedWrapper();

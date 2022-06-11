@@ -278,6 +278,16 @@ public class ConversationPresenter extends BasePresenter<ConversationView> imple
     }
 
     @Override
+    public void onConversationMessageUpdated(Conversation conversation, MessagingService service) {
+        if (LogUtils.isDebugLevel()) {
+            LogUtils.d(TAG, "#onConversationMessageUpdated : " + conversation.getPivotalId()
+                    + " - " + conversation.getDisplayName());
+        }
+
+        this.adapter.notifyDataSetChangedWrapper();
+    }
+
+    @Override
     public void onConversationUpdated(Conversation conversation, MessagingService service) {
         if (LogUtils.isDebugLevel()) {
             LogUtils.d(TAG, "#onConversationUpdated : " + conversation.getPivotalId()

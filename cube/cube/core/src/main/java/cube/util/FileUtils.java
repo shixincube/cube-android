@@ -92,7 +92,7 @@ public class FileUtils {
                 buf.append(line);
             }
         } catch (FileNotFoundException e) {
-            LogUtils.e(TAG, "#readJSONFile", e);
+            LogUtils.w(TAG, "#readJSONFile", e);
         } catch (IOException e) {
             LogUtils.e(TAG, "#readJSONFile", e);
         } finally {

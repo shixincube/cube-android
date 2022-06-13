@@ -50,8 +50,10 @@ import cube.core.Packet;
 import cube.core.PipelineState;
 import cube.core.handler.FailureHandler;
 import cube.core.handler.PipelineHandler;
+import cube.core.handler.StableFailureHandler;
 import cube.ferry.handler.DetectHandler;
 import cube.ferry.handler.DomainHandler;
+import cube.ferry.handler.DomainInfoHandler;
 import cube.ferry.handler.DomainMemberHandler;
 import cube.ferry.handler.TenetsHandler;
 import cube.ferry.model.CleanupTenet;
@@ -295,8 +297,8 @@ public class FerryService extends Module {
      * @param successHandler 指定成功回调句柄。
      * @param failureHandler 指定失败回调句柄。
      */
-    public void getDomain(String domainName, DomainHandler successHandler,
-                              FailureHandler failureHandler) {
+    private void getDomain(String domainName, DomainHandler successHandler,
+                           FailureHandler failureHandler) {
         if (!this.pipeline.isReady()) {
             // 数据通道未就绪
             ModuleError error = new ModuleError(NAME, FerryServiceState.NoNetwork.code);
@@ -588,8 +590,52 @@ public class FerryService extends Module {
      *
      * @return
      */
-    public DomainInfo getLocalDomainInfo() {
-        return this.loadDomainInfo();
+    public void getDomainInfo(DomainInfoHandler handler) {
+        DomainInfo domainInfo = this.loadDomainInfo();
+        if (null != domainInfo) {
+            if (handler.isInMainThread()) {
+                executeOnMainThread(() -> {
+                    handler.handleDomainInfo(domainInfo);
+                });
+            }
+            else {
+                execute(() -> {
+                    handler.handleDomainInfo(domainInfo);
+                });
+            }
+            return;
+        }
+
+        this.getDomain(AuthService.getDomain(), new DomainHandler() {
+            @Override
+            public void handleDomain(AuthDomain authDomain, DomainInfo domainInfo, List<DomainMember> members) {
+                if (handler.isInMainThread()) {
+                    executeOnMainThread(() -> {
+                        handler.handleDomainInfo(domainInfo);
+                    });
+                }
+                else {
+                    handler.handleDomainInfo(domainInfo);
+                }
+            }
+
+            @Override
+            public boolean isInMainThread() {
+                return false;
+            }
+        }, new StableFailureHandler() {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                if (handler.isInMainThread()) {
+                    executeOnMainThread(() -> {
+                        handler.handleDomainInfo(null);
+                    });
+                }
+                else {
+                    handler.handleDomainInfo(null);
+                }
+            }
+        });
     }
 
     /**

@@ -35,6 +35,7 @@ import java.util.Date;
 import java.util.Locale;
 
 import cube.engine.CubeEngine;
+import cube.ferry.handler.DomainInfoHandler;
 import cube.ferry.model.DomainInfo;
 
 public class BoxPresenter extends BasePresenter<BoxView> {
@@ -49,20 +50,24 @@ public class BoxPresenter extends BasePresenter<BoxView> {
     }
 
     public void loadData() {
-        DomainInfo domainInfo = CubeEngine.getInstance().getFerryService().getLocalDomainInfo();
-        if (null == domainInfo) {
-            return;
-        }
+        CubeEngine.getInstance().getFerryService().getDomainInfo(new DomainInfoHandler(true) {
+            @Override
+            public void handleDomainInfo(DomainInfo domainInfo) {
+                if (null == domainInfo) {
+                    return;
+                }
 
-        this.getView().getDomainNameView().setEndText(domainInfo.getDomainName());
+                getView().getDomainNameView().setEndText(domainInfo.getDomainName());
 
-        this.getView().getDomainBeginningView().setEndText(
-                this.dateFormat.format(new Date(domainInfo.getBeginning())));
+                getView().getDomainBeginningView().setEndText(
+                        dateFormat.format(new Date(domainInfo.getBeginning())));
 
-        this.getView().getDomainEndingView().setEndText(
-                this.dateFormat.format(new Date(domainInfo.getBeginning() + domainInfo.getDuration())));
+                getView().getDomainEndingView().setEndText(
+                        dateFormat.format(new Date(domainInfo.getBeginning() + domainInfo.getDuration())));
 
-        this.getView().getDomainLimitView().setEndText(
-                Integer.toString(domainInfo.getLimit()) + " 人");
+                getView().getDomainLimitView().setEndText(
+                        Integer.toString(domainInfo.getLimit()) + " 人");
+            }
+        });
     }
 }

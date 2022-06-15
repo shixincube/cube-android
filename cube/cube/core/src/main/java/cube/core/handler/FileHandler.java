@@ -24,22 +24,29 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app.ui.view;
+package cube.core.handler;
 
-import com.shixincube.app.widget.optionitemview.OptionItemView;
+import java.io.File;
 
 /**
- * 讯盒视图。
+ * 文件句柄。
  */
-public interface BoxView {
+public abstract class FileHandler implements CallbackHandler {
 
-    OptionItemView getDomainNameView();
+    private final boolean inMainThread;
 
-    OptionItemView getDomainBeginningView();
+    public FileHandler() {
+        this.inMainThread = true;
+    }
 
-    OptionItemView getDomainEndingView();
+    public FileHandler(boolean inMainThread) {
+        this.inMainThread = inMainThread;
+    }
 
-    OptionItemView getDomainLimitView();
+    @Override
+    public boolean isInMainThread() {
+        return this.inMainThread;
+    }
 
-    OptionItemView getInvitationCodeItem();
+    public abstract void handleFile(File file);
 }

@@ -49,6 +49,7 @@ import cube.core.ModuleError;
 import cube.core.Packet;
 import cube.core.PipelineState;
 import cube.core.handler.FailureHandler;
+import cube.core.handler.FileHandler;
 import cube.core.handler.PipelineHandler;
 import cube.core.handler.StableFailureHandler;
 import cube.ferry.handler.DetectHandler;
@@ -636,6 +637,10 @@ public class FerryService extends Module {
                 }
             }
         });
+    }
+
+    public void getDomainQRCodeFile(FileHandler handler) {
+
     }
 
     /**

@@ -30,6 +30,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import cube.core.model.Entity;
+import cube.filestorage.model.FileLabel;
 
 /**
  * 域信息。
@@ -48,12 +49,15 @@ public class DomainInfo extends Entity {
 
     private String invitationCode;
 
+    private FileLabel qrCodeFileLabel;
+
     public DomainInfo(JSONObject json) throws JSONException {
         super(json);
         this.domainName = json.getString("domain");
         this.beginning = json.getLong("beginning");
         this.duration = json.getLong("duration");
         this.limit = json.getInt("limit");
+        this.qrCodeFileLabel = new FileLabel(json.getJSONObject("qrCodeFileLabel"));
 
         if (json.has("address")) {
             this.address = json.getString("address");
@@ -96,6 +100,10 @@ public class DomainInfo extends Entity {
         return this.invitationCode;
     }
 
+    public FileLabel getQRCodeFileLabel() {
+        return this.qrCodeFileLabel;
+    }
+
     @Override
     public JSONObject toJSON() {
         JSONObject json = super.toJSON();
@@ -104,6 +112,7 @@ public class DomainInfo extends Entity {
             json.put("beginning", this.beginning);
             json.put("duration", this.duration);
             json.put("limit", this.limit);
+            json.put("qrCodeFileLabel", this.qrCodeFileLabel.toJSON());
 
             if (null != this.address) {
                 json.put("address", this.address);

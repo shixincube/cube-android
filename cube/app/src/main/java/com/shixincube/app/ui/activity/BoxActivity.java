@@ -52,6 +52,9 @@ public class BoxActivity extends BaseActivity<BoxView, BoxPresenter> implements 
     @BindView(R.id.oivLimit)
     OptionItemView domainLimitView;
 
+    @BindView(R.id.oivInvitationCode)
+    OptionItemView invitationCodeItemView;
+
     public BoxActivity() {
         super();
     }
@@ -63,6 +66,9 @@ public class BoxActivity extends BaseActivity<BoxView, BoxPresenter> implements 
 
     @Override
     public void initListener() {
+        this.getInvitationCodeItem().setOnClickListener((view) -> {
+            jumpToActivity(BoxInvitationActivity.class);
+        });
     }
 
     @Override
@@ -98,5 +104,10 @@ public class BoxActivity extends BaseActivity<BoxView, BoxPresenter> implements 
     @Override
     public OptionItemView getDomainLimitView() {
         return this.domainLimitView;
+    }
+
+    @Override
+    public OptionItemView getInvitationCodeItem() {
+        return this.invitationCodeItemView;
     }
 }

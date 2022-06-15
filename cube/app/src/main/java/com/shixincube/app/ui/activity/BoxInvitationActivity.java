@@ -24,22 +24,44 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app.ui.view;
+package com.shixincube.app.ui.activity;
 
-import com.shixincube.app.widget.optionitemview.OptionItemView;
+import com.shixincube.app.R;
+import com.shixincube.app.ui.base.BaseActivity;
+import com.shixincube.app.ui.base.BasePresenter;
+import com.shixincube.app.util.UIUtils;
+import com.shixincube.app.widget.BubbleImageView;
+
+import butterknife.BindView;
 
 /**
- * 讯盒视图。
+ * 盒子邀请码界面。
  */
-public interface BoxView {
+public class BoxInvitationActivity extends BaseActivity {
 
-    OptionItemView getDomainNameView();
+    @BindView(R.id.bivQRCode)
+    BubbleImageView qrCodeImageView;
 
-    OptionItemView getDomainBeginningView();
+    public BoxInvitationActivity() {
+        super();
+    }
 
-    OptionItemView getDomainEndingView();
+    @Override
+    public void initView() {
+        this.setToolbarTitle(UIUtils.getString(R.string.box_invitation_code));
+    }
 
-    OptionItemView getDomainLimitView();
+    @Override
+    public void initData() {
+    }
 
-    OptionItemView getInvitationCodeItem();
+    @Override
+    protected BasePresenter createPresenter() {
+        return null;
+    }
+
+    @Override
+    protected int provideContentViewId() {
+        return R.layout.activity_box_invitation;
+    }
 }

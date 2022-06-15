@@ -186,6 +186,10 @@
             android:screenOrientation="portrait">
         </activity>
         <activity
+            android:name=".ui.activity.BoxInvitationActivity"
+            android:screenOrientation="portrait">
+        </activity>
+        <activity
             android:name="com.journeyapps.barcodescanner.CaptureActivity"
             android:screenOrientation="portrait"
             tools:replace="android:screenOrientation">

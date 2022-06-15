@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:auto="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorThemeBackground"
+    android:orientation="vertical">
+
+    <include layout="@layout/include_toolbar"/>
+
+    <View
+        style="?attr/styleLine"
+        android:layout_marginStart="0dp"
+        android:layout_marginEnd="0dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:background="?attr/colorBackground"
+        android:orientation="vertical">
+
+        <com.shixincube.app.widget.BubbleImageView
+            android:id="@+id/bivQRCode"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            auto:bubble_showText="false"
+            auto:bubble_showShadow="true"
+            auto:bubble_angle="4dp"/>
+
+
+
+    </LinearLayout>
+
+</LinearLayout>

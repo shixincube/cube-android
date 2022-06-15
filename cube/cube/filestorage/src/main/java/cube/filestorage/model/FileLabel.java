@@ -31,6 +31,8 @@ import android.os.Build;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 import cube.auth.AuthService;
@@ -420,5 +422,22 @@ public class FileLabel extends Entity {
     @Override
     public JSONObject toCompactJSON() {
         return this.toJSON();
+    }
+
+    /**
+     * 修正文件 URL 。
+     *
+     * @param fileURL
+     * @return
+     */
+    private static String correctFileURL(String fileURL) {
+        try {
+            URL url = new URL(fileURL);
+            String host = url.getHost();
+            Kernel.getDefault().getConfig();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        return fileURL;
     }
 }

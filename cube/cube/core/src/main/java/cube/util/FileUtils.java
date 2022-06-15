@@ -135,4 +135,43 @@ public class FileUtils {
 
         return true;
     }
+
+    /**
+     * 复制文件数据。
+     *
+     * @param source
+     * @param target
+     * @throws IOException
+     */
+    public static void copy(File source, File target) throws IOException {
+        FileInputStream fis = null;
+        FileOutputStream fos = null;
+
+        byte[] buf = new byte[128];
+        int length = 0;
+        try {
+            fis = new FileInputStream(source);
+            fos = new FileOutputStream(target);
+
+            while ((length = fis.read(buf)) > 0) {
+                fos.write(buf, 0, length);
+            }
+        } catch (IOException e) {
+            throw e;
+        } finally {
+            if (null != fis) {
+                try {
+                    fis.close();
+                } catch (IOException e) {
+                }
+            }
+
+            if (null != fos) {
+                try {
+                    fos.close();
+                } catch (IOException e) {
+                }
+            }
+        }
+    }
 }

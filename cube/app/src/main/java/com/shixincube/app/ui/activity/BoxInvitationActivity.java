@@ -26,13 +26,18 @@
 
 package com.shixincube.app.ui.activity;
 
+import com.bumptech.glide.Glide;
 import com.shixincube.app.R;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.BubbleImageView;
 
+import java.io.File;
+
 import butterknife.BindView;
+import cube.core.handler.FileHandler;
+import cube.engine.CubeEngine;
 
 /**
  * 盒子邀请码界面。
@@ -53,6 +58,23 @@ public class BoxInvitationActivity extends BaseActivity {
 
     @Override
     public void initData() {
+        CubeEngine.getInstance().getFerryService().getDomainQRCodeFile(new FileHandler() {
+            @Override
+            public void handleFile(File file) {
+                if (null != file) {
+                    Glide.with(BoxInvitationActivity.this).load(file)
+                            .override(400, 400)
+                            .centerCrop()
+                            .into(qrCodeImageView);
+                }
+                else {
+                    Glide.with(BoxInvitationActivity.this).load(R.mipmap.cube)
+                            .override(400, 400)
+                            .centerCrop()
+                            .into(qrCodeImageView);
+                }
+            }
+        });
     }
 
     @Override

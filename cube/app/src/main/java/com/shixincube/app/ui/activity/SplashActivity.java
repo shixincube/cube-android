@@ -292,11 +292,27 @@ public class SplashActivity extends BaseActivity {
                 .observeOn(Schedulers.io())
                 .doOnError(error -> {
                     LogUtils.w(TAG, "#login - login", error);
+
+                    synchronized (tokenCode) {
+                        tokenCode.notify();
+                    }
                 })
                 .subscribe(loginResponse -> {
                     LogUtils.i(TAG,
                             "Login expire: " + (new Date(loginResponse.expire).toString()));
+
+                    synchronized (tokenCode) {
+                        tokenCode.notify();
+                    }
                 });
+
+        synchronized (tokenCode) {
+            try {
+                tokenCode.wait(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
 
         // 更新账号数据
         Explorer.getInstance().getAccountInfo(tokenCode)
@@ -311,7 +327,7 @@ public class SplashActivity extends BaseActivity {
                             accountInfoResponse.avatar);
 
                     synchronized (SplashActivity.this) {
-                        if (valid && !jumpToMain) {
+                        if (valid && engineStarted.get() && !jumpToMain) {
                             jumpToMain = true;
 
                             runOnUiThread(() -> {

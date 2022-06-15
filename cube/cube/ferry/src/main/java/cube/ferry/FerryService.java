@@ -35,6 +35,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -62,6 +63,10 @@ import cube.ferry.model.DomainInfo;
 import cube.ferry.model.DomainMember;
 import cube.ferry.model.JoinWay;
 import cube.ferry.model.Tenet;
+import cube.filestorage.FileStorage;
+import cube.filestorage.handler.DefaultDownloadFileHandler;
+import cube.filestorage.model.FileAnchor;
+import cube.filestorage.model.FileLabel;
 import cube.util.FileUtils;
 import cube.util.LogUtils;
 import cube.util.ObservableEvent;
@@ -639,8 +644,86 @@ public class FerryService extends Module {
         });
     }
 
+    /**
+     * 获取域的 QR 码文件。
+     *
+     * @param handler
+     */
     public void getDomainQRCodeFile(FileHandler handler) {
+        File path = FileUtils.getFilePath(getContext(), "cube");
+        File file = new File(path, "ferry_qrcode_" + AuthService.getDomain() + ".jpg");
+        if (file.exists()) {
+            if (handler.isInMainThread()) {
+                executeOnMainThread(() -> {
+                    handler.handleFile(file);
+                });
+            }
+            else {
+                execute(() -> {
+                    handler.handleFile(file);
+                });
+            }
+            return;
+        }
 
+        this.getDomainInfo(new DomainInfoHandler(false) {
+            @Override
+            public void handleDomainInfo(DomainInfo domainInfo) {
+                if (null != domainInfo) {
+                    FileStorage fileStorage = (FileStorage) kernel.getModule(FileStorage.NAME);
+                    fileStorage.downloadFile(domainInfo.getQRCodeFileLabel(), new DefaultDownloadFileHandler(false) {
+                        @Override
+                        public void handleStarted(FileAnchor anchor) {
+                            // Nothing
+                        }
+
+                        @Override
+                        public void handleProcessing(FileAnchor anchor) {
+                            // Nothing
+                        }
+
+                        @Override
+                        public void handleSuccess(FileAnchor anchor, FileLabel fileLabel) {
+                            try {
+                                FileUtils.copy(new File(fileLabel.getFilePath()), file);
+                                if (handler.isInMainThread()) {
+                                    executeOnMainThread(() -> {
+                                        handler.handleFile(file);
+                                    });
+                                }
+                                else {
+                                    handler.handleFile(file);
+                                }
+                            } catch (IOException e) {
+                                LogUtils.w(TAG, "#getDomainQRCodeFile", e);
+                            }
+                        }
+
+                        @Override
+                        public void handleFailure(ModuleError error, @Nullable FileAnchor anchor) {
+                            if (handler.isInMainThread()) {
+                                executeOnMainThread(() -> {
+                                    handler.handleFile(null);
+                                });
+                            }
+                            else {
+                                handler.handleFile(null);
+                            }
+                        }
+                    });
+                }
+                else {
+                    if (handler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            handler.handleFile(null);
+                        });
+                    }
+                    else {
+                        handler.handleFile(null);
+                    }
+                }
+            }
+        });
     }
 
     /**

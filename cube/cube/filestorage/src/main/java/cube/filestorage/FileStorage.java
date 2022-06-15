@@ -1143,11 +1143,8 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
 
                 try {
                     FileLabel fileLabel = new FileLabel(packet.extractServiceData());
-                    execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            handler.handleSuccess(fileLabel);
-                        }
+                    execute(() -> {
+                        handler.handleSuccess(fileLabel);
                     });
                 } catch (JSONException e) {
                     LogUtils.w(FileStorage.class.getSimpleName(), e);

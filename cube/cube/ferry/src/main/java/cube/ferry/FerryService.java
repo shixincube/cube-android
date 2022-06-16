@@ -297,6 +297,16 @@ public class FerryService extends Module {
     }
 
     /**
+     * 获取访问域数据。
+     *
+     * @param successHandler 指定成功回调句柄。
+     * @param failureHandler 指定失败回调句柄。
+     */
+    public void getDomain(DomainHandler successHandler, FailureHandler failureHandler) {
+        this.getDomain(AuthService.getDomain(), successHandler, failureHandler);
+    }
+
+    /**
      * 获取指定名称的访问域。
      *
      * @param domainName 指定域名称。
@@ -622,7 +632,7 @@ public class FerryService extends Module {
             return;
         }
 
-        this.getDomain(AuthService.getDomain(), new DomainHandler() {
+        this.getDomain(AuthService.getDomain(), new DomainHandler(false) {
             @Override
             public void handleDomain(AuthDomain authDomain, DomainInfo domainInfo, List<DomainMember> members) {
                 if (handler.isInMainThread()) {
@@ -633,11 +643,6 @@ public class FerryService extends Module {
                 else {
                     handler.handleDomainInfo(domainInfo);
                 }
-            }
-
-            @Override
-            public boolean isInMainThread() {
-                return false;
             }
         }, new StableFailureHandler() {
             @Override

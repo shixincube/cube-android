@@ -26,9 +26,13 @@
 
 package com.shixincube.app.ui.presenter;
 
+import android.view.View;
+import android.widget.ImageView;
+
 import com.shixincube.app.R;
 import com.shixincube.app.ui.activity.BoxMemberListActivity;
 import com.shixincube.app.ui.base.BasePresenter;
+import com.shixincube.app.util.AvatarUtils;
 import com.shixincube.app.widget.adapter.AdapterForRecyclerView;
 import com.shixincube.app.widget.adapter.ViewHolderForRecyclerView;
 import com.shixincube.app.widget.recyclerview.RecyclerView;
@@ -36,7 +40,16 @@ import com.shixincube.app.widget.recyclerview.RecyclerView;
 import java.util.ArrayList;
 import java.util.List;
 
+import cube.auth.model.AuthDomain;
+import cube.contact.model.Contact;
+import cube.core.Module;
+import cube.core.ModuleError;
+import cube.core.handler.DefaultFailureHandler;
+import cube.engine.CubeEngine;
+import cube.ferry.handler.DomainHandler;
+import cube.ferry.model.DomainInfo;
 import cube.ferry.model.DomainMember;
+import cube.ferry.model.Role;
 
 /**
  * 讯盒成员列表。
@@ -60,8 +73,26 @@ public class BoxMemberListPresenter extends BasePresenter {
             this.adapter = new ListAdapter();
             this.listView.setAdapter(this.adapter);
         }
+
+        CubeEngine.getInstance().getFerryService().getDomain(new DomainHandler() {
+            @Override
+            public void handleDomain(AuthDomain authDomain, DomainInfo domainInfo, List<DomainMember> members) {
+                domainMemberList.clear();
+                domainMemberList.addAll(members);
+
+                adapter.notifyDataSetChangedWrapper();
+            }
+        }, new DefaultFailureHandler() {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+
+            }
+        });
     }
 
+    /**
+     * 列表适配器。
+     */
     protected class ListAdapter extends AdapterForRecyclerView<DomainMember> {
 
         public ListAdapter() {
@@ -70,7 +101,19 @@ public class BoxMemberListPresenter extends BasePresenter {
 
         @Override
         public void convert(ViewHolderForRecyclerView helper, DomainMember item, int position) {
+            Contact contact = CubeEngine.getInstance().getContactService().getContact(item.getContactId());
+            // 名称
+            helper.setText(R.id.tvName, contact.getPriorityName());
 
+            // 头像
+            AvatarUtils.fillContactAvatar(activity, contact, (ImageView) helper.getView(R.id.ivAvatar));
+
+            if (item.getRole() == Role.Administrator) {
+                helper.setViewVisibility(R.id.ivRoleAdmin, View.VISIBLE);
+            }
+            else {
+                helper.setViewVisibility(R.id.ivRoleAdmin, View.GONE);
+            }
         }
     }
 }

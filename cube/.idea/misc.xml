@@ -141,7 +141,7 @@
         <entry key="app/src/main/res/layout/include_toolbar.xml" value="0.2545289855072464" />
         <entry key="app/src/main/res/layout/item_contact.xml" value="0.5" />
         <entry key="app/src/main/res/layout/item_conversation.xml" value="0.5" />
-        <entry key="app/src/main/res/layout/item_domain_member.xml" value="0.14549180327868852" />
+        <entry key="app/src/main/res/layout/item_domain_member.xml" value="0.5" />
         <entry key="app/src/main/res/layout/item_file.xml" value="0.1" />
         <entry key="app/src/main/res/layout/item_group.xml" value="0.5" />
         <entry key="app/src/main/res/layout/item_member.xml" value="0.5" />

@@ -71,5 +71,4 @@ public class BoxMemberListActivity extends BaseActivity {
         return R.layout.activity_box_member_list;
     }
 
-
 }

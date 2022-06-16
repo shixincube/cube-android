@@ -36,7 +36,29 @@ import cube.ferry.model.DomainMember;
 /**
  * 域信息句柄。
  */
-public interface DomainHandler extends CallbackHandler {
+public abstract class DomainHandler implements CallbackHandler {
 
-    void handleDomain(AuthDomain authDomain, DomainInfo domainInfo, List<DomainMember> members);
+    private final boolean inMainThread;
+
+    public DomainHandler() {
+        this.inMainThread = true;
+    }
+
+    public DomainHandler(boolean inMainThread) {
+        this.inMainThread = inMainThread;
+    }
+
+    @Override
+    public boolean isInMainThread() {
+        return this.inMainThread;
+    }
+
+    /**
+     * 处理域相关数据。
+     *
+     * @param authDomain
+     * @param domainInfo
+     * @param members
+     */
+    public abstract void handleDomain(AuthDomain authDomain, DomainInfo domainInfo, List<DomainMember> members);
 }

@@ -38,6 +38,7 @@ import java.nio.charset.StandardCharsets;
 import cube.auth.AuthService;
 import cube.core.Kernel;
 import cube.core.model.Entity;
+import cube.util.IPUtils;
 
 /**
  * 文件标签。用于标记文件的基本信息。
@@ -159,8 +160,8 @@ public class FileLabel extends Entity {
         this.fileType = fileType;
         this.md5Code = md5Code;
         this.sha1Code = sha1Code;
-        this.fileURL = url;
-        this.fileSecureURL = secureURL;
+        this.fileURL = correctFileURL(url);
+        this.fileSecureURL = correctFileURL(secureURL);
     }
 
     public FileLabel(JSONObject json) throws JSONException {
@@ -189,6 +190,13 @@ public class FileLabel extends Entity {
 
         if (json.has("filePath")) {
             this.filePath = json.getString("filePath");
+        }
+
+        if (null != this.fileURL) {
+            this.fileURL = correctFileURL(this.fileURL);
+        }
+        if (null != this.fileSecureURL) {
+            this.fileSecureURL = correctFileURL(this.fileSecureURL);
         }
     }
 
@@ -431,10 +439,31 @@ public class FileLabel extends Entity {
      * @return
      */
     private static String correctFileURL(String fileURL) {
+        if (null == fileURL) {
+            return null;
+        }
+
+        String currentHost = Kernel.getDefault().getConfig().address;
+        if (!IPUtils.isIPv4(currentHost)) {
+            return fileURL;
+        }
+
         try {
             URL url = new URL(fileURL);
             String host = url.getHost();
-            Kernel.getDefault().getConfig();
+            if (!host.equals(currentHost)) {
+                // IP 不一致，使用当前 IP
+                int start = fileURL.indexOf("://");
+                int end = fileURL.substring(start + 3).indexOf(":") + start + 3;
+
+                String head = fileURL.substring(0, start + 3);
+                String tail = fileURL.substring(end, fileURL.length());
+
+                StringBuilder result = new StringBuilder(head);
+                result.append(currentHost);
+                result.append(tail);
+                return result.toString();
+            }
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }

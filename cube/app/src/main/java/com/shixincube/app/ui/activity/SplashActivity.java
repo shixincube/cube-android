@@ -52,6 +52,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import butterknife.BindView;
+import cell.util.log.Logger;
 import cube.core.KernelConfig;
 import cube.engine.CubeEngine;
 import cube.engine.service.CubeService;
@@ -89,7 +90,9 @@ public class SplashActivity extends BaseActivity {
 
     private AtomicBoolean engineStarted = new AtomicBoolean(false);
 
-    private boolean jumpToMain = false;
+    private AtomicBoolean jumpToMain = new AtomicBoolean(false);
+    private AtomicBoolean finishLogin = new AtomicBoolean(false);
+    private AtomicBoolean finishGetAccount = new AtomicBoolean(false);
 
     public SplashActivity() {
         super();
@@ -239,15 +242,13 @@ public class SplashActivity extends BaseActivity {
                 }
 
                 synchronized (SplashActivity.this) {
-                    if (!jumpToMain) {
-                        if (valid.booleanValue() && engineStarted.get()) {
-                            jumpToMain = true;
-                            if (AppConsts.FERRY_MODE) {
-                                jumpToActivityAndClearTask(FerryActivity.class);
-                            }
-                            else {
-                                jumpToActivityAndClearTask(MainActivity.class);
-                            }
+                    if (valid.booleanValue() && !jumpToMain.get() && engineStarted.get()) {
+                        jumpToMain.set(true);
+                        if (AppConsts.FERRY_MODE) {
+                            jumpToActivityAndClearTask(FerryActivity.class);
+                        }
+                        else {
+                            jumpToActivityAndClearTask(MainActivity.class);
                         }
                     }
                 }
@@ -262,10 +263,11 @@ public class SplashActivity extends BaseActivity {
         // 监听引擎启动
         this.connection = new CubeConnection();
         this.connection.setSuccessHandler(() -> {
+            Logger.d(TAG, "#launch - engine started");
             engineStarted.set(true);
             synchronized (SplashActivity.this) {
-                if (!jumpToMain && valid) {
-                    jumpToMain = true;
+                if (!jumpToMain.get() && valid) {
+                    jumpToMain.set(true);
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -292,26 +294,16 @@ public class SplashActivity extends BaseActivity {
                 .observeOn(Schedulers.io())
                 .doOnError(error -> {
                     LogUtils.w(TAG, "#login - login", error);
-
-                    synchronized (tokenCode) {
-                        tokenCode.notify();
-                    }
+                    finishLogin.set(true);
                 })
                 .subscribe(loginResponse -> {
                     LogUtils.i(TAG,
                             "Login expire: " + (new Date(loginResponse.expire).toString()));
-
-                    synchronized (tokenCode) {
-                        tokenCode.notify();
-                    }
+                    finishLogin.set(true);
                 });
 
-        synchronized (tokenCode) {
-            try {
-                tokenCode.wait(5000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        if (jumpToMain.get()) {
+            return;
         }
 
         // 更新账号数据
@@ -320,16 +312,22 @@ public class SplashActivity extends BaseActivity {
                 .observeOn(Schedulers.io())
                 .doOnError(error -> {
                     LogUtils.w(TAG, "#login - getAccountInfo", error);
+                    finishGetAccount.set(true);
                 })
                 .subscribe(accountInfoResponse -> {
+                    finishGetAccount.set(true);
+
                     // 更新本地数据
                     AccountHelper.getInstance().updateCurrentAccount(accountInfoResponse.name,
                             accountInfoResponse.avatar);
 
-                    synchronized (SplashActivity.this) {
-                        if (valid && engineStarted.get() && !jumpToMain) {
-                            jumpToMain = true;
+                    if (jumpToMain.get()) {
+                        return;
+                    }
 
+                    synchronized (SplashActivity.this) {
+                        if (valid && !jumpToMain.get() && engineStarted.get()) {
+                            jumpToMain.set(true);
                             runOnUiThread(() -> {
                                 if (AppConsts.FERRY_MODE) {
                                     jumpToActivityAndClearTask(FerryActivity.class);

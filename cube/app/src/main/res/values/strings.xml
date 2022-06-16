@@ -250,5 +250,10 @@
     <string name="box_ending">到期日期</string>
     <string name="box_limit">数量限制</string>
     <string name="box_invitation_code">邀请码</string>
+    <string name="your_box_invitation_code">魔方讯盒邀请码</string>
+    <string name="invitation_code_brief">您可以将讯盒二维码或者邀请码发送给您的联系人。\n对方通过扫码或者输入邀请码即可加入当前讯盒。</string>
+    <string name="copy_invitation_code">复制邀请码</string>
+    <string name="clipboard_invitation_code_text_format">魔方讯盒邀请码 %1$s #魔方讯盒 https://shixincube.com</string>
+    <string name="toast_copy_invitation_code">已复制邀请到剪贴板</string>
 
 </resources>

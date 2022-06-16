@@ -128,4 +128,76 @@
 
     </LinearLayout>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorBackground"
+        android:layout_marginTop="@dimen/activity_vertical_margin"
+        android:orientation="vertical">
+
+        <com.shixincube.app.widget.optionitemview.OptionItemView
+            android:id="@+id/oivMemberMgmt"
+            style="@style/OptionItem"
+            android:background="?attr/selectorOptionItem"
+            android:clickable="true"
+            android:focusable="true"
+            auto:start_text="@string/box_member_management"
+            auto:start_text_color="?attr/colorText"
+            auto:start_text_size="16sp"
+            auto:start_text_margin_left="@dimen/option_item_margin_start"
+            auto:end_src="@mipmap/indicator"/>
+
+        <View
+            style="?attr/styleLine"
+            android:layout_marginStart="@dimen/item_margin_start_and_end"
+            android:layout_marginEnd="@dimen/item_margin_start_and_end"/>
+
+        <com.shixincube.app.widget.optionitemview.OptionItemView
+            android:id="@+id/oivStorageMgmt"
+            style="@style/OptionItem"
+            android:background="?attr/selectorOptionItem"
+            android:clickable="true"
+            android:focusable="true"
+            auto:start_text="@string/box_storage_management"
+            auto:start_text_color="?attr/colorText"
+            auto:start_text_size="16sp"
+            auto:start_text_margin_left="@dimen/option_item_margin_start"
+            auto:end_src="@mipmap/indicator"/>
+
+        <View
+            style="?attr/styleLine"
+            android:layout_marginStart="@dimen/item_margin_start_and_end"
+            android:layout_marginEnd="@dimen/item_margin_start_and_end"/>
+
+        <com.shixincube.app.widget.optionitemview.OptionItemView
+            android:id="@+id/oivResetBox"
+            style="@style/OptionItem"
+            android:background="?attr/selectorOptionItem"
+            android:clickable="true"
+            android:focusable="true"
+            auto:start_text="@string/box_reset"
+            auto:start_text_color="?attr/colorText"
+            auto:start_text_size="16sp"
+            auto:start_text_margin_left="@dimen/option_item_margin_start"
+            auto:end_src="@mipmap/indicator"/>
+
+        <View
+            style="?attr/styleLine"
+            android:layout_marginStart="@dimen/item_margin_start_and_end"
+            android:layout_marginEnd="@dimen/item_margin_start_and_end"/>
+
+        <com.shixincube.app.widget.optionitemview.OptionItemView
+            android:id="@+id/oivCustomerService"
+            style="@style/OptionItem"
+            android:background="?attr/selectorOptionItem"
+            android:clickable="true"
+            android:focusable="true"
+            auto:start_text="@string/box_customer_service"
+            auto:start_text_color="?attr/colorText"
+            auto:start_text_size="16sp"
+            auto:start_text_margin_left="@dimen/option_item_margin_start"
+            auto:end_src="@mipmap/indicator"/>
+
+    </LinearLayout>
+
 </LinearLayout>

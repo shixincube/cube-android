@@ -94,7 +94,7 @@ public class SoftwareKeyboard implements View.OnTouchListener, ViewTreeObserver.
         softwareInputDetector.inputManager = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
         softwareInputDetector.sharedPreferences = activity.getSharedPreferences(SHARE_PREFERENCE_NAME, Context.MODE_PRIVATE);
         activity.getWindow().getDecorView().getViewTreeObserver().addOnGlobalLayoutListener(softwareInputDetector);
-        softwareInputDetector.softInputHeight = softwareInputDetector.dip2px(260);
+        softwareInputDetector.softInputHeight = softwareInputDetector.dip2px(240);
         return softwareInputDetector;
     }
 
@@ -356,7 +356,7 @@ public class SoftwareKeyboard implements View.OnTouchListener, ViewTreeObserver.
 
     private void showLayout(View layout) {
         if (this.softInputHeight == 0) {
-            int max = dip2px(260);
+            int max = dip2px(240);
             this.softInputHeight = this.sharedPreferences.getInt(SHARE_PREFERENCE_SOFT_INPUT_HEIGHT, max);
             if (this.softInputHeight > max) {
                 this.softInputHeight = max;

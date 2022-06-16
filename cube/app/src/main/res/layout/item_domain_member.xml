@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:auto="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/llRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/colorBackground"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/tvIndex"
+        android:layout_width="match_parent"
+        android:layout_height="23dp"
+        android:background="?attr/colorItemIndexBackground"
+        android:gravity="center_vertical"
+        android:paddingStart="@dimen/item_margin_start_and_end"
+        android:text="@string/letter_A"
+        android:textColor="?attr/colorTextSecondary"
+        android:textSize="12sp"
+        android:visibility="gone"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectorOptionItem"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/item_margin_start_and_end"
+        android:paddingEnd="@dimen/item_margin_start_and_end"
+        android:paddingTop="@dimen/item_margin_top_and_bottom"
+        android:paddingBottom="@dimen/item_margin_top_and_bottom">
+
+        <com.shixincube.app.widget.AdvancedImageView
+            android:id="@+id/ivAvatar"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:scaleType="centerCrop"
+            android:gravity="center_vertical"
+            android:src="@mipmap/avatar_default"
+            auto:corner_radius="4dp"/>
+
+        <TextView
+            android:id="@+id/tvName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/item_margin_start_and_end"
+            android:layout_weight="1"
+            android:singleLine="true"
+            android:text="@string/app_name"
+            android:textColor="?attr/colorText"
+            android:textSize="16sp"/>
+
+        <CheckBox
+            android:id="@+id/cbSelector"
+            style="@style/CustomCheckboxTheme"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/item_margin_start_and_end"
+            android:clickable="false"
+            android:visibility="gone"/>
+
+    </LinearLayout>
+
+    <View
+        android:id="@+id/vLine"
+        style="?attr/styleLine"
+        android:layout_marginStart="@dimen/item_margin_start_and_end"
+        android:layout_marginEnd="@dimen/item_margin_start_and_end"
+        android:visibility="gone"/>
+
+</LinearLayout>

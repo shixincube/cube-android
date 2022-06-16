@@ -24,30 +24,52 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app.ui.view;
+package com.shixincube.app.ui.activity;
 
-import com.shixincube.app.widget.optionitemview.OptionItemView;
+import com.shixincube.app.R;
+import com.shixincube.app.ui.base.BaseActivity;
+import com.shixincube.app.ui.base.BasePresenter;
+import com.shixincube.app.ui.presenter.BoxMemberListPresenter;
+import com.shixincube.app.util.UIUtils;
+import com.shixincube.app.widget.recyclerview.RecyclerView;
+
+import butterknife.BindView;
 
 /**
- * 讯盒视图。
+ * 讯盒成员列表界面。
  */
-public interface BoxView {
+public class BoxMemberListActivity extends BaseActivity {
 
-    OptionItemView getDomainNameView();
+    @BindView(R.id.rvMembers)
+    RecyclerView listRecyclerView;
 
-    OptionItemView getDomainBeginningView();
+    public BoxMemberListActivity() {
+        super();
+    }
 
-    OptionItemView getDomainEndingView();
+    @Override
+    public void initView() {
+        this.setToolbarTitle(UIUtils.getString(R.string.box_member_management));
+    }
 
-    OptionItemView getDomainLimitView();
+    @Override
+    public void initListener() {
+    }
 
-    OptionItemView getInvitationCodeItem();
+    @Override
+    public void initData() {
+        ((BoxMemberListPresenter) this.presenter).load(this.listRecyclerView);
+    }
 
-    OptionItemView getMemberManagementItemView();
+    @Override
+    protected BasePresenter createPresenter() {
+        return new BoxMemberListPresenter(this);
+    }
 
-    OptionItemView getStorageManagementItemView();
+    @Override
+    protected int provideContentViewId() {
+        return R.layout.activity_box_member_list;
+    }
 
-    OptionItemView getResetBoxItemView();
 
-    OptionItemView getCustomerServiceItemView();
 }

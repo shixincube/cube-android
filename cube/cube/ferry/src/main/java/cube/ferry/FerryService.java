@@ -565,6 +565,16 @@ public class FerryService extends Module {
                 // 重置授权配置
                 ((AuthService) kernel.getModule(AuthService.NAME)).resetAuthConfig(activity);
 
+                // 删除二维码
+                File path = FileUtils.getFilePath(getContext(), "cube");
+                File file = new File(path, "ferry_qrcode_" + AuthService.getDomain() + ".jpg");
+                if (file.exists()) {
+                    file.delete();
+                }
+
+                // 删除域信息
+                deleteDomainInfo();
+
                 JSONObject data = packet.extractServiceData();
                 try {
                     AuthDomain authDomain = new AuthDomain(data.getJSONObject("authDomain"));
@@ -685,7 +695,9 @@ public class FerryService extends Module {
                         @Override
                         public void handleSuccess(FileAnchor anchor, FileLabel fileLabel) {
                             try {
+                                // 复制文件数据
                                 FileUtils.copy(new File(fileLabel.getFilePath()), file);
+
                                 if (handler.isInMainThread()) {
                                     executeOnMainThread(() -> {
                                         handler.handleFile(file);
@@ -816,12 +828,23 @@ public class FerryService extends Module {
         return null;
     }
 
+    /**
+     * 保存域信息到文件。
+     *
+     * @param info
+     * @return
+     */
     private boolean saveDomainInfo(DomainInfo info) {
         File path = FileUtils.getFilePath(getContext(), "cube");
         File file = new File(path, "domain");
         return FileUtils.writeJSONFile(file, info.toJSON());
     }
 
+    /**
+     * 从文件加载域信息数据。
+     *
+     * @return
+     */
     private DomainInfo loadDomainInfo() {
         DomainInfo info = null;
 
@@ -840,6 +863,17 @@ public class FerryService extends Module {
         }
 
         return info;
+    }
+
+    /**
+     * 删除域文件。
+     */
+    private void deleteDomainInfo() {
+        File path = FileUtils.getFilePath(getContext(), "cube");
+        File file = new File(path, "domain");
+        if (file.exists()) {
+            file.delete();
+        }
     }
 
     protected void triggerOnline(Packet packet) {

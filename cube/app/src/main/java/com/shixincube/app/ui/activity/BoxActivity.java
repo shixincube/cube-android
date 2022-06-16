@@ -55,6 +55,18 @@ public class BoxActivity extends BaseActivity<BoxView, BoxPresenter> implements 
     @BindView(R.id.oivInvitationCode)
     OptionItemView invitationCodeItemView;
 
+    @BindView(R.id.oivMemberMgmt)
+    OptionItemView memberManagementItemView;
+
+    @BindView(R.id.oivStorageMgmt)
+    OptionItemView storageManagementItemView;
+
+    @BindView(R.id.oivResetBox)
+    OptionItemView resetBoxItemView;
+
+    @BindView(R.id.oivCustomerService)
+    OptionItemView customerServiceItemView;
+
     public BoxActivity() {
         super();
     }
@@ -68,6 +80,10 @@ public class BoxActivity extends BaseActivity<BoxView, BoxPresenter> implements 
     public void initListener() {
         this.getInvitationCodeItem().setOnClickListener((view) -> {
             jumpToActivity(BoxInvitationActivity.class);
+        });
+
+        this.getMemberManagementItemView().setOnClickListener((view) -> {
+            jumpToActivity(BoxMemberListActivity.class);
         });
     }
 
@@ -109,5 +125,25 @@ public class BoxActivity extends BaseActivity<BoxView, BoxPresenter> implements 
     @Override
     public OptionItemView getInvitationCodeItem() {
         return this.invitationCodeItemView;
+    }
+
+    @Override
+    public OptionItemView getMemberManagementItemView() {
+        return this.memberManagementItemView;
+    }
+
+    @Override
+    public OptionItemView getStorageManagementItemView() {
+        return this.storageManagementItemView;
+    }
+
+    @Override
+    public OptionItemView getResetBoxItemView() {
+        return this.resetBoxItemView;
+    }
+
+    @Override
+    public OptionItemView getCustomerServiceItemView() {
+        return this.customerServiceItemView;
     }
 }

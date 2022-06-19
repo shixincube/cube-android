@@ -24,59 +24,30 @@
  * SOFTWARE.
  */
 
-package cube.ferry;
+package cube.ferry.handler;
+
+import cube.core.handler.CallbackHandler;
+import cube.ferry.model.BoxReport;
 
 /**
- * 数据摆渡服务动作定义。
+ * 报告句柄。
  */
-public final class FerryServiceAction {
+public abstract class BoxReportHandler implements CallbackHandler {
 
-    /**
-     * 域服务器上线。
-     */
-    public final static String Online = "online";
+    private final boolean inMainThread;
 
-    /**
-     * 域服务器离线。
-     */
-    public final static String Offline = "offline";
-
-    /**
-     * 执行信条。
-     */
-    public final static String Tenet = "tenet";
-
-    /**
-     * 取出信条。
-     */
-    public final static String TakeOutTenet = "takeOutTenet";
-
-    /**
-     * 查询域。
-     */
-    public final static String QueryDomain = "queryDomain";
-
-    /**
-     * 加入域。
-     */
-    public final static String JoinDomain = "joinDomain";
-
-    /**
-     * 退出域。
-     */
-    public final static String QuitDomain = "quitDomain";
-
-    /**
-     * Ping
-     */
-    public final static String Ping = "ping";
-
-    /**
-     * 报告数据。
-     */
-    public final static String Report = "report";
-
-
-    private FerryServiceAction() {
+    public BoxReportHandler() {
+        this.inMainThread = true;
     }
+
+    public BoxReportHandler(boolean inMainThread) {
+        this.inMainThread = inMainThread;
+    }
+
+    @Override
+    public boolean isInMainThread() {
+        return this.inMainThread;
+    }
+
+    public abstract void handleBoxReport(BoxReport boxReport);
 }

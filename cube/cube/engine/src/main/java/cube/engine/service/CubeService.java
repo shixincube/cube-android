@@ -34,6 +34,8 @@ import android.os.IBinder;
 
 import androidx.annotation.Nullable;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import cube.core.KernelConfig;
 import cube.engine.CubeEngine;
 import cube.engine.handler.EngineHandler;
@@ -53,11 +55,13 @@ public class CubeService extends Service {
 
     private boolean startCompatibility;
 
-    protected boolean startPrepare = false;
-    protected boolean startFinish = false;
-    protected Failure startFailure = null;
+    private AtomicBoolean startPrepare = new AtomicBoolean(false);
+    private AtomicBoolean startFinish = new AtomicBoolean(false);
+    private Failure startFailure = null;
 
     private final Object mutex = new Object();
+
+    private AtomicBoolean handleCalled = new AtomicBoolean(false);
 
     public CubeService() {
         super();
@@ -89,42 +93,56 @@ public class CubeService extends Service {
                                     CubeEngine.getInstance().setConfig(readConfig());
                                 }
 
-                                startPrepare = true;
+                                startPrepare.set(true);
 
                                 CubeEngine.getInstance().start(getApplicationContext(), new EngineHandler() {
                                     @Override
                                     public void handleSuccess(CubeEngine engine) {
                                         synchronized (mutex) {
-                                            startFinish = true;
-                                            if (null != binder && null != binder.engineHandler) {
+                                            startFinish.set(true);
+                                            if (null != binder && !handleCalled.get()) {
+                                                handleCalled.set(true);
                                                 binder.engineHandler.handleSuccess(CubeEngine.getInstance());
-                                                binder.engineHandler = null;
                                             }
                                         }
+
+                                        startPrepare.set(false);
                                     }
 
                                     @Override
                                     public void handleFailure(int code, String description) {
                                         synchronized (mutex) {
-                                            startFinish = true;
+                                            startFinish.set(true);
                                             startFailure = new Failure(code, description);
 
-                                            if (null != binder && null != binder.engineHandler) {
+                                            if (null != binder && !handleCalled.get()) {
+                                                handleCalled.set(true);
                                                 binder.engineHandler.handleFailure(code, description);
-                                                binder.engineHandler = null;
                                             }
                                         }
+
+                                        startPrepare.set(false);
                                     }
                                 });
+                            }
+                            else {
+                                synchronized (mutex) {
+                                    startFinish.set(true);
+                                    if (null != binder && !handleCalled.get()) {
+                                        handleCalled.set(true);
+                                        binder.engineHandler.handleSuccess(CubeEngine.getInstance());
+                                    }
+                                }
                             }
                         }
                     }).start();
                 }
                 else if (action.equals(CubeService.ACTION_STOP)) {
                     synchronized (mutex) {
-                        startPrepare = false;
-                        startFinish = false;
+                        startPrepare.set(false);
+                        startFinish.set(false);
                         startFailure = null;
+                        handleCalled.set(false);
                     }
 
                     (new Thread() {
@@ -136,9 +154,10 @@ public class CubeService extends Service {
                 }
                 else if (action.equals(CubeService.ACTION_RESET)) {
                     synchronized (mutex) {
-                        startPrepare = false;
-                        startFinish = false;
+                        startPrepare.set(false);
+                        startFinish.set(false);
                         startFailure = null;
+                        handleCalled.set(false);
                     }
 
                     (new Thread() {
@@ -150,31 +169,35 @@ public class CubeService extends Service {
                             // 读取配置
                             CubeEngine.getInstance().setConfig(readConfig());
 
-                            startPrepare = true;
+                            startPrepare.set(true);
 
                             CubeEngine.getInstance().start(getApplicationContext(), new EngineHandler() {
                                 @Override
                                 public void handleSuccess(CubeEngine engine) {
                                     synchronized (mutex) {
-                                        startFinish = true;
-                                        if (null != binder && null != binder.engineHandler) {
+                                        startFinish.set(true);
+                                        if (null != binder && !handleCalled.get()) {
+                                            handleCalled.set(true);
                                             binder.engineHandler.handleSuccess(CubeEngine.getInstance());
-                                            binder.engineHandler = null;
                                         }
                                     }
+
+                                    startPrepare.set(false);
                                 }
 
                                 @Override
                                 public void handleFailure(int code, String description) {
                                     synchronized (mutex) {
-                                        startFinish = true;
+                                        startFinish.set(true);
                                         startFailure = new Failure(code, description);
 
-                                        if (null != binder && null != binder.engineHandler) {
+                                        if (null != binder && !handleCalled.get()) {
+                                            handleCalled.set(true);
                                             binder.engineHandler.handleFailure(code, description);
-                                            binder.engineHandler = null;
                                         }
                                     }
+
+                                    startPrepare.set(false);
                                 }
                             });
                         }
@@ -207,15 +230,15 @@ public class CubeService extends Service {
             @Override
             public void run() {
                 synchronized (mutex) {
-                    if (null != binder.engineHandler) {
-                        if (startFinish) {
+                    if (startFinish.get()) {
+                        if (!handleCalled.get()) {
+                            handleCalled.set(true);
+
                             if (null == startFailure) {
                                 binder.engineHandler.handleSuccess(CubeEngine.getInstance());
-                            }
-                            else {
+                            } else {
                                 binder.engineHandler.handleFailure(startFailure.code, startFailure.description);
                             }
-                            binder.engineHandler = null;
                         }
                     }
                 }

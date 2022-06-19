@@ -85,6 +85,10 @@ public class BoxActivity extends BaseActivity<BoxView, BoxPresenter> implements 
         this.getMemberManagementItemView().setOnClickListener((view) -> {
             jumpToActivity(BoxMemberListActivity.class);
         });
+
+        this.getStorageManagementItemView().setOnClickListener((view) -> {
+            jumpToActivity(BoxStorageActivity.class);
+        });
     }
 
     @Override

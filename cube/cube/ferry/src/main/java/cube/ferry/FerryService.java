@@ -53,11 +53,13 @@ import cube.core.handler.FailureHandler;
 import cube.core.handler.FileHandler;
 import cube.core.handler.PipelineHandler;
 import cube.core.handler.StableFailureHandler;
+import cube.ferry.handler.BoxReportHandler;
 import cube.ferry.handler.DetectHandler;
 import cube.ferry.handler.DomainHandler;
 import cube.ferry.handler.DomainInfoHandler;
 import cube.ferry.handler.DomainMemberHandler;
 import cube.ferry.handler.TenetsHandler;
+import cube.ferry.model.BoxReport;
 import cube.ferry.model.CleanupTenet;
 import cube.ferry.model.DomainInfo;
 import cube.ferry.model.DomainMember;
@@ -740,6 +742,63 @@ public class FerryService extends Module {
                     else {
                         handler.handleFile(null);
                     }
+                }
+            }
+        });
+    }
+
+    /**
+     * 获取盒子数据报告。
+     *
+     * @param successHandler 指定成功回调句柄。
+     * @param failureHandler 指定失败回调句柄。
+     */
+    public void getBoxReport(BoxReportHandler successHandler, FailureHandler failureHandler) {
+        if (!this.pipeline.isReady()) {
+            // 数据通道未就绪
+            ModuleError error = new ModuleError(NAME, FerryServiceState.NoNetwork.code);
+            execute(failureHandler, error);
+            return;
+        }
+
+        JSONObject packetData = new JSONObject();
+        try {
+            packetData.put("domain", AuthService.getDomain());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        Packet requestPacket = new Packet(FerryServiceAction.Report, packetData);
+        this.pipeline.send(FerryService.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    ModuleError error = new ModuleError(FerryService.NAME, packet.state.code);
+                    execute(failureHandler, error);
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != FerryServiceState.Ok.code) {
+                    ModuleError error = new ModuleError(FerryService.NAME, stateCode);
+                    execute(failureHandler, error);
+                    return;
+                }
+
+                JSONObject data = packet.extractServiceData();
+                try {
+                    BoxReport report = new BoxReport(data);
+                    if (successHandler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            successHandler.handleBoxReport(report);
+                        });
+                    }
+                    else {
+                        successHandler.handleBoxReport(report);
+                    }
+                } catch (JSONException e) {
+                    ModuleError error = new ModuleError(FerryService.NAME, FerryServiceState.DataFormatError.code);
+                    execute(failureHandler, error);
                 }
             }
         });

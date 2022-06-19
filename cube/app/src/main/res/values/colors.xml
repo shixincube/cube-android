@@ -90,6 +90,17 @@
     <color name="side_bar">#919091</color>
     <color name="side_bar_pressed">#BFBFBF</color>
 
+    <!-- 图表颜色 -->
+    <color name="chart_color_1">#2473F4</color>
+    <color name="chart_color_2">#10CCBC</color>
+    <color name="chart_color_3">#FF922E</color>
+    <color name="chart_color_4">#FFCB03</color>
+    <color name="chart_color_5">#E74155</color>
+    <color name="chart_color_6">#7CD351</color>
+    <color name="chart_color_7">#32C8E7</color>
+    <color name="chart_color_8">#2D7DB9</color>
+    <color name="chart_color_9">#7DC4CC</color>
+
     <!-- 以上为核验的主题颜色 -->
 
     <color name="color_primary">#DFDFDF</color>

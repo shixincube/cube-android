@@ -70,6 +70,7 @@ dependencies {
     implementation project(path: ':app:imagepicker')
     implementation project(path: ':app:filepicker')
     implementation project(path: ':app:camerapicker')
+    implementation project(path: ':app:chart')
     implementation project(path: ':cube:core')
     implementation project(path: ':cube:engine')
     implementation project(path: ':cube:contact')

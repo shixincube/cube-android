@@ -152,7 +152,7 @@ public class ImageCompressor implements Compressor {
     private boolean checkOriginalLength() {
         if (thresholdSize > 0) {
             File sourceFile = new File(sourcePath.path);
-            if (!sourceFile.exists()) {
+            if (!sourceFile.exists() || sourceFile.length() == 0) {
                 generateException("No such file : " + sourcePath.path);
                 return true;
             }

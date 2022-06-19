@@ -925,7 +925,7 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
             return;
         }
 
-        if (!fileAnchor.getFile().exists()) {
+        if (!fileAnchor.getFile().exists() || fileAnchor.getFile().length() == 0) {
             if (handler.isInMainThread()) {
                 this.executeOnMainThread(() -> {
                     ModuleError error = new ModuleError(NAME, FileStorageState.ReadFileFailed.code);
@@ -966,7 +966,7 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
         String filePath = fileLabel.getFilePath();
         if (null != filePath) {
             File file = new File(filePath);
-            if (file.exists()) {
+            if (file.exists() && file.length() > 0) {
                 if (LogUtils.isDebugLevel()) {
                     LogUtils.d(TAG, "File exists : " + fileLabel.getFileCode() + " -> " + file.getPath());
                 }
@@ -991,7 +991,7 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
 
         // 判断文件码
         File localFile = new File(this.fileCachePath, fileLabel.getFileCode() + "." + fileLabel.getFileType());
-        if (localFile.exists()) {
+        if (localFile.exists() && localFile.length() > 0) {
             if (LogUtils.isDebugLevel()) {
                 LogUtils.d(TAG, "File exists : " + fileLabel.getFileCode() + " -> " + localFile.getPath());
             }

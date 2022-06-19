@@ -117,7 +117,7 @@ public class FileAttachment implements JSONable, Cacheable {
             file = this.anchorList.get(index).getFile();
         }
 
-        if (null == file || !file.exists()) {
+        if (null == file || !file.exists() || file.length() == 0) {
             if (index < this.labelList.size()) {
                 String path = this.labelList.get(index).getFilePath();
                 if (null != path) {
@@ -140,7 +140,7 @@ public class FileAttachment implements JSONable, Cacheable {
 
     public boolean existsLocal(int index) {
         File file = this.getFile(index);
-        return (null != file && file.exists());
+        return (null != file && file.exists() && file.length() > 0);
     }
 
     /**

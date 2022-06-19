@@ -127,7 +127,7 @@ public class FileThumbnail extends Entity {
         if (json.has("filePath")) {
             this.filePath = json.getString("filePath");
             this.file = new File(this.filePath);
-            if (!this.file.exists()) {
+            if (!this.file.exists() || this.file.length() == 0) {
                 this.file = null;
             }
         }
@@ -165,7 +165,7 @@ public class FileThumbnail extends Entity {
      * @return
      */
     public boolean existsLocal() {
-        return (null != this.file && this.file.exists());
+        return (null != this.file && this.file.exists() && this.file.length() > 0);
     }
 
     /**
@@ -174,7 +174,7 @@ public class FileThumbnail extends Entity {
      * @return
      */
     public String getFileURL() {
-        if (null != this.file && this.file.exists()) {
+        if (null != this.file && this.file.exists() && this.file.length() > 0) {
             return Uri.fromFile(this.file).toString();
         }
         else if (null != this.fileLabel) {

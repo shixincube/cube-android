@@ -578,7 +578,7 @@ public class FerryService extends Module {
                 // 删除二维码
                 File path = FileUtils.getFilePath(getContext(), "cube");
                 File file = new File(path, "ferry_qrcode_" + AuthService.getDomain() + ".jpg");
-                if (file.exists()) {
+                if (file.exists() && file.length() > 0) {
                     file.delete();
                 }
 
@@ -667,7 +667,7 @@ public class FerryService extends Module {
     public void getDomainQRCodeFile(FileHandler handler) {
         File path = FileUtils.getFilePath(getContext(), "cube");
         File file = new File(path, "ferry_qrcode_" + AuthService.getDomain() + ".jpg");
-        if (file.exists()) {
+        if (file.exists() && file.length() > 0) {
             if (handler.isInMainThread()) {
                 executeOnMainThread(() -> {
                     handler.handleFile(file);
@@ -680,6 +680,8 @@ public class FerryService extends Module {
             }
             return;
         }
+
+        LogUtils.d(TAG, "#getDomainQRCodeFile - Download QR code file from server");
 
         this.getDomainInfo(new DomainInfoHandler(false) {
             @Override

@@ -98,21 +98,17 @@ public class CubeConnection implements ServiceConnection {
 
                 // 签入账号
                 signIn(() -> {
+                    if (null != successHandler) {
+                        successHandler.run();
+                    }
+                }, () -> {
                     // 暖机
                     LogUtils.i(AppConsts.TAG, "Engine warmup");
                     long timestamp = System.currentTimeMillis();
                     CubeEngine.getInstance().warmup();
                     LogUtils.i(AppConsts.TAG, "Engine warmup elapsed: " + (System.currentTimeMillis() - timestamp) + " ms");
-
-                    if (null != successHandler) {
-                        successHandler.run();
-                    }
                 }, () -> {
-                    // Nothing
-                }, () -> {
-                    if (null != failureHandler) {
-                        failureHandler.run();
-                    }
+                    retrySignIn();
                 });
             }
 
@@ -132,6 +128,36 @@ public class CubeConnection implements ServiceConnection {
         // Nothing
     }
 
+    private void retrySignIn() {
+        (new Thread() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                signIn(() -> {
+                    if (null != successHandler) {
+                        successHandler.run();
+                    }
+                }, () -> {
+                    // 暖机
+                    LogUtils.i(AppConsts.TAG, "Engine warmup");
+                    long timestamp = System.currentTimeMillis();
+                    CubeEngine.getInstance().warmup();
+                    LogUtils.i(AppConsts.TAG, "Engine warmup elapsed: "
+                            + (System.currentTimeMillis() - timestamp) + " ms");
+                }, () -> {
+                    if (null != failureHandler) {
+                        failureHandler.run();
+                    }
+                });
+            }
+        }).start();
+    }
+
     private void signIn(Runnable startedHandler, Runnable successHandler, Runnable failureHandler) {
         Promise.create(new PromiseHandler<Account>() {
             @Override
@@ -143,7 +169,7 @@ public class CubeConnection implements ServiceConnection {
                     }
 
                     try {
-                        Thread.sleep(10L);
+                        Thread.sleep(10);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -163,7 +189,8 @@ public class CubeConnection implements ServiceConnection {
         }).then(new Future<Account>() {
             @Override
             public void come(Account account) {
-                boolean result = CubeEngine.getInstance().signIn(account.id, account.name, account.toJSON(), new DefaultSignHandler(true) {
+                boolean result = CubeEngine.getInstance().signIn(account.id, account.name,
+                        account.toJSON(), new DefaultSignHandler(true) {
                     @Override
                     public void handleSuccess(ContactService service, Self self) {
                         LogUtils.i(AppConsts.TAG, "SignIn success");
@@ -184,6 +211,11 @@ public class CubeConnection implements ServiceConnection {
                 else {
                     startedHandler.run();
                 }
+            }
+        }).catchReject(new Future<Account>() {
+            @Override
+            public void come(Account data) {
+                failureHandler.run();
             }
         }).launch();
     }

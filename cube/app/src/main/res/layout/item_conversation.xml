@@ -34,8 +34,8 @@
                     <!-- 图标/头像 -->
                     <com.shixincube.app.widget.AdvancedImageView
                         android:id="@+id/ivAvatar"
-                        android:layout_width="60dp"
-                        android:layout_height="60dp"
+                        android:layout_width="58dp"
+                        android:layout_height="58dp"
                         android:layout_centerInParent="true"
                         android:src="@mipmap/avatar_default"
                         auto:corner_radius="4dp" />

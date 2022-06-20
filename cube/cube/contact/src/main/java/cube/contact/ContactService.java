@@ -275,7 +275,7 @@ public class ContactService extends Module {
         while (!this.kernel.isReady() && count > 0) {
             --count;
             try {
-                Thread.sleep(10L);
+                Thread.sleep(10);
             } catch (InterruptedException e) {
                 // Nothing
             }

@@ -34,12 +34,13 @@ import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
-import com.github.mikephil.charting.formatter.PercentFormatter;
+import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.shixincube.app.R;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.util.UIUtils;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -107,7 +108,7 @@ public class BoxStorageActivity extends BaseActivity {
         // 设置背景颜色
         this.sizeChart.setBackgroundColor(UIUtils.getColorByAttrId(R.attr.colorBackground));
         // 设置外边距
-        this.sizeChart.setExtraOffsets(0, 10, 0, 10);
+        this.sizeChart.setExtraOffsets(0, 2, 0, 2);
         // 旋转起始角度
         this.sizeChart.setRotationAngle(0);
         // 是否可手动旋转
@@ -125,6 +126,11 @@ public class BoxStorageActivity extends BaseActivity {
 
         // 是否显示内环
         this.sizeChart.setDrawHoleEnabled(true);
+        this.sizeChart.setHoleRadius(38f);
+        this.sizeChart.setTransparentCircleRadius(42f);
+        this.sizeChart.setCenterText(UIUtils.getString(R.string.chart_storage_size_name));
+        this.sizeChart.setCenterTextColor(UIUtils.getColorByAttrId(R.attr.colorText));
+        this.sizeChart.setCenterTextSize(16);
     }
 
     private void refreshData(BoxReport boxReport) {
@@ -138,8 +144,7 @@ public class BoxStorageActivity extends BaseActivity {
         colors.add(UIUtils.getColor(R.color.chart_color_8));
         colors.add(UIUtils.getColor(R.color.chart_color_9));
 
-        PieDataSet dataSet = new PieDataSet(makePieData(boxReport),
-                UIUtils.getString(R.string.chart_storage_size_name));
+        PieDataSet dataSet = new PieDataSet(makePieData(boxReport), "");
         // 饼状 Item 之间的间隙
         dataSet.setSliceSpace(3f);
         // 饼状 Item 被选中变化的移动距离
@@ -154,7 +159,7 @@ public class BoxStorageActivity extends BaseActivity {
         data.setValueTextColor(UIUtils.getColorByAttrId(R.attr.colorText));
         // 文本大小
         data.setValueTextSize(14);
-        data.setValueFormatter(new PercentFormatter(this.sizeChart));
+        data.setValueFormatter(new DiskSpaceFormatter());
 
         Legend legend = this.sizeChart.getLegend();
         legend.setEnabled(true);
@@ -201,5 +206,24 @@ public class BoxStorageActivity extends BaseActivity {
     private int toMB(long size) {
         long mb = Math.round(size / (1024f * 1024f));
         return (int) mb;
+    }
+
+    protected class DiskSpaceFormatter extends ValueFormatter {
+
+        public DecimalFormat format;
+
+        public DiskSpaceFormatter() {
+            format = new DecimalFormat("###,###,##0.0");
+        }
+
+        @Override
+        public String getPieLabel(float value, PieEntry pieEntry) {
+            if (value > 1024.0f) {
+                return this.format.format(value / 1024.0f) + "GB";
+            }
+            else {
+                return this.format.format(value) + "MB";
+            }
+        }
     }
 }

@@ -251,12 +251,21 @@ public class ContactService extends Module {
         }
 
         if (this.signInReady.get()) {
-            return false;
+            if (self.equals(this.self)) {
+                LogUtils.d("ContactService", "Sign ready, same contact");
+                return true;
+            }
+            else {
+                LogUtils.d("ContactService", "Sign ready, different contact: " +
+                        this.self.id);
+                return false;
+            }
         }
 
         if (!this.hasStarted()) {
             if (!this.start()) {
                 // 启动模块失败
+                LogUtils.e("ContactService", "Module start failed");
                 return false;
             }
         }

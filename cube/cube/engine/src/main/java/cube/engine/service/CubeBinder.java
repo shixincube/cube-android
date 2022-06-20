@@ -28,6 +28,8 @@ package cube.engine.service;
 
 import android.os.Binder;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import cube.engine.handler.EngineHandler;
 
 /**
@@ -39,12 +41,15 @@ public class CubeBinder extends Binder {
 
     protected EngineHandler engineHandler;
 
+    protected AtomicBoolean handleCalled = new AtomicBoolean(false);
+
     public CubeBinder(CubeService service) {
         super();
         this.service = service;
     }
 
     public void setEngineHandler(EngineHandler engineHandler) {
+        this.handleCalled.set(false);
         this.engineHandler = engineHandler;
         this.service.tryFireEngineHandler();
     }

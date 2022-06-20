@@ -58,7 +58,7 @@
                         android:background="?attr/mipmapTabConversationNormal"
                         android:button="@null"
                         android:gravity="center"
-                        android:textSize="14sp"/>
+                        android:textSize="12sp"/>
 
                     <TextView
                         android:id="@+id/tvConversationPressed"
@@ -68,7 +68,7 @@
                         android:background="?attr/mipmapTabConversationPressed"
                         android:button="@null"
                         android:gravity="center"
-                        android:textSize="14sp"/>
+                        android:textSize="12sp"/>
 
                 </RelativeLayout>
 
@@ -101,7 +101,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/conversation"
                     android:textColor="?attr/colorTabNormal"
-                    android:textSize="14sp"/>
+                    android:textSize="12sp"/>
 
                 <TextView
                     android:id="@+id/tvConversationTextPressed"
@@ -109,7 +109,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/conversation"
                     android:textColor="?attr/colorTabPressed"
-                    android:textSize="14sp"/>
+                    android:textSize="12sp"/>
             </RelativeLayout>
 
         </LinearLayout>
@@ -146,7 +146,7 @@
                         android:background="?attr/mipmapTabFilesNormal"
                         android:button="@null"
                         android:gravity="center"
-                        android:textSize="14sp"/>
+                        android:textSize="12sp"/>
 
                     <TextView
                         android:id="@+id/tvFilesPressed"
@@ -155,7 +155,7 @@
                         android:background="?attr/mipmapTabFilesPressed"
                         android:button="@null"
                         android:gravity="center"
-                        android:textSize="14sp"/>
+                        android:textSize="12sp"/>
 
                 </RelativeLayout>
 
@@ -188,7 +188,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/files"
                     android:textColor="?attr/colorTabNormal"
-                    android:textSize="14sp"/>
+                    android:textSize="12sp"/>
 
                 <TextView
                     android:id="@+id/tvFilesTextPressed"
@@ -196,7 +196,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/files"
                     android:textColor="?attr/colorTabPressed"
-                    android:textSize="14sp"/>
+                    android:textSize="12sp"/>
 
             </RelativeLayout>
 
@@ -234,7 +234,7 @@
                         android:background="?attr/mipmapTabContactsNormal"
                         android:button="@null"
                         android:gravity="center"
-                        android:textSize="14sp"/>
+                        android:textSize="12sp"/>
 
                     <TextView
                         android:id="@+id/tvContactsPressed"
@@ -243,7 +243,7 @@
                         android:background="?attr/mipmapTabContactsPressed"
                         android:button="@null"
                         android:gravity="center"
-                        android:textSize="14sp"/>
+                        android:textSize="12sp"/>
 
                 </RelativeLayout>
 
@@ -259,7 +259,7 @@
                     android:paddingBottom="2dp"
                     android:text="@string/number_1"
                     android:textColor="@color/white"
-                    android:textSize="14sp"
+                    android:textSize="12sp"
                     android:visibility="gone"/>
 
                 <TextView
@@ -289,7 +289,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/contacts"
                     android:textColor="?attr/colorTabNormal"
-                    android:textSize="14sp"/>
+                    android:textSize="12sp"/>
 
                 <TextView
                     android:id="@+id/tvContactsTextPressed"
@@ -297,7 +297,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/contacts"
                     android:textColor="?attr/colorTabPressed"
-                    android:textSize="14sp"/>
+                    android:textSize="12sp"/>
             </RelativeLayout>
 
         </LinearLayout>
@@ -334,7 +334,7 @@
                         android:background="?attr/mipmapTabProfileNormal"
                         android:button="@null"
                         android:gravity="center"
-                        android:textSize="14sp"/>
+                        android:textSize="12sp"/>
 
                     <TextView
                         android:id="@+id/tvProfilePressed"
@@ -343,7 +343,7 @@
                         android:background="?attr/mipmapTabProfilePressed"
                         android:button="@null"
                         android:gravity="center"
-                        android:textSize="14sp"/>
+                        android:textSize="12sp"/>
 
                 </RelativeLayout>
 
@@ -357,7 +357,7 @@
                     android:background="@mipmap/bg_unread"
                     android:gravity="center"
                     android:textColor="@color/white"
-                    android:textSize="14sp"
+                    android:textSize="12sp"
                     android:visibility="gone"/>
 
             </RelativeLayout>
@@ -374,7 +374,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/profile"
                     android:textColor="?attr/colorTabNormal"
-                    android:textSize="14sp"/>
+                    android:textSize="12sp"/>
 
                 <TextView
                     android:id="@+id/tvProfileTextPressed"
@@ -382,7 +382,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/profile"
                     android:textColor="?attr/colorTabPressed"
-                    android:textSize="14sp"/>
+                    android:textSize="12sp"/>
 
             </RelativeLayout>
 

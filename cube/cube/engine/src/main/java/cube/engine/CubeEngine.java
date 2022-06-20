@@ -154,6 +154,8 @@ public class CubeEngine implements Observer {
 
         this.getContactService().detachWithName(ContactServiceEvent.SignIn, this);
         this.getAuthService().detachWithName(ResetAuthConfigEvent.NAME, this);
+
+        this.started = false;
     }
 
     public void suspend() {

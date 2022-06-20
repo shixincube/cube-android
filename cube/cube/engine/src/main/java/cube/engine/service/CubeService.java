@@ -39,6 +39,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import cube.core.KernelConfig;
 import cube.engine.CubeEngine;
 import cube.engine.handler.EngineHandler;
+import cube.util.LogUtils;
 
 /**
  * 自动化配置魔方服务。
@@ -60,8 +61,6 @@ public class CubeService extends Service {
     private Failure startFailure = null;
 
     private final Object mutex = new Object();
-
-    private AtomicBoolean handleCalled = new AtomicBoolean(false);
 
     public CubeService() {
         super();
@@ -100,8 +99,8 @@ public class CubeService extends Service {
                                     public void handleSuccess(CubeEngine engine) {
                                         synchronized (mutex) {
                                             startFinish.set(true);
-                                            if (null != binder && !handleCalled.get()) {
-                                                handleCalled.set(true);
+                                            if (null != binder && !binder.handleCalled.get()) {
+                                                binder.handleCalled.set(true);
                                                 binder.engineHandler.handleSuccess(CubeEngine.getInstance());
                                             }
                                         }
@@ -115,8 +114,8 @@ public class CubeService extends Service {
                                             startFinish.set(true);
                                             startFailure = new Failure(code, description);
 
-                                            if (null != binder && !handleCalled.get()) {
-                                                handleCalled.set(true);
+                                            if (null != binder && !binder.handleCalled.get()) {
+                                                binder.handleCalled.set(true);
                                                 binder.engineHandler.handleFailure(code, description);
                                             }
                                         }
@@ -128,8 +127,8 @@ public class CubeService extends Service {
                             else {
                                 synchronized (mutex) {
                                     startFinish.set(true);
-                                    if (null != binder && !handleCalled.get()) {
-                                        handleCalled.set(true);
+                                    if (null != binder && !binder.handleCalled.get()) {
+                                        binder.handleCalled.set(true);
                                         binder.engineHandler.handleSuccess(CubeEngine.getInstance());
                                     }
                                 }
@@ -142,7 +141,6 @@ public class CubeService extends Service {
                         startPrepare.set(false);
                         startFinish.set(false);
                         startFailure = null;
-                        handleCalled.set(false);
                     }
 
                     (new Thread() {
@@ -157,7 +155,6 @@ public class CubeService extends Service {
                         startPrepare.set(false);
                         startFinish.set(false);
                         startFailure = null;
-                        handleCalled.set(false);
                     }
 
                     (new Thread() {
@@ -176,8 +173,8 @@ public class CubeService extends Service {
                                 public void handleSuccess(CubeEngine engine) {
                                     synchronized (mutex) {
                                         startFinish.set(true);
-                                        if (null != binder && !handleCalled.get()) {
-                                            handleCalled.set(true);
+                                        if (null != binder && !binder.handleCalled.get()) {
+                                            binder.handleCalled.set(true);
                                             binder.engineHandler.handleSuccess(CubeEngine.getInstance());
                                         }
                                     }
@@ -191,8 +188,8 @@ public class CubeService extends Service {
                                         startFinish.set(true);
                                         startFailure = new Failure(code, description);
 
-                                        if (null != binder && !handleCalled.get()) {
-                                            handleCalled.set(true);
+                                        if (null != binder && !binder.handleCalled.get()) {
+                                            binder.handleCalled.set(true);
                                             binder.engineHandler.handleFailure(code, description);
                                         }
                                     }
@@ -212,7 +209,7 @@ public class CubeService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-//        LogUtils.d("CubeService", "onDestroy");
+        LogUtils.i("CubeService", "#onDestroy");
     }
 
     @Nullable
@@ -229,10 +226,14 @@ public class CubeService extends Service {
         (new Thread() {
             @Override
             public void run() {
+                if (CubeEngine.getInstance().hasStarted()) {
+                    startFinish.set(true);
+                }
+
                 synchronized (mutex) {
                     if (startFinish.get()) {
-                        if (!handleCalled.get()) {
-                            handleCalled.set(true);
+                        if (!binder.handleCalled.get()) {
+                            binder.handleCalled.set(true);
 
                             if (null == startFailure) {
                                 binder.engineHandler.handleSuccess(CubeEngine.getInstance());

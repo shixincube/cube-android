@@ -194,7 +194,7 @@
     <string name="dark_theme_disable">未启用</string>
     <string name="manual_selection">手动选择</string>
     <string name="light_theme">普通模式</string>
-    <string name="about_cube">关于时信魔方</string>
+    <string name="about_cube">关于徐子壹</string>
     <string name="app_name_in_about">时信魔方 %1$s</string>
     <string name="goto_website">访问官网 shixincube.com</string>
 
@@ -262,6 +262,12 @@
     <string name="toast_get_report_failed">获取数据失败</string>
     <string name="chart_storage_size_name">存储空间概览</string>
     <string name="box_chart_item_data_size">数据大小</string>
-    <string name="box_chart_item_image_file_size">图片文件</string>
+    <string name="box_chart_item_image_file">图片文件</string>
+    <string name="box_chart_item_doc_file">文档文件</string>
+    <string name="box_chart_item_video_file">视频文件</string>
+    <string name="box_chart_item_audio_file">音频文件</string>
+    <string name="box_chart_item_package_file">压缩文件</string>
+    <string name="box_chart_item_other_file">其他文件</string>
+    <string name="box_chart_item_free_size">剩余空间</string>
 
 </resources>

@@ -28,6 +28,7 @@ package com.shixincube.app.ui.activity;
 
 import android.graphics.Color;
 
+import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.data.PieData;
@@ -105,19 +106,37 @@ public class BoxStorageActivity extends BaseActivity {
         this.sizeChart.getDescription().setEnabled(false);
         // 设置背景颜色
         this.sizeChart.setBackgroundColor(UIUtils.getColorByAttrId(R.attr.colorBackground));
-
         // 设置外边距
         this.sizeChart.setExtraOffsets(0, 10, 0, 10);
+        // 旋转起始角度
+        this.sizeChart.setRotationAngle(0);
+        // 是否可手动旋转
+        this.sizeChart.setRotationEnabled(true);
+        // 点击 Item 是否高亮
+        this.sizeChart.setHighlightPerTapEnabled(true);
 
+        // 设置展开动画
+        this.sizeChart.animateY(1200, Easing.EaseInOutQuad);
+
+        // 是否显示 Item 标签的文本
         this.sizeChart.setDrawEntryLabels(true);
         this.sizeChart.setEntryLabelColor(Color.WHITE);
         this.sizeChart.setEntryLabelTextSize(12);
+
+        // 是否显示内环
+        this.sizeChart.setDrawHoleEnabled(true);
     }
 
     private void refreshData(BoxReport boxReport) {
         ArrayList<Integer> colors = new ArrayList<>();
         colors.add(UIUtils.getColor(R.color.chart_color_1));
         colors.add(UIUtils.getColor(R.color.chart_color_2));
+        colors.add(UIUtils.getColor(R.color.chart_color_3));
+        colors.add(UIUtils.getColor(R.color.chart_color_4));
+        colors.add(UIUtils.getColor(R.color.chart_color_5));
+        colors.add(UIUtils.getColor(R.color.chart_color_6));
+        colors.add(UIUtils.getColor(R.color.chart_color_8));
+        colors.add(UIUtils.getColor(R.color.chart_color_9));
 
         PieDataSet dataSet = new PieDataSet(makePieData(boxReport),
                 UIUtils.getString(R.string.chart_storage_size_name));
@@ -138,6 +157,16 @@ public class BoxStorageActivity extends BaseActivity {
         data.setValueFormatter(new PercentFormatter(this.sizeChart));
 
         Legend legend = this.sizeChart.getLegend();
+        legend.setEnabled(true);
+        legend.setVerticalAlignment(Legend.LegendVerticalAlignment.BOTTOM);
+        legend.setHorizontalAlignment(Legend.LegendHorizontalAlignment.CENTER);
+        legend.setOrientation(Legend.LegendOrientation.HORIZONTAL);
+        // 图例图形样式
+        legend.setForm(Legend.LegendForm.CIRCLE);
+        // 图例图形大小
+        legend.setFormSize(12);
+        legend.setDrawInside(true);
+        legend.setWordWrapEnabled(true);
         legend.setTextColor(UIUtils.getColorByAttrId(R.attr.colorText));
         legend.setTextSize(14);
 
@@ -146,20 +175,26 @@ public class BoxStorageActivity extends BaseActivity {
     }
 
     private List<PieEntry> makePieData(BoxReport boxReport) {
-        double totalSize = boxReport.getDataSpaceSize() +
-                boxReport.getImageFilesUsedSize() +
-                boxReport.getDocFilesUsedSize() +
-                boxReport.getVideoFilesUsedSize() +
-                boxReport.getAudioFilesUsedSize() +
-                boxReport.getPackageFilesUsedSize() +
-                boxReport.getOtherFilesUsedSize() +
-                boxReport.getFreeDiskSize();
-
         ArrayList<PieEntry> pieEntries = new ArrayList<>();
         pieEntries.add(new PieEntry(toMB(boxReport.getDataSpaceSize()),
                 UIUtils.getString(R.string.box_chart_item_data_size)));
+
         pieEntries.add(new PieEntry(toMB(boxReport.getImageFilesUsedSize()),
-                UIUtils.getString(R.string.box_chart_item_image_file_size)));
+                UIUtils.getString(R.string.box_chart_item_image_file)));
+        pieEntries.add(new PieEntry(toMB(boxReport.getDocFilesUsedSize()),
+                UIUtils.getString(R.string.box_chart_item_doc_file)));
+        pieEntries.add(new PieEntry(toMB(boxReport.getVideoFilesUsedSize()),
+                UIUtils.getString(R.string.box_chart_item_video_file)));
+        pieEntries.add(new PieEntry(toMB(boxReport.getAudioFilesUsedSize()),
+                UIUtils.getString(R.string.box_chart_item_audio_file)));
+        pieEntries.add(new PieEntry(toMB(boxReport.getPackageFilesUsedSize()),
+                UIUtils.getString(R.string.box_chart_item_package_file)));
+        pieEntries.add(new PieEntry(toMB(boxReport.getOtherFilesUsedSize()),
+                UIUtils.getString(R.string.box_chart_item_other_file)));
+
+        pieEntries.add(new PieEntry(toMB(boxReport.getFreeDiskSize()),
+                UIUtils.getString(R.string.box_chart_item_free_size)));
+
         return pieEntries;
     }
 

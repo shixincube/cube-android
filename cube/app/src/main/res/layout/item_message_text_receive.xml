@@ -83,7 +83,7 @@
                     android:paddingTop="10dp"
                     android:textColor="?attr/colorMessageBoxPartnerText"
                     android:textColorLink="@color/text_link"
-                    android:textSize="16sp"/>
+                    android:textSize="14sp"/>
 
                 <ProgressBar
                     android:id="@+id/pbSending"

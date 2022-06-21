@@ -105,7 +105,7 @@ public class ImageCropActivity extends ImageBaseActivity implements View.OnClick
 
         Intent intent = new Intent();
         intent.putExtra(ImagePicker.EXTRA_RESULT_ITEMS, mImageItems);
-        intent.putExtra(ImagePreviewActivity.ISORIGIN, true);
+        intent.putExtra(ImagePreviewActivity.IS_ORIGIN, true);
         setResult(ImagePicker.RESULT_CODE_ITEMS, intent);   //单选不需要裁剪，返回数据
         finish();
     }

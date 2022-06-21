@@ -100,7 +100,8 @@ import kr.co.namee.permissiongen.PermissionSuccess;
 /**
  * 消息面板。
  */
-public class MessagePanelActivity extends BaseActivity<MessagePanelView, MessagePanelPresenter> implements MessagePanelView, BGARefreshLayout.BGARefreshLayoutDelegate, ServiceConnection {
+public class MessagePanelActivity extends BaseActivity<MessagePanelView, MessagePanelPresenter>
+        implements MessagePanelView, BGARefreshLayout.BGARefreshLayoutDelegate, ServiceConnection {
 
     private final static String TAG = MessagePanelActivity.class.getSimpleName();
 
@@ -480,7 +481,7 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
                     // 返回多张照片
                     if (null != data) {
                         // 是否发送原图
-                        boolean origen = data.getBooleanExtra(ImagePreviewActivity.ISORIGIN, false);
+                        boolean origen = data.getBooleanExtra(ImagePreviewActivity.IS_ORIGIN, false);
                         ArrayList<ImageItem> images = (ArrayList<ImageItem>) data.getSerializableExtra(ImagePicker.EXTRA_RESULT_ITEMS);
                         for (ImageItem item : images) {
                             // 发送图片消息

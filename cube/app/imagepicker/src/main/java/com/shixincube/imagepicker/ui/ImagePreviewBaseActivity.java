@@ -15,6 +15,9 @@ import com.shixincube.imagepicker.view.ViewPagerFixed;
 
 import java.util.ArrayList;
 
+/**
+ * 图片预览界面。
+ */
 public abstract class ImagePreviewBaseActivity extends ImageBaseActivity {
 
     protected ImagePicker imagePicker;
@@ -35,8 +38,9 @@ public abstract class ImagePreviewBaseActivity extends ImageBaseActivity {
         imagePicker = ImagePicker.getInstance();
         mCurrentPosition = getIntent().getIntExtra(ImagePicker.EXTRA_SELECTED_IMAGE_POSITION, 0);
         mImageItems = (ArrayList<ImageItem>) getIntent().getSerializableExtra(ImagePicker.EXTRA_IMAGE_ITEMS);
-        if (mImageItems == null)
+        if (mImageItems == null) {
             mImageItems = imagePicker.getCurrentImageFolderItems();
+        }
 
         selectedImages = imagePicker.getSelectedImages();
 

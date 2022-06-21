@@ -126,7 +126,10 @@ public class CubeApp extends CubeBaseApp {
         picker.setImageLoader(new com.shixincube.imagepicker.loader.ImageLoader() {
             @Override
             public void displayImage(Activity activity, String path, ImageView imageView, int width, int height) {
-                Glide.with(getContext()).load(Uri.parse("file://" + path).toString()).centerCrop().into(imageView);
+                Glide.with(activity)
+                        .load(Uri.parse("file://" + path).toString())
+                        .override(2048, 2048)
+                        .into(imageView);
             }
 
             @Override
@@ -137,7 +140,7 @@ public class CubeApp extends CubeBaseApp {
         // 显示拍照按钮
         picker.setShowCamera(false);
         // 允许裁剪（单选才有效）
-        picker.setCrop(true);
+        picker.setCrop(false);
         // 是否按矩形区域保存
         picker.setSaveRectangle(true);
         // 选中数量限制

@@ -36,11 +36,13 @@ public class Utils {
     static float SCALE_REFERENCE_WIDTH = 1280f;
     static float LIMITED_WIDTH = 1000f;
     static float MIN_WIDTH = 640f;
-    static int DEFAULT_QUALITY = 66;
-    static int DEFAULT_LOW_QUALITY = 60;
-    static int DEFAULT_HEIGHT_QUALITY = 82;
-    static int DEFAULT_X_HEIGHT_QUALITY = 88;
-    static int DEFAULT_XX_HEIGHT_QUALITY = 94;
+
+    static int DEFAULT_QUALITY = 80;
+    static int DEFAULT_LOW_QUALITY = 70;
+    static int DEFAULT_HEIGHT_QUALITY = 88;
+    static int DEFAULT_X_HEIGHT_QUALITY = 92;
+    static int DEFAULT_XX_HEIGHT_QUALITY = 99;
+
     static boolean loggingEnabled = true;
 
     static {

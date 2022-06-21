@@ -36,25 +36,41 @@ public class ImagePicker {
     public static final String EXTRA_SELECTED_IMAGE_POSITION = "selected_image_position";
     public static final String EXTRA_IMAGE_ITEMS = "extra_image_items";
 
-    private boolean multiMode = true;    //图片选择模式
-    private int selectLimit = 9;         //最大选择图片数量
-    private boolean crop = true;         //裁剪
-    private boolean showCamera = true;   //显示相机
-    private boolean isSaveRectangle = false;  //裁剪后的图片是否是矩形，否者跟随裁剪框的形状
-    private int outPutX = 800;           //裁剪保存宽度
-    private int outPutY = 800;           //裁剪保存高度
-    private int focusWidth = 280;         //焦点框的宽度
-    private int focusHeight = 280;        //焦点框的高度
-    private ImageLoader imageLoader;     //图片加载器
-    private CropImageView.Style style = CropImageView.Style.RECTANGLE; //裁剪框的形状
+    // 图片选择模式
+    private boolean multiMode = true;
+    // 最大选择图片数量
+    private int selectLimit = 9;
+    // 裁剪
+    private boolean crop = false;
+    // 显示相机
+    private boolean showCamera = true;
+    // 裁剪后的图片是否是矩形，否者跟随裁剪框的形状
+    private boolean isSaveRectangle = false;
+    // 裁剪保存宽度
+    private int outPutX = 800;
+    // 裁剪保存高度
+    private int outPutY = 800;
+    // 焦点框的宽度
+    private int focusWidth = 280;
+    // 焦点框的高度
+    private int focusHeight = 280;
+    // 图片加载器
+    private ImageLoader imageLoader;
+    // 裁剪框的形状
+    private CropImageView.Style style = CropImageView.Style.RECTANGLE;
     private File cropCacheFolder;
     private File takeImageFile;
+
     public Bitmap cropBitmap;
 
-    private ArrayList<ImageItem> mSelectedImages = new ArrayList<>();   //选中的图片集合
-    private List<ImageFolder> mImageFolders;      //所有的图片文件夹
-    private int mCurrentImageFolderPosition = 0;  //当前选中的文件夹位置 0表示所有图片
-    private List<OnImageSelectedListener> mImageSelectedListeners;          // 图片选中的监听回调
+    // 选中的图片集合
+    private ArrayList<ImageItem> mSelectedImages = new ArrayList<>();
+    // 所有的图片文件夹
+    private List<ImageFolder> mImageFolders;
+    // 当前选中的文件夹位置 0 表示所有图片
+    private int mCurrentImageFolderPosition = 0;
+    // 图片选中的监听回调
+    private List<OnImageSelectedListener> mImageSelectedListeners;
 
     private static ImagePicker mInstance;
 
@@ -63,11 +79,7 @@ public class ImagePicker {
 
     public static ImagePicker getInstance() {
         if (mInstance == null) {
-            synchronized (ImagePicker.class) {
-                if (mInstance == null) {
-                    mInstance = new ImagePicker();
-                }
-            }
+            mInstance = new ImagePicker();
         }
         return mInstance;
     }

@@ -108,7 +108,7 @@ public class BoxStorageActivity extends BaseActivity {
         // 设置背景颜色
         this.sizeChart.setBackgroundColor(UIUtils.getColorByAttrId(R.attr.colorBackground));
         // 设置外边距
-        this.sizeChart.setExtraOffsets(0, 2, 0, 2);
+        this.sizeChart.setExtraOffsets(0, 2, 0, 24);
         // 旋转起始角度
         this.sizeChart.setRotationAngle(0);
         // 是否可手动旋转
@@ -117,7 +117,7 @@ public class BoxStorageActivity extends BaseActivity {
         this.sizeChart.setHighlightPerTapEnabled(true);
 
         // 设置展开动画
-        this.sizeChart.animateY(1200, Easing.EaseInOutQuad);
+        this.sizeChart.animateY(1400, Easing.EaseInOutQuad);
 
         // 是否显示 Item 标签的文本
         this.sizeChart.setDrawEntryLabels(true);

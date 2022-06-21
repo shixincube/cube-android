@@ -39,7 +39,10 @@ public class Biscuit {
     private CompressResult mCompressResult;
     private OnCompressCompletedListener mOnCompressCompletedListener;
 
-    Biscuit(ArrayList<String> paths, String targetDir, boolean ignoreAlpha, int quality, int compressType, boolean useOriginalName, boolean loggingEnabled, long thresholdSize, CompressListener compressListener, OnCompressCompletedListener onCompressCompletedListener, Executor executor) {
+    Biscuit(ArrayList<String> paths, String targetDir, boolean ignoreAlpha, int quality,
+            int compressType, boolean useOriginalName, boolean loggingEnabled,
+            long thresholdSize, CompressListener compressListener,
+            OnCompressCompletedListener onCompressCompletedListener, Executor executor) {
         Utils.loggingEnabled = loggingEnabled;
 
         mExecutor = executor;
@@ -90,7 +93,8 @@ public class Biscuit {
         while (iterator.hasNext()) {
             String path = iterator.next();
             if (Utils.isImage(path)) {
-                ImageCompressor compressor = new ImageCompressor(path, targetDir, quality, compressType, ignoreAlpha, useOriginalName, thresholdSize, null);
+                ImageCompressor compressor = new ImageCompressor(path, targetDir, quality,
+                        compressType, ignoreAlpha, useOriginalName, thresholdSize, null);
                 boolean success = compressor.compress();
                 Result result = null;
                 if (success) {
@@ -281,7 +285,7 @@ public class Biscuit {
         private OnCompressCompletedListener mOnCompressCompletedListener;
 
         public Builder(Context context) {
-            this.mContext = context.getApplicationContext();
+            this.mContext = context;
             mQuality = Utils.getDefaultQuality(context);
             mPaths = new ArrayList<>();
             mCompressType = SCALE;

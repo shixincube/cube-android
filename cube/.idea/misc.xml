@@ -37,7 +37,7 @@
         <entry key="app/imagepicker/src/main/res/drawable/shape_button_pressed.xml" value="0.240234375" />
         <entry key="app/imagepicker/src/main/res/layout/activity_image_crop.xml" value="0.18203551912568305" />
         <entry key="app/imagepicker/src/main/res/layout/activity_image_grid.xml" value="0.18203551912568305" />
-        <entry key="app/imagepicker/src/main/res/layout/activity_image_preview.xml" value="0.18203551912568305" />
+        <entry key="app/imagepicker/src/main/res/layout/activity_image_preview.xml" value="0.1" />
         <entry key="app/imagepicker/src/main/res/layout/adapter_camera_item.xml" value="0.18203551912568305" />
         <entry key="app/imagepicker/src/main/res/layout/adapter_folder_list_item.xml" value="0.18203551912568305" />
         <entry key="app/imagepicker/src/main/res/layout/adapter_image_list_item.xml" value="0.18203551912568305" />

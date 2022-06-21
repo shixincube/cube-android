@@ -109,7 +109,7 @@ public class FileProcessor extends Module {
                 .path(file.getPath())
                 .targetDir(this.cacheDir)
                 .originalName(true)
-                .ignoreLessThan(100)
+                .ignoreLessThan(500)
                 .build();
         List<Biscuit.Result> list = biscuit.syncCompress();
         Biscuit.Result result = list.get(0);

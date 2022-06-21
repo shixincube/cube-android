@@ -99,7 +99,8 @@ public class CubeService extends Service {
                                     public void handleSuccess(CubeEngine engine) {
                                         synchronized (mutex) {
                                             startFinish.set(true);
-                                            if (null != binder && !binder.handleCalled.get()) {
+                                            if (null != binder && !binder.handleCalled.get()
+                                                    && null != binder.engineHandler) {
                                                 binder.handleCalled.set(true);
                                                 binder.engineHandler.handleSuccess(CubeEngine.getInstance());
                                             }
@@ -114,7 +115,8 @@ public class CubeService extends Service {
                                             startFinish.set(true);
                                             startFailure = new Failure(code, description);
 
-                                            if (null != binder && !binder.handleCalled.get()) {
+                                            if (null != binder && !binder.handleCalled.get()
+                                                    && null != binder.engineHandler) {
                                                 binder.handleCalled.set(true);
                                                 binder.engineHandler.handleFailure(code, description);
                                             }
@@ -173,7 +175,8 @@ public class CubeService extends Service {
                                 public void handleSuccess(CubeEngine engine) {
                                     synchronized (mutex) {
                                         startFinish.set(true);
-                                        if (null != binder && !binder.handleCalled.get()) {
+                                        if (null != binder && !binder.handleCalled.get()
+                                                && null != binder.engineHandler) {
                                             binder.handleCalled.set(true);
                                             binder.engineHandler.handleSuccess(CubeEngine.getInstance());
                                         }
@@ -188,7 +191,8 @@ public class CubeService extends Service {
                                         startFinish.set(true);
                                         startFailure = new Failure(code, description);
 
-                                        if (null != binder && !binder.handleCalled.get()) {
+                                        if (null != binder && !binder.handleCalled.get()
+                                                && null != binder.engineHandler) {
                                             binder.handleCalled.set(true);
                                             binder.engineHandler.handleFailure(code, description);
                                         }
@@ -232,7 +236,7 @@ public class CubeService extends Service {
 
                 synchronized (mutex) {
                     if (startFinish.get()) {
-                        if (!binder.handleCalled.get()) {
+                        if (!binder.handleCalled.get() && null != binder.engineHandler) {
                             binder.handleCalled.set(true);
 
                             if (null == startFailure) {

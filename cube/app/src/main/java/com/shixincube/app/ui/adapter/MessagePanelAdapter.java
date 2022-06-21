@@ -262,7 +262,13 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
 
     @SuppressLint("ClickableViewAccessibility")
     private void bindEvent(ViewHolderForRecyclerView helper, Message item, int position) {
-        if (item instanceof ImageMessage) {
+        if (item instanceof HyperTextMessage) {
+            TextView textView = helper.getView(R.id.tvText);
+            textView.setOnLongClickListener((view) -> {
+                return this.presenter.fireItemLongPress(view, helper, item, position);
+            });
+        }
+        else if (item instanceof ImageMessage) {
             BubbleImageView imageView = helper.getView(R.id.bivImage);
             imageView.setOnClickListener((view) -> this.presenter.fireItemClick(helper, item, position));
         }

@@ -47,9 +47,19 @@ public final class MessagingAction {
     public final static String Notify = "notify";
 
     /**
+     * 转发消息。
+     */
+    public final static String Forward = "forward";
+
+    /**
      * 撤回消息。
      */
-    public final static String Recall = "recall";
+    public final static String Retract = "retract";
+
+    /**
+     * 双向撤回消息。
+     */
+    public final static String RetractBoth = "retractBoth";
 
     /**
      * 删除消息。

@@ -122,6 +122,7 @@
                 android:textColor="?attr/colorMessageBoxSelfText"
                 android:textColorLink="@color/text_link"
                 android:textSize="14sp"/>
+
         </LinearLayout>
 
         <!-- 头像 -->

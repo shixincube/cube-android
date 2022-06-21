@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/menuCopy"
+        android:title="@string/menu_copy"/>
+
+    <item
+        android:id="@+id/menuForward"
+        android:title="@string/menu_forward"/>
+
+    <item
+        android:id="@+id/menuRetract"
+        android:title="@string/menu_retract"/>
+
+    <item
+        android:id="@+id/menuRetractBoth"
+        android:title="@string/menu_retract_both"/>
+
+    <item
+        android:id="@+id/menuDelete"
+        android:title="@string/menu_delete"/>
+
+</menu>

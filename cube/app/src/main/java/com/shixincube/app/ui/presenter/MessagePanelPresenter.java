@@ -27,10 +27,12 @@
 package com.shixincube.app.ui.presenter;
 
 import android.content.Intent;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.PopupMenu;
 
 import com.bumptech.glide.Glide;
 import com.shixincube.app.AppConsts;
@@ -500,7 +502,7 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
     }
 
     public void fireItemClick(ViewHolder helper, Message message, int position) {
-        if (message instanceof  ImageMessage) {
+        if (message instanceof ImageMessage) {
             ImageMessage imageMessage = (ImageMessage) message;
             Intent intent = new Intent(activity, ImageShowcaseActivity.class);
             intent.putExtra("name", imageMessage.getFileName());
@@ -545,6 +547,49 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
 
             this.lastTouchTime = now;
         }
+    }
+
+    public boolean fireItemLongPress(View view, ViewHolder helper, Message message, int position) {
+        PopupMenu menu = new PopupMenu(activity, view);
+        menu.getMenuInflater().inflate(R.menu.menu_message, menu.getMenu());
+
+        switch (message.getType()) {
+            case Text:
+            case Image:
+            case File:
+                break;
+            case Burn:
+                menu.getMenu().getItem(0).setVisible(false);
+                menu.getMenu().getItem(1).setVisible(false);
+                break;
+            default:
+                break;
+        }
+
+        menu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem menuItem) {
+                int itemId = menuItem.getItemId();
+                switch (itemId) {
+                    case R.id.menuCopy:
+                        break;
+                    case R.id.menuForward:
+                        break;
+                    case R.id.menuRetract:
+                        break;
+                    case R.id.menuRetractBoth:
+                        break;
+                    case R.id.menuDelete:
+                        break;
+                    default:
+                        break;
+                }
+                return false;
+            }
+        });
+
+        menu.show();
+        return true;
     }
 
     private void openBurnMessage(ViewHolder helper, BurnMessage burnMessage) {

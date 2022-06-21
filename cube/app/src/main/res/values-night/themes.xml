@@ -78,6 +78,14 @@
         <!-- AlertDialog -->
         <item name="buttonBarPositiveButtonStyle">@style/AlertDialogPositiveButtonStyle</item>
         <item name="buttonBarNegativeButtonStyle">@style/AlertDialogNegativeButtonStyle</item>
+
+        <!-- PopupMenu -->
+        <item name="android:popupMenuStyle">@style/PopupMenu</item>
+        <item name="android:textAppearanceLargePopupMenu">@style/PopupMenuTextAppearanceLarge</item>
+        <item name="android:textAppearanceSmallPopupMenu">@style/PopupMenuTextAppearanceSmall</item>
+        <item name="android:listPreferredItemHeight">36dp</item>
+        <item name="android:listPreferredItemHeightSmall">36dp</item>
+        <item name="android:listPreferredItemHeightLarge">36dp</item>
     </style>
 
     <!-- Animation 样式 -->

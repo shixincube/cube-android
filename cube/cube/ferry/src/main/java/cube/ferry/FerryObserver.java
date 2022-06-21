@@ -28,6 +28,7 @@ package cube.ferry;
 
 import java.util.List;
 
+import cube.auth.AuthService;
 import cube.contact.ContactServiceEvent;
 import cube.core.Module;
 import cube.core.ModuleError;
@@ -61,10 +62,23 @@ public class FerryObserver implements Observer {
             this.service.execute(new Runnable() {
                 @Override
                 public void run() {
-                    service.detectDomain(new DefaultDetectHandler(false) {
+                    service.detectDomain(new DefaultDetectHandler(true) {
                         @Override
                         public void handleResult(boolean online, long duration) {
-                            // Nothing
+                            if (online) {
+                                synchronized (service.listeners) {
+                                    for (FerryEventListener listener : service.listeners) {
+                                        listener.onFerryOnline(AuthService.getDomain());
+                                    }
+                                }
+                            }
+                            else {
+                                synchronized (service.listeners) {
+                                    for (FerryEventListener listener : service.listeners) {
+                                        listener.onFerryOffline(AuthService.getDomain());
+                                    }
+                                }
+                            }
                         }
                     });
 
@@ -79,7 +93,7 @@ public class FerryObserver implements Observer {
                     }, new StableFailureHandler() {
                         @Override
                         public void handleFailure(Module module, ModuleError error) {
-                            LogUtils.w(TAG, "#onOpened - #takeOutTenets failed: " + error.code);
+                            LogUtils.w(TAG, "#update - #takeOutTenets failed: " + error.code);
                         }
                     });
                 }

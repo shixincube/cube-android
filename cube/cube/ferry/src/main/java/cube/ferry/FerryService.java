@@ -87,7 +87,7 @@ public class FerryService extends Module {
 
     private FerryPipelineListener pipelineListener;
 
-    private List<FerryEventListener> listeners;
+    protected List<FerryEventListener> listeners;
 
     private AtomicBoolean houseOnline;
 

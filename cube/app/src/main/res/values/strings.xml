@@ -270,5 +270,6 @@
     <string name="box_chart_item_package_file">压缩文件</string>
     <string name="box_chart_item_other_file">其他文件</string>
     <string name="box_chart_item_free_size">剩余空间</string>
+    <string name="box_num_message">消息数量</string>
 
 </resources>

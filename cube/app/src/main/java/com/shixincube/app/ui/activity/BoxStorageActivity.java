@@ -39,6 +39,7 @@ import com.shixincube.app.R;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.util.UIUtils;
+import com.shixincube.app.widget.optionitemview.OptionItemView;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -60,6 +61,9 @@ public class BoxStorageActivity extends BaseActivity {
     @BindView(R.id.pcStorageSize)
     PieChart sizeChart;
 
+    @BindView(R.id.oivTotalMessages)
+    OptionItemView totalMessagesItem;
+
     public BoxStorageActivity() {
         super();
     }
@@ -80,6 +84,7 @@ public class BoxStorageActivity extends BaseActivity {
         CubeEngine.getInstance().getFerryService().getBoxReport(new BoxReportHandler(true) {
             @Override
             public void handleBoxReport(BoxReport boxReport) {
+                refreshChartData(boxReport);
                 refreshData(boxReport);
             }
         }, new DefaultFailureHandler(true) {
@@ -135,7 +140,7 @@ public class BoxStorageActivity extends BaseActivity {
         this.sizeChart.setCenterTextSize(16);
     }
 
-    private void refreshData(BoxReport boxReport) {
+    private void refreshChartData(BoxReport boxReport) {
         ArrayList<Integer> colors = new ArrayList<>();
         colors.add(UIUtils.getColor(R.color.chart_color_1));
         colors.add(UIUtils.getColor(R.color.chart_color_2));
@@ -203,6 +208,10 @@ public class BoxStorageActivity extends BaseActivity {
                 UIUtils.getString(R.string.box_chart_item_free_size)));
 
         return pieEntries;
+    }
+
+    private void refreshData(BoxReport boxReport) {
+        this.totalMessagesItem.setEndText(Integer.toString(boxReport.getTotalMessages()));
     }
 
     private int toMB(long size) {

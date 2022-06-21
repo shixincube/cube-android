@@ -260,8 +260,9 @@
     <string name="clipboard_invitation_code_text_format">魔方讯盒邀请码 %1$s #魔方讯盒 https://shixincube.com</string>
     <string name="toast_copy_invitation_code">已复制邀请到剪贴板</string>
     <string name="toast_get_report_failed">获取数据失败</string>
+    <string name="chart_no_data_text">正在加载数据……</string>
     <string name="chart_storage_size_name">存储空间</string>
-    <string name="box_chart_item_data_size">数据大小</string>
+    <string name="box_chart_item_data_size">数据空间</string>
     <string name="box_chart_item_image_file">图片文件</string>
     <string name="box_chart_item_doc_file">文档文件</string>
     <string name="box_chart_item_video_file">视频文件</string>

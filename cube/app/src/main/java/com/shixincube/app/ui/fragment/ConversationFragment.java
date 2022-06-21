@@ -27,10 +27,7 @@
 package com.shixincube.app.ui.fragment;
 
 import android.os.Bundle;
-import android.view.View;
-import android.widget.LinearLayout;
 
-import com.shixincube.app.AppConsts;
 import com.shixincube.app.R;
 import com.shixincube.app.ui.activity.MainActivity;
 import com.shixincube.app.ui.base.BaseFragment;
@@ -42,10 +39,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import butterknife.BindView;
 import cube.engine.CubeEngine;
-import cube.ferry.FerryEventListener;
-import cube.ferry.handler.DefaultDetectHandler;
 import cube.messaging.MessagingServiceEvent;
-import cube.util.LogUtils;
 import cube.util.ObservableEvent;
 import cube.util.Observer;
 
@@ -53,10 +47,7 @@ import cube.util.Observer;
  * 最近消息会话界面。
  */
 public class ConversationFragment extends BaseFragment<ConversationView, ConversationPresenter>
-        implements ConversationView, Observer, FerryEventListener {
-
-    @BindView(R.id.llState)
-    LinearLayout layoutState;
+        implements ConversationView, Observer {
 
     @BindView(R.id.rvConversations)
     RecyclerView recentConversationView;
@@ -91,10 +82,6 @@ public class ConversationFragment extends BaseFragment<ConversationView, Convers
 
         CubeEngine.getInstance().getMessagingService().setConversationEventListener(null);
         CubeEngine.getInstance().getMessagingService().detachWithName(MessagingServiceEvent.Ready, this);
-
-        if (AppConsts.FERRY_MODE) {
-            CubeEngine.getInstance().getFerryService().removeEventListener(this);
-        }
     }
 
     @Override
@@ -110,25 +97,6 @@ public class ConversationFragment extends BaseFragment<ConversationView, Convers
         }
 
         CubeEngine.getInstance().getMessagingService().setConversationEventListener(this.presenter);
-
-        if (AppConsts.FERRY_MODE) {
-            CubeEngine.getInstance().getFerryService().detectDomain(new DefaultDetectHandler() {
-                @Override
-                public void handleResult(boolean online, long duration) {
-                    LogUtils.d("ConversationFragment", "#detectDomain : "
-                            + online + " - " + duration);
-
-                    if (online) {
-                        layoutState.setVisibility(View.GONE);
-                    }
-                    else {
-                        layoutState.setVisibility(View.VISIBLE);
-                    }
-                }
-            });
-
-            CubeEngine.getInstance().getFerryService().addEventListener(this);
-        }
     }
 
     @Override
@@ -162,15 +130,5 @@ public class ConversationFragment extends BaseFragment<ConversationView, Convers
                 }
             }
         }
-    }
-
-    @Override
-    public void onFerryOnline(String domainName) {
-        layoutState.setVisibility(View.GONE);
-    }
-
-    @Override
-    public void onFerryOffline(String domainName) {
-        layoutState.setVisibility(View.VISIBLE);
     }
 }

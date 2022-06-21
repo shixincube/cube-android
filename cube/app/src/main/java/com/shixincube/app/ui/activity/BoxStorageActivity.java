@@ -101,6 +101,8 @@ public class BoxStorageActivity extends BaseActivity {
     }
 
     private void initSpaceSizeChart() {
+        this.sizeChart.setNoDataText(UIUtils.getString(R.string.chart_no_data_text));
+        this.sizeChart.setNoDataTextColor(UIUtils.getColorByAttrId(R.attr.colorText));
         // 不使用百分比
         this.sizeChart.setUsePercentValues(false);
         // 显示描述

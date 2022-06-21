@@ -39,6 +39,7 @@ import android.widget.TextView;
 
 import androidx.viewpager.widget.ViewPager;
 
+import com.shixincube.app.AppConsts;
 import com.shixincube.app.R;
 import com.shixincube.app.ui.adapter.CommonFragmentPagerAdapter;
 import com.shixincube.app.ui.base.BaseActivity;
@@ -63,13 +64,15 @@ import cube.engine.util.Future;
 import cube.engine.util.Promise;
 import cube.engine.util.PromiseFuture;
 import cube.engine.util.PromiseHandler;
+import cube.ferry.FerryEventListener;
+import cube.ferry.handler.DefaultDetectHandler;
 import cube.util.LogUtils;
 
 /**
  * 主界面。
  */
 public class MainActivity extends BaseActivity<MainView, MainPresenter> implements
-        ViewPager.OnPageChangeListener, MainView, ContactDataHandler {
+        ViewPager.OnPageChangeListener, MainView, ContactDataHandler, FerryEventListener {
 
     private final static String TAG = "MainActivity";
 
@@ -77,6 +80,9 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
 
     @BindView(R.id.ibPopupMenu)
     ImageButton popupMenuButton;
+
+    @BindView(R.id.llState)
+    LinearLayout stateBarLayout;
 
     @BindView(R.id.vpContent)
     ViewPager contentViewPager;
@@ -204,12 +210,31 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
                 presenter.loadDemoData();
 
                 if (data.booleanValue()) {
-                    LogUtils.d("MainActivity", "First sign-in");
+                    LogUtils.d(TAG, "First sign-in");
                     presenter.monitorConversation();
                     showWaitingDialog(UIUtils.getString(R.string.please_wait_a_moment));
                 }
             }
         }).launch();
+
+        if (AppConsts.FERRY_MODE) {
+            CubeEngine.getInstance().getFerryService().detectDomain(new DefaultDetectHandler(true) {
+                @Override
+                public void handleResult(boolean online, long duration) {
+                    LogUtils.d(TAG, "#detectDomain : "
+                            + online + " - " + duration);
+
+                    if (online) {
+                        stateBarLayout.setVisibility(View.GONE);
+                    }
+                    else {
+                        stateBarLayout.setVisibility(View.VISIBLE);
+                    }
+                }
+            });
+
+            CubeEngine.getInstance().getFerryService().addEventListener(this);
+        }
     }
 
     @Override
@@ -308,6 +333,10 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
 
     @Override
     protected void onDestroy() {
+        if (AppConsts.FERRY_MODE) {
+            CubeEngine.getInstance().getFerryService().removeEventListener(this);
+        }
+
         unbindService(this.serviceConnection);
         super.onDestroy();
     }
@@ -347,8 +376,13 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
     }
 
     @Override
-    public void setToolbarTitle(String title) {
-        super.setToolbarTitle(title);
+    public void onFerryOnline(String domainName) {
+        stateBarLayout.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void onFerryOffline(String domainName) {
+        stateBarLayout.setVisibility(View.VISIBLE);
     }
 
     @Override

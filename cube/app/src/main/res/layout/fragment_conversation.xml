@@ -5,26 +5,6 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <LinearLayout
-        android:id="@+id/llState"
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:layout_gravity="center"
-        android:gravity="center"
-        android:background="?attr/colorBackground"
-        android:orientation="vertical"
-        android:visibility="gone">
-        <TextView
-            android:id="@+id/tvStateText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:gravity="center"
-            android:text="@string/ferry_detect_failed"
-            android:textColor="@color/danger"
-            android:textSize="16sp"/>
-    </LinearLayout>
-
     <com.shixincube.app.widget.recyclerview.RecyclerView
         android:id="@+id/rvConversations"
         android:layout_width="match_parent"

@@ -55,6 +55,7 @@
     <color name="background_pressed_night">#56575B</color>
 
     <color name="text_danger">#E64340</color>
+    <color name="text_danger_background">#11D54A47</color>
     <color name="text_link">#3655BF</color>
     <color name="text_accent">#7E7E7E</color>
 

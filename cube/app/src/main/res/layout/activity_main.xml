@@ -5,8 +5,31 @@
     android:background="?attr/colorThemeBackground"
     android:orientation="vertical">
 
+    <!-- View Header -->
     <include layout="@layout/include_toolbar"/>
 
+    <LinearLayout
+        android:id="@+id/llState"
+        android:layout_width="match_parent"
+        android:layout_height="36dp"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:background="?attr/colorBackground"
+        android:orientation="vertical"
+        android:visibility="gone">
+        <TextView
+            android:id="@+id/tvStateText"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:background="@color/text_danger_background"
+            android:text="@string/ferry_detect_failed"
+            android:textColor="@color/text_danger"
+            android:textSize="14sp"/>
+    </LinearLayout>
+
+    <!-- View Body -->
     <androidx.viewpager.widget.ViewPager
         android:id="@+id/vpContent"
         android:layout_width="match_parent"
@@ -14,7 +37,7 @@
         android:layout_weight="1">
     </androidx.viewpager.widget.ViewPager>
 
-    <!-- View Bottom -->
+    <!-- View Footer -->
     <View
         style="?attr/styleLine"/>
 

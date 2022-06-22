@@ -504,6 +504,14 @@ public class Message extends Entity {
     }
 
     /**
+     * <b>Non-public API</b>
+     * @param payload
+     */
+    public void resetPayload(JSONObject payload) {
+        this.payload = payload;
+    }
+
+    /**
      * 是否是空消息。
      *
      * <b>Non-public API</b>

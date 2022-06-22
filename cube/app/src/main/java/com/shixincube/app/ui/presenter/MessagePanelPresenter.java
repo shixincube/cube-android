@@ -26,6 +26,9 @@
 
 package com.shixincube.app.ui.presenter;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -555,8 +558,10 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
 
         switch (message.getType()) {
             case Text:
+                break;
             case Image:
             case File:
+                menu.getMenu().getItem(0).setVisible(false);
                 break;
             case Burn:
                 menu.getMenu().getItem(0).setVisible(false);
@@ -572,8 +577,10 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
                 int itemId = menuItem.getItemId();
                 switch (itemId) {
                     case R.id.menuCopy:
+                        copyMessageToClipboard(message);
                         break;
                     case R.id.menuForward:
+                        ((MessagePanelActivity) activity).jumpConversationPicker(message);
                         break;
                     case R.id.menuRetract:
                         break;
@@ -590,6 +597,33 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
 
         menu.show();
         return true;
+    }
+
+    private void copyMessageToClipboard(Message message) {
+        if (message instanceof HyperTextMessage) {
+            HyperTextMessage textMessage = (HyperTextMessage) message;
+            ClipboardManager cm = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
+            ClipData data = ClipData.newPlainText("Text",
+                    textMessage.getPlaintext());
+            cm.setPrimaryClip(data);
+
+            UIUtils.showToast(UIUtils.getString(R.string.message_copied));
+        }
+    }
+
+    public void forward(Conversation target, long messageId) {
+//        CubeEngine.getInstance().getMessagingService().forwardMessage(message, null,
+//                new DefaultMessageHandler<Message>() {
+//                    @Override
+//                    public void handleMessage(Message message) {
+//
+//                    }
+//                }, new DefaultFailureHandler() {
+//                    @Override
+//                    public void handleFailure(Module module, ModuleError error) {
+//
+//                    }
+//                });
     }
 
     private void openBurnMessage(ViewHolder helper, BurnMessage burnMessage) {

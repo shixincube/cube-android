@@ -47,7 +47,7 @@
                     android:layout_height="wrap_content"
                     android:text=""
                     android:textColor="?attr/colorToolbarText"
-                    android:textSize="18sp"
+                    android:textSize="17sp"
                     android:visibility="visible" />
 
                 <TextView

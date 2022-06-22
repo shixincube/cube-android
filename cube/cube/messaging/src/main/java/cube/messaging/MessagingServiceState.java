@@ -64,6 +64,9 @@ public enum MessagingServiceState {
     /** 群组错误。 */
     GroupError(18),
 
+    /** 数据丢失。 */
+    DataLost(20),
+
     /** 被对方阻止。 */
     BeBlocked(30),
 

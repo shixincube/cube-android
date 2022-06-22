@@ -2178,6 +2178,100 @@ public class MessagingService extends Module {
     }
 
     /**
+     * 转发消息。
+     *
+     * @param message
+     * @param target
+     * @param successHandler
+     * @param failureHandler
+     * @param <T>
+     */
+    public <T extends Message> void forwardMessage(T message, Conversation target,
+                                                   MessageHandler<T> successHandler,
+                                                   FailureHandler failureHandler) {
+        if (!this.pipeline.isReady() || message.getScope() != MessageScope.Unlimited) {
+            ModuleError error = new ModuleError(MessagingService.NAME, MessagingServiceState.PipelineFault.code);
+            execute(failureHandler, error);
+            return;
+        }
+
+        JSONObject requestData = new JSONObject();
+        try {
+            requestData.put("contactId", this.getSelf().id);
+            requestData.put("messageId", message.getId().longValue());
+            if (target.getType() == ConversationType.Contact) {
+                requestData.put("contact", target.getContact().toCompactJSON());
+            }
+            else if (target.getType() == ConversationType.Group) {
+                requestData.put("group", target.getGroup().toCompactJSON());
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        Packet requestPacket = new Packet(MessagingAction.Forward, requestData);
+        this.pipeline.send(MessagingService.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    ModuleError error = new ModuleError(MessagingService.NAME, packet.state.code);
+                    execute(failureHandler, error);
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != MessagingServiceState.Ok.code) {
+                    ModuleError error = new ModuleError(MessagingService.NAME, stateCode);
+                    execute(failureHandler, error);
+                    return;
+                }
+
+                try {
+                    // 实例化
+                    Message responseMessage = new Message(MessagingService.this, packet.extractServiceData());
+                    // 填写负载数据
+                    responseMessage.resetPayload(message.getPayload());
+                    // 填充数据
+                    final Message compMessage = fillMessage(responseMessage);
+
+                    // 数据写入数据库
+                    boolean exists = storage.updateMessage(compMessage);
+
+                    if (compMessage.getRemoteTimestamp() > lastMessageTime) {
+                        lastMessageTime = compMessage.getRemoteTimestamp();
+                    }
+
+                    // 回调
+                    if (successHandler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            successHandler.handleMessage((T) compMessage);
+                        });
+                    }
+                    else {
+                        execute(() -> {
+                            successHandler.handleMessage((T) compMessage);
+                        });
+                    }
+
+                    // 处理事件
+                    if (!exists) {
+                        // 更新会话清单
+                        long pivotalId = compMessage.isFromGroup() ? compMessage.getSource() : compMessage.getPartnerId();
+                        Conversation conversation = appendMessageToConversation(pivotalId, compMessage);
+
+                        ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Notify,
+                                compMessage, conversation);
+                        notifyObservers(event);
+                    }
+                } catch (Exception e) {
+                    ModuleError error = new ModuleError(MessagingService.NAME, MessagingServiceState.Failure.code);
+                    execute(failureHandler, error);
+                }
+            }
+        });
+    }
+
+    /**
      * 清空所有消息数据。
      *
      * @param timestamp 指定时间戳。

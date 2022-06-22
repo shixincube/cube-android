@@ -39,7 +39,7 @@
         </meta-data>
 
         <!-- Cube Config Begin -->
-        <meta-data android:name="CUBE_ADDRESS" android:value="172.16.7.70"></meta-data>
+        <meta-data android:name="CUBE_ADDRESS" android:value="172.16.7.156"></meta-data>
         <meta-data android:name="CUBE_PORT" android:value="7000"></meta-data>
         <meta-data android:name="CUBE_DOMAIN" android:value="shixincube.com"></meta-data>
         <meta-data android:name="CUBE_APPKEY" android:value="shixin-cubeteam-opensource-appkey"></meta-data>
@@ -82,6 +82,10 @@
         </activity>
         <activity
             android:name=".ui.activity.MessagePanelActivity"
+            android:screenOrientation="portrait">
+        </activity>
+        <activity
+            android:name=".ui.activity.ConversationPickerActivity"
             android:screenOrientation="portrait">
         </activity>
         <activity

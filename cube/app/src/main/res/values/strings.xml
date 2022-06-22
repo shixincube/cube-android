@@ -69,6 +69,7 @@
     <string name="tip_burn_enabled">进入"阅后即焚"模式</string>
     <string name="tip_burn_disabled">退出"阅后即焚"模式</string>
     <string name="message_burned">消息已焚毁</string>
+    <string name="message_copied">消息内容已复制到剪贴板</string>
     <string name="menu_copy">复制</string>
     <string name="menu_forward">转发</string>
     <string name="menu_retract">撤回</string>
@@ -173,6 +174,8 @@
     <string name="conv_top_cancel">取消置顶</string>
     <string name="conv_clear_records">清空聊天记录</string>
     <string name="tip_conv_deleted">聊天已删除</string>
+    <string name="title_select_one_conversation">选择一个聊天</string>
+    <string name="title_select_multiple_conversations">选择多个聊天</string>
 
     <!-- 音视频通话界面相关 -->
     <string name="apply_overlay_permission">音视频通话界面需要您授权悬浮窗权限</string>
@@ -199,7 +202,7 @@
     <string name="dark_theme_disable">未启用</string>
     <string name="manual_selection">手动选择</string>
     <string name="light_theme">普通模式</string>
-    <string name="about_cube">关于徐子壹</string>
+    <string name="about_cube">关于时信魔方</string>
     <string name="app_name_in_about">时信魔方 %1$s</string>
     <string name="goto_website">访问官网 shixincube.com</string>
 

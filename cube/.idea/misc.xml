@@ -106,6 +106,7 @@
         <entry key="app/src/main/res/layout/activity_add_contact.xml" value="0.335" />
         <entry key="app/src/main/res/layout/activity_contact_details.xml" value="0.21618852459016394" />
         <entry key="app/src/main/res/layout/activity_conversation_details.xml" value="0.5" />
+        <entry key="app/src/main/res/layout/activity_conversation_picker.xml" value="0.18066939890710382" />
         <entry key="app/src/main/res/layout/activity_create_group.xml" value="0.17725409836065573" />
         <entry key="app/src/main/res/layout/activity_ferry.xml" value="0.335" />
         <entry key="app/src/main/res/layout/activity_group_list.xml" value="0.16939890710382513" />

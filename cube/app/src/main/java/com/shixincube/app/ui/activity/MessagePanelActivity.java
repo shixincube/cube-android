@@ -89,6 +89,7 @@ import cube.engine.service.FloatingVideoWindowService;
 import cube.messaging.model.Conversation;
 import cube.messaging.model.ConversationState;
 import cube.messaging.model.ConversationType;
+import cube.messaging.model.Message;
 import cube.multipointcomm.handler.DefaultCommFieldHandler;
 import cube.multipointcomm.model.CommField;
 import cube.multipointcomm.util.MediaConstraint;
@@ -108,6 +109,8 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
     public final static int REQUEST_IMAGE_PICKER = 1000;
     public final static int REQUEST_TAKE_PHOTO = 2000;
     public final static int REQUEST_FILE_PICKER = 6000;
+
+    public final static int REQUEST_CONVERSATION_PICKER = 7000;
 
     public final static int REQUEST_DETAILS = 8000;
 
@@ -213,6 +216,7 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
     }
 
     @SuppressLint("ClickableViewAccessibility")
+    @SuppressWarnings("deprecation")
     @Override
     public void initListener() {
         // 更多按钮事件
@@ -424,6 +428,13 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
         this.closeBottomAndKeyboard();
     }
 
+    @SuppressWarnings("deprecation")
+    public void jumpConversationPicker(Message message) {
+        Intent intent = new Intent(this, ConversationPickerActivity.class);
+        intent.putExtra(ConversationPickerActivity.EXTRA_MESSAGE_ID, message.getId().longValue());
+        startActivityForResult(intent, REQUEST_CONVERSATION_PICKER);
+    }
+
     @Override
     public void onBackPressed() {
         if (emotionLayout.isShown() || moreLayout.isShown()) {
@@ -507,6 +518,11 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
                 if (resultCode == RESULT_OK) {
                     ArrayList<NormalFile> list = data.getParcelableArrayListExtra(Constant.RESULT_PICK_FILE);
                     // TODO 文件处理
+                }
+                break;
+            case REQUEST_CONVERSATION_PICKER:
+                if (resultCode == RESULT_OK) {
+                    
                 }
                 break;
             case REQUEST_DETAILS:

@@ -217,6 +217,8 @@
     <string name="save">保存</string>
     <string name="delete">删除</string>
     <string name="sure">确定</string>
+    <string name="multiple_choice">多选</string>
+    <string name="single_choice">单选</string>
     <string name="save_success">保存成功</string>
     <string name="save_failure">保存失败</string>
     <string name="operate_success">操作成功</string>

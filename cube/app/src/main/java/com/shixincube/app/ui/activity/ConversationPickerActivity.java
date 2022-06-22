@@ -27,11 +27,32 @@
 package com.shixincube.app.ui.activity;
 
 import android.content.Intent;
+import android.view.View;
+import android.widget.ImageView;
 
 import com.shixincube.app.R;
+import com.shixincube.app.model.MessageConversation;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
+import com.shixincube.app.util.AvatarUtils;
 import com.shixincube.app.util.UIUtils;
+import com.shixincube.app.widget.adapter.AdapterForRecyclerView;
+import com.shixincube.app.widget.adapter.ViewHolderForRecyclerView;
+import com.shixincube.app.widget.recyclerview.RecyclerView;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import butterknife.BindView;
+import cube.engine.CubeEngine;
+import cube.engine.util.Future;
+import cube.engine.util.Promise;
+import cube.engine.util.PromiseFuture;
+import cube.engine.util.PromiseHandler;
+import cube.messaging.MessagingService;
+import cube.messaging.model.Conversation;
+import cube.messaging.model.ConversationType;
+import cube.util.LogUtils;
 
 /**
  * 选择会话界面。
@@ -42,24 +63,48 @@ public class ConversationPickerActivity extends BaseActivity {
 
     public final static String EXTRA_MESSAGE_ID = "messageId";
 
+    @BindView(R.id.rvConversations)
+    RecyclerView conversationListView;
+
     private long messageId;
+
+    private boolean singleMode;
+
+    private ConversationAdapter adapter;
+
+    private List<MessageConversation> messageConversations;
 
     public ConversationPickerActivity() {
         super();
+        this.singleMode = true;
+        this.messageConversations = new ArrayList<>();
     }
 
     @Override
     public void initView() {
         this.setToolbarTitle(UIUtils.getString(R.string.title_select_one_conversation));
+        this.toolbarFuncButton.setText(R.string.multiple_choice);
+        this.toolbarFuncButton.setVisibility(View.VISIBLE);
+
+        this.adapter = new ConversationAdapter();
+        this.conversationListView.setAdapter(this.adapter);
     }
 
     @Override
     public void initData() {
         this.messageId = getIntent().getLongExtra(EXTRA_MESSAGE_ID, 0);
+        this.reloadData();
     }
 
     @Override
     public void initListener() {
+        this.toolbarFuncButton.setOnClickListener((view) -> {
+            switchSelectMode();
+        });
+
+        this.adapter.setOnItemClickListener((helper, parent, itemView, position) -> {
+            
+        });
     }
 
     @Override
@@ -74,9 +119,102 @@ public class ConversationPickerActivity extends BaseActivity {
 
     @Override
     public void onBackPressed() {
-        Intent intent = new Intent();
-        intent.putExtra(EXTRA_MESSAGE_ID, this.messageId);
-        setResult(RESULT_BACK, intent);
-        finish();
+        if (singleMode) {
+            Intent intent = new Intent();
+            intent.putExtra(EXTRA_MESSAGE_ID, this.messageId);
+            setResult(RESULT_BACK, intent);
+            finish();
+        }
+        else {
+            // 退出多选模式
+            switchSelectMode();
+        }
+    }
+
+    private void switchSelectMode() {
+        singleMode = !singleMode;
+
+        setToolbarTitle(singleMode ? UIUtils.getString(R.string.title_select_one_conversation) :
+                UIUtils.getString(R.string.title_select_multiple_conversations));
+
+        toolbarFuncButton.setText(singleMode ? R.string.multiple_choice : R.string.complete);
+        toolbarFuncButton.setEnabled(singleMode);
+
+        adapter.notifyDataSetChangedWrapper();
+    }
+
+    private void reloadData() {
+        Promise.create(new PromiseHandler<List<MessageConversation>>() {
+            @Override
+            public void emit(PromiseFuture<List<MessageConversation>> promise) {
+                MessagingService messaging = CubeEngine.getInstance().getMessagingService();
+
+                // 从引擎获取最近会话列表
+                List<Conversation> list = messaging.getRecentConversations();
+                if (!list.isEmpty()) {
+                    synchronized (messageConversations) {
+                        messageConversations.clear();
+
+                        for (Conversation conversation : list) {
+                            messageConversations.add(new MessageConversation(conversation));
+                        }
+                    }
+                }
+                else {
+                    // TODO 没有会话，修改背景图片
+                }
+
+                promise.resolve(messageConversations);
+            }
+        }).thenOnMainThread(new Future<List<MessageConversation>>() {
+            @Override
+            public void come(List<MessageConversation> data) {
+                adapter.notifyDataSetChangedWrapper();
+            }
+        }).catchException(new Future<Exception>() {
+            @Override
+            public void come(Exception throwable) {
+                LogUtils.w("ConversationPickerActivity", throwable);
+            }
+        }).launch();
+    }
+
+    protected class ConversationAdapter extends AdapterForRecyclerView<MessageConversation> {
+
+        private ConversationPickerActivity activity;
+
+        public ConversationAdapter() {
+            super(ConversationPickerActivity.this, messageConversations, R.layout.item_simple_conversation);
+            this.activity = ConversationPickerActivity.this;
+        }
+
+        @Override
+        public void convert(ViewHolderForRecyclerView helper, MessageConversation item, int position) {
+            ImageView avatar = helper.getView(R.id.ivAvatar);
+
+            if (item.conversation.getType() == ConversationType.Contact) {
+                avatar.setImageResource(item.avatarResourceId);
+                helper.setText(R.id.tvDisplayName, item.conversation.getContact().getPriorityName());
+            }
+            else if (item.conversation.getType() == ConversationType.Group) {
+                AvatarUtils.fillGroupAvatar(activity, item.conversation.getGroup(), avatar);
+                helper.setText(R.id.tvDisplayName, item.conversation.getGroup().getPriorityName());
+            }
+
+            // 会话是否置顶
+            if (item.conversation.focused()) {
+                helper.getView(R.id.llRoot).setBackgroundColor(UIUtils.getColorByAttrId(R.attr.colorThemeBackground));
+            }
+            else {
+                helper.getView(R.id.llRoot).setBackgroundColor(UIUtils.getColorByAttrId(R.attr.colorBackground));
+            }
+
+            if (singleMode) {
+                helper.setViewVisibility(R.id.cbSelector, View.GONE);
+            }
+            else {
+                helper.setViewVisibility(R.id.cbSelector, View.VISIBLE);
+            }
+        }
     }
 }

@@ -163,6 +163,7 @@
         <entry key="app/src/main/res/layout/item_new_contact.xml" value="0.1" />
         <entry key="app/src/main/res/layout/item_no_support_message.xml" value="0.1598360655737705" />
         <entry key="app/src/main/res/layout/item_notification.xml" value="0.5" />
+        <entry key="app/src/main/res/layout/item_simple_conversation.xml" value="0.5" />
         <entry key="app/src/main/res/layout/item_spinner_dropdown.xml" value="0.19569672131147542" />
         <entry key="app/src/main/res/layout/item_spinner_file_order.xml" value="0.16598360655737704" />
         <entry key="app/src/main/res/layout/item_text_receive.xml" value="0.16393442622950818" />

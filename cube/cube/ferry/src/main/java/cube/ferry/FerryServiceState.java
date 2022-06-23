@@ -72,6 +72,11 @@ public enum FerryServiceState {
     NoNetwork(103),
 
     /**
+     * 服务未就绪。
+     */
+    NotReady(104),
+
+    /**
      * 数据格式错误。
      */
     DataFormatError(105),

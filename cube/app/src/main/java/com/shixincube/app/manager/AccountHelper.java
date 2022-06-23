@@ -114,6 +114,40 @@ public class AccountHelper implements ContactDataProvider {
         return this.tokenCode;
     }
 
+    /**
+     * 保存令牌。
+     *
+     * @param tokenCode
+     * @param expire
+     */
+    public void saveToken(String tokenCode, long expire) {
+        // 令牌赋值
+        this.tokenCode = tokenCode;
+
+        this.editor.putString(AppConsts.TOKEN_CODE, tokenCode);
+        this.editor.putLong(AppConsts.TOKEN_EXPIRE, expire);
+        this.editor.commit();
+    }
+
+    /**
+     * 删除当前使用的令牌。
+     *
+     * @return 返回令牌串。
+     */
+    public String deleteToken() {
+        if (null == this.tokenCode) {
+            return null;
+        }
+
+        this.editor.remove(AppConsts.TOKEN_CODE);
+        this.editor.remove(AppConsts.TOKEN_EXPIRE);
+        this.editor.commit();
+
+        String token = this.tokenCode;
+        this.tokenCode = null;
+        return token;
+    }
+
     public void setCurrentAccount(Account account) {
         this.current = account;
         this.editor.putString(AppConsts.APP_ACCOUNT, account.toJSON().toString());
@@ -137,6 +171,22 @@ public class AccountHelper implements ContactDataProvider {
     }
 
     /**
+     * 移除当前账号。
+     *
+     * @return
+     */
+    public Account removeCurrentAccount() {
+        Account account = this.current;
+
+        this.editor.remove(AppConsts.APP_ACCOUNT);
+        this.editor.commit();
+
+        this.current = null;
+
+        return account;
+    }
+
+    /**
      * 更新当前账号。
      *
      * @param name
@@ -156,15 +206,6 @@ public class AccountHelper implements ContactDataProvider {
         }
 
         this.editor.putString(AppConsts.APP_ACCOUNT, this.current.toJSON().toString());
-        this.editor.commit();
-    }
-
-    public void saveToken(String tokenCode, long expire) {
-        // 令牌赋值
-        this.tokenCode = tokenCode;
-
-        this.editor.putString(AppConsts.TOKEN_CODE, tokenCode);
-        this.editor.putLong(AppConsts.TOKEN_EXPIRE, expire);
         this.editor.commit();
     }
 

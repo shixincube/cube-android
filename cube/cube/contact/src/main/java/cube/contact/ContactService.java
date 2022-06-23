@@ -422,26 +422,28 @@ public class ContactService extends Module {
             // 关闭存储
             this.storage.close();
 
+            final Self current = this.self;
+            this.execute(() -> {
+                ObservableEvent event = new ObservableEvent(ContactServiceEvent.SelfLost, current);
+                notifyObservers(event);
+            });
+
             if (handler.isInMainThread()) {
                 this.executeOnMainThread(() -> {
-                    ObservableEvent event = new ObservableEvent(ContactServiceEvent.SignOut, self);
-                    notifyObservers(event);
-
                     handler.handleSuccess(ContactService.this, self);
                     self = null;
                     // 清空缓存
                     cache.clear();
+                    zoneCache.clear();
                 });
             }
             else {
                 this.execute(() -> {
-                    ObservableEvent event = new ObservableEvent(ContactServiceEvent.SignOut, self);
-                    notifyObservers(event);
-
                     handler.handleSuccess(ContactService.this, self);
                     self = null;
                     // 清空缓存
                     cache.clear();
+                    zoneCache.clear();
                 });
             }
 
@@ -487,9 +489,16 @@ public class ContactService extends Module {
                     return;
                 }
 
+                // 更新状态
                 signInReady.set(false);
 
                 final Self current = self;
+
+                execute(() -> {
+                    ObservableEvent event = new ObservableEvent(ContactServiceEvent.SelfLost, current);
+                    notifyObservers(event);
+                });
+
                 if (handler.isInMainThread()) {
                     executeOnMainThread(() -> {
                         handler.handleSuccess(ContactService.this, current);
@@ -509,6 +518,7 @@ public class ContactService extends Module {
 
                     // 清空缓存
                     cache.clear();
+                    zoneCache.clear();
 
                     // 关闭存储器
                     storage.close();

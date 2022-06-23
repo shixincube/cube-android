@@ -33,13 +33,19 @@ import android.widget.Button;
 import androidx.appcompat.app.AlertDialog;
 
 import com.shixincube.app.AppConsts;
+import com.shixincube.app.CubeBaseApp;
 import com.shixincube.app.R;
+import com.shixincube.app.api.Explorer;
+import com.shixincube.app.manager.AccountHelper;
 import com.shixincube.app.manager.PreferenceHelper;
 import com.shixincube.app.manager.ThemeMode;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
+import com.shixincube.app.util.DeviceUtils;
 import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.optionitemview.OptionItemView;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import butterknife.BindView;
 import cube.auth.model.AuthDomain;
@@ -53,11 +59,15 @@ import cube.engine.CubeEngine;
 import cube.ferry.handler.DefaultDomainMemberHandler;
 import cube.ferry.model.DomainInfo;
 import cube.ferry.model.DomainMember;
+import cube.util.LogUtils;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 /**
  * 偏好设置。
  */
 public class PreferenceActivity extends BaseActivity {
+
+    private final static String TAG = "PreferenceActivity";
 
     @BindView(R.id.oivDarkTheme)
     OptionItemView darkThemeItem;
@@ -179,15 +189,59 @@ public class PreferenceActivity extends BaseActivity {
         builder.setPositiveButton(UIUtils.getString(R.string.sure), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int index) {
-                CubeEngine.getInstance().getContactService().signOut(new DefaultSignHandler() {
+                // 删除当前账号
+                AccountHelper.getInstance().removeCurrentAccount();
+                // 删除本地令牌
+                String tokenCode = AccountHelper.getInstance().deleteToken();
+                if (null == tokenCode) {
+                    LogUtils.w(TAG, "Token is null");
+                    return;
+                }
+
+                AtomicBoolean finishLogout = new AtomicBoolean(false);
+                AtomicBoolean finishSignOut = new AtomicBoolean(false);
+
+                Runnable jumpTask = new Runnable() {
+                    @Override
+                    public void run() {
+                        if (finishLogout.get() && finishSignOut.get()) {
+                            CubeBaseApp.getMainThreadHandler().post(() -> {
+                                jumpToActivityAndClearTask(SplashActivity.class);
+                            });
+                        }
+                    }
+                };
+
+                // 从应用服务器登出
+                String device = DeviceUtils.getDeviceDescription(getApplicationContext());
+                Explorer.getInstance().logout(tokenCode, device)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(Schedulers.io())
+                        .doOnError(error -> {
+                            LogUtils.w(TAG, "Logout failed", error);
+                            finishLogout.set(true);
+                            jumpTask.run();
+                        })
+                        .subscribe(logoutResponse -> {
+                            LogUtils.i(TAG, "Logout - " + logoutResponse.code);
+                            finishLogout.set(true);
+                            jumpTask.run();
+                        });
+
+                // 从引擎签出
+                CubeEngine.getInstance().signOut(new DefaultSignHandler(false) {
                     @Override
                     public void handleSuccess(ContactService service, Self self) {
-
+                        LogUtils.i(TAG, "SignOut : " + self.id);
+                        finishSignOut.set(true);
+                        jumpTask.run();
                     }
 
                     @Override
                     public void handleFailure(ContactService service, ModuleError error) {
-
+                        LogUtils.w(TAG, "SignOut failed : " + error.code);
+                        finishSignOut.set(true);
+                        jumpTask.run();
                     }
                 });
             }

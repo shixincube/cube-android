@@ -304,6 +304,17 @@ public class CubeEngine implements Observer {
     }
 
     /**
+     * 签出当前已签入的联系人。
+     *
+     * @param handler 指定回调句柄。
+     * @return 如果返回 {@code false} 表示当前状态下不能进行该操作。
+     */
+    public boolean signOut(SignHandler handler) {
+        ContactService contactService = this.getContactService();
+        return contactService.signOut(handler);
+    }
+
+    /**
      * 重置配置。
      *
      * @param activity 指定当前操作的 Activity 实例。

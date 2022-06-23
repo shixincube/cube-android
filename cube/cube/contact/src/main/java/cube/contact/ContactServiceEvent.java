@@ -52,6 +52,11 @@ public final class ContactServiceEvent {
     public final static String SelfReady = "SelfReady";
 
     /**
+     * 当前客户端的联系人数据失效。
+     */
+    public final static String SelfLost = "SelfLost";
+
+    /**
      * 联系人已更新。
      */
     public final static String ContactUpdated = "ContactUpdated";

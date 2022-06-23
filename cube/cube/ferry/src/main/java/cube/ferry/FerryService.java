@@ -117,6 +117,7 @@ public class FerryService extends Module {
 
         ContactService contactService = (ContactService) getKernel().getModule(ContactService.NAME);
         contactService.attachWithName(ContactServiceEvent.SelfReady, this.observer);
+        contactService.attachWithName(ContactServiceEvent.SelfLost, this.observer);
 
         return true;
     }
@@ -135,6 +136,9 @@ public class FerryService extends Module {
 
         ContactService contactService = (ContactService) getKernel().getModule(ContactService.NAME);
         contactService.detachWithName(ContactServiceEvent.SelfReady, this.observer);
+        contactService.detachWithName(ContactServiceEvent.SelfLost, this.observer);
+
+        this.ready = false;
     }
 
     @Override
@@ -394,6 +398,13 @@ public class FerryService extends Module {
     public void joinDomain(String domainName,
                            DomainMemberHandler successHandler,
                            FailureHandler failureHandler) {
+        if (!this.ready) {
+            // 模块未就绪
+            ModuleError error = new ModuleError(NAME, FerryServiceState.NotReady.code);
+            execute(failureHandler, error);
+            return;
+        }
+
         if (!this.pipeline.isReady()) {
             // 数据通道未就绪
             ModuleError error = new ModuleError(NAME, FerryServiceState.NoNetwork.code);
@@ -463,6 +474,13 @@ public class FerryService extends Module {
     public void joinDomainByCode(String invitationCode,
                                  DomainMemberHandler successHandler,
                                  FailureHandler failureHandler) {
+        if (!this.ready) {
+            // 模块未就绪
+            ModuleError error = new ModuleError(NAME, FerryServiceState.NotReady.code);
+            execute(failureHandler, error);
+            return;
+        }
+
         if (!this.pipeline.isReady()) {
             // 数据通道未就绪
             ModuleError error = new ModuleError(NAME, FerryServiceState.NoNetwork.code);
@@ -531,6 +549,13 @@ public class FerryService extends Module {
      */
     public void quitDomain(Activity activity, DomainMemberHandler successHandler,
                            FailureHandler failureHandler) {
+        if (!this.ready) {
+            // 模块未就绪
+            ModuleError error = new ModuleError(NAME, FerryServiceState.NotReady.code);
+            execute(failureHandler, error);
+            return;
+        }
+
         if (!this.pipeline.isReady()) {
             // 数据通道未就绪
             ModuleError error = new ModuleError(NAME, FerryServiceState.NoNetwork.code);
@@ -754,6 +779,13 @@ public class FerryService extends Module {
      * @param failureHandler 指定失败回调句柄。
      */
     public void getBoxReport(BoxReportHandler successHandler, FailureHandler failureHandler) {
+        if (!this.ready) {
+            // 模块未就绪
+            ModuleError error = new ModuleError(NAME, FerryServiceState.NotReady.code);
+            execute(failureHandler, error);
+            return;
+        }
+
         if (!this.pipeline.isReady()) {
             // 数据通道未就绪
             ModuleError error = new ModuleError(NAME, FerryServiceState.NoNetwork.code);

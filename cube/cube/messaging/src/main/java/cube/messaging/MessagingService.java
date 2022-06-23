@@ -2624,6 +2624,11 @@ public class MessagingService extends Module {
         }
     }
 
+    /**
+     * 执行就绪步骤。
+     *
+     * @param handler
+     */
     protected void prepare(StableCompletionHandler handler) {
         this.preparing.set(true);
 
@@ -2697,6 +2702,35 @@ public class MessagingService extends Module {
                 }
             }
         });
+    }
+
+    /**
+     * 执行数据解散步骤。
+     */
+    protected void dismiss() {
+        synchronized (this.preparing) {
+            this.preparing.notifyAll();
+        }
+        this.preparing.set(false);
+
+        synchronized (this.eraseControllers) {
+            for (EraseController controller : this.eraseControllers) {
+                controller.destroy();
+            }
+
+            this.eraseControllers.clear();
+        }
+
+        this.ready = false;
+
+        this.conversations.clear();
+        this.conversationMessageListMap.clear();
+
+        this.capsuleCache.clear();
+
+        this.sendingList.clear();
+
+        this.storage.close();
     }
 
     /**

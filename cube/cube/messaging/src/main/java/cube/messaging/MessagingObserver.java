@@ -87,7 +87,7 @@ public class MessagingObserver implements Observer {
 
     private void fireContactEvent(ObservableEvent event) {
         if (ContactServiceEvent.SelfReady.equals(event.name)) {
-            synchronized (this) {
+            synchronized (this.service) {
                 if (!this.service.ready && !this.service.preparing.get()) {
                     // 准备数据
                     this.service.prepare(new StableCompletionHandler() {
@@ -158,10 +158,12 @@ public class MessagingObserver implements Observer {
                 });
             }
         }
-        else if (ContactServiceEvent.SignOut.equals(event.name)) {
+        else if (ContactServiceEvent.SelfLost.equals(event.name)) {
+            LogUtils.d(TAG, "#fireContactEvent - " + event.name);
             synchronized (this.service) {
-                this.service.conversations.clear();
-                this.service.conversationMessageListMap.clear();
+                if (this.service.ready) {
+                    this.service.dismiss();
+                }
             }
         }
     }

@@ -277,6 +277,7 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
         PopupWindow popupWindow = PopupWindowUtils.getPopupWindowAtLocation(menuView, getWindow().getDecorView(),
                 Gravity.TOP | Gravity.END,
                 UIUtils.dp2px(5), appBar.getHeight() + UIUtils.dp2px(40));
+        PopupWindowUtils.openOutsideTouchable(popupWindow);
 
         menuView.findViewById(R.id.tvCreateGroup).setOnClickListener((v) -> {
             popupWindow.dismiss();

@@ -34,12 +34,14 @@ import com.shixincube.app.manager.AccountHelper;
 import com.shixincube.app.model.Domain;
 import com.shixincube.app.model.request.CheckPhoneRequest;
 import com.shixincube.app.model.request.LoginRequest;
+import com.shixincube.app.model.request.LogoutRequest;
 import com.shixincube.app.model.request.RegisterRequest;
 import com.shixincube.app.model.request.SetAccountInfoRequest;
 import com.shixincube.app.model.response.AccountInfoResponse;
 import com.shixincube.app.model.response.CheckPhoneResponse;
 import com.shixincube.app.model.response.ContactZoneResponse;
 import com.shixincube.app.model.response.LoginResponse;
+import com.shixincube.app.model.response.LogoutResponse;
 import com.shixincube.app.model.response.RegisterResponse;
 import com.shixincube.app.model.response.SearchAccountResultResponse;
 
@@ -151,6 +153,17 @@ public class Explorer {
      */
     public Observable<LoginResponse> login(String token, String device) {
         return this.api.login(getRequestBody(new LoginRequest(token, device)));
+    }
+
+    /**
+     * 账号登出。
+     *
+     * @param token
+     * @param device
+     * @return
+     */
+    public Observable<LogoutResponse> logout(String token, String device) {
+        return this.api.logout(getRequestBody(new LogoutRequest(token, device)));
     }
 
     /**

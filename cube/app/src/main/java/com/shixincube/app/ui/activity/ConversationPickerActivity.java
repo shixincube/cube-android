@@ -27,16 +27,23 @@
 package com.shixincube.app.ui.activity;
 
 import android.content.Intent;
+import android.content.res.Resources;
+import android.util.DisplayMetrics;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.PopupWindow;
 
 import com.shixincube.app.R;
 import com.shixincube.app.model.MessageConversation;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.util.AvatarUtils;
+import com.shixincube.app.util.PopupWindowUtils;
 import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.adapter.AdapterForRecyclerView;
+import com.shixincube.app.widget.adapter.ViewHolder;
 import com.shixincube.app.widget.adapter.ViewHolderForRecyclerView;
 import com.shixincube.app.widget.recyclerview.RecyclerView;
 
@@ -103,7 +110,7 @@ public class ConversationPickerActivity extends BaseActivity {
         });
 
         this.adapter.setOnItemClickListener((helper, parent, itemView, position) -> {
-            
+            fireItemClick(helper, itemView, position);
         });
     }
 
@@ -141,6 +148,29 @@ public class ConversationPickerActivity extends BaseActivity {
         toolbarFuncButton.setEnabled(singleMode);
 
         adapter.notifyDataSetChangedWrapper();
+    }
+
+    private void fireItemClick(ViewHolder helper, View itemView, int position) {
+        if (this.singleMode) {
+            Resources resources = this.getResources();
+            DisplayMetrics dm = resources.getDisplayMetrics();
+            int screenWidth = dm.widthPixels;
+
+            View windowView = View.inflate(this, R.layout.window_message_forward, null);
+            PopupWindow popupWindow = PopupWindowUtils.getPopupWindowAtLocation(windowView,
+                    screenWidth - 200, ViewGroup.LayoutParams.WRAP_CONTENT,
+                    getWindow().getDecorView(), Gravity.CENTER, 0, 0);
+            PopupWindowUtils.makeWindowDarkOnDismissLight(this, popupWindow);
+            // 关闭外部触发
+            PopupWindowUtils.closeOutsideTouchable(popupWindow);
+
+            windowView.findViewById(R.id.btnCancel).setOnClickListener((view) -> {
+                popupWindow.dismiss();
+            });
+            windowView.findViewById(R.id.btnSend).setOnClickListener((view) -> {
+                popupWindow.dismiss();
+            });
+        }
     }
 
     private void reloadData() {

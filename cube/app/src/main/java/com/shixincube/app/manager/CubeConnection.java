@@ -162,7 +162,7 @@ public class CubeConnection implements ServiceConnection {
         Promise.create(new PromiseHandler<Account>() {
             @Override
             public void emit(PromiseFuture<Account> promise) {
-                int count = 100;
+                int count = 200;
                 while (!CubeEngine.getInstance().isReady()) {
                     if ((--count) <= 0) {
                         break;

@@ -27,7 +27,7 @@
 package com.shixincube.app.util;
 
 import android.app.Activity;
-import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.ColorDrawable;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -54,18 +54,29 @@ public final class PopupWindowUtils {
     @NonNull
     private static PopupWindow getPopupWindow(View contentView, int width, int height) {
         PopupWindow popupWindow = new PopupWindow(contentView, width, height, true);
-        popupWindow.setOutsideTouchable(false);
-        openOutsideTouchable(popupWindow);
         return popupWindow;
     }
 
     /**
-     * 点击 PopupWindow 范围以外的地方时隐藏。
+     * 点击 PopupWindow 范围以外的地方时不隐藏窗口。
+     *
+     * @param popupWindow
+     */
+    public static void closeOutsideTouchable(PopupWindow popupWindow) {
+        popupWindow.setTouchable(true);
+        popupWindow.setFocusable(false);
+        popupWindow.setOutsideTouchable(false);
+    }
+
+    /**
+     * 点击 PopupWindow 范围以外的地方时隐藏窗口。
      *
      * @param popupWindow
      */
     public static void openOutsideTouchable(PopupWindow popupWindow) {
-        popupWindow.setBackgroundDrawable(new BitmapDrawable());
+        popupWindow.setBackgroundDrawable(new ColorDrawable());
+        popupWindow.setTouchable(true);
+        popupWindow.setFocusable(true);
         popupWindow.setOutsideTouchable(true);
     }
 
@@ -81,7 +92,9 @@ public final class PopupWindowUtils {
      * @param yOff        Y 轴偏移量
      * @return
      */
-    public static PopupWindow getPopupWindowAtLocation(View contentView, int width, int height, View parentView, int gravityType, int xOff, int yOff) {
+    public static PopupWindow getPopupWindowAtLocation(View contentView, int width, int height,
+                                                       View parentView, int gravityType,
+                                                       int xOff, int yOff) {
         PopupWindow popupWindow = getPopupWindow(contentView, width, height);
 
         // 在 ParentView 中偏移 xOff 和 yOff
@@ -101,8 +114,10 @@ public final class PopupWindowUtils {
      * @param yOff
      * @return
      */
-    public static PopupWindow getPopupWindowAtLocation(View contentView, View parentView, int gravityType, int xOff, int yOff) {
-        return getPopupWindowAtLocation(contentView, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, parentView, gravityType, xOff, yOff);
+    public static PopupWindow getPopupWindowAtLocation(View contentView, View parentView,
+                                                       int gravityType, int xOff, int yOff) {
+        return getPopupWindowAtLocation(contentView, ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT, parentView, gravityType, xOff, yOff);
     }
 
     /**
@@ -122,7 +137,20 @@ public final class PopupWindowUtils {
      * @param activity
      */
     public static void makeWindowDark(Activity activity) {
-        makeWindowDark(activity, 0.7f);
+        makeWindowDark(activity, 0.6f);
+    }
+
+    /**
+     * 使 Window 变暗，当窗口消失时 Window 变亮。
+     *
+     * @param activity
+     * @param popupWindow
+     */
+    public static void makeWindowDarkOnDismissLight(Activity activity, PopupWindow popupWindow) {
+        makeWindowDark(activity);
+        popupWindow.setOnDismissListener(() -> {
+            makeWindowLight(activity);
+        });
     }
 
     private static void makeWindowDark(Activity activity, float alpha) {

@@ -43,6 +43,9 @@ import com.shixincube.app.widget.optionitemview.OptionItemView;
 
 import butterknife.BindView;
 import cube.auth.model.AuthDomain;
+import cube.contact.ContactService;
+import cube.contact.handler.DefaultSignHandler;
+import cube.contact.model.Self;
 import cube.core.Module;
 import cube.core.ModuleError;
 import cube.core.handler.DefaultFailureHandler;
@@ -64,6 +67,12 @@ public class PreferenceActivity extends BaseActivity {
 
     @BindView(R.id.btnQuit)
     Button quitFerryButton;
+
+    @BindView(R.id.btnLogout)
+    Button logoutButton;
+
+    @BindView(R.id.btnDeregister)
+    Button deregisterButton;
 
     public PreferenceActivity() {
         super();
@@ -115,7 +124,15 @@ public class PreferenceActivity extends BaseActivity {
         });
 
         this.quitFerryButton.setOnClickListener((view) -> {
-            quitFerryDomain();
+            quitFerry();
+        });
+
+        this.logoutButton.setOnClickListener((view) -> {
+            logout();
+        });
+
+        this.deregisterButton.setOnClickListener((view) -> {
+            deregister();
         });
     }
 
@@ -129,7 +146,7 @@ public class PreferenceActivity extends BaseActivity {
         return R.layout.activity_preference;
     }
 
-    private void quitFerryDomain() {
+    private void quitFerry() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(UIUtils.getString(R.string.prompt));
         builder.setMessage(UIUtils.getString(R.string.ferry_do_you_want_to_quit));
@@ -153,5 +170,33 @@ public class PreferenceActivity extends BaseActivity {
         });
         builder.setNegativeButton(UIUtils.getString(R.string.cancel), null);
         builder.show();
+    }
+
+    private void logout() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(UIUtils.getString(R.string.prompt));
+        builder.setMessage(UIUtils.getString(R.string.do_you_want_to_logout));
+        builder.setPositiveButton(UIUtils.getString(R.string.sure), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int index) {
+                CubeEngine.getInstance().getContactService().signOut(new DefaultSignHandler() {
+                    @Override
+                    public void handleSuccess(ContactService service, Self self) {
+
+                    }
+
+                    @Override
+                    public void handleFailure(ContactService service, ModuleError error) {
+
+                    }
+                });
+            }
+        });
+        builder.setNegativeButton(UIUtils.getString(R.string.cancel), null);
+        builder.show();
+    }
+
+    private void deregister() {
+
     }
 }

@@ -76,6 +76,9 @@
     <string name="menu_retract_both">双向撤回</string>
     <string name="menu_delete">删除</string>
 
+    <!-- 转发消息界面 -->
+    <string name="send_to">发送给：</string>
+
     <!-- 联系人界面 -->
     <string name="new_contact">新的联系人</string>
     <string name="group">群组</string>
@@ -205,6 +208,9 @@
     <string name="about_cube">关于时信魔方</string>
     <string name="app_name_in_about">时信魔方 %1$s</string>
     <string name="goto_website">访问官网 shixincube.com</string>
+    <string name="logout">退出登录</string>
+    <string name="deregister">注销并删除账号</string>
+    <string name="do_you_want_to_logout">您是否确认要退出当前账号在该设备上的登录状态。</string>
 
     <!-- 常用 -->
     <string name="prompt">提示</string>

@@ -40,6 +40,7 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import cube.auth.AuthService;
 import cube.auth.event.ResetAuthConfigEvent;
@@ -76,10 +77,13 @@ public class CubeEngine implements Observer {
 
     private Kernel kernel;
 
-    private boolean started;
+    private AtomicBoolean starting;
+
+    private AtomicBoolean started;
 
     private CubeEngine() {
-        this.started = false;
+        this.starting = new AtomicBoolean(false);
+        this.started = new AtomicBoolean(false);
         this.kernel = new Kernel();
         this.kernel.installModule(new AuthService());
         this.kernel.installModule(new ContactService());
@@ -110,39 +114,55 @@ public class CubeEngine implements Observer {
      *
      * @param context 应用上下文。
      * @param handler 处理句柄。
-     * @return
+     * @return 返回是否进入了启动流程。
      */
     public boolean start(Context context, EngineHandler handler) {
+        if (this.starting.get()) {
+            return false;
+        }
+
+        this.starting.set(true);
+
         LogUtils.i("CubeEngine", "#start : " + this.config.print());
 
         // 线程池赋值
         Promise.setExecutor(Executors.newCachedThreadPool());
 
-        this.started = this.kernel.startup(context, this.config, new KernelHandler() {
+        boolean processed = this.kernel.startup(context, this.config, new KernelHandler() {
             @Override
             public void handleCompletion(Kernel kernel) {
                 LogUtils.i("CubeEngine", "Cube engine started");
+
+                started.set(true);
 
                 // 启动联系人模块
                 getContactService().start();
 
                 handler.handleSuccess(CubeEngine.instance);
+
+                starting.set(false);
             }
 
             @Override
             public void handleFailure(ModuleError error) {
                 // 启动失败
-                started = false;
+                started.set(false);
+                starting.set(false);
 
                 LogUtils.i("CubeEngine", "Cube engine start failed : " + error.code);
                 handler.handleFailure(error.code, (null != error.description) ? error.description : error.moduleName);
             }
         });
 
-        this.getAuthService().attachWithName(ResetAuthConfigEvent.NAME, this);
-        this.getContactService().attachWithName(ContactServiceEvent.SignIn, this);
+        if (processed) {
+            this.getAuthService().attachWithName(ResetAuthConfigEvent.NAME, this);
+            this.getContactService().attachWithName(ContactServiceEvent.SignIn, this);
+        }
+        else {
+            this.starting.set(false);
+        }
 
-        return this.started;
+        return processed;
     }
 
     public void stop() {
@@ -155,7 +175,8 @@ public class CubeEngine implements Observer {
         this.getContactService().detachWithName(ContactServiceEvent.SignIn, this);
         this.getAuthService().detachWithName(ResetAuthConfigEvent.NAME, this);
 
-        this.started = false;
+        this.starting.set(false);
+        this.started.set(false);
     }
 
     public void suspend() {
@@ -182,7 +203,7 @@ public class CubeEngine implements Observer {
      * @return
      */
     public boolean hasStarted() {
-        return this.started;
+        return this.started.get();
     }
 
     /**
@@ -191,7 +212,7 @@ public class CubeEngine implements Observer {
      * @return
      */
     public boolean isReady() {
-        return this.started && this.kernel.isReady();
+        return this.started.get() && this.kernel.isReady();
     }
 
     /**

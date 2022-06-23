@@ -26,6 +26,7 @@
     <attr name="colorThemeActive" format="color"/>
     <attr name="colorThemeBackground" format="color"/>
     <attr name="colorThemeBackgroundAccent" format="color"/>
+    <attr name="colorThemeWindowBackground" format="color"/>
     <attr name="colorText" format="color"/>
     <attr name="colorTextSecondary" format="color"/>
     <attr name="colorBackground" format="color"/>

@@ -42,6 +42,7 @@
         <item name="colorThemeActive">@color/theme_light</item>
         <item name="colorThemeBackground">@color/theme_bg</item>
         <item name="colorThemeBackgroundAccent">@color/theme_accent_bg</item>
+        <item name="colorThemeWindowBackground">@color/theme_window_bg</item>
         <item name="colorText">@color/text</item>
         <item name="colorTextSecondary">@color/text_secondary</item>
         <item name="colorBackground">@color/background</item>

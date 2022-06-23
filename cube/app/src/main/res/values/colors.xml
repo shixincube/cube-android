@@ -42,6 +42,9 @@
     <color name="theme_accent_bg">#D1D1D1</color>
     <color name="theme_accent_bg_night">#595959</color>
 
+    <color name="theme_window_bg">#FEFEFE</color>
+    <color name="theme_window_bg_night">#070707</color>
+
     <color name="text">#010101</color>
     <color name="text_secondary">#7E7E7E</color>
     <color name="background">#FFFFFF</color>
@@ -65,7 +68,7 @@
     <color name="button_primary">#287DF6</color>
     <color name="button_primary_text">#FFFFFF</color>
     <color name="button_disabled">#999999</color>
-    <color name="button_secondary">#E5E5E5</color>
+    <color name="button_secondary">#FAFAFA</color>
     <color name="button_secondary_text">#101010</color>
     <color name="button_secondary_pressed">#BDBDBD</color>
     <color name="button_primary_night">#0854E6</color>

@@ -31,6 +31,7 @@ import com.shixincube.app.model.response.AccountInfoResponse;
 import com.shixincube.app.model.response.CheckPhoneResponse;
 import com.shixincube.app.model.response.ContactZoneResponse;
 import com.shixincube.app.model.response.LoginResponse;
+import com.shixincube.app.model.response.LogoutResponse;
 import com.shixincube.app.model.response.RegisterResponse;
 import com.shixincube.app.model.response.SearchAccountResultResponse;
 
@@ -74,6 +75,15 @@ public interface AppInterface {
      */
     @POST("/account/login/")
     Observable<LoginResponse> login(@Body RequestBody body);
+
+    /**
+     * 账号登出。
+     *
+     * @param body
+     * @return
+     */
+    @POST("/account/logout/")
+    Observable<LogoutResponse> logout(@Body RequestBody body);
 
     /**
      * 查询自己的账号数据。

@@ -65,19 +65,47 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:gravity="center"
-        android:layout_marginTop="@dimen/activity_vertical_margin"
         android:orientation="vertical">
 
         <Button
             android:id="@+id/btnQuit"
             android:layout_width="280dp"
             android:layout_height="@dimen/strip_button_height"
+            android:layout_marginTop="@dimen/activity_vertical_margin"
             android:layout_gravity="center_horizontal"
             android:gravity="center"
-            android:background="@drawable/selector_primary_button"
+            android:background="@drawable/selector_secondary_button"
             android:enabled="true"
             android:text="@string/ferry_btn_quit"
-            android:textColor="?attr/colorButtonPrimaryText"
+            android:textColor="?attr/colorButtonSecondaryText"
+            android:textSize="16sp"
+            android:visibility="gone"/>
+
+        <Button
+            android:id="@+id/btnLogout"
+            android:layout_width="280dp"
+            android:layout_height="@dimen/strip_button_height"
+            android:layout_marginTop="@dimen/activity_vertical_margin"
+            android:layout_gravity="center_horizontal"
+            android:gravity="center"
+            android:background="@drawable/selector_secondary_button"
+            android:enabled="true"
+            android:text="@string/logout"
+            android:textColor="?attr/colorButtonSecondaryText"
+            android:textSize="16sp"/>
+
+        <Button
+            android:id="@+id/btnDeregister"
+            android:layout_width="280dp"
+            android:layout_height="@dimen/strip_button_height"
+            android:layout_marginTop="@dimen/activity_vertical_margin"
+            android:layout_marginBottom="@dimen/activity_vertical_margin"
+            android:layout_gravity="center_horizontal"
+            android:gravity="center"
+            android:background="@drawable/selector_secondary_button"
+            android:enabled="true"
+            android:text="@string/deregister"
+            android:textColor="?attr/colorButtonSecondaryText"
             android:textSize="16sp"/>
 
     </LinearLayout>

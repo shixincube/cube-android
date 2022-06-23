@@ -78,6 +78,7 @@
 
     <!-- 转发消息界面 -->
     <string name="send_to">发送给：</string>
+    <string name="leave_a_message_for_a_friend">给朋友留言</string>
 
     <!-- 联系人界面 -->
     <string name="new_contact">新的联系人</string>

@@ -34,6 +34,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.PopupWindow;
+import android.widget.TextView;
 
 import com.shixincube.app.R;
 import com.shixincube.app.model.MessageConversation;
@@ -152,6 +153,9 @@ public class ConversationPickerActivity extends BaseActivity {
 
     private void fireItemClick(ViewHolder helper, View itemView, int position) {
         if (this.singleMode) {
+            MessageConversation mc = this.messageConversations.get(position);
+            Conversation conversation = mc.conversation;
+
             Resources resources = this.getResources();
             DisplayMetrics dm = resources.getDisplayMetrics();
             int screenWidth = dm.widthPixels;
@@ -170,6 +174,21 @@ public class ConversationPickerActivity extends BaseActivity {
             windowView.findViewById(R.id.btnSend).setOnClickListener((view) -> {
                 popupWindow.dismiss();
             });
+
+            // 填写数据
+            if (conversation.getType() == ConversationType.Contact) {
+                AvatarUtils.fillContactAvatar(this, conversation.getContact(),
+                        (ImageView) windowView.findViewById(R.id.ivAvatar));
+            }
+            else if (conversation.getType() == ConversationType.Group) {
+                AvatarUtils.fillGroupAvatar(this, conversation.getGroup(),
+                        (ImageView) windowView.findViewById(R.id.ivAvatar));
+            }
+
+            ((TextView) windowView.findViewById(R.id.tvDisplayName)).setText(conversation.getDisplayName());
+
+            // 消息内容
+            CubeEngine.getInstance().getMessagingService().getMessageById(messageId);
         }
     }
 

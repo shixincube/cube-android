@@ -72,7 +72,8 @@
                 android:id="@+id/tvTextContent"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="?attr/colorText"
+                android:padding="8dp"
+                android:textColor="?attr/colorTextSecondary"
                 android:textSize="12sp"/>
 
             <ImageView
@@ -80,9 +81,27 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
+                android:layout_margin="8dp"
                 android:maxWidth="120dp"
                 android:maxHeight="120dp"
                 android:visibility="gone"/>
+
+            <EditText
+                android:id="@+id/etExtraText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/item_margin_top_and_bottom"
+                android:layout_marginBottom="@dimen/item_margin_top_and_bottom"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:background="?attr/colorThemeBackground"
+                android:textColor="?attr/colorText"
+                android:textSize="14sp"
+                android:hint="@string/leave_a_message_for_a_friend"
+                android:textColorHint="@color/hint"
+                android:textCursorDrawable="@drawable/cursor"/>
 
         </LinearLayout>
 

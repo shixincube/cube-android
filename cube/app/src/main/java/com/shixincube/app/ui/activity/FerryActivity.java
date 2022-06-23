@@ -55,6 +55,8 @@ public class FerryActivity extends BaseActivity<FerryView, FerryPresenter> imple
 
     private final static String TAG = FerryActivity.class.getSimpleName();
 
+    public final static String EXTRA_MEMBERSHIP = "membership";
+
     private boolean validBox = true;
 
     private final ActivityResultLauncher<ScanOptions> barcodeLauncher = registerForActivityResult(
@@ -102,6 +104,14 @@ public class FerryActivity extends BaseActivity<FerryView, FerryPresenter> imple
             this.validBox = false;
         }
         else {
+            if (this.getIntent().hasExtra(EXTRA_MEMBERSHIP)) {
+                if (!this.getIntent().getBooleanExtra(EXTRA_MEMBERSHIP, false)) {
+                    this.validBox = false;
+                    return;
+                }
+            }
+
+            // 跳转到 MainActivity
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {

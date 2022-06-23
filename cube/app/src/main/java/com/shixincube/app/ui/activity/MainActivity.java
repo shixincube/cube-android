@@ -229,6 +229,14 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
                     }
                     else {
                         stateBarLayout.setVisibility(View.VISIBLE);
+
+                        if (!CubeEngine.getInstance().getFerryService().isMembership()) {
+                            // 非成员，退回到 FerryActivity
+                            Intent intent = new Intent(MainActivity.this, FerryActivity.class);
+                            intent.putExtra(FerryActivity.EXTRA_MEMBERSHIP, false);
+                            jumpToActivity(intent);
+                            finish();
+                        }
                     }
                 }
             });

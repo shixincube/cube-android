@@ -34,6 +34,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.os.Handler;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -156,7 +157,7 @@ public class CubeEngine implements Observer {
 
         if (processed) {
             this.getAuthService().attachWithName(ResetAuthConfigEvent.NAME, this);
-            this.getContactService().attachWithName(ContactServiceEvent.SignIn, this);
+            this.getContactService().attachWithName(ContactServiceEvent.SelfLost, this);
         }
         else {
             this.starting.set(false);
@@ -166,13 +167,13 @@ public class CubeEngine implements Observer {
     }
 
     public void stop() {
-        LogUtils.i("CubeEngine", "#stop : " + this.config.domain);
+        LogUtils.i("CubeEngine", "#stop");
 
         this.kernel.shutdown();
 
         Promise.getExecutor().shutdown();
 
-        this.getContactService().detachWithName(ContactServiceEvent.SignIn, this);
+        this.getContactService().detachWithName(ContactServiceEvent.SelfLost, this);
         this.getAuthService().detachWithName(ResetAuthConfigEvent.NAME, this);
 
         this.starting.set(false);
@@ -432,8 +433,16 @@ public class CubeEngine implements Observer {
 
     @Override
     public void update(ObservableEvent event) {
-        if (ContactServiceEvent.SignIn.equals(event.getName())) {
-            // 账号签入成功，可进行一些数据更新操作，默认不需要，各模块会自动完成更新
+        if (ContactServiceEvent.SelfLost.equals(event.getName())) {
+            // 账号失效
+            this.config = null;
+
+            Handler handler = new Handler(this.kernel.getContext().getMainLooper());
+            handler.post(() -> {
+                Intent intent = new Intent(this.kernel.getContext(), CubeService.class);
+                intent.setAction(CubeService.ACTION_STOP);
+                this.kernel.getContext().startService(intent);
+            });
         }
         else if (ResetAuthConfigEvent.NAME.equals(event.getName())) {
             // 加载默认配置

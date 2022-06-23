@@ -109,7 +109,7 @@ public class ContactsPresenter extends BasePresenter<ContactsView> implements Co
         }).thenOnMainThread(new Future<ContactZone>() {
             @Override
             public void come(ContactZone data) {
-                if (null != getView().getFooterView()) {
+                if (null != getView() && null != getView().getFooterView()) {
                     getView().getFooterView().setText(UIUtils.getString(R.string.count_of_contacts, contacts.size()));
                 }
 

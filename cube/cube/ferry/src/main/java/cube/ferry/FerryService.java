@@ -187,6 +187,15 @@ public class FerryService extends Module {
     }
 
     /**
+     * 当前账号是否是当前域的成员。
+     *
+     * @return
+     */
+    public boolean isMembership() {
+        return this.membership;
+    }
+
+    /**
      * 探测域。
      *
      * @param handler 探测结果回调句柄。
@@ -280,12 +289,11 @@ public class FerryService extends Module {
                     try {
                         houseOnline.set(data.getBoolean("online"));
                         duration.set(data.getLong("duration"));
+                        // 成员身份
+                        membership = data.getBoolean("membership");
                     } catch (JSONException e) {
                         LogUtils.w(TAG, "#detectDomain", e);
                     }
-
-                    // 成员身份
-                    membership = true;
 
                     if (handler.isInMainThread()) {
                         executeOnMainThread(() -> {
@@ -966,7 +974,7 @@ public class FerryService extends Module {
     /**
      * 删除域文件。
      */
-    private void deleteDomainInfo() {
+    protected void deleteDomainInfo() {
         File path = FileUtils.getFilePath(getContext(), "cube");
         File file = new File(path, "domain");
         if (file.exists()) {

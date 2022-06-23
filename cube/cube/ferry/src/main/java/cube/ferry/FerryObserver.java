@@ -102,6 +102,9 @@ public class FerryObserver implements Observer {
         else if (ContactServiceEvent.SelfLost.equals(eventName)) {
             // 更新就绪状态
             this.service.ready = false;
+
+            // 删除域文件
+            this.service.deleteDomainInfo();
         }
     }
 }

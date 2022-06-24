@@ -57,8 +57,13 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.text.SimpleDateFormat;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 
 import cube.core.Module;
 import cube.core.ModuleError;
@@ -87,6 +92,7 @@ import cube.messaging.model.Conversation;
 import cube.messaging.model.ConversationState;
 import cube.messaging.model.ConversationType;
 import cube.messaging.model.Message;
+import cube.messaging.model.MessageState;
 import cube.util.LogUtils;
 
 /**
@@ -116,11 +122,14 @@ public class MessagePanelPresenter extends BasePresenter<MessagePanelView>
 
     private long lastTouchTime = 0;
 
+    private SimpleDateFormat dateFormat;
+
     public MessagePanelPresenter(BaseActivity activity, Conversation conversation) {
         super(activity);
         this.conversation = conversation;
-        this.messageList = new ArrayList<>();
+        this.messageList = new LinkedList<>();
         this.burnMode = false;
+        this.dateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH时mm分", Locale.CHINA);
         CubeEngine.getInstance().getMessagingService().addEventListener(conversation, this);
     }
 
@@ -485,9 +494,34 @@ public class MessagePanelPresenter extends BasePresenter<MessagePanelView>
             for (int i = 0, length = list.size(); i < length; ++i) {
                 Message current = list.get(i);
                 if (current.id.longValue() == message.id.longValue()) {
-                    list.remove(i);
-                    list.add(i, message);
-                    adapter.notifyDataSetChangedWrapper();
+                    if (message.getState() == MessageState.Retracted) {
+                        NotificationMessage notificationMessage =
+                                new NotificationMessage(
+                                        UIUtils.getString(R.string.tip_message_retracted)
+                                                + " " + dateFormat.format(new Date()));
+
+                        CubeEngine.getInstance().getMessagingService().appendMessage(conversation,
+                                notificationMessage);
+
+                        adapter.addLastItem(notificationMessage);
+                    }
+                    else if (message.getState() == MessageState.Deleted) {
+                        NotificationMessage notificationMessage =
+                                new NotificationMessage(
+                                        UIUtils.getString(R.string.tip_message_deleted)
+                                                + " " + dateFormat.format(new Date()));
+
+                        CubeEngine.getInstance().getMessagingService().appendMessage(conversation,
+                                notificationMessage);
+
+                        adapter.addLastItem(notificationMessage);
+                    }
+                    else {
+                        // 修改列表项
+                        list.set(i, message);
+
+                        adapter.notifyDataSetChangedWrapper();
+                    }
                     break;
                 }
             }
@@ -611,6 +645,7 @@ public class MessagePanelPresenter extends BasePresenter<MessagePanelView>
                         ((MessagePanelActivity) activity).showConversationPickerForForward(message);
                         break;
                     case R.id.menuRetract:
+                        retractMessage(message);
                         break;
                     case R.id.menuRetractBoth:
                         break;
@@ -637,6 +672,21 @@ public class MessagePanelPresenter extends BasePresenter<MessagePanelView>
 
             UIUtils.showToast(UIUtils.getString(R.string.message_copied));
         }
+    }
+
+    private void retractMessage(Message message) {
+        CubeEngine.getInstance().getMessagingService().retractMessage(message,
+                new DefaultMessageHandler<Message>(true) {
+            @Override
+            public void handleMessage(Message message) {
+
+            }
+        }, new DefaultFailureHandler(true) {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+
+            }
+        });
     }
 
     /**
@@ -757,8 +807,8 @@ public class MessagePanelPresenter extends BasePresenter<MessagePanelView>
     }
 
     @Override
-    public void onMessageRead(Message message, MessagingService service) {
-        // 消息修改为已读
+    public void onMessageStated(Message message, MessagingService service) {
+        // 消息状态变更
         this.updateMessageStatus(message);
     }
 
@@ -766,6 +816,13 @@ public class MessagePanelPresenter extends BasePresenter<MessagePanelView>
     public void onMessageReceived(Message message, MessagingService service) {
         synchronized (this.messageList) {
             this.messageList.add(message);
+
+            Collections.sort(this.messageList, new Comparator<Message>() {
+                @Override
+                public int compare(Message message1, Message message2) {
+                    return (int)(message1.getRemoteTimestamp() - message2.getRemoteTimestamp());
+                }
+            });
         }
 
         if (null != this.adapter) {
@@ -774,6 +831,8 @@ public class MessagePanelPresenter extends BasePresenter<MessagePanelView>
 
         if (null != getView() && null != getView().getMessageListView()) {
             moveToBottom();
+
+            UIUtils.postTaskDelay(() -> moveToBottom(), 200);
         }
 
         // 如果当前会话是活跃会话，将接收到的消息标记为已读

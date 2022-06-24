@@ -417,13 +417,15 @@ public class MessagingService extends Module {
         }
 
         if (!this.ready.get()) {
-            if (this.preparing.get()) {
-                synchronized (this.preparing) {
-                    try {
-                        this.preparing.wait(5000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+            return null;
+        }
+
+        if (this.preparing.get()) {
+            synchronized (this.preparing) {
+                try {
+                    this.preparing.wait(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
         }
@@ -2750,6 +2752,10 @@ public class MessagingService extends Module {
      * @param handler
      */
     protected void prepare(StableCompletionHandler handler) {
+        if (this.preparing.get()) {
+            return;
+        }
+
         this.preparing.set(true);
 
         Self self = this.contactService.getSelf();
@@ -2759,42 +2765,44 @@ public class MessagingService extends Module {
 
         long now = System.currentTimeMillis();
 
-        MutableBoolean first = new MutableBoolean(false);
+//        MutableBoolean first = new MutableBoolean(false);
 
         // 查询本地最近消息时间
         long time = this.storage.queryLastMessageTime();
         if (0 == time) {
-            first.value = true;
+//            first.value = true;
             this.lastMessageTime = now - this.retrospectDuration;
         }
         else {
             this.lastMessageTime = time;
         }
 
-        if (!first.value) {
+        /*if (!first.value) {
             // 不是第一次获取数据或者未能连接到服务器，直接回调
             this.execute(() -> {
                 handler.handleCompletion(MessagingService.this);
             });
-        }
+        }*/
 
-        MutableBoolean gotMessages = new MutableBoolean(false);
-        MutableBoolean gotConversations = new MutableBoolean(false);
+        // 服务就绪，不需要等待服务器返回数据
+        this.ready.set(true);
+
+        AtomicBoolean gotMessages = new AtomicBoolean(false);
+        AtomicBoolean gotConversations = new AtomicBoolean(false);
 
         // 从服务器上拉取自上一次时间戳之后的所有消息
         this.queryRemoteMessage(this.lastMessageTime + 1, now, new StableCompletionHandler() {
             @Override
             public void handleCompletion(Module module) {
-                gotMessages.value = true;
-                if (gotConversations.value) {
+                gotMessages.set(true);
+                if (gotConversations.get()) {
                     preparing.set(false);
                     // 进行线程通知
                     synchronized (preparing) {
                         preparing.notifyAll();
                     }
-                    if (first.value) {
-                        handler.handleCompletion(MessagingService.this);
-                    }
+
+                    handler.handleCompletion(MessagingService.this);
                 }
             }
         });
@@ -2809,22 +2817,18 @@ public class MessagingService extends Module {
         this.queryRemoteConversations(limit, new StableCompletionHandler() {
             @Override
             public void handleCompletion(Module module) {
-                gotConversations.value = true;
-                if (gotMessages.value) {
+                gotConversations.set(true);
+                if (gotMessages.get()) {
                     preparing.set(false);
                     // 进行线程通知
                     synchronized (preparing) {
                         preparing.notifyAll();
                     }
-                    if (first.value) {
-                        handler.handleCompletion(MessagingService.this);
-                    }
+
+                    handler.handleCompletion(MessagingService.this);
                 }
             }
         });
-
-        // 服务就绪，不需要等待服务器返回数据
-        this.ready.set(true);
     }
 
     /**
@@ -3136,15 +3140,24 @@ public class MessagingService extends Module {
             if (null != list) {
                 executeOnMainThread(() -> {
                     for (MessageEventListener listener : list) {
-                        listener.onMessageRead(message, this);
+                        listener.onMessageStated(message, this);
                     }
                 });
             }
         }
         else if (MessagingServiceEvent.Retract.equals(eventName)) {
             Message message = (Message) event.getData();
-
             Long convId = message.isFromGroup() ? message.getSource() : message.getPartnerId();
+
+            List<MessageEventListener> listenerList = this.conversationMessageListeners.get(convId);
+            if (null != listenerList) {
+                executeOnMainThread(() -> {
+                    for (MessageEventListener listener : listenerList) {
+                        listener.onMessageStated(message, this);
+                    }
+                });
+            }
+
             Conversation conversation = getConversation(convId);
             if (null != conversation) {
                 // 处理最近一条消息

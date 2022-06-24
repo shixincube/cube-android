@@ -66,6 +66,8 @@
     <string name="tip_new_contact_first">您已添加了%1$s，现在可以开始聊天了。</string>
     <string name="tip_you_can_chat_in_this_group">您现在可以开始在群组“%1$s”里聊天了。</string>
     <string name="tip_conversation_invalid">当前会话已失效</string>
+    <string name="tip_message_retracted">消息已撤回</string>
+    <string name="tip_message_deleted">消息已删除</string>
     <string name="tip_burn_enabled">进入"阅后即焚"模式</string>
     <string name="tip_burn_disabled">退出"阅后即焚"模式</string>
     <string name="message_burned">消息已焚毁</string>

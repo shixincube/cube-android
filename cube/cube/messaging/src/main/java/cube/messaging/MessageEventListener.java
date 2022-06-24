@@ -66,14 +66,12 @@ public interface MessageEventListener {
     void onMessageSent(Message message, MessagingService service);
 
     /**
-     * 消息对方已读。
-     *
-     * 该回调方法仅在联系人之间一对一会话时有效。
+     * 消息逻辑状态改变。
      *
      * @param message 消息实体。
      * @param service 消息服务。
      */
-    void onMessageRead(Message message, MessagingService service);
+    void onMessageStated(Message message, MessagingService service);
 
     /**
      * 接收到新消息。

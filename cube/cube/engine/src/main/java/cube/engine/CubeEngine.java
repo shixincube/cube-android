@@ -40,7 +40,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import cube.auth.AuthService;
@@ -56,7 +55,6 @@ import cube.core.ModuleError;
 import cube.core.handler.KernelHandler;
 import cube.engine.handler.EngineHandler;
 import cube.engine.service.CubeService;
-import cube.engine.util.Promise;
 import cube.ferry.FerryService;
 import cube.fileprocessor.FileProcessor;
 import cube.filestorage.FileStorage;
@@ -126,9 +124,6 @@ public class CubeEngine implements Observer {
 
         LogUtils.i("CubeEngine", "#start : " + this.config.print());
 
-        // 线程池赋值
-        Promise.setExecutor(Executors.newCachedThreadPool());
-
         boolean processed = this.kernel.startup(context, this.config, new KernelHandler() {
             @Override
             public void handleCompletion(Kernel kernel) {
@@ -171,8 +166,6 @@ public class CubeEngine implements Observer {
 
         this.kernel.shutdown();
 
-        Promise.getExecutor().shutdown();
-
         this.getContactService().detachWithName(ContactServiceEvent.SelfLost, this);
         this.getAuthService().detachWithName(ResetAuthConfigEvent.NAME, this);
 
@@ -192,6 +185,21 @@ public class CubeEngine implements Observer {
         // 让最近的最前面的会话预加载数据
         // 预加载最近 10 个会话的消息，每个会话预加载 10 条
         this.getMessagingService().setPreloadConversationMessageNum(10, 10);
+
+        int count = 50;
+        while (!this.getMessagingService().isReady()) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            --count;
+            if (count <= 0) {
+                break;
+            }
+        }
+
         this.getMessagingService().getRecentConversations();
 
         // 加载当前联系人的根目录

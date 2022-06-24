@@ -60,6 +60,9 @@ public class MessagingPipelineListener implements PipelineListener {
         else if (MessagingAction.Read.equals(packet.name)) {
             this.service.triggerRead(packet.extractServiceData());
         }
+        else if (MessagingAction.Retract.equals(packet.name)) {
+            this.service.triggerRetract(packet.extractServiceData());
+        }
     }
 
     @Override

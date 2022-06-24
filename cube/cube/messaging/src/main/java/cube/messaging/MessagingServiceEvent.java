@@ -64,7 +64,7 @@ public final class MessagingServiceEvent {
     /**
      * 消息被撤回。
      */
-    public final static String Recall = "Recall";
+    public final static String Retract = "Retract";
 
     /**
      * 消息被删除。

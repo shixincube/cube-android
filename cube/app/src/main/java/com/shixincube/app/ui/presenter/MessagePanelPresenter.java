@@ -39,6 +39,7 @@ import android.widget.PopupMenu;
 
 import com.bumptech.glide.Glide;
 import com.shixincube.app.AppConsts;
+import com.shixincube.app.CubeApp;
 import com.shixincube.app.R;
 import com.shixincube.app.ui.activity.ImageShowcaseActivity;
 import com.shixincube.app.ui.activity.MessagePanelActivity;
@@ -62,6 +63,7 @@ import java.util.List;
 import cube.core.Module;
 import cube.core.ModuleError;
 import cube.core.handler.DefaultFailureHandler;
+import cube.core.handler.StableFailureHandler;
 import cube.engine.CubeEngine;
 import cube.engine.util.Future;
 import cube.engine.util.Promise;
@@ -561,19 +563,40 @@ public class MessagePanelPresenter extends BasePresenter<MessagePanelView>
         PopupMenu menu = new PopupMenu(activity, view);
         menu.getMenuInflater().inflate(R.menu.menu_message, menu.getMenu());
 
-        switch (message.getType()) {
-            case Text:
-                break;
-            case Image:
-            case File:
-                menu.getMenu().getItem(0).setVisible(false);
-                break;
-            case Burn:
-                menu.getMenu().getItem(0).setVisible(false);
-                menu.getMenu().getItem(1).setVisible(false);
-                break;
-            default:
-                break;
+        if (message.isSelfTyper()) {
+            switch (message.getType()) {
+                case Text:
+                    break;
+                case Image:
+                case File:
+                    menu.getMenu().getItem(0).setVisible(false);
+                    break;
+                case Burn:
+                    menu.getMenu().getItem(0).setVisible(false);
+                    menu.getMenu().getItem(1).setVisible(false);
+                    break;
+                default:
+                    break;
+            }
+        }
+        else {
+            // 他人消息不可撤回
+            menu.getMenu().getItem(2).setVisible(false);
+
+            switch (message.getType()) {
+                case Text:
+                    break;
+                case Image:
+                case File:
+                    menu.getMenu().getItem(0).setVisible(false);
+                    break;
+                case Burn:
+                    menu.getMenu().getItem(0).setVisible(false);
+                    menu.getMenu().getItem(1).setVisible(false);
+                    break;
+                default:
+                    break;
+            }
         }
 
         menu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
@@ -629,10 +652,34 @@ public class MessagePanelPresenter extends BasePresenter<MessagePanelView>
 
         // 转发消息
         CubeEngine.getInstance().getMessagingService().forwardMessage(message, target,
-                new DefaultMessageHandler<Message>(true) {
+                new DefaultMessageHandler<Message>(false) {
                     @Override
                     public void handleMessage(Message message) {
-                        UIUtils.showToast(UIUtils.getString(R.string.tip_forward_success));
+                        CubeApp.getMainThreadHandler().post(() -> {
+                            UIUtils.showToast(UIUtils.getString(R.string.tip_forward_success));
+                        });
+
+                        // 发送附言
+                        if (addition.length() > 0) {
+                            HyperTextMessage textMessage = new HyperTextMessage(addition);
+                            CubeEngine.getInstance().getMessagingService().sendMessage(target, textMessage,
+                                    new SimpleSendHandler(false) {
+                                        @Override
+                                        public void handleSending(Object destination, Message message) {
+                                            // Nothing
+                                        }
+
+                                        @Override
+                                        public void handleSent(Object destination, Message message) {
+                                            // Nothing
+                                        }
+                                    }, new StableFailureHandler() {
+                                        @Override
+                                        public void handleFailure(Module module, ModuleError error) {
+                                            // Nothing
+                                        }
+                                    });
+                        }
                     }
                 }, new DefaultFailureHandler(true) {
                     @Override

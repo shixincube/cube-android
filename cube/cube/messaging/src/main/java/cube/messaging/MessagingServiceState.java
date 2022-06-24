@@ -73,6 +73,9 @@ public enum MessagingServiceState {
     /** 禁止操作。 */
     Forbidden(101),
 
+    /** 服务未就绪。 */
+    NotReady(102),
+
     /** 不能被执行的操作。 */
     IllegalOperation(103),
 

@@ -87,17 +87,15 @@ public class MessagingObserver implements Observer {
 
     private void fireContactEvent(ObservableEvent event) {
         if (ContactServiceEvent.SelfReady.equals(event.name)) {
-            synchronized (this.service) {
-                if (!this.service.ready && !this.service.preparing.get()) {
-                    // 准备数据
-                    this.service.prepare(new StableCompletionHandler() {
-                        @Override
-                        public void handleCompletion(Module module) {
-                            ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Ready, service);
-                            service.notifyObservers(event);
-                        }
-                    });
-                }
+            if (!this.service.ready.get() && !this.service.preparing.get()) {
+                // 准备数据
+                this.service.prepare(new StableCompletionHandler() {
+                    @Override
+                    public void handleCompletion(Module module) {
+                        ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Ready, service);
+                        service.notifyObservers(event);
+                    }
+                });
             }
         }
         else if (ContactServiceEvent.GroupDismissed.equals(event.name)) {
@@ -160,10 +158,8 @@ public class MessagingObserver implements Observer {
         }
         else if (ContactServiceEvent.SelfLost.equals(event.name)) {
             LogUtils.d(TAG, "#fireContactEvent - " + event.name);
-            synchronized (this.service) {
-                if (this.service.ready) {
-                    this.service.dismiss();
-                }
+            if (this.service.ready.get()) {
+                this.service.dismiss();
             }
         }
     }

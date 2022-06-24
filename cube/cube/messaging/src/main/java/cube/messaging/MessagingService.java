@@ -134,7 +134,7 @@ public class MessagingService extends Module {
 
     protected AtomicBoolean preparing;
 
-    protected boolean ready;
+    protected AtomicBoolean ready;
 
     private long lastMessageTime;
 
@@ -173,13 +173,18 @@ public class MessagingService extends Module {
      */
     protected List<EraseController> eraseControllers;
 
+    /**
+     * 撤回消息的时限。
+     */
+    private long retractLimited = 2 * 60 * 1000;
+
     public MessagingService() {
         super(MessagingService.NAME);
         this.pipelineListener = new MessagingPipelineListener(this);
         this.storage = new MessagingStorage(this);
         this.observer = new MessagingObserver(this);
         this.preparing = new AtomicBoolean(false);
-        this.ready = false;
+        this.ready = new AtomicBoolean(false);
         this.lastMessageTime = 0;
         this.conversations = new Vector<>();
         this.conversationMessageListMap = new ConcurrentHashMap<>();
@@ -218,20 +223,6 @@ public class MessagingService extends Module {
         this.contactService = (ContactService) this.kernel.getModule(ContactService.NAME);
         this.contactService.attach(this.observer);
 
-        synchronized (this) {
-            if (null != this.contactService.getSelf() && !this.ready && !this.preparing.get()) {
-                this.execute(() -> {
-                    prepare(new StableCompletionHandler() {
-                        @Override
-                        public void handleCompletion(Module module) {
-                            ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Ready, MessagingService.this);
-                            notifyObservers(event);
-                        }
-                    });
-                });
-            }
-        }
-
         ThumbnailDownloadManager.getInstance().setExecutor(this.kernel.getExecutor());
 
         this.kernel.getInspector().depositList(this.conversations);
@@ -241,6 +232,19 @@ public class MessagingService extends Module {
         Module ferryModule = getKernel().getModule("Ferry");
         if (null != ferryModule) {
             ferryModule.attachWithName(MessagingObserver.FerryCleanup, this.observer);
+        }
+
+        // 判断是否需要执行准备流程
+        if (null != this.contactService.getSelf() && !this.ready.get() && !this.preparing.get()) {
+            this.execute(() -> {
+                prepare(new StableCompletionHandler() {
+                    @Override
+                    public void handleCompletion(Module module) {
+                        ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Ready, MessagingService.this);
+                        notifyObservers(event);
+                    }
+                });
+            });
         }
 
         return true;
@@ -280,18 +284,25 @@ public class MessagingService extends Module {
         this.conversations.clear();
         this.conversationMessageListMap.clear();
 
-        this.ready = false;
-        this.preparing.set(false);
+        if (this.preparing.get()) {
+            synchronized (this.preparing) {
+                this.preparing.notifyAll();
+            }
+
+            this.preparing.set(false);
+        }
 
         Module ferryModule = getKernel().getModule("Ferry");
         if (null != ferryModule) {
             ferryModule.detachWithName(MessagingObserver.FerryCleanup, this.observer);
         }
+
+        this.ready.set(false);
     }
 
     @Override
     public boolean isReady() {
-        return this.ready;
+        return this.ready.get();
     }
 
     @Override
@@ -405,12 +416,14 @@ public class MessagingService extends Module {
             return null;
         }
 
-        if (!this.ready) {
-            synchronized (this.preparing) {
-                try {
-                    this.preparing.wait(5000L);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+        if (!this.ready.get()) {
+            if (this.preparing.get()) {
+                synchronized (this.preparing) {
+                    try {
+                        this.preparing.wait(5000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }
@@ -1645,7 +1658,7 @@ public class MessagingService extends Module {
 
         synchronized (mutex) {
             try {
-                mutex.wait(30L * 1000L);
+                mutex.wait(30 * 1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -2195,11 +2208,11 @@ public class MessagingService extends Module {
     /**
      * 转发消息。
      *
-     * @param message
-     * @param target
-     * @param successHandler
-     * @param failureHandler
-     * @param <T>
+     * @param message 指定待转发的消息。
+     * @param target 指定转发的目标会话。
+     * @param successHandler 指定操作成功回调句柄。
+     * @param failureHandler 指定操作失败回调句柄。
+     * @param <T> 消息实例类型。
      */
     public <T extends Message> void forwardMessage(T message, Conversation target,
                                                    MessageHandler<T> successHandler,
@@ -2284,6 +2297,98 @@ public class MessagingService extends Module {
                 }
             }
         });
+    }
+
+    /**
+     * 撤回消息。
+     *
+     * @param message 指定待撤回的消息。
+     * @param successHandler 指定操作成功回调句柄。
+     * @param failureHandler 指定操作失败回调句柄。
+     * @param <T> 消息实例类型。
+     */
+    public <T extends Message> void retractMessage(T message,
+                                                   MessageHandler<T> successHandler,
+                                                   FailureHandler failureHandler) {
+        if (!this.isReady()) {
+            ModuleError error = new ModuleError(NAME, MessagingServiceState.NotReady.code);
+            execute(failureHandler, error);
+            return;
+        }
+
+        if (!message.isSelfTyper()) {
+            // 不能撤回别人的消息
+            ModuleError error = new ModuleError(NAME, MessagingServiceState.Forbidden.code);
+            execute(failureHandler, error);
+            return;
+        }
+
+        // 判断时限
+        if (System.currentTimeMillis() - message.getRemoteTimestamp() > this.retractLimited) {
+            // 超过时限不允许撤回
+            ModuleError error = new ModuleError(NAME, MessagingServiceState.DataTimeout.code);
+            execute(failureHandler, error);
+            return;
+        }
+
+        if (!this.pipeline.isReady()) {
+            ModuleError error = new ModuleError(NAME, MessagingServiceState.PipelineFault.code);
+            execute(failureHandler, error);
+            return;
+        }
+
+        JSONObject requestData = new JSONObject();
+        try {
+            requestData.put("contactId", this.getSelf().id.longValue());
+            requestData.put("messageId", message.id.longValue());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        Packet requestPacket = new Packet(MessagingAction.Retract, requestData);
+        this.pipeline.send(NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (PipelineState.Ok.code != packet.state.code) {
+                    ModuleError error = new ModuleError(NAME, MessagingServiceState.ServerFault.code);
+                    execute(failureHandler, error);
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (MessagingServiceState.Ok.code != stateCode) {
+                    ModuleError error = new ModuleError(NAME, stateCode);
+                    execute(failureHandler, error);
+                    return;
+                }
+
+                // 修改消息状态
+                message.setState(MessageState.Retracted);
+
+                if (successHandler.isInMainThread()) {
+                    executeOnMainThread(() -> {
+                        successHandler.handleMessage(message);
+                    });
+                }
+                else {
+                    successHandler.handleMessage(message);
+                }
+            }
+        });
+    }
+
+    /**
+     * 双向撤回消息。
+     *
+     * @param message 指定待撤回的消息。
+     * @param successHandler 指定操作成功回调句柄。
+     * @param failureHandler 指定操作失败回调句柄。
+     * @param <T> 消息实例类型。
+     */
+    public <T extends Message> void retractBothMessage(T message,
+                                                       MessageHandler<T> successHandler,
+                                                       FailureHandler failureHandler) {
+
     }
 
     /**
@@ -2666,14 +2771,6 @@ public class MessagingService extends Module {
             this.lastMessageTime = time;
         }
 
-        // 服务就绪
-        this.ready = true;
-
-        // 进行线程通知
-        synchronized (this.preparing) {
-            this.preparing.notifyAll();
-        }
-
         if (!first.value) {
             // 不是第一次获取数据或者未能连接到服务器，直接回调
             this.execute(() -> {
@@ -2691,6 +2788,10 @@ public class MessagingService extends Module {
                 gotMessages.value = true;
                 if (gotConversations.value) {
                     preparing.set(false);
+                    // 进行线程通知
+                    synchronized (preparing) {
+                        preparing.notifyAll();
+                    }
                     if (first.value) {
                         handler.handleCompletion(MessagingService.this);
                     }
@@ -2711,12 +2812,19 @@ public class MessagingService extends Module {
                 gotConversations.value = true;
                 if (gotMessages.value) {
                     preparing.set(false);
+                    // 进行线程通知
+                    synchronized (preparing) {
+                        preparing.notifyAll();
+                    }
                     if (first.value) {
                         handler.handleCompletion(MessagingService.this);
                     }
                 }
             }
         });
+
+        // 服务就绪，不需要等待服务器返回数据
+        this.ready.set(true);
     }
 
     /**
@@ -2736,7 +2844,7 @@ public class MessagingService extends Module {
             this.eraseControllers.clear();
         }
 
-        this.ready = false;
+        this.ready.set(false);
 
         this.conversations.clear();
         this.conversationMessageListMap.clear();
@@ -3033,6 +3141,56 @@ public class MessagingService extends Module {
                 });
             }
         }
+        else if (MessagingServiceEvent.Retract.equals(eventName)) {
+            Message message = (Message) event.getData();
+
+            Long convId = message.isFromGroup() ? message.getSource() : message.getPartnerId();
+            Conversation conversation = getConversation(convId);
+            if (null != conversation) {
+                // 处理最近一条消息
+                Message recentMessage = conversation.getRecentMessage();
+                if (recentMessage.id.equals(message.id)) {
+                    recentMessage.setState(message.getState());
+
+                    // 重置最近消息
+                    MessageList list = this.conversationMessageListMap.get(convId);
+                    if (null != list) {
+                        for (int i = list.messages.size() - 1; i >= 0; --i) {
+                            Message msg = list.messages.get(i);
+                            if (msg.id.equals(message.id)) {
+                                // 删除已经撤回的消息
+                                list.messages.remove(i);
+                                break;
+                            }
+                        }
+
+                        if (list.messages.size() > 0) {
+                            recentMessage = list.messages.get(list.messages.size() - 1);
+                        }
+                        else {
+                            if (conversation.getType() == ConversationType.Contact) {
+                                recentMessage = new NullMessage(0L, conversation.getPivotalId(), 0L);
+                            }
+                            else {
+                                recentMessage = new NullMessage(0L, 0L, conversation.getPivotalId());
+                            }
+                        }
+
+                        // 赋值
+                        conversation.setRecentMessage(recentMessage);
+
+                        // 更新最近消息
+                        this.storage.updateRecentMessage(conversation);
+                    }
+                }
+
+                if (null != this.conversationEventListener) {
+                    executeOnMainThread(() -> {
+                        this.conversationEventListener.onConversationMessageUpdated(conversation, this);
+                    });
+                }
+            }
+        }
         else if (MessagingServiceEvent.ConversationUpdated.equals(eventName)) {
             if (null != this.conversationEventListener) {
                 executeOnMainThread(() -> {
@@ -3216,6 +3374,42 @@ public class MessagingService extends Module {
 
                     // 更新数据库
                     storage.updateMessage(copy.getId(), MessageState.Sent, copy.getState());
+                }
+            });
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    protected void triggerRetract(JSONObject data) {
+        try {
+            Message copy = new Message(this, data);
+
+            this.execute(() -> {
+                Message message = this.findMessageInMemory(copy.getId());
+                if (null != message) {
+                    if (LogUtils.isDebugLevel()) {
+                        LogUtils.d(TAG, "#triggerRetract - will notify event: "
+                                + message.getId() + " - state: " + copy.getState().code);
+                    }
+
+                    // 更新数据库
+                    storage.updateMessage(message.getId(), message.getState(), copy.getState());
+
+                    // 修改状态
+                    message.setState(copy.getState());
+
+                    ObservableEvent event = new ObservableEvent(MessagingServiceEvent.Retract, message);
+                    notifyObservers(event);
+                }
+                else {
+                    if (LogUtils.isDebugLevel()) {
+                        LogUtils.d(TAG, "#triggerRetract - no event: " + message.getId());
+                    }
+
+                    // 更新数据库
+                    storage.updateMessage(copy.getId(), MessageState.Sent, copy.getState());
+                    storage.updateMessage(copy.getId(), MessageState.Read, copy.getState());
                 }
             });
         } catch (JSONException e) {

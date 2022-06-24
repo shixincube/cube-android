@@ -74,7 +74,8 @@
                 android:layout_height="wrap_content"
                 android:padding="8dp"
                 android:textColor="?attr/colorTextSecondary"
-                android:textSize="12sp"/>
+                android:textSize="12sp"
+                android:maxLines="5"/>
 
             <ImageView
                 android:id="@+id/tvImageContent"

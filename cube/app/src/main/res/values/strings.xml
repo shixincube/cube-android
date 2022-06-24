@@ -77,8 +77,11 @@
     <string name="menu_delete">删除</string>
 
     <!-- 转发消息界面 -->
+    <string name="tip_load_message_failed">加载消息数据出错</string>
     <string name="send_to">发送给：</string>
     <string name="leave_a_message_for_a_friend">给朋友留言</string>
+    <string name="tip_forward_failed">转发消息出错</string>
+    <string name="tip_forward_success">消息已转发</string>
 
     <!-- 联系人界面 -->
     <string name="new_contact">新的联系人</string>

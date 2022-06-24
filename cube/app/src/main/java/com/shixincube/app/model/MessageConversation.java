@@ -39,12 +39,6 @@ import cube.messaging.model.ConversationType;
 public class MessageConversation {
 
     /**
-     * 当前活跃的消息会话。
-     */
-    public static Conversation ActiveConversation = null;
-
-
-    /**
      * 对应的会话。
      */
     public final Conversation conversation;

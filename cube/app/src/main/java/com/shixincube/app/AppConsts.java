@@ -66,7 +66,7 @@ public final class AppConsts {
     /**
      * App 服务器地址。
      */
-    public final static String APP_SERVER_ADDRESS = "172.16.7.156";
+    public final static String APP_SERVER_ADDRESS = "172.16.7.175";
 
     /**
      * 默认国际电话区号。

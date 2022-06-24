@@ -786,6 +786,21 @@ public class MessagingService extends Module {
      * @param failureHandler
      */
     public void markRead(Message message, MessageHandler successHandler, FailureHandler failureHandler) {
+        // 判断消息的发件人，如果发件人是当前联系人，则忽略操作
+        if (message.isSelfTyper()) {
+            if (successHandler.isInMainThread()) {
+                executeOnMainThread(() -> {
+                    successHandler.handleMessage(message);
+                });
+            }
+            else {
+                execute(() -> {
+                    successHandler.handleMessage(message);
+                });
+            }
+            return;
+        }
+
         if (!this.pipeline.isReady()) {
             ModuleError error = new ModuleError(NAME, MessagingServiceState.PipelineFault.code);
             error.data = message;

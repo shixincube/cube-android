@@ -40,7 +40,6 @@ import android.widget.PopupMenu;
 import com.bumptech.glide.Glide;
 import com.shixincube.app.AppConsts;
 import com.shixincube.app.R;
-import com.shixincube.app.model.MessageConversation;
 import com.shixincube.app.ui.activity.ImageShowcaseActivity;
 import com.shixincube.app.ui.activity.MessagePanelActivity;
 import com.shixincube.app.ui.adapter.MessagePanelAdapter;
@@ -91,7 +90,15 @@ import cube.util.LogUtils;
 /**
  * 消息面板。
  */
-public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> implements OnItemClickListener, MessageEventListener {
+public class MessagePanelPresenter extends BasePresenter<MessagePanelView>
+        implements OnItemClickListener, MessageEventListener {
+
+    private final static String TAG = MessagePanelPresenter.class.getSimpleName();
+
+    /**
+     * 当前活跃的消息会话。
+     */
+    public static Conversation ActiveConversation = null;
 
     private int pageSize = 10;
 
@@ -361,8 +368,7 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
                 public void handleSending(Conversation destination, FileMessage message) {
                     long processedSize = message.getProcessedSize();
                     if (processedSize >= 0) {
-                        LogUtils.d(this.getClass().getSimpleName(),
-                                "#sendFileMessage - handleSending : " +
+                        LogUtils.d(TAG, "#sendFileMessage - handleSending : " +
                                 processedSize + "/" + message.getFileSize());
                     }
                 }
@@ -377,8 +383,7 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
             }, new DefaultFailureHandler(true) {
                 @Override
                 public void handleFailure(Module module, ModuleError error) {
-                    LogUtils.i(this.getClass().getSimpleName(),
-                            "#sendFileMessage - handleFailure : " + error.code);
+                    LogUtils.i(TAG, "#sendFileMessage - handleFailure : " + error.code);
 
                     // 更新状态
                     updateMessageStatus(fileMessage);
@@ -462,12 +467,12 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
         }).then(new Future<Message>() {
             @Override
             public void come(Message data) {
-                LogUtils.d(AppConsts.TAG, "#asyncMarkRead - success");
+                LogUtils.d(TAG, "#asyncMarkRead - success");
             }
         }).catchReject(new Future<Message>() {
             @Override
             public void come(Message data) {
-                LogUtils.d(AppConsts.TAG, "#asyncMarkRead - failure");
+                LogUtils.d(TAG, "#asyncMarkRead - failure");
             }
         }).launch();
     }
@@ -580,7 +585,7 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
                         copyMessageToClipboard(message);
                         break;
                     case R.id.menuForward:
-                        ((MessagePanelActivity) activity).jumpConversationPicker(message);
+                        ((MessagePanelActivity) activity).showConversationPickerForForward(message);
                         break;
                     case R.id.menuRetract:
                         break;
@@ -611,19 +616,30 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
         }
     }
 
-    public void forward(Conversation target, long messageId) {
-//        CubeEngine.getInstance().getMessagingService().forwardMessage(message, null,
-//                new DefaultMessageHandler<Message>() {
-//                    @Override
-//                    public void handleMessage(Message message) {
-//
-//                    }
-//                }, new DefaultFailureHandler() {
-//                    @Override
-//                    public void handleFailure(Module module, ModuleError error) {
-//
-//                    }
-//                });
+    /**
+     * 转发消息。
+     *
+     * @param message
+     * @param target
+     * @param addition
+     */
+    public void forward(Message message, Conversation target, String addition) {
+        LogUtils.d(TAG, "#forward - " + message.id + " -> " + target.getDisplayName()
+                + " - " + addition);
+
+        // 转发消息
+        CubeEngine.getInstance().getMessagingService().forwardMessage(message, target,
+                new DefaultMessageHandler<Message>(true) {
+                    @Override
+                    public void handleMessage(Message message) {
+                        UIUtils.showToast(UIUtils.getString(R.string.tip_forward_success));
+                    }
+                }, new DefaultFailureHandler(true) {
+                    @Override
+                    public void handleFailure(Module module, ModuleError error) {
+                        UIUtils.showToast(UIUtils.getString(R.string.tip_forward_failed));
+                    }
+                });
     }
 
     private void openBurnMessage(ViewHolder helper, BurnMessage burnMessage) {
@@ -714,8 +730,8 @@ public class  MessagePanelPresenter extends BasePresenter<MessagePanelView> impl
         }
 
         // 如果当前会话是活跃会话，将接收到的消息标记为已读
-        if (null != MessageConversation.ActiveConversation
-            && MessageConversation.ActiveConversation.equals(this.conversation)) {
+        if (null != MessagePanelPresenter.ActiveConversation
+            && MessagePanelPresenter.ActiveConversation.equals(this.conversation)) {
             this.asyncMarkRead(message);
         }
     }

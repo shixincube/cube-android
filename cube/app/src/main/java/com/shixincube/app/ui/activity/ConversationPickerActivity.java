@@ -32,6 +32,7 @@ import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.PopupWindow;
 import android.widget.TextView;
@@ -60,6 +61,8 @@ import cube.engine.util.PromiseHandler;
 import cube.messaging.MessagingService;
 import cube.messaging.model.Conversation;
 import cube.messaging.model.ConversationType;
+import cube.messaging.model.Message;
+import cube.messaging.model.MessageType;
 import cube.util.LogUtils;
 
 /**
@@ -70,17 +73,23 @@ public class ConversationPickerActivity extends BaseActivity {
     public final static int RESULT_BACK = 101;
 
     public final static String EXTRA_MESSAGE_ID = "messageId";
+    public final static String EXTRA_CONVERSATION_ID = "conversationId";
+    public final static String EXTRA_CONVERSATION_ID_ARRAY = "conversationIdArray";
+    public final static String EXTRA_ADDITION_TEXT = "additionText";
 
     @BindView(R.id.rvConversations)
     RecyclerView conversationListView;
 
     private long messageId;
+    private Message message;
 
     private boolean singleMode;
 
     private ConversationAdapter adapter;
 
     private List<MessageConversation> messageConversations;
+
+    private Conversation selectedConversation;
 
     public ConversationPickerActivity() {
         super();
@@ -169,9 +178,17 @@ public class ConversationPickerActivity extends BaseActivity {
             PopupWindowUtils.closeOutsideTouchable(popupWindow);
 
             windowView.findViewById(R.id.btnCancel).setOnClickListener((view) -> {
+                selectedConversation = null;
                 popupWindow.dismiss();
             });
             windowView.findViewById(R.id.btnSend).setOnClickListener((view) -> {
+                selectedConversation = conversation;
+                String additionText = ((EditText) windowView.findViewById(R.id.etExtraText)).getText().toString().trim();
+
+                runOnUiThread(() -> {
+                    submit(additionText);
+                });
+
                 popupWindow.dismiss();
             });
 
@@ -187,8 +204,19 @@ public class ConversationPickerActivity extends BaseActivity {
 
             ((TextView) windowView.findViewById(R.id.tvDisplayName)).setText(conversation.getDisplayName());
 
-            // 消息内容
-            CubeEngine.getInstance().getMessagingService().getMessageById(messageId);
+            TextView textContentView = (TextView) windowView.findViewById(R.id.tvTextContent);
+            ImageView imageContentView = (ImageView) windowView.findViewById(R.id.tvImageContent);
+
+            if (message.getType() == MessageType.Text) {
+                textContentView.setText(message.getSummary());
+            }
+            else if (message.getType() == MessageType.Image) {
+                textContentView.setVisibility(View.GONE);
+                imageContentView.setVisibility(View.VISIBLE);
+            }
+            else if (message.getType() == MessageType.File) {
+                // TODO
+            }
         }
     }
 
@@ -197,6 +225,22 @@ public class ConversationPickerActivity extends BaseActivity {
             @Override
             public void emit(PromiseFuture<List<MessageConversation>> promise) {
                 MessagingService messaging = CubeEngine.getInstance().getMessagingService();
+
+                // 消息内容
+                message = messaging.getMessageById(messageId);
+                if (null == message) {
+                    runOnUiThread(() -> {
+                        UIUtils.showToast(UIUtils.getString(R.string.tip_load_message_failed));
+
+                        Intent intent = new Intent();
+                        intent.putExtra(EXTRA_MESSAGE_ID, messageId);
+                        setResult(RESULT_BACK, intent);
+                        finish();
+                    });
+
+                    promise.reject(null);
+                    return;
+                }
 
                 // 从引擎获取最近会话列表
                 List<Conversation> list = messaging.getRecentConversations();
@@ -226,6 +270,20 @@ public class ConversationPickerActivity extends BaseActivity {
                 LogUtils.w("ConversationPickerActivity", throwable);
             }
         }).launch();
+    }
+
+    private void submit(String additionText) {
+        if (this.singleMode) {
+            Intent intent = new Intent();
+            intent.putExtra(EXTRA_MESSAGE_ID, this.messageId);
+            intent.putExtra(EXTRA_CONVERSATION_ID, this.selectedConversation.getId());
+            intent.putExtra(EXTRA_ADDITION_TEXT, additionText);
+            setResult(RESULT_OK, intent);
+            finish();
+        }
+        else {
+
+        }
     }
 
     protected class ConversationAdapter extends AdapterForRecyclerView<MessageConversation> {

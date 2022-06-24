@@ -52,7 +52,6 @@ import androidx.annotation.NonNull;
 
 import com.shixincube.app.CubeApp;
 import com.shixincube.app.R;
-import com.shixincube.app.model.MessageConversation;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.presenter.MessagePanelPresenter;
 import com.shixincube.app.ui.view.MessagePanelView;
@@ -86,6 +85,7 @@ import cube.engine.CubeEngine;
 import cube.engine.service.FloatingVideoWindowBinder;
 import cube.engine.service.FloatingVideoWindowListener;
 import cube.engine.service.FloatingVideoWindowService;
+import cube.messaging.MessagingService;
 import cube.messaging.model.Conversation;
 import cube.messaging.model.ConversationState;
 import cube.messaging.model.ConversationType;
@@ -110,7 +110,7 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
     public final static int REQUEST_TAKE_PHOTO = 2000;
     public final static int REQUEST_FILE_PICKER = 6000;
 
-    public final static int REQUEST_CONVERSATION_PICKER = 7000;
+    public final static int REQUEST_FORWARD = 7000;
 
     public final static int REQUEST_DETAILS = 8000;
 
@@ -429,10 +429,10 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
     }
 
     @SuppressWarnings("deprecation")
-    public void jumpConversationPicker(Message message) {
+    public void showConversationPickerForForward(Message message) {
         Intent intent = new Intent(this, ConversationPickerActivity.class);
         intent.putExtra(ConversationPickerActivity.EXTRA_MESSAGE_ID, message.getId().longValue());
-        startActivityForResult(intent, REQUEST_CONVERSATION_PICKER);
+        startActivityForResult(intent, REQUEST_FORWARD);
     }
 
     @Override
@@ -444,9 +444,9 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
         else {
             super.onBackPressed();
 
-            if (null != MessageConversation.ActiveConversation) {
-                if (MessageConversation.ActiveConversation.equals(this.conversation)) {
-                    MessageConversation.ActiveConversation = null;
+            if (null != MessagePanelPresenter.ActiveConversation) {
+                if (MessagePanelPresenter.ActiveConversation.equals(this.conversation)) {
+                    MessagePanelPresenter.ActiveConversation = null;
                 }
             }
         }
@@ -458,7 +458,7 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
 
         setToolbarTitle(this.conversation.getDisplayName());
 
-        MessageConversation.ActiveConversation = this.conversation;
+        MessagePanelPresenter.ActiveConversation = this.conversation;
     }
 
     @Override
@@ -477,9 +477,9 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
 
         this.softwareKeyboard.destroy();
 
-        if (null != MessageConversation.ActiveConversation) {
-            if (MessageConversation.ActiveConversation.equals(this.conversation)) {
-                MessageConversation.ActiveConversation = null;
+        if (null != MessagePanelPresenter.ActiveConversation) {
+            if (MessagePanelPresenter.ActiveConversation.equals(this.conversation)) {
+                MessagePanelPresenter.ActiveConversation = null;
             }
         }
     }
@@ -520,9 +520,26 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
                     // TODO 文件处理
                 }
                 break;
-            case REQUEST_CONVERSATION_PICKER:
+            case REQUEST_FORWARD:
                 if (resultCode == RESULT_OK) {
-                    
+                    // 转发消息
+                    if (data.hasExtra(ConversationPickerActivity.EXTRA_CONVERSATION_ID)) {
+                        // 单选
+                        MessagingService service = CubeEngine.getInstance().getMessagingService();
+                        // 消息
+                        Message message = service.getMessageById(
+                                data.getLongExtra(ConversationPickerActivity.EXTRA_MESSAGE_ID, 0));
+                        // 目标
+                        Conversation conversation = service.getConversation(
+                                data.getLongExtra(ConversationPickerActivity.EXTRA_CONVERSATION_ID, 0));
+                        // 附言
+                        String addition = data.getStringExtra(ConversationPickerActivity.EXTRA_ADDITION_TEXT);
+                        presenter.forward(message, conversation, addition);
+                    }
+                    else {
+                        // 多选
+                        // TODO
+                    }
                 }
                 break;
             case REQUEST_DETAILS:

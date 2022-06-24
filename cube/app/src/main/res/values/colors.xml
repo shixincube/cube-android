@@ -42,7 +42,7 @@
     <color name="theme_accent_bg">#D1D1D1</color>
     <color name="theme_accent_bg_night">#595959</color>
 
-    <color name="theme_window_bg">#FEFEFE</color>
+    <color name="theme_window_bg">#E1E1E1</color>
     <color name="theme_window_bg_night">#070707</color>
 
     <color name="text">#010101</color>

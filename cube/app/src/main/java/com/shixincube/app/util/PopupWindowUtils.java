@@ -137,7 +137,7 @@ public final class PopupWindowUtils {
      * @param activity
      */
     public static void makeWindowDark(Activity activity) {
-        makeWindowDark(activity, 0.6f);
+        makeWindowDark(activity, 0.5f);
     }
 
     /**

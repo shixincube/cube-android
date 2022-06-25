@@ -166,7 +166,7 @@ public class MessagingService extends Module {
     /**
      * 正在发送的消息清单。
      */
-    private Queue<Message> sendingList;
+    private Queue<Message> sendingQueue;
 
     /**
      * 擦除控制器。
@@ -188,7 +188,7 @@ public class MessagingService extends Module {
         this.lastMessageTime = 0;
         this.conversations = new Vector<>();
         this.conversationMessageListMap = new ConcurrentHashMap<>();
-        this.sendingList = new ConcurrentLinkedQueue<>();
+        this.sendingQueue = new ConcurrentLinkedQueue<>();
         this.preloadConversationRecentNum = 5;
         this.preloadConversationMessageNum = 10;
         this.capsuleCache = new ConcurrentHashMap<>();
@@ -279,7 +279,7 @@ public class MessagingService extends Module {
         // 关闭存储
         this.storage.close();
 
-        this.sendingList.clear();
+        this.sendingQueue.clear();
 
         this.conversations.clear();
         this.conversationMessageListMap.clear();
@@ -2336,6 +2336,11 @@ public class MessagingService extends Module {
             return;
         }
 
+        if (this.removeSendingMessage(message)) {
+            // 删除正在发送的消息
+            LogUtils.i(TAG, "#retractMessage - remove sending message: " + message.id);
+        }
+
         // 判断时限
         if (System.currentTimeMillis() - message.getRemoteTimestamp() > this.retractLimited) {
             // 超过时限不允许撤回
@@ -2407,6 +2412,11 @@ public class MessagingService extends Module {
             return;
         }
 
+        if (this.removeSendingMessage(message)) {
+            // 删除正在发送的消息
+            LogUtils.i(TAG, "#retractBothMessage - remove sending message: " + message.id);
+        }
+
         if (!this.pipeline.isReady()) {
             ModuleError error = new ModuleError(NAME, MessagingServiceState.PipelineFault.code);
             execute(failureHandler, error);
@@ -2468,6 +2478,11 @@ public class MessagingService extends Module {
             ModuleError error = new ModuleError(NAME, MessagingServiceState.NotReady.code);
             execute(failureHandler, error);
             return;
+        }
+
+        if (this.removeSendingMessage(message)) {
+            // 删除正在发送的消息
+            LogUtils.i(TAG, "#deleteMessage - remove sending message: " + message.id);
         }
 
         if (!this.pipeline.isReady()) {
@@ -2639,7 +2654,7 @@ public class MessagingService extends Module {
                              SendHandler sendHandler,
                              FailureHandler failureHandler) {
         // 加入正在发送队列
-        this.sendingList.offer(message);
+        this.sendingQueue.offer(message);
 
         this.execute(() -> {
             if (LogUtils.isDebugLevel()) {
@@ -2941,15 +2956,17 @@ public class MessagingService extends Module {
         });
     }
 
-    private void removeSendingMessage(Message message) {
-        Iterator<Message> iterator = this.sendingList.iterator();
+    private boolean removeSendingMessage(Message message) {
+        Iterator<Message> iterator = this.sendingQueue.iterator();
         while (iterator.hasNext()) {
             Message current = iterator.next();
             if (current.id.longValue() == message.id.longValue()) {
                 iterator.remove();
-                break;
+                return true;
             }
         }
+
+        return false;
     }
 
     private void uploadAttachment(FileAttachment attachment, StableUploadFileHandler handler) {
@@ -3069,7 +3086,7 @@ public class MessagingService extends Module {
 
         this.capsuleCache.clear();
 
-        this.sendingList.clear();
+        this.sendingQueue.clear();
 
         this.storage.close();
     }

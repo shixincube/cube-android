@@ -68,6 +68,9 @@
     <string name="tip_conversation_invalid">当前会话已失效</string>
     <string name="tip_message_retracted">消息已撤回</string>
     <string name="tip_message_deleted">消息已删除</string>
+    <string name="tip_message_retract_failed_timeout">消息已发出超过2分钟，无法撤回</string>
+    <string name="tip_message_retract_failed">消息撤回失败</string>
+    <string name="tip_message_delete_failed">消息删除失败</string>
     <string name="tip_burn_enabled">进入"阅后即焚"模式</string>
     <string name="tip_burn_disabled">退出"阅后即焚"模式</string>
     <string name="message_burned">消息已焚毁</string>

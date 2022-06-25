@@ -77,6 +77,7 @@ import cube.engine.util.PromiseHandler;
 import cube.messaging.MessageEventListener;
 import cube.messaging.MessageListResult;
 import cube.messaging.MessagingService;
+import cube.messaging.MessagingServiceState;
 import cube.messaging.extension.BurnMessage;
 import cube.messaging.extension.FileMessage;
 import cube.messaging.extension.HyperTextMessage;
@@ -656,8 +657,10 @@ public class MessagePanelPresenter extends BasePresenter<MessagePanelView>
                         retractMessage(message);
                         break;
                     case R.id.menuRetractBoth:
+                        retractBothMessage(message);
                         break;
                     case R.id.menuDelete:
+                        deleteMessage(message);
                         break;
                     default:
                         break;
@@ -684,17 +687,41 @@ public class MessagePanelPresenter extends BasePresenter<MessagePanelView>
 
     private void retractMessage(Message message) {
         CubeEngine.getInstance().getMessagingService().retractMessage(message,
-                new DefaultMessageHandler<Message>(true) {
-            @Override
-            public void handleMessage(Message message) {
+                new DefaultMessageHandler<Message>(false) {
+                    @Override
+                    public void handleMessage(Message message) {
+                        // Nothing
+                    }
+                }, new DefaultFailureHandler(true) {
+                    @Override
+                    public void handleFailure(Module module, ModuleError error) {
+                        if (error.code == MessagingServiceState.DataTimeout.code) {
+                            UIUtils.showToast(UIUtils.getString(R.string.tip_message_retract_failed_timeout));
+                        }
+                        else {
+                            UIUtils.showToast(UIUtils.getString(R.string.tip_message_retract_failed));
+                        }
+                    }
+                });
+    }
 
-            }
-        }, new DefaultFailureHandler(true) {
-            @Override
-            public void handleFailure(Module module, ModuleError error) {
+    private void retractBothMessage(Message message) {
 
-            }
-        });
+    }
+
+    private void deleteMessage(Message message) {
+        CubeEngine.getInstance().getMessagingService().deleteMessage(message,
+                new DefaultMessageHandler<Message>(false) {
+                    @Override
+                    public void handleMessage(Message message) {
+                        // Nothing
+                    }
+                }, new DefaultFailureHandler(true) {
+                    @Override
+                    public void handleFailure(Module module, ModuleError error) {
+                        UIUtils.showToast(UIUtils.getString(R.string.tip_message_delete_failed));
+                    }
+                });
     }
 
     /**

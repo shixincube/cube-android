@@ -41,6 +41,7 @@ import com.shixincube.app.ui.activity.MainActivity;
 import com.shixincube.app.ui.base.BaseFragment;
 import com.shixincube.app.ui.presenter.FilesPresenter;
 import com.shixincube.app.ui.view.FilesView;
+import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.FilesTabController;
 import com.shixincube.app.widget.recyclerview.RecyclerView;
 import com.shixincube.filepicker.Constant;
@@ -105,7 +106,23 @@ public class FilesFragment extends BaseFragment<FilesView, FilesPresenter> imple
     @Override
     public void initData() {
         CubeEngine.getInstance().getFileStorage().addDirectoryListener(this.presenter);
-        this.presenter.loadData();
+
+        (new Thread() {
+            @Override
+            public void run() {
+                while (null == presenter.getView()) {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                UIUtils.postTaskDelay(() -> {
+                    presenter.loadData();
+                }, 100);
+            }
+        }).start();
     }
 
     @Override

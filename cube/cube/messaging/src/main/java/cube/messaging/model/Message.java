@@ -403,6 +403,15 @@ public class Message extends Entity {
     }
 
     /**
+     * 获取消息所属的会话 ID 。
+     *
+     * @return 返回对应的会话 ID 。
+     */
+    public Long getConversationId() {
+        return isFromGroup() ? getSource() : getPartnerId();
+    }
+
+    /**
      * 判断消息是否来自群组。
      *
      * @return 如果消息来自群组返回 {@code true} 。

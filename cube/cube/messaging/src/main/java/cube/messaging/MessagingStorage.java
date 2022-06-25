@@ -771,6 +771,22 @@ public class MessagingStorage extends AbstractStorage {
     }
 
     /**
+     * 删除指定 ID 的消息。
+     *
+     * @param messageId 指定消息 ID 。
+     */
+    public void deleteMessage(Long messageId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete("message", "id=?", new String[] {
+                messageId.toString()
+        });
+        db.delete("recent_messager", "message_id=?", new String[] {
+                messageId.toString()
+        });
+        this.closeWritableDatabase(db);
+    }
+
+    /**
      * 反向查询消息。
      *
      * @param contactId

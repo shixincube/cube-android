@@ -122,14 +122,14 @@ public class MessagePanelPresenter extends BasePresenter<MessagePanelView>
 
     private long lastTouchTime = 0;
 
-    private SimpleDateFormat dateFormat;
+    private SimpleDateFormat simpleDateFormat;
 
     public MessagePanelPresenter(BaseActivity activity, Conversation conversation) {
         super(activity);
         this.conversation = conversation;
         this.messageList = new LinkedList<>();
         this.burnMode = false;
-        this.dateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH时mm分", Locale.CHINA);
+        this.simpleDateFormat = new SimpleDateFormat("MM月dd日 HH时mm分", Locale.CHINA);
         CubeEngine.getInstance().getMessagingService().addEventListener(conversation, this);
     }
 
@@ -452,11 +452,13 @@ public class MessagePanelPresenter extends BasePresenter<MessagePanelView>
     }
 
     public void moveToBottom() {
-        if (this.messageList.isEmpty()) {
-            return;
-        }
+        synchronized (this.messageList) {
+            if (this.messageList.isEmpty()) {
+                return;
+            }
 
-        getView().getMessageListView().smoothMoveToPosition(this.messageList.size() - 1);
+            getView().getMessageListView().smoothMoveToPosition(this.messageList.size() - 1);
+        }
     }
 
     private void asyncMarkRead(Message message) {
@@ -495,10 +497,13 @@ public class MessagePanelPresenter extends BasePresenter<MessagePanelView>
                 Message current = list.get(i);
                 if (current.id.longValue() == message.id.longValue()) {
                     if (message.getState() == MessageState.Retracted) {
+                        // 移除消息
+                        adapter.removeItem(i);
+
                         NotificationMessage notificationMessage =
                                 new NotificationMessage(
                                         UIUtils.getString(R.string.tip_message_retracted)
-                                                + " " + dateFormat.format(new Date()));
+                                                + " " + simpleDateFormat.format(new Date()));
 
                         CubeEngine.getInstance().getMessagingService().appendMessage(conversation,
                                 notificationMessage);
@@ -506,10 +511,13 @@ public class MessagePanelPresenter extends BasePresenter<MessagePanelView>
                         adapter.addLastItem(notificationMessage);
                     }
                     else if (message.getState() == MessageState.Deleted) {
+                        // 移除消息
+                        adapter.removeItem(i);
+
                         NotificationMessage notificationMessage =
                                 new NotificationMessage(
                                         UIUtils.getString(R.string.tip_message_deleted)
-                                                + " " + dateFormat.format(new Date()));
+                                                + " " + simpleDateFormat.format(new Date()));
 
                         CubeEngine.getInstance().getMessagingService().appendMessage(conversation,
                                 notificationMessage);

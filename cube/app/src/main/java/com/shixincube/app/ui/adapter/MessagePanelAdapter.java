@@ -52,6 +52,7 @@ import cube.messaging.extension.HyperTextMessage;
 import cube.messaging.extension.ImageMessage;
 import cube.messaging.extension.NotificationMessage;
 import cube.messaging.model.Message;
+import cube.messaging.model.MessageScope;
 import cube.messaging.model.MessageState;
 import cube.messaging.model.MessageType;
 import cube.util.LogUtils;
@@ -117,6 +118,11 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
     }
 
     private void setTime(ViewHolderForRecyclerView helper, Message item, int position) {
+        if (item.getScope() == MessageScope.Private) {
+            helper.setViewVisibility(R.id.tvTime, View.GONE);
+            return;
+        }
+
         if (position > 0) {
             // 判断是否显示时间
             Message preMessage = getData().get(position - 1);

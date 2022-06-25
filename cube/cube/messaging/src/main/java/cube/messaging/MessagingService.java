@@ -794,6 +794,17 @@ public class MessagingService extends Module {
     }
 
     /**
+     * 获取指定消息所属的会话。
+     *
+     * @param message 指定消息实例。
+     * @return 返回会话实例。
+     */
+    public Conversation getConversationByMessage(Message message) {
+        Long convId = message.isFromGroup() ? message.getSource() : message.getPartnerId();
+        return this.getConversation(convId);
+    }
+
+    /**
      * 标记指定消息已读。
      *
      * @param message
@@ -2390,7 +2401,146 @@ public class MessagingService extends Module {
     public <T extends Message> void retractBothMessage(T message,
                                                        MessageHandler<T> successHandler,
                                                        FailureHandler failureHandler) {
+        if (!this.isReady()) {
+            ModuleError error = new ModuleError(NAME, MessagingServiceState.NotReady.code);
+            execute(failureHandler, error);
+            return;
+        }
 
+        if (!this.pipeline.isReady()) {
+            ModuleError error = new ModuleError(NAME, MessagingServiceState.PipelineFault.code);
+            execute(failureHandler, error);
+            return;
+        }
+
+        JSONObject requestData = new JSONObject();
+        try {
+            requestData.put("contactId", this.getSelf().id.longValue());
+            requestData.put("messageId", message.id.longValue());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        Packet requestPacket = new Packet(MessagingAction.RetractBoth, requestData);
+        this.pipeline.send(NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (PipelineState.Ok.code != packet.state.code) {
+                    ModuleError error = new ModuleError(NAME, MessagingServiceState.ServerFault.code);
+                    execute(failureHandler, error);
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (MessagingServiceState.Ok.code != stateCode) {
+                    ModuleError error = new ModuleError(NAME, stateCode);
+                    execute(failureHandler, error);
+                    return;
+                }
+
+                // 修改消息状态
+                message.setState(MessageState.Retracted);
+
+                if (successHandler.isInMainThread()) {
+                    executeOnMainThread(() -> {
+                        successHandler.handleMessage(message);
+                    });
+                }
+                else {
+                    successHandler.handleMessage(message);
+                }
+            }
+        });
+    }
+
+    /**
+     * 删除消息。
+     *
+     * @param message 指定待删除的消息。
+     * @param successHandler
+     * @param failureHandler
+     * @param <T>
+     */
+    public <T extends Message> void deleteMessage(T message,
+                                                  MessageHandler<T> successHandler,
+                                                  FailureHandler failureHandler) {
+        if (!this.isReady()) {
+            ModuleError error = new ModuleError(NAME, MessagingServiceState.NotReady.code);
+            execute(failureHandler, error);
+            return;
+        }
+
+        if (!this.pipeline.isReady()) {
+            ModuleError error = new ModuleError(NAME, MessagingServiceState.PipelineFault.code);
+            execute(failureHandler, error);
+            return;
+        }
+
+        JSONObject requestData = new JSONObject();
+        try {
+            requestData.put("contactId", this.getSelf().id.longValue());
+            requestData.put("messageId", message.id.longValue());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        Packet requestPacket = new Packet(MessagingAction.Delete, requestData);
+        this.pipeline.send(NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (PipelineState.Ok.code != packet.state.code) {
+                    ModuleError error = new ModuleError(NAME, MessagingServiceState.ServerFault.code);
+                    execute(failureHandler, error);
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (MessagingServiceState.Ok.code != stateCode) {
+                    ModuleError error = new ModuleError(NAME, stateCode);
+                    execute(failureHandler, error);
+                    return;
+                }
+
+                MessageState oldState = message.getState();
+
+                // 修改消息状态
+                message.setState(MessageState.Deleted);
+
+                // 删除消息并更新数据
+                Conversation conversation = deleteMessageInMemory(message);
+                if (null != conversation) {
+                    // 更新数据库
+                    storage.updateMessageState(conversation, oldState, MessageState.Deleted);
+
+                    if (null != conversationEventListener) {
+                        executeOnMainThread(() -> {
+                            conversationEventListener.onConversationMessageUpdated(conversation,
+                                    MessagingService.this);
+                        });
+                    }
+                }
+
+                List<MessageEventListener> listeners = conversationMessageListeners.get(message.getConversationId());
+                executeOnMainThread(() -> {
+                    for (MessageEventListener listener : listeners) {
+                        listener.onMessageStated(message, MessagingService.this);
+                    }
+                });
+
+                if (successHandler.isInMainThread()) {
+                    executeOnMainThread(() -> {
+                        successHandler.handleMessage(message);
+                    });
+                }
+                else {
+                    successHandler.handleMessage(message);
+                }
+
+                execute(() -> {
+                    storage.deleteMessage(message.id);
+                });
+            }
+        });
     }
 
     /**
@@ -2403,6 +2553,70 @@ public class MessagingService extends Module {
 
         // 从数据库删除
         this.storage.cleanup(timestamp);
+    }
+
+    /**
+     * 从系统里删除消息数据。
+     * 并更新相关数据。
+     *
+     * @param message
+     * @return
+     */
+    private Conversation deleteMessageInMemory(Message message) {
+        Long convId = message.isFromGroup() ? message.getSource() : message.getPartnerId();
+
+        // 删除消息
+        MessageList list = this.conversationMessageListMap.get(convId);
+        if (null != list) {
+            for (int i = list.messages.size() - 1; i >= 0; --i) {
+                Message msg = list.messages.get(i);
+                if (msg.id.equals(message.id)) {
+                    // 删除
+                    list.messages.remove(i);
+                    break;
+                }
+            }
+        }
+
+        Conversation conversation = getConversation(convId);
+        if (null != conversation) {
+            // 处理最近一条消息
+            Message recentMessage = conversation.getRecentMessage();
+            if (recentMessage.id.equals(message.id)) {
+                recentMessage.setState(message.getState());
+
+                recentMessage = null;
+
+                // 重置最近消息
+                list = this.conversationMessageListMap.get(convId);
+                if (null != list) {
+                    for (int i = list.messages.size() - 1; i >= 0; --i) {
+                        Message msg = list.messages.get(i);
+                        if (msg.getScope() != MessageScope.Private) {
+                            recentMessage = msg;
+                            break;
+                        }
+                    }
+                }
+
+                if (null == recentMessage) {
+                    if (conversation.getType() == ConversationType.Contact) {
+                        recentMessage = new NullMessage(0L, conversation.getPivotalId(), 0L);
+                    }
+                    else {
+                        recentMessage = new NullMessage(0L, 0L, conversation.getPivotalId());
+                    }
+                }
+
+                // 赋值
+                conversation.setRecentMessage(recentMessage);
+
+                // 更新最近消息
+                this.storage.updateRecentMessage(conversation);
+            }
+        }
+
+        return conversation;
     }
 
     private void tryAddConversation(Conversation conversation) {
@@ -2870,13 +3084,17 @@ public class MessagingService extends Module {
     private void queryRemoteMessage(long beginning, long ending, StableCompletionHandler completionHandler) {
         LogUtils.d(TAG, "#queryRemoteMessage : " + Math.floor((ending - beginning) / 1000.0 / 60.0) + " min");
 
-        if (!this.pipeline.isReady() && this.isAvailableNetwork()) {
-            synchronized (this) {
-                try {
-                    this.wait(5000L);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+        // 检测是否已经签入
+        int count = 1000;
+        while (!this.contactService.isReady()) {
+            if (--count <= 0) {
+                break;
+            }
+
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
 
@@ -2890,19 +3108,6 @@ public class MessagingService extends Module {
         if (null != this.pullTimer) {
             LogUtils.d(TAG, "#queryRemoteMessage - Timer is null");
             return;
-        }
-
-        // 检测是否已经签入
-        int count = 1000;
-        while (!this.contactService.isReady()) {
-            if (--count <= 0) {
-                break;
-            }
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
         }
 
         this.pullTimer = new Timer();
@@ -2919,7 +3124,7 @@ public class MessagingService extends Module {
 
                 pullTimer = null;
             }
-        }, 10L * 1000L);
+        }, 10 * 1000);
 
         this.pullCompletionHandler = completionHandler;
 
@@ -2948,13 +3153,17 @@ public class MessagingService extends Module {
      * @param completionHandler
      */
     private void queryRemoteConversations(int limit, StableCompletionHandler completionHandler) {
-        if (!this.pipeline.isReady() && this.isAvailableNetwork()) {
-            synchronized (this) {
-                try {
-                    this.wait(5000L);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+        // 检测是否已经签入
+        int count = 1000;
+        while (!this.contactService.isReady()) {
+            if (--count <= 0) {
+                break;
+            }
+
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
 
@@ -3147,8 +3356,17 @@ public class MessagingService extends Module {
         }
         else if (MessagingServiceEvent.Retract.equals(eventName)) {
             Message message = (Message) event.getData();
-            Long convId = message.isFromGroup() ? message.getSource() : message.getPartnerId();
+            // 删除消息
+            Conversation conversation = this.deleteMessageInMemory(message);
+            if (null != conversation) {
+                if (null != this.conversationEventListener) {
+                    executeOnMainThread(() -> {
+                        this.conversationEventListener.onConversationMessageUpdated(conversation, this);
+                    });
+                }
+            }
 
+            Long convId = message.isFromGroup() ? message.getSource() : message.getPartnerId();
             List<MessageEventListener> listenerList = this.conversationMessageListeners.get(convId);
             if (null != listenerList) {
                 executeOnMainThread(() -> {
@@ -3156,52 +3374,6 @@ public class MessagingService extends Module {
                         listener.onMessageStated(message, this);
                     }
                 });
-            }
-
-            Conversation conversation = getConversation(convId);
-            if (null != conversation) {
-                // 处理最近一条消息
-                Message recentMessage = conversation.getRecentMessage();
-                if (recentMessage.id.equals(message.id)) {
-                    recentMessage.setState(message.getState());
-
-                    // 重置最近消息
-                    MessageList list = this.conversationMessageListMap.get(convId);
-                    if (null != list) {
-                        for (int i = list.messages.size() - 1; i >= 0; --i) {
-                            Message msg = list.messages.get(i);
-                            if (msg.id.equals(message.id)) {
-                                // 删除已经撤回的消息
-                                list.messages.remove(i);
-                                break;
-                            }
-                        }
-
-                        if (list.messages.size() > 0) {
-                            recentMessage = list.messages.get(list.messages.size() - 1);
-                        }
-                        else {
-                            if (conversation.getType() == ConversationType.Contact) {
-                                recentMessage = new NullMessage(0L, conversation.getPivotalId(), 0L);
-                            }
-                            else {
-                                recentMessage = new NullMessage(0L, 0L, conversation.getPivotalId());
-                            }
-                        }
-
-                        // 赋值
-                        conversation.setRecentMessage(recentMessage);
-
-                        // 更新最近消息
-                        this.storage.updateRecentMessage(conversation);
-                    }
-                }
-
-                if (null != this.conversationEventListener) {
-                    executeOnMainThread(() -> {
-                        this.conversationEventListener.onConversationMessageUpdated(conversation, this);
-                    });
-                }
             }
         }
         else if (MessagingServiceEvent.ConversationUpdated.equals(eventName)) {
@@ -3218,7 +3390,7 @@ public class MessagingService extends Module {
         if (null != list) {
             list.appendMessage(message);
             // 延长有效期
-            list.extendLife(3L * 60L * 1000L);
+            list.extendLife(3L * 60 * 1000);
         }
         else {
             list = new MessageList();
@@ -3394,6 +3566,11 @@ public class MessagingService extends Module {
         }
     }
 
+    /**
+     * 处理消息被撤回。
+     *
+     * @param data
+     */
     protected void triggerRetract(JSONObject data) {
         try {
             Message copy = new Message(this, data);

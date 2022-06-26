@@ -37,7 +37,7 @@ import cube.util.JSONable;
 /**
  * 信息实体对象。所有实体对象的基类。
  */
-public class Entity implements JSONable, Cacheable, TimeSortable {
+public class Entity extends Property implements JSONable, Cacheable, TimeSortable {
 
     public final static long LIFESPAN_IN_MSEC = 24 * 60 * 60 * 1000;
 
@@ -62,11 +62,6 @@ public class Entity implements JSONable, Cacheable, TimeSortable {
     protected long expiry;
 
     /**
-     * 上下文数据。
-     */
-    protected JSONObject context;
-
-    /**
      * @private
      * 实体创建时的时间戳。
      */
@@ -82,6 +77,7 @@ public class Entity implements JSONable, Cacheable, TimeSortable {
      * 构造函数。
      */
     public Entity() {
+        super();
         this.id = Utils.generateUnsignedSerialNumber();
         this.entityCreation = System.currentTimeMillis();
         this.entityLifeExpiry = this.entityCreation + 5L * 60L * 1000L;
@@ -96,6 +92,7 @@ public class Entity implements JSONable, Cacheable, TimeSortable {
      * @param id 指定实体 ID 。
      */
     public Entity(Long id) {
+        super();
         this.id = id;
         this.entityCreation = System.currentTimeMillis();
         this.entityLifeExpiry = this.entityCreation + 5 * 60 * 1000;
@@ -111,6 +108,7 @@ public class Entity implements JSONable, Cacheable, TimeSortable {
      * @param timestamp 指定时间戳。
      */
     public Entity(Long id, long timestamp) {
+        super();
         this.id = id;
         this.entityCreation = System.currentTimeMillis();
         this.entityLifeExpiry = this.entityCreation + 5 * 60 * 1000;
@@ -126,6 +124,7 @@ public class Entity implements JSONable, Cacheable, TimeSortable {
      * @throws JSONException 如果 JSON 数据项错误则抛出该异常。
      */
     public Entity(JSONObject json) throws JSONException {
+        super();
         this.entityCreation = System.currentTimeMillis();
         this.entityLifeExpiry = this.entityCreation + 5 * 60 * 1000;
 
@@ -227,24 +226,6 @@ public class Entity implements JSONable, Cacheable, TimeSortable {
      */
     public boolean isValid() {
         return this.expiry > System.currentTimeMillis();
-    }
-
-    /**
-     * 设置上下文数据。
-     *
-     * @param context 指定上下文数据。
-     */
-    public void setContext(JSONObject context) {
-        this.context = context;
-    }
-
-    /**
-     * 获取上下文数据。
-     *
-     * @return 返回上下文数据。
-     */
-    public JSONObject getContext() {
-        return this.context;
     }
 
     @Override

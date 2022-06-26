@@ -66,12 +66,12 @@
                     android:textColor="?attr/colorText"
                     android:visibility="visible"/>
 
+                <!-- style="?android:attr/borderlessButtonStyle" -->
                 <Button
                     android:id="@+id/btnRecordVoice"
-                    style="?android:attr/borderlessButtonStyle"
                     android:layout_width="match_parent"
                     android:layout_height="40dp"
-                    android:background="@drawable/shape_message_btn_voice_normal"
+                    android:background="@drawable/selector_input_voice_button"
                     android:text="@string/please_to_talk"
                     android:textColor="?attr/colorTextSecondary"
                     android:visibility="gone"/>

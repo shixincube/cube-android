@@ -132,6 +132,12 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
     @BindView(R.id.etContent)
     EditText inputContentView;
 
+    @BindView(R.id.ivVoice)
+    ImageView voiceButtonView;
+
+    @BindView(R.id.btnRecordVoice)
+    Button recordVoiceButton;
+
     @BindView(R.id.btnSend)
     Button sendButton;
 
@@ -284,6 +290,10 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
                     }
                 }, 100);
             }
+        });
+
+        voiceButtonView.setOnClickListener((view) -> {
+            presenter.switchVoiceInputMode();
         });
 
         // 阅后即焚模式切换
@@ -728,7 +738,17 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
     }
 
     @Override
+    public ImageView getVoiceButtonView() {
+        return this.voiceButtonView;
+    }
+
+    @Override
     public ImageView getBurnButtonView() {
         return this.burnButtonView;
+    }
+
+    @Override
+    public Button getRecordVoiceButton() {
+        return this.recordVoiceButton;
     }
 }

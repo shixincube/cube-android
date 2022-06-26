@@ -66,7 +66,7 @@ public final class AppConsts {
     /**
      * App 服务器地址。
      */
-    public final static String APP_SERVER_ADDRESS = "192.168.0.111";
+    public final static String APP_SERVER_ADDRESS = "192.168.0.110";
 
     /**
      * 默认国际电话区号。
@@ -107,6 +107,11 @@ public final class AppConsts {
      * 摄像机照片文件保存位置。
      */
     public final static String CAMERA_PHOTO_DIR = FileUtils.getDir("camera_photo");
+
+    /**
+     * 语音输入模式配置属性属性名。
+     */
+    public final static String VOICE_INPUT_MODE = "voiceInputMode";
 
     /**
      * 阅后即焚模式配置属性属性名。

@@ -52,9 +52,6 @@ import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.adapter.OnItemClickListener;
 import com.shixincube.app.widget.adapter.ViewHolder;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -121,6 +118,8 @@ public class MessagePanelPresenter extends BasePresenter<MessagePanelView>
 
     private boolean burnMode;
 
+    private boolean voiceInputMode;
+
     private long lastTouchTime = 0;
 
     private SimpleDateFormat simpleDateFormat;
@@ -130,6 +129,7 @@ public class MessagePanelPresenter extends BasePresenter<MessagePanelView>
         this.conversation = conversation;
         this.messageList = new LinkedList<>();
         this.burnMode = false;
+        this.voiceInputMode = false;
         this.simpleDateFormat = new SimpleDateFormat("MM月dd日 HH时mm分", Locale.CHINA);
         CubeEngine.getInstance().getMessagingService().addEventListener(conversation, this);
     }
@@ -138,22 +138,31 @@ public class MessagePanelPresenter extends BasePresenter<MessagePanelView>
         return this.burnMode;
     }
 
-    public void refreshState() {
-        JSONObject context = this.conversation.getContext();
-        if (null != context) {
-            try {
-                this.burnMode = context.has(AppConsts.BURN_MODE)
-                        && context.getBoolean(AppConsts.BURN_MODE);
+    public boolean isVoiceInputMode() {
+        return this.voiceInputMode;
+    }
 
-                if (this.burnMode) {
-                    getView().getBurnButtonView().setImageResource(R.mipmap.message_tool_burn_enable);
-                }
-                else {
-                    getView().getBurnButtonView().setImageResource(R.mipmap.message_tool_burn_disable);
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+    public void refreshState() {
+        this.burnMode = this.conversation.getBoolean(AppConsts.BURN_MODE, false);
+
+        if (this.burnMode) {
+            getView().getBurnButtonView().setImageResource(R.mipmap.message_tool_burn_enable);
+        }
+        else {
+            getView().getBurnButtonView().setImageResource(R.mipmap.message_tool_burn_disable);
+        }
+
+        this.voiceInputMode = this.conversation.getBoolean(AppConsts.VOICE_INPUT_MODE, false);
+
+        if (this.voiceInputMode) {
+            getView().getVoiceButtonView().setImageResource(R.mipmap.message_tool_keyboard);
+            getView().getRecordVoiceButton().setVisibility(View.VISIBLE);
+            getView().getInputContentView().setVisibility(View.GONE);
+        }
+        else {
+            getView().getVoiceButtonView().setImageResource(R.mipmap.message_tool_voice);
+            getView().getRecordVoiceButton().setVisibility(View.GONE);
+            getView().getInputContentView().setVisibility(View.VISIBLE);
         }
     }
 
@@ -548,6 +557,25 @@ public class MessagePanelPresenter extends BasePresenter<MessagePanelView>
             getView().getBurnButtonView().setImageResource(R.mipmap.message_tool_burn_disable);
             UIUtils.showToast(UIUtils.getString(R.string.tip_burn_disabled));
         }
+
+        this.conversation.set(AppConsts.BURN_MODE, this.burnMode);
+    }
+
+    public void switchVoiceInputMode() {
+        this.voiceInputMode = !this.voiceInputMode;
+
+        if (this.voiceInputMode) {
+            getView().getVoiceButtonView().setImageResource(R.mipmap.message_tool_keyboard);
+            getView().getRecordVoiceButton().setVisibility(View.VISIBLE);
+            getView().getInputContentView().setVisibility(View.GONE);
+        }
+        else {
+            getView().getVoiceButtonView().setImageResource(R.mipmap.message_tool_voice);
+            getView().getRecordVoiceButton().setVisibility(View.GONE);
+            getView().getInputContentView().setVisibility(View.VISIBLE);
+        }
+
+        this.conversation.set(AppConsts.VOICE_INPUT_MODE, this.voiceInputMode);
     }
 
     public void close() throws IOException {
@@ -642,6 +670,16 @@ public class MessagePanelPresenter extends BasePresenter<MessagePanelView>
             }
         }
 
+        // 不是自己的群组不允许双向撤回消息
+        if (this.conversation.getType() == ConversationType.Group) {
+            if (this.conversation.getGroup().isOwner()) {
+                menu.getMenu().getItem(3).setVisible(true);
+            }
+            else {
+                menu.getMenu().getItem(3).setVisible(false);
+            }
+        }
+
         menu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem menuItem) {
@@ -706,7 +744,18 @@ public class MessagePanelPresenter extends BasePresenter<MessagePanelView>
     }
 
     private void retractBothMessage(Message message) {
-
+        CubeEngine.getInstance().getMessagingService().retractBothMessage(message,
+                new DefaultMessageHandler<Message>(false) {
+                    @Override
+                    public void handleMessage(Message message) {
+                        // Nothing
+                    }
+                }, new DefaultFailureHandler(true) {
+                    @Override
+                    public void handleFailure(Module module, ModuleError error) {
+                        UIUtils.showToast(UIUtils.getString(R.string.tip_message_retract_failed));
+                    }
+                });
     }
 
     private void deleteMessage(Message message) {

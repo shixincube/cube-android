@@ -251,10 +251,6 @@ public class Conversation extends Entity {
         return this.unreadCount;
     }
 
-    public JSONObject getContext() {
-        return this.context;
-    }
-
     public String getAvatarName() {
         return this.avatarName;
     }

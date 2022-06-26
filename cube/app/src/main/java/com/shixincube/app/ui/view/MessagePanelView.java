@@ -26,6 +26,7 @@
 
 package com.shixincube.app.ui.view;
 
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 
@@ -44,5 +45,9 @@ public interface MessagePanelView {
 
     BGARefreshLayout getRefreshLayout();
 
+    ImageView getVoiceButtonView();
+
     ImageView getBurnButtonView();
+
+    Button getRecordVoiceButton();
 }

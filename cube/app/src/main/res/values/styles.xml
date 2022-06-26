@@ -26,10 +26,10 @@
 
     <!-- Full Dialog -->
     <style name="FullDialog" parent="@android:style/Theme.Dialog">
-        <item name="android:windowFullscreen">true</item>
+        <!--item name="android:windowFullscreen">true</item-->
         <!-- 是否有边框 -->
         <item name="android:windowFrame">@null</item>
-        <!--是否在悬浮 Activity 之上  -->
+        <!-- 是否在悬浮 Activity 之上  -->
         <item name="android:windowIsFloating">true</item>
         <!-- 标题 -->
         <item name="android:windowNoTitle">true</item>

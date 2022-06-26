@@ -80,6 +80,8 @@
     <string name="menu_retract">撤回</string>
     <string name="menu_retract_both">双向撤回</string>
     <string name="menu_delete">删除</string>
+    <string name="sliding_up_to_cancel">向上滑动，取消发送</string>
+    <string name="release_to_cancel">松开手指，取消发送</string>
 
     <!-- 转发消息界面 -->
     <string name="tip_load_message_failed">加载消息数据出错</string>

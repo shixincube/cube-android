@@ -249,6 +249,11 @@ public class ConversationPresenter extends BasePresenter<ConversationView> imple
 
                 // 从引擎获取最近会话列表
                 List<Conversation> list = messaging.getRecentConversations();
+                if (null == list) {
+                    promise.reject(null);
+                    return;
+                }
+
                 if (!list.isEmpty()) {
                     synchronized (messageConversations) {
                         messageConversations.clear();
@@ -268,6 +273,14 @@ public class ConversationPresenter extends BasePresenter<ConversationView> imple
             @Override
             public void come(List<MessageConversation> data) {
                 adapter.notifyDataSetChangedWrapper();
+            }
+        }).catchReject(new Future<List<MessageConversation>>() {
+            @Override
+            public void come(List<MessageConversation> data) {
+                LogUtils.w("ConversationPresenter", "#reloadData - Get conversation error");
+                UIUtils.postTaskDelay(() -> {
+                    reloadData();
+                }, 1000);
             }
         }).catchException(new Future<Exception>() {
             @Override

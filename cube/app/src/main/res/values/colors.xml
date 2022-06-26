@@ -20,6 +20,7 @@
     <color name="mask">#32000000</color>
     <color name="avatar">#D2D2D2</color>
     <color name="badge_bg">#FF3E3E</color>
+    <color name="dialog_mask">#80000000</color>
 
     <color name="toolbar_text">#050505</color>
     <color name="toolbar_bg">#F1F1F1</color>

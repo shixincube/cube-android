@@ -26,10 +26,10 @@
 
 package com.shixincube.app.ui.view;
 
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 
+import com.shixincube.app.widget.VoiceRecordButton;
 import com.shixincube.app.widget.recyclerview.RecyclerView;
 
 import cn.bingoogolapple.refreshlayout.BGARefreshLayout;
@@ -49,5 +49,5 @@ public interface MessagePanelView {
 
     ImageView getBurnButtonView();
 
-    Button getRecordVoiceButton();
+    VoiceRecordButton getRecordVoiceButton();
 }

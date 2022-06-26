@@ -57,6 +57,7 @@ import com.shixincube.app.ui.presenter.MessagePanelPresenter;
 import com.shixincube.app.ui.view.MessagePanelView;
 import com.shixincube.app.util.AvatarUtils;
 import com.shixincube.app.util.UIUtils;
+import com.shixincube.app.widget.VoiceRecordButton;
 import com.shixincube.app.widget.emotion.EmotionLayout;
 import com.shixincube.app.widget.keyboard.SoftwareKeyboard;
 import com.shixincube.app.widget.recyclerview.RecyclerView;
@@ -136,7 +137,7 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
     ImageView voiceButtonView;
 
     @BindView(R.id.btnRecordVoice)
-    Button recordVoiceButton;
+    VoiceRecordButton recordVoiceButton;
 
     @BindView(R.id.btnSend)
     Button sendButton;
@@ -748,7 +749,7 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
     }
 
     @Override
-    public Button getRecordVoiceButton() {
+    public VoiceRecordButton getRecordVoiceButton() {
         return this.recordVoiceButton;
     }
 }

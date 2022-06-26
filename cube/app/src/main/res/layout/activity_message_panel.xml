@@ -66,9 +66,9 @@
                     android:textColor="?attr/colorText"
                     android:visibility="visible"/>
 
-                <!-- style="?android:attr/borderlessButtonStyle" -->
-                <Button
+                <com.shixincube.app.widget.VoiceRecordButton
                     android:id="@+id/btnRecordVoice"
+                    style="?android:attr/borderlessButtonStyle"
                     android:layout_width="match_parent"
                     android:layout_height="40dp"
                     android:background="@drawable/selector_input_voice_button"

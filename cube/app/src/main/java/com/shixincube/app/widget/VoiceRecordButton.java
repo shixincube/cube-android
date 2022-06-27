@@ -117,11 +117,12 @@ public class VoiceRecordButton extends androidx.appcompat.widget.AppCompatButton
             case MotionEvent.ACTION_DOWN:
                 if (this.recordState == RECORD_OFF) {
                     showVoiceDialog();
+
+                    this.isCancel = false;
                     this.recordState = RECORD_ON;
                     this.startY = event.getY();
 
                     this.startRecorder();
-                    this.isCancel = false;
                 }
                 break;
             case MotionEvent.ACTION_UP:
@@ -167,7 +168,7 @@ public class VoiceRecordButton extends androidx.appcompat.widget.AppCompatButton
             this.recordVolumeView = (ImageView) dialog.findViewById(R.id.recordVolume);
         }
 
-        this.tipTextView.setText(UIUtils.getString(R.string.sliding_up_to_cancel));
+        this.tipTextView.setText(UIUtils.getString(R.string.release_to_send));
         refreshRecordTime();
         refreshVolumeImage();
 
@@ -205,7 +206,13 @@ public class VoiceRecordButton extends androidx.appcompat.widget.AppCompatButton
                 @Override
                 public void run() {
                     refreshRecordTime();
-                    refreshVolumeImage();
+
+                    if (isCancel) {
+                        showCancelDialog();
+                    }
+                    else {
+                        refreshVolumeImage();
+                    }
                 }
             };
         }
@@ -227,7 +234,7 @@ public class VoiceRecordButton extends androidx.appcompat.widget.AppCompatButton
             }
 
             PollingThread thread = new PollingThread();
-            thread.run();
+            thread.start();
         }
     }
 
@@ -299,6 +306,30 @@ public class VoiceRecordButton extends androidx.appcompat.widget.AppCompatButton
         switch (this.volumeLevel) {
             case 0:
                 this.recordVolumeView.setImageResource(R.mipmap.ic_volume_0);
+                break;
+            case 1:
+                this.recordVolumeView.setImageResource(R.mipmap.ic_volume_1);
+                break;
+            case 2:
+                this.recordVolumeView.setImageResource(R.mipmap.ic_volume_2);
+                break;
+            case 3:
+                this.recordVolumeView.setImageResource(R.mipmap.ic_volume_3);
+                break;
+            case 4:
+                this.recordVolumeView.setImageResource(R.mipmap.ic_volume_4);
+                break;
+            case 5:
+                this.recordVolumeView.setImageResource(R.mipmap.ic_volume_5);
+                break;
+            case 6:
+                this.recordVolumeView.setImageResource(R.mipmap.ic_volume_6);
+                break;
+            case 7:
+                this.recordVolumeView.setImageResource(R.mipmap.ic_volume_7);
+                break;
+            case 8:
+                this.recordVolumeView.setImageResource(R.mipmap.ic_volume_8);
                 break;
             default:
                 break;

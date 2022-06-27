@@ -80,6 +80,7 @@ import cube.messaging.extension.FileMessage;
 import cube.messaging.extension.HyperTextMessage;
 import cube.messaging.extension.ImageMessage;
 import cube.messaging.extension.NotificationMessage;
+import cube.messaging.extension.VoiceMessage;
 import cube.messaging.handler.DefaultConversationHandler;
 import cube.messaging.handler.DefaultEraseMessageHandler;
 import cube.messaging.handler.DefaultMessageHandler;
@@ -457,6 +458,50 @@ public class MessagePanelPresenter extends BasePresenter<MessagePanelView>
             @Override
             public void handleFailure(Module module, ModuleError error) {
                 updateMessageStatus(imageMessage);
+            }
+        });
+    }
+
+    /**
+     * 发送语音消息。
+     *
+     * @param voiceFile
+     */
+    public void sendVoiceMessage(File voiceFile) {
+        if (!this.checkState()) {
+            UIUtils.showToast(UIUtils.getString(R.string.tip_conversation_invalid));
+            return;
+        }
+
+        VoiceMessage voiceMessage = new VoiceMessage(voiceFile);
+
+        CubeEngine.getInstance().getMessagingService().sendMessage(conversation, voiceMessage,
+                new DefaultSendHandler<Conversation, VoiceMessage>() {
+            @Override
+            public void handleProcessing(Conversation destination, VoiceMessage message) {
+                // 将消息添加到界面
+                adapter.addLastItem(message);
+                moveToBottom();
+            }
+
+            @Override
+            public void handleProcessed(Conversation destination, VoiceMessage message) {
+                // Nothing
+            }
+
+            @Override
+            public void handleSending(Conversation destination, VoiceMessage message) {
+                updateMessageStatus(message);
+            }
+
+            @Override
+            public void handleSent(Conversation destination, VoiceMessage message) {
+                updateMessageStatus(message);
+            }
+        }, new DefaultFailureHandler() {
+            @Override
+            public void handleFailure(Module module, ModuleError error) {
+                updateMessageStatus(voiceMessage);
             }
         });
     }

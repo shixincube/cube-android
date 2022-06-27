@@ -82,8 +82,8 @@
     <string name="menu_delete">删除</string>
 
     <!-- 语音录制界面 -->
-    <string name="sliding_up_to_cancel">向上滑动，取消发送</string>
-    <string name="release_to_cancel">松开手指，取消发送</string>
+    <string name="release_to_send">松开 发送</string>
+    <string name="release_to_cancel">松开 取消</string>
     <string name="tip_recording_no_permission">无录音权限</string>
     <string name="tip_recording_permission_granted">已获得录音权限</string>
     <string name="tip_recording_time_too_short">录音时间太短</string>

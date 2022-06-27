@@ -51,6 +51,7 @@ import cube.messaging.extension.FileMessage;
 import cube.messaging.extension.HyperTextMessage;
 import cube.messaging.extension.ImageMessage;
 import cube.messaging.extension.NotificationMessage;
+import cube.messaging.extension.VoiceMessage;
 import cube.messaging.model.Message;
 import cube.messaging.model.MessageScope;
 import cube.messaging.model.MessageState;
@@ -90,6 +91,9 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
         }
         else if (message instanceof FileMessage) {
             return message.isSelfTyper() ? R.layout.item_message_item_send : R.layout.item_message_item_receive;
+        }
+        else if (message instanceof VoiceMessage) {
+            return message.isSelfTyper() ? R.layout.item_message_voice_send : R.layout.item_message_voice_receive;
         }
         else if (message instanceof NotificationMessage) {
             return R.layout.item_message_notification;
@@ -235,6 +239,9 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
                     helper.setViewVisibility(R.id.pbSending, View.GONE);
                 }
             }
+        }
+        else if (item instanceof VoiceMessage) {
+            
         }
         else if (item instanceof NotificationMessage) {
             NotificationMessage message = (NotificationMessage) item;

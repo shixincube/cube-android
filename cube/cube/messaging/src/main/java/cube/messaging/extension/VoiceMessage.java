@@ -26,51 +26,42 @@
 
 package cube.messaging.extension;
 
+import org.json.JSONException;
+
+import java.io.File;
+
+import cube.messaging.model.FileAttachment;
+import cube.messaging.model.Message;
+import cube.messaging.model.MessageType;
+
 /**
- * 消息类型。
+ * 语音消息。
  */
-public final class MessageTypeName {
+public class VoiceMessage extends TypeableMessage {
 
-    /**
-     * 一般文本类型。
-     */
-    public final static String Text = "text";
+    public VoiceMessage(File file) {
+        super(MessageType.Text);
+        try {
+            this.payload.put("type", MessageTypeName.Voice);
+        } catch (JSONException e) {
+            // Nothing
+        }
 
-    /**
-     * 阅后即焚类型。
-     */
-    public final static String Burn = "burn";
+        this.summary = "[语音]";
 
-    /**
-     * 超文本消息类型。
-     */
-    public final static String Hypertext = "hypertext";
+        // 创建消息附件
+        FileAttachment attachment = new FileAttachment(file);
+        this.setAttachment(attachment);
+    }
 
-    /**
-     * 文件消息。
-     */
-    public final static String File = "file";
+    public VoiceMessage(Message message) {
+        super(message, MessageType.Voice);
+        try {
+            this.payload.put("type", MessageTypeName.Voice);
+        } catch (JSONException e) {
+            // Nothing
+        }
 
-    /**
-     * 图片消息。
-     */
-    public final static String Image = "image";
-
-    /**
-     * 语音消息。
-     */
-    public final static String Voice = "voice";
-
-    /**
-     * 通知消息。
-     */
-    public final static String Notification = "notification";
-
-    /**
-     * 空白消息。
-     */
-    public final static String Blank = "blank";
-
-    private MessageTypeName() {
+        this.summary = "[语音]";
     }
 }

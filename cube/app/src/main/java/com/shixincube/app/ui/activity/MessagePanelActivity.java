@@ -770,6 +770,9 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
     @Override
     public void onRecordFinish(String filePath, int durationInSeconds) {
         LogUtils.d(TAG, "#onRecordFinish - " + durationInSeconds);
+
+        File file = new File(filePath);
+        this.presenter.sendVoiceMessage(file);
     }
 
     @Override

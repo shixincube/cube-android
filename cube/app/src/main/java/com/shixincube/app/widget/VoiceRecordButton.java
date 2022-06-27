@@ -139,11 +139,11 @@ public class VoiceRecordButton extends androidx.appcompat.widget.AppCompatButton
                 if (null != this.recorder) {
                     float moveY = event.getY();
                     float delta = this.startY - moveY;
-                    if (delta > 50) {
+                    if (delta > 100) {
                         this.isCancel = true;
                         this.showCancelDialog();
                     }
-                    else if (delta < 20) {
+                    else if (delta < 40) {
                         this.isCancel = false;
                         this.showVoiceDialog();
                     }

@@ -466,17 +466,24 @@ public class MessagePanelPresenter extends BasePresenter<MessagePanelView>
      * 发送语音消息。
      *
      * @param voiceFile
+     * @param duration
      */
-    public void sendVoiceMessage(File voiceFile) {
+    public void sendVoiceMessage(File voiceFile, int duration) {
         if (!this.checkState()) {
             UIUtils.showToast(UIUtils.getString(R.string.tip_conversation_invalid));
             return;
         }
 
-        VoiceMessage voiceMessage = new VoiceMessage(voiceFile);
+        VoiceMessage voiceMessage = new VoiceMessage(voiceFile, duration);
+        adapter.addLastItem(voiceMessage);
+        moveToBottom();
+
+        if (!this.messageList.isEmpty()) {
+            return;
+        }
 
         CubeEngine.getInstance().getMessagingService().sendMessage(conversation, voiceMessage,
-                new DefaultSendHandler<Conversation, VoiceMessage>() {
+                new DefaultSendHandler<Conversation, VoiceMessage>(true) {
             @Override
             public void handleProcessing(Conversation destination, VoiceMessage message) {
                 // 将消息添加到界面
@@ -498,7 +505,7 @@ public class MessagePanelPresenter extends BasePresenter<MessagePanelView>
             public void handleSent(Conversation destination, VoiceMessage message) {
                 updateMessageStatus(message);
             }
-        }, new DefaultFailureHandler() {
+        }, new DefaultFailureHandler(true) {
             @Override
             public void handleFailure(Module module, ModuleError error) {
                 updateMessageStatus(voiceMessage);

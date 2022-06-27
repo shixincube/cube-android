@@ -241,7 +241,12 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
             }
         }
         else if (item instanceof VoiceMessage) {
-            
+            VoiceMessage message = (VoiceMessage) item;
+            float width = 240.0f * message.getDuration() / 60.0f;
+            width = Math.max(width, 92.0f);
+            // 修改宽度
+            helper.getView(R.id.llVoiceBar).getLayoutParams().width = UIUtils.dp2px(width);
+            helper.setText(R.id.tvDuration, message.getDuration() + "''");
         }
         else if (item instanceof NotificationMessage) {
             NotificationMessage message = (NotificationMessage) item;
@@ -288,6 +293,9 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
         else if (item instanceof FileMessage) {
             LinearLayout layout = helper.getView(R.id.llContact);
             layout.setOnClickListener((view) -> this.presenter.fireItemClick(helper, item, position));
+        }
+        else if (item instanceof VoiceMessage) {
+
         }
         else if (item instanceof BurnMessage) {
             ImageView imageView = helper.getView(R.id.ivImage);

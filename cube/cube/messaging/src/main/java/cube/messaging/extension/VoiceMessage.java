@@ -39,10 +39,11 @@ import cube.messaging.model.MessageType;
  */
 public class VoiceMessage extends TypeableMessage {
 
-    public VoiceMessage(File file) {
+    public VoiceMessage(File file, int duration) {
         super(MessageType.Text);
         try {
             this.payload.put("type", MessageTypeName.Voice);
+            this.payload.put("duration", duration);
         } catch (JSONException e) {
             // Nothing
         }
@@ -63,5 +64,19 @@ public class VoiceMessage extends TypeableMessage {
         }
 
         this.summary = "[语音]";
+    }
+
+    /**
+     * 获取语音时长。
+     *
+     * @return
+     */
+    public int getDuration() {
+        try {
+            return this.payload.getInt("duration");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 }

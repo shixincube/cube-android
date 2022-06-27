@@ -66,7 +66,7 @@ public class AvatarUtils {
     }
 
     public static int getAvatarResource(Contact contact) {
-        String name = Account.getAvatar(contact);
+        String name = (null == contact) ? null : Account.getAvatar(contact);
         return explainAvatarForResource(name);
     }
 

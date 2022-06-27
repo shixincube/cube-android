@@ -203,15 +203,15 @@ public class FerryService extends Module {
     public void detectDomain(DetectHandler handler) {
         this.execute(() -> {
             if (!ready) {
-                int count = 20;
+                int count = 100;
                 while (!ready) {
                     try {
                         Thread.sleep(100);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    --count;
-                    if (count <= 0) {
+
+                    if (--count <= 0) {
                         break;
                     }
                 }

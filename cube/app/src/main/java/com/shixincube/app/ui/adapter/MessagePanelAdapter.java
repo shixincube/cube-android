@@ -295,7 +295,8 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
             layout.setOnClickListener((view) -> this.presenter.fireItemClick(helper, item, position));
         }
         else if (item instanceof VoiceMessage) {
-
+            LinearLayout layout = helper.getView(R.id.llVoiceBar);
+            layout.setOnClickListener((view) -> this.presenter.fireItemClick(helper, item, position));
         }
         else if (item instanceof BurnMessage) {
             ImageView imageView = helper.getView(R.id.ivImage);

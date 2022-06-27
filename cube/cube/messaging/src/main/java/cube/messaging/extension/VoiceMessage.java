@@ -40,7 +40,7 @@ import cube.messaging.model.MessageType;
 public class VoiceMessage extends TypeableMessage {
 
     public VoiceMessage(File file, int duration) {
-        super(MessageType.Text);
+        super(MessageType.Voice);
         try {
             this.payload.put("type", MessageTypeName.Voice);
             this.payload.put("duration", duration);

@@ -659,6 +659,9 @@ public class MessagePanelPresenter extends BasePresenter<MessagePanelView>
                 activity.jumpToActivity(intent);
             }
         }
+        else if (message instanceof VoiceMessage) {
+
+        }
     }
 
     public void fireItemTouch(View view, MotionEvent motionEvent,

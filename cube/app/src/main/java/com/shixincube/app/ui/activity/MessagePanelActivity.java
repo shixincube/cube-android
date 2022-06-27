@@ -103,7 +103,8 @@ import kr.co.namee.permissiongen.PermissionSuccess;
  * 消息面板。
  */
 public class MessagePanelActivity extends BaseActivity<MessagePanelView, MessagePanelPresenter>
-        implements MessagePanelView, BGARefreshLayout.BGARefreshLayoutDelegate, ServiceConnection {
+        implements MessagePanelView, BGARefreshLayout.BGARefreshLayoutDelegate, ServiceConnection,
+        VoiceRecordButton.OnRecordListener {
 
     private final static String TAG = MessagePanelActivity.class.getSimpleName();
 
@@ -117,6 +118,7 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
 
     public final static int REQUEST_OVERLAY_PERMISSION = 9000;
     public final static int REQUEST_AUDIO_VIDEO_PERMISSION = 9100;
+    public final static int REQUEST_RECORD_AUDIO_PERMISSION = 9200;
 
     public final static int REQUEST_SELECT_GROUP_MEMBERS_FOR_CALL = 9500;
     public final static int REQUEST_SELECT_GROUP_MEMBERS_FOR_INVITE = 9600;
@@ -297,6 +299,9 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
             presenter.switchVoiceInputMode();
         });
 
+        // 录音监听器
+        recordVoiceButton.setOnRecordListener(this);
+
         // 阅后即焚模式切换
         burnButtonView.setOnClickListener((view) -> {
             presenter.switchBurnMode();
@@ -366,7 +371,25 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
                     // 麦克风权限
                     Manifest.permission.RECORD_AUDIO,
                     // 扬声器权限
-                    Manifest.permission.MODIFY_AUDIO_SETTINGS
+                    Manifest.permission.MODIFY_AUDIO_SETTINGS,
+                    // 读取存储器
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+            )
+            .request();
+    }
+
+    private void requestRecordAudio() {
+        PermissionGen.with(this)
+            .addRequestCode(REQUEST_RECORD_AUDIO_PERMISSION)
+            .permissions(
+                    // 摄像机权限
+                    Manifest.permission.CAMERA,
+                    // 麦克风权限
+                    Manifest.permission.RECORD_AUDIO,
+                    // 扬声器权限
+                    Manifest.permission.MODIFY_AUDIO_SETTINGS,
+                    // 读取存储器
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE
             )
             .request();
     }
@@ -573,9 +596,15 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
                 }
                 break;
             case REQUEST_AUDIO_VIDEO_PERMISSION:
-                if (getPackageManager().checkPermission("android.permission.CAMERA", "packageName")
+                if (getPackageManager().checkPermission("android.permission.CAMERA", getPackageName())
                         == PackageManager.PERMISSION_GRANTED) {
-                    onPermissionSuccess();
+                    // TODO 判断是否开启界面
+                }
+                break;
+            case REQUEST_RECORD_AUDIO_PERMISSION:
+                if (getPackageManager().checkPermission("android.permission.RECORD_AUDIO", getPackageName())
+                        == PackageManager.PERMISSION_GRANTED) {
+                    UIUtils.showToast(UIUtils.getString(R.string.tip_recording_permission_granted));
                 }
                 break;
             case REQUEST_SELECT_GROUP_MEMBERS_FOR_CALL:
@@ -721,6 +750,26 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
     @Override
     public boolean onBGARefreshLayoutBeginLoadingMore(BGARefreshLayout refreshLayout) {
         return false;
+    }
+
+    @Override
+    public void onRecordPermissionDenied() {
+        LogUtils.d(TAG, "#onRecordPermissionDenied");
+        UIUtils.showToast(UIUtils.getString(R.string.tip_recording_no_permission));
+    }
+
+    @Override
+    public void onRecordCancel(int durationInSeconds) {
+        LogUtils.d(TAG, "#onRecordCancel - " + durationInSeconds);
+        if (durationInSeconds < 0) {
+            // 因为没有权限导致取消，请求权限
+            this.requestRecordAudio();
+        }
+    }
+
+    @Override
+    public void onRecordFinish(String filePath, int durationInSeconds) {
+        LogUtils.d(TAG, "#onRecordFinish - " + durationInSeconds);
     }
 
     @Override

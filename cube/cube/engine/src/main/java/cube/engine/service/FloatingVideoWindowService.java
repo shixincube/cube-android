@@ -167,6 +167,10 @@ public class FloatingVideoWindowService extends Service
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        if (null == intent) {
+            return START_STICKY;
+        }
+
         String action = intent.getAction();
         if (null == action) {
             return super.onStartCommand(intent, flags, startId);

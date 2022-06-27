@@ -475,12 +475,6 @@ public class MessagePanelPresenter extends BasePresenter<MessagePanelView>
         }
 
         VoiceMessage voiceMessage = new VoiceMessage(voiceFile, duration);
-        adapter.addLastItem(voiceMessage);
-        moveToBottom();
-
-        if (!this.messageList.isEmpty()) {
-            return;
-        }
 
         CubeEngine.getInstance().getMessagingService().sendMessage(conversation, voiceMessage,
                 new DefaultSendHandler<Conversation, VoiceMessage>(true) {

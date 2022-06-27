@@ -483,6 +483,13 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
             return;
         }
 
+        if (null == getView()) {
+            UIUtils.postTaskDelay(() -> {
+                refreshData();
+            }, 1000);
+            return;
+        }
+
         int tab = this.tabController.getActiveTab();
         switch (tab) {
             case FilesTabController.TAB_ALL_FILES:

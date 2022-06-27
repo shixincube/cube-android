@@ -81,14 +81,14 @@
                         android:id="@+id/rlVoice"
                         android:layout_width="30dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="20dp">
+                        android:layout_marginStart="18dp">
 
                         <ImageView
                             android:id="@+id/ivVoice"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentStart="true"
-                            android:background="@drawable/animation_list_voice_left"/>
+                            android:background="@drawable/animation_list_voice_left" />
 
                     </RelativeLayout>
 

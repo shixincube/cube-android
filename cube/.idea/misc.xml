@@ -167,7 +167,7 @@
         <entry key="app/src/main/res/layout/item_message_text_receive.xml" value="0.335" />
         <entry key="app/src/main/res/layout/item_message_text_send.xml" value="0.5" />
         <entry key="app/src/main/res/layout/item_message_voice_receive.xml" value="0.5" />
-        <entry key="app/src/main/res/layout/item_message_voice_send.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/item_message_voice_send.xml" value="0.4089068825910931" />
         <entry key="app/src/main/res/layout/item_new_contact.xml" value="0.1" />
         <entry key="app/src/main/res/layout/item_no_support_message.xml" value="0.1598360655737705" />
         <entry key="app/src/main/res/layout/item_notification.xml" value="0.5" />

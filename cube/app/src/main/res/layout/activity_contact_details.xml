@@ -285,6 +285,45 @@
             android:textColor="?attr/colorButtonPrimaryText"
             android:textSize="16sp"/>
 
+        <LinearLayout
+            android:id="@+id/llMemberOption"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/activity_vertical_margin"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <!-- 禁言 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:gravity="center_vertical"
+                android:background="?attr/colorBackground"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/option_item_margin_start"
+                    android:layout_weight="1"
+                    android:text="@string/disable_messaging"
+                    android:textColor="?attr/colorText"
+                    android:textSize="16sp"/>
+
+                <com.kyleduo.switchbutton.SwitchButton
+                    android:id="@+id/sbDisableMessaging"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/option_item_margin_end"
+                    auto:kswBackDrawable="@drawable/ios_back_drawable"
+                    auto:kswThumbDrawable="@drawable/ios_thumb_selector"
+                    auto:kswThumbMarginTop="2dp"
+                    auto:kswThumbMarginBottom="-2dp"/>
+            </LinearLayout>
+
+
+
+        </LinearLayout>
+
     </LinearLayout>
 
 

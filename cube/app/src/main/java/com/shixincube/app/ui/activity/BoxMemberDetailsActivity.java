@@ -52,6 +52,7 @@ import cube.ferry.model.Role;
 public class BoxMemberDetailsActivity extends BaseActivity {
 
     public final static String EXTRA_DOMAIN_MEMBER = "domainMember";
+    public final static String EXTRA_MY_ROLE = "myRole";
 
     @BindView(R.id.ivAvatar)
     ImageView avatarView;
@@ -79,8 +80,13 @@ public class BoxMemberDetailsActivity extends BaseActivity {
     @BindView(R.id.btnAddToContacts)
     Button addToContactsButton;
 
+    @BindView(R.id.llMemberOption)
+    LinearLayout memberOptionLayout;
+
     private DomainMember domainMember;
     private Contact contact;
+
+    private Role myRole;
 
     public BoxMemberDetailsActivity() {
         super();
@@ -90,6 +96,7 @@ public class BoxMemberDetailsActivity extends BaseActivity {
     public void init() {
         Intent intent = getIntent();
         this.domainMember = intent.getParcelableExtra(EXTRA_DOMAIN_MEMBER);
+        this.myRole = Role.parse(intent.getIntExtra(EXTRA_MY_ROLE, Role.Member.code));
         this.contact = CubeEngine.getInstance().getContactService().getContact(this.domainMember.getContactId());
     }
 
@@ -117,6 +124,10 @@ public class BoxMemberDetailsActivity extends BaseActivity {
         }
         else {
             this.roleTextView.setText(UIUtils.getString(R.string.member_role_member));
+        }
+
+        if (this.myRole == Role.Administrator) {
+            memberOptionLayout.setVisibility(View.VISIBLE);
         }
     }
 

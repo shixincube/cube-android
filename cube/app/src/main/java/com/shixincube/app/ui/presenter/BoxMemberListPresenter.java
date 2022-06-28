@@ -47,6 +47,7 @@ import java.util.List;
 
 import cube.auth.model.AuthDomain;
 import cube.contact.model.Contact;
+import cube.contact.model.Self;
 import cube.core.Module;
 import cube.core.ModuleError;
 import cube.core.handler.DefaultFailureHandler;
@@ -67,6 +68,8 @@ public class BoxMemberListPresenter extends BasePresenter {
 
     private RecyclerView listView;
 
+    private Role myRole;
+
     public BoxMemberListPresenter(BoxMemberListActivity activity) {
         super(activity);
         this.domainMemberList = new ArrayList<>();
@@ -79,11 +82,20 @@ public class BoxMemberListPresenter extends BasePresenter {
             this.listView.setAdapter(this.adapter);
         }
 
+        Self self = CubeEngine.getInstance().getContactService().getSelf();
+
         CubeEngine.getInstance().getFerryService().getDomain(new DomainHandler() {
             @Override
             public void handleDomain(AuthDomain authDomain, DomainInfo domainInfo, List<DomainMember> members) {
                 domainMemberList.clear();
                 domainMemberList.addAll(members);
+
+                for (DomainMember member : members) {
+                    if (member.getContactId().equals(self.id)) {
+                        myRole = member.getRole();
+                        break;
+                    }
+                }
 
                 adapter.notifyDataSetChangedWrapper();
             }
@@ -129,6 +141,7 @@ public class BoxMemberListPresenter extends BasePresenter {
             DomainMember member = domainMemberList.get(position);
             Intent intent = new Intent(activity, BoxMemberDetailsActivity.class);
             intent.putExtra(BoxMemberDetailsActivity.EXTRA_DOMAIN_MEMBER, member);
+            intent.putExtra(BoxMemberDetailsActivity.EXTRA_MY_ROLE, myRole.code);
             activity.startActivityForResult(intent, BoxMemberListActivity.REQUEST_MEMBER_DETAILS);
         }
     }

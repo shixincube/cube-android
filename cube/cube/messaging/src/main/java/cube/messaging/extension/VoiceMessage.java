@@ -79,4 +79,18 @@ public class VoiceMessage extends TypeableMessage {
         }
         return 0;
     }
+
+    /**
+     * 获取语音文件的可访问路径。
+     *
+     * @return
+     */
+    public String getVoicePath() {
+        File file = this.getAttachment().getPrefFile();
+        if (null != file) {
+            return file.getAbsolutePath();
+        }
+
+        return this.getAttachment().getPrefFileLabel().getURL();
+    }
 }

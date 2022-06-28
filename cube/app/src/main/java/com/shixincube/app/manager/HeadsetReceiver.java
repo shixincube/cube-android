@@ -24,33 +24,23 @@
  * SOFTWARE.
  */
 
-package com.shixincube.app.ui.view;
+package com.shixincube.app.manager;
 
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageView;
-
-import com.shixincube.app.widget.VoiceRecordButton;
-import com.shixincube.app.widget.recyclerview.RecyclerView;
-
-import cn.bingoogolapple.refreshlayout.BGARefreshLayout;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
 
 /**
- * 消息面板。
+ * 耳机状态监听器。
  */
-public interface MessagePanelView {
+public class HeadsetReceiver extends BroadcastReceiver {
 
-    RecyclerView getMessageListView();
+    public HeadsetReceiver() {
 
-    EditText getInputContentView();
+    }
 
-    BGARefreshLayout getRefreshLayout();
+    @Override
+    public void onReceive(Context context, Intent intent) {
 
-    ImageView getVoiceButtonView();
-
-    ImageView getBurnButtonView();
-
-    VoiceRecordButton getRecordVoiceButton();
-
-    Button getAudioOutputModeButton();
+    }
 }

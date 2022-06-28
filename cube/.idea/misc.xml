@@ -51,7 +51,11 @@
         <entry key="app/src/main/res/drawable/checkbox_style.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/cursor.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/dialog_waiting.xml" value="0.20230263157894737" />
+        <entry key="app/src/main/res/drawable/ic_camera_enhance_black_24dp.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/ic_launcher_background.xml" value="0.3203125" />
+        <entry key="app/src/main/res/drawable/ic_launcher_foreground.xml" value="0.240234375" />
+        <entry key="app/src/main/res/drawable/ic_receiver_mode.xml" value="0.240234375" />
+        <entry key="app/src/main/res/drawable/ic_speaker_mode.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/ios_back_drawable.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/ios_thumb_selector.xml" value="0.240234375" />
         <entry key="app/src/main/res/drawable/selector_common_item.xml" value="0.240234375" />
@@ -167,7 +171,7 @@
         <entry key="app/src/main/res/layout/item_message_text_receive.xml" value="0.335" />
         <entry key="app/src/main/res/layout/item_message_text_send.xml" value="0.5" />
         <entry key="app/src/main/res/layout/item_message_voice_receive.xml" value="0.1" />
-        <entry key="app/src/main/res/layout/item_message_voice_send.xml" value="0.4089068825910931" />
+        <entry key="app/src/main/res/layout/item_message_voice_send.xml" value="0.1" />
         <entry key="app/src/main/res/layout/item_new_contact.xml" value="0.1" />
         <entry key="app/src/main/res/layout/item_no_support_message.xml" value="0.1598360655737705" />
         <entry key="app/src/main/res/layout/item_notification.xml" value="0.5" />

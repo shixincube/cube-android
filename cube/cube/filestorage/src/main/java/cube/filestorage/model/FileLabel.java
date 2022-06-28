@@ -26,8 +26,6 @@
 
 package cube.filestorage.model;
 
-import android.os.Build;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -303,13 +301,12 @@ public class FileLabel extends Entity {
      * @return 返回文件的 HTTP 访问 URL 串。
      */
     public String getURL() {
-        String url = this.fileURL;
-        if (Build.SERIAL.contains("unknown")) {
-            // FIXME 以下判断仅用于测试，Release 时务必使用域名
-            // 模拟器里将 127.0.0.1 修改为 10.0.2.2
-            url = this.fileURL.replace("127.0.0.1", "10.0.2.2");
-        }
-        return url + "&token=" + Kernel.getDefault().getAuthToken().code + "&type=" + this.fileType;
+        StringBuilder url = new StringBuilder(this.fileURL);
+        url.append("&token=");
+        url.append(Kernel.getDefault().getAuthToken().code);
+        url.append("&type=");
+        url.append(this.fileType);
+        return url.toString();
     }
 
     /**
@@ -318,13 +315,12 @@ public class FileLabel extends Entity {
      * @return 返回文件的 HTTPS 访问 URL 串。
      */
     public String getSecureURL() {
-        String url = this.fileSecureURL;
-        if (Build.SERIAL.contains("unknown")) {
-            // FIXME 以下判断仅用于测试，Release 时务必使用域名
-            // 模拟器里将 127.0.0.1 修改为 10.0.2.2
-            url = this.fileSecureURL.replace("127.0.0.1", "10.0.2.2");
-        }
-        return url + "&token=" + Kernel.getDefault().getAuthToken().code + "&type=" + this.fileType;
+        StringBuilder url = new StringBuilder(this.fileSecureURL);
+        url.append("&token=");
+        url.append(Kernel.getDefault().getAuthToken().code);
+        url.append("&type=");
+        url.append(this.fileType);
+        return url.toString();
     }
 
     /**

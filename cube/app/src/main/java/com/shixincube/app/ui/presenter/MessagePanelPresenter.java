@@ -30,6 +30,8 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.AnimationDrawable;
+import android.net.Uri;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -53,7 +55,6 @@ import com.shixincube.app.widget.adapter.OnItemClickListener;
 import com.shixincube.app.widget.adapter.ViewHolder;
 
 import java.io.File;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Comparator;
@@ -71,6 +72,7 @@ import cube.engine.util.Future;
 import cube.engine.util.Promise;
 import cube.engine.util.PromiseFuture;
 import cube.engine.util.PromiseHandler;
+import cube.engine.util.SimpleMediaPlayer;
 import cube.messaging.MessageEventListener;
 import cube.messaging.MessageListResult;
 import cube.messaging.MessagingService;
@@ -624,7 +626,14 @@ public class MessagePanelPresenter extends BasePresenter<MessagePanelView>
         this.conversation.set(AppConsts.VOICE_INPUT_MODE, this.voiceInputMode);
     }
 
-    public void close() throws IOException {
+    public void goBack() {
+        // 停播正在播放的语音
+        SimpleMediaPlayer.getInstance().stop();
+    }
+
+    public void destroy() {
+        SimpleMediaPlayer.getInstance().stop();
+
         CubeEngine.getInstance().getMessagingService().removeEventListener(this.conversation, this);
     }
 
@@ -660,7 +669,35 @@ public class MessagePanelPresenter extends BasePresenter<MessagePanelView>
             }
         }
         else if (message instanceof VoiceMessage) {
+            VoiceMessage voiceMessage = (VoiceMessage) message;
+            final ImageView animationView = helper.getView(R.id.ivVoice);
+            SimpleMediaPlayer.getInstance().play(activity, voiceMessage.getVoicePath(), new SimpleMediaPlayer.OnPlayListener() {
+                @Override
+                public void onPrepared(Uri uri) {
+                    if (null != animationView && animationView.getBackground() instanceof AnimationDrawable) {
+                        AnimationDrawable animation = (AnimationDrawable) animationView.getBackground();
+                        animation.start();
+                    }
+                }
 
+                @Override
+                public void onCompletion(Uri uri) {
+                    if (null != animationView && animationView.getBackground() instanceof AnimationDrawable) {
+                        AnimationDrawable animation = (AnimationDrawable) animationView.getBackground();
+                        animation.stop();
+                        animation.selectDrawable(0);
+                    }
+                }
+
+                @Override
+                public void onStop(Uri uri) {
+                    if (null != animationView && animationView.getBackground() instanceof AnimationDrawable) {
+                        AnimationDrawable animation = (AnimationDrawable) animationView.getBackground();
+                        animation.stop();
+                        animation.selectDrawable(0);
+                    }
+                }
+            });
         }
     }
 

@@ -70,7 +70,6 @@ import com.shixincube.imagepicker.ui.ImageGridActivity;
 import com.shixincube.imagepicker.ui.ImagePreviewActivity;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -192,23 +191,13 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
 
     @Override
     public void initView() {
-        this.toolbarMore.setImageResource(R.mipmap.ic_more_black);
-        this.toolbarMore.setVisibility(View.VISIBLE);
-
+        this.initToolbar();
         this.initRefreshLayout();
         this.initKeyboard();
 
         this.inputContentView.clearFocus();
     }
 
-    private void initRefreshLayout() {
-        this.refreshLayout.setDelegate(this);
-        BGANormalRefreshViewHolder refreshViewHolder = new BGANormalRefreshViewHolder(this, false);
-        refreshViewHolder.setRefreshingText(UIUtils.getString(R.string.loading_messages));
-        refreshViewHolder.setPullDownRefreshText("");
-        refreshViewHolder.setReleaseRefreshText("");
-        this.refreshLayout.setRefreshViewHolder(refreshViewHolder);
-    }
 
     @Override
     public void initData() {
@@ -394,6 +383,28 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
             .request();
     }
 
+    private void initToolbar() {
+        this.toolbarMore.setImageResource(R.mipmap.ic_more_black);
+        this.toolbarMore.setVisibility(View.VISIBLE);
+
+        RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) this.toolbarFuncButton.getLayoutParams();
+        layoutParams.width = UIUtils.dp2px(28);
+        layoutParams.height = UIUtils.dp2px(28);
+        layoutParams.removeRule(RelativeLayout.ALIGN_PARENT_END);
+        this.toolbarFuncButton.setText("");
+        this.toolbarFuncButton.setBackgroundResource(R.drawable.ic_receiver_mode);
+        this.toolbarFuncButton.setVisibility(View.VISIBLE);
+    }
+
+    private void initRefreshLayout() {
+        this.refreshLayout.setDelegate(this);
+        BGANormalRefreshViewHolder refreshViewHolder = new BGANormalRefreshViewHolder(this, false);
+        refreshViewHolder.setRefreshingText(UIUtils.getString(R.string.loading_messages));
+        refreshViewHolder.setPullDownRefreshText("");
+        refreshViewHolder.setReleaseRefreshText("");
+        this.refreshLayout.setRefreshViewHolder(refreshViewHolder);
+    }
+
     private void initKeyboard() {
         this.softwareKeyboard = SoftwareKeyboard.with(this);
         this.softwareKeyboard.bindToEditText(this.inputContentView);
@@ -476,6 +487,11 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
             this.emojiButtonView.setImageResource(R.mipmap.message_tool_emotion);
         }
         else {
+            // 界面退出
+            if (null != this.presenter) {
+                this.presenter.goBack();
+            }
+
             super.onBackPressed();
 
             if (null != MessagePanelPresenter.ActiveConversation) {
@@ -502,11 +518,7 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
         super.onDestroy();
 
         if (null != this.presenter) {
-            try {
-                this.presenter.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            this.presenter.destroy();
         }
 
         this.softwareKeyboard.destroy();
@@ -803,5 +815,10 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
     @Override
     public VoiceRecordButton getRecordVoiceButton() {
         return this.recordVoiceButton;
+    }
+
+    @Override
+    public Button getAudioOutputModeButton() {
+        return this.toolbarFuncButton;
     }
 }

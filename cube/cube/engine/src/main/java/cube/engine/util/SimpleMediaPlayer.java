@@ -27,8 +27,11 @@
 package cube.engine.util;
 
 import android.content.Context;
+import android.media.AudioDeviceInfo;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Build;
 
 import java.io.IOException;
 
@@ -38,6 +41,8 @@ import java.io.IOException;
 public final class SimpleMediaPlayer {
 
     private final static SimpleMediaPlayer instance = new SimpleMediaPlayer();
+
+    private Context context;
 
     private MediaPlayer player;
 
@@ -61,6 +66,7 @@ public final class SimpleMediaPlayer {
             this.stop();
         }
 
+        this.context = context;
         this.currentSource = Uri.parse(path);
         this.playListener = playListener;
 
@@ -93,11 +99,77 @@ public final class SimpleMediaPlayer {
         if (this.isPlaying()) {
             this.player.stop();
             this.playListener.onStop(this.currentSource);
+
+            this.context = null;
         }
     }
 
     public boolean isPlaying() {
         return (null != this.player && this.player.isPlaying());
+    }
+
+    /**
+     * 切换到扬声器。
+     *
+     * @param audioManager
+     */
+    public void changeToSpeaker(AudioManager audioManager) {
+        audioManager.setMode(AudioManager.MODE_NORMAL);
+        audioManager.setSpeakerphoneOn(true);
+    }
+
+    /**
+     * 切换到听筒。
+     *
+     * @param audioManager
+     */
+    public void changeToReceiver(AudioManager audioManager) {
+        audioManager.setSpeakerphoneOn(false);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+        }
+        else {
+            audioManager.setMode(AudioManager.MODE_IN_CALL);
+        }
+    }
+
+    /**
+     * 切换到耳机模式。
+     *
+     * @param audioManager
+     */
+    public void changeToHeadset(AudioManager audioManager) {
+        audioManager.setSpeakerphoneOn(false);
+    }
+
+    /**
+     * 是否接入了耳机。
+     *
+     * @param audioManager
+     * @return
+     */
+    public boolean isHeadsetOn(AudioManager audioManager) {
+        if (null == audioManager) {
+            return false;
+        }
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return audioManager.isWiredHeadsetOn() || audioManager.isBluetoothScoOn()
+                    || audioManager.isBluetoothA2dpOn();
+        }
+        else {
+            AudioDeviceInfo[] devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS);
+            for (AudioDeviceInfo device : devices) {
+                if (device.getType() == AudioDeviceInfo.TYPE_WIRED_HEADSET
+                    || device.getType() == AudioDeviceInfo.TYPE_WIRED_HEADPHONES
+                    || device.getType() == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP
+                    || device.getType() == AudioDeviceInfo.TYPE_BLUETOOTH_SCO) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**

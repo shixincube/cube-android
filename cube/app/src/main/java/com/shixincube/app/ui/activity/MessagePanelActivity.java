@@ -33,6 +33,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.IBinder;
 import android.provider.Settings;
@@ -288,8 +289,13 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
             presenter.switchVoiceInputMode();
         });
 
-        // 录音监听器
+        // 设置录音事件监听
         recordVoiceButton.setOnRecordListener(this);
+
+        // 切换听音模式
+        toolbarFuncButton.setOnClickListener((view) -> {
+            presenter.switchListeningMode();
+        });
 
         // 阅后即焚模式切换
         burnButtonView.setOnClickListener((view) -> {
@@ -388,12 +394,12 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
         this.toolbarMore.setVisibility(View.VISIBLE);
 
         RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) this.toolbarFuncButton.getLayoutParams();
-        layoutParams.width = UIUtils.dp2px(28);
-        layoutParams.height = UIUtils.dp2px(28);
+        layoutParams.width = UIUtils.dp2px(24);
+        layoutParams.height = UIUtils.dp2px(24);
         layoutParams.removeRule(RelativeLayout.ALIGN_PARENT_END);
         this.toolbarFuncButton.setText("");
-        this.toolbarFuncButton.setBackgroundResource(R.drawable.ic_receiver_mode);
-        this.toolbarFuncButton.setVisibility(View.VISIBLE);
+        this.toolbarFuncButton.setBackgroundResource(R.drawable.ic_listen_mode_speaker);
+        this.toolbarFuncButton.setVisibility(View.GONE);
     }
 
     private void initRefreshLayout() {
@@ -478,6 +484,30 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
         Intent intent = new Intent(this, ConversationPickerActivity.class);
         intent.putExtra(ConversationPickerActivity.EXTRA_MESSAGE_ID, message.getId().longValue());
         startActivityForResult(intent, REQUEST_FORWARD);
+    }
+
+    /**
+     * 根据模式显示听音状态。
+     *
+     * @param mode
+     */
+    public void refreshListeningMode(int mode) {
+        Button button = this.getAudioOutputModeButton();
+        switch (mode) {
+            case AudioManager.MODE_NORMAL:
+                // 使用扬声器
+                button.setBackgroundResource(R.drawable.ic_listen_mode_speaker);
+                button.setVisibility(View.VISIBLE);
+                break;
+            case AudioManager.MODE_IN_CALL:
+            case AudioManager.MODE_IN_COMMUNICATION:
+                button.setBackgroundResource(R.drawable.ic_listen_mode_receiver);
+                button.setVisibility(View.VISIBLE);
+                break;
+            default:
+                button.setVisibility(View.GONE);
+                break;
+        }
     }
 
     @Override

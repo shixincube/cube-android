@@ -59,6 +59,13 @@
         </receiver>
         <!-- Cube Config End -->
 
+        <!-- 耳机状态监听 -->
+        <receiver android:name=".manager.HeadsetReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.HEADSET_PLUG" />
+            </intent-filter>
+        </receiver>
+
         <activity
             android:name=".ui.activity.SplashActivity"
             android:screenOrientation="portrait"

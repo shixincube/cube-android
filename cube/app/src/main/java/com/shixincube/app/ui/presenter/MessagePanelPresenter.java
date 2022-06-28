@@ -31,6 +31,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.AnimationDrawable;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -621,9 +622,37 @@ public class MessagePanelPresenter extends BasePresenter<MessagePanelView>
             getView().getVoiceButtonView().setImageResource(R.mipmap.message_tool_voice);
             getView().getRecordVoiceButton().setVisibility(View.GONE);
             getView().getInputContentView().setVisibility(View.VISIBLE);
+
+            ((MessagePanelActivity) activity).refreshListeningMode(-1);
         }
 
         this.conversation.set(AppConsts.VOICE_INPUT_MODE, this.voiceInputMode);
+    }
+
+    /**
+     * 切换语音听音模式。
+     */
+    public void switchListeningMode() {
+        MessagePanelActivity activity = (MessagePanelActivity) this.activity;
+        AudioManager audioManager = (AudioManager) activity.getSystemService(Context.AUDIO_SERVICE);
+
+        int mode = audioManager.getMode();
+        switch (mode) {
+            case AudioManager.MODE_NORMAL:
+                // 切换到听筒模式
+                SimpleMediaPlayer.getInstance().changeToReceiver(audioManager);
+                break;
+            case AudioManager.MODE_IN_CALL:
+            case AudioManager.MODE_IN_COMMUNICATION:
+                // 切换到扬声器模式
+                SimpleMediaPlayer.getInstance().changeToSpeaker(audioManager);
+                break;
+            default:
+                break;
+        }
+
+        // 更新 UI
+        activity.refreshListeningMode(audioManager.getMode());
     }
 
     public void goBack() {
@@ -671,6 +700,12 @@ public class MessagePanelPresenter extends BasePresenter<MessagePanelView>
         else if (message instanceof VoiceMessage) {
             VoiceMessage voiceMessage = (VoiceMessage) message;
             final ImageView animationView = helper.getView(R.id.ivVoice);
+            final AudioManager audioManager = (AudioManager) activity.getSystemService(Context.AUDIO_SERVICE);
+
+            if (SimpleMediaPlayer.getInstance().isHeadsetOn(audioManager)) {
+                SimpleMediaPlayer.getInstance().changeToHeadset(audioManager);
+            }
+
             SimpleMediaPlayer.getInstance().play(activity, voiceMessage.getVoicePath(), new SimpleMediaPlayer.OnPlayListener() {
                 @Override
                 public void onPrepared(Uri uri) {
@@ -678,6 +713,9 @@ public class MessagePanelPresenter extends BasePresenter<MessagePanelView>
                         AnimationDrawable animation = (AnimationDrawable) animationView.getBackground();
                         animation.start();
                     }
+
+                    // 更新工具栏图标
+                    ((MessagePanelActivity) activity).refreshListeningMode(audioManager.getMode());
                 }
 
                 @Override
@@ -687,6 +725,11 @@ public class MessagePanelPresenter extends BasePresenter<MessagePanelView>
                         animation.stop();
                         animation.selectDrawable(0);
                     }
+
+                    if (!voiceInputMode) {
+                        // 非语音输入模式，播放结束隐藏图标
+                        ((MessagePanelActivity) activity).refreshListeningMode(-1);
+                    }
                 }
 
                 @Override
@@ -695,6 +738,11 @@ public class MessagePanelPresenter extends BasePresenter<MessagePanelView>
                         AnimationDrawable animation = (AnimationDrawable) animationView.getBackground();
                         animation.stop();
                         animation.selectDrawable(0);
+                    }
+
+                    if (!voiceInputMode) {
+                        // 非语音输入模式，播放结束隐藏图标
+                        ((MessagePanelActivity) activity).refreshListeningMode(-1);
                     }
                 }
             });

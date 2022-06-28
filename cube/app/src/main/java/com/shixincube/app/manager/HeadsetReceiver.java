@@ -30,17 +30,22 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
+import cube.util.LogUtils;
+
 /**
  * 耳机状态监听器。
  */
 public class HeadsetReceiver extends BroadcastReceiver {
 
     public HeadsetReceiver() {
-
+        super();
     }
 
     @Override
     public void onReceive(Context context, Intent intent) {
-
+        if (intent.getAction().equals(Intent.ACTION_HEADSET_PLUG)) {
+            int state = intent.getIntExtra("state", 0);
+            LogUtils.d("HeadsetReceiver", "#onReceive - state : " + state);
+        }
     }
 }

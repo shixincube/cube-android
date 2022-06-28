@@ -282,21 +282,30 @@ public class MessagePanelAdapter extends AdapterForRecyclerView<Message> {
     private void bindEvent(ViewHolderForRecyclerView helper, Message item, int position) {
         if (item instanceof HyperTextMessage) {
             TextView textView = helper.getView(R.id.tvText);
-            textView.setOnLongClickListener((view) -> {
+            textView.setOnLongClickListener(view -> {
                 return this.presenter.fireItemLongPress(view, helper, item, position);
             });
         }
         else if (item instanceof ImageMessage) {
             BubbleImageView imageView = helper.getView(R.id.bivImage);
             imageView.setOnClickListener((view) -> this.presenter.fireItemClick(helper, item, position));
+            imageView.setOnLongClickListener(view -> {
+                return this.presenter.fireItemLongPress(view, helper, item, position);
+            });
         }
         else if (item instanceof FileMessage) {
             LinearLayout layout = helper.getView(R.id.llContact);
             layout.setOnClickListener((view) -> this.presenter.fireItemClick(helper, item, position));
+            layout.setOnLongClickListener(view -> {
+                return this.presenter.fireItemLongPress(view, helper, item, position);
+            });
         }
         else if (item instanceof VoiceMessage) {
             LinearLayout layout = helper.getView(R.id.llVoiceBar);
             layout.setOnClickListener((view) -> this.presenter.fireItemClick(helper, item, position));
+            layout.setOnLongClickListener(view -> {
+                return this.presenter.fireItemLongPress(view, helper, item, position);
+            });
         }
         else if (item instanceof BurnMessage) {
             ImageView imageView = helper.getView(R.id.ivImage);

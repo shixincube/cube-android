@@ -776,6 +776,10 @@ public class MessagePanelPresenter extends BasePresenter<MessagePanelView>
                 case File:
                     menu.getMenu().getItem(0).setVisible(false);
                     break;
+                case Voice:
+                    menu.getMenu().getItem(0).setVisible(false);
+                    menu.getMenu().getItem(1).setVisible(false);
+                    break;
                 case Burn:
                     menu.getMenu().getItem(0).setVisible(false);
                     menu.getMenu().getItem(1).setVisible(false);
@@ -794,6 +798,10 @@ public class MessagePanelPresenter extends BasePresenter<MessagePanelView>
                 case Image:
                 case File:
                     menu.getMenu().getItem(0).setVisible(false);
+                    break;
+                case Voice:
+                    menu.getMenu().getItem(0).setVisible(false);
+                    menu.getMenu().getItem(1).setVisible(false);
                     break;
                 case Burn:
                     menu.getMenu().getItem(0).setVisible(false);

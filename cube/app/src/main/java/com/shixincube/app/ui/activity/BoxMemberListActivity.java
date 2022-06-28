@@ -26,6 +26,10 @@
 
 package com.shixincube.app.ui.activity;
 
+import android.content.Intent;
+
+import androidx.annotation.Nullable;
+
 import com.shixincube.app.R;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
@@ -39,6 +43,8 @@ import butterknife.BindView;
  * 讯盒成员列表界面。
  */
 public class BoxMemberListActivity extends BaseActivity {
+
+    public final static int REQUEST_MEMBER_DETAILS = 1001;
 
     @BindView(R.id.rvMembers)
     RecyclerView listRecyclerView;
@@ -69,6 +75,20 @@ public class BoxMemberListActivity extends BaseActivity {
     @Override
     protected int provideContentViewId() {
         return R.layout.activity_box_member_list;
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_MEMBER_DETAILS) {
+            if (resultCode == BoxMemberDetailsActivity.RESULT_OK) {
+
+            }
+            else {
+
+            }
+        }
     }
 
 }

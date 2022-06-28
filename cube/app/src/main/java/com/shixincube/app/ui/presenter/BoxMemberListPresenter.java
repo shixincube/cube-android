@@ -26,14 +26,19 @@
 
 package com.shixincube.app.ui.presenter;
 
+import android.content.Intent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import com.shixincube.app.R;
+import com.shixincube.app.ui.activity.BoxMemberDetailsActivity;
 import com.shixincube.app.ui.activity.BoxMemberListActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.util.AvatarUtils;
 import com.shixincube.app.widget.adapter.AdapterForRecyclerView;
+import com.shixincube.app.widget.adapter.OnItemClickListener;
+import com.shixincube.app.widget.adapter.ViewHolder;
 import com.shixincube.app.widget.adapter.ViewHolderForRecyclerView;
 import com.shixincube.app.widget.recyclerview.RecyclerView;
 
@@ -93,10 +98,13 @@ public class BoxMemberListPresenter extends BasePresenter {
     /**
      * 列表适配器。
      */
-    protected class ListAdapter extends AdapterForRecyclerView<DomainMember> {
+    protected class ListAdapter extends AdapterForRecyclerView<DomainMember> implements OnItemClickListener {
 
         public ListAdapter() {
             super(activity, domainMemberList, R.layout.item_domain_member);
+
+            // 设置点击事件
+            setOnItemClickListener(this);
         }
 
         @Override
@@ -114,6 +122,14 @@ public class BoxMemberListPresenter extends BasePresenter {
             else {
                 helper.setViewVisibility(R.id.ivRoleAdmin, View.GONE);
             }
+        }
+
+        @Override
+        public void onItemClick(ViewHolder helper, ViewGroup parent, View itemView, int position) {
+            DomainMember member = domainMemberList.get(position);
+            Intent intent = new Intent(activity, BoxMemberDetailsActivity.class);
+            intent.putExtra(BoxMemberDetailsActivity.EXTRA_DOMAIN_MEMBER, member);
+            activity.startActivityForResult(intent, BoxMemberListActivity.REQUEST_MEMBER_DETAILS);
         }
     }
 }

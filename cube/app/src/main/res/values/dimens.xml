@@ -20,6 +20,8 @@
     <dimen name="option_item_margin_end_mix">12dp</dimen>
     <dimen name="option_item_margin_end_only_text">25dp</dimen>
 
+    <dimen name="option_item_height">50dp</dimen>
+
     <dimen name="item_indicator_end">18dp</dimen>
 
     <!-- 条形按钮高度 -->

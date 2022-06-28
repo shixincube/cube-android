@@ -201,12 +201,16 @@
             android:screenOrientation="portrait">
         </activity>
         <activity
-            android:name=".ui.activity.BoxMemberListActivity">
-            android:screenOrientation="portrait"
+            android:name=".ui.activity.BoxMemberListActivity"
+            android:screenOrientation="portrait">
         </activity>
         <activity
-            android:name=".ui.activity.BoxStorageActivity">
-            android:screenOrientation="portrait"
+            android:name=".ui.activity.BoxMemberDetailsActivity"
+            android:screenOrientation="portrait">
+        </activity>
+        <activity
+            android:name=".ui.activity.BoxStorageActivity"
+            android:screenOrientation="portrait">
         </activity>
         <activity
             android:name="com.journeyapps.barcodescanner.CaptureActivity"

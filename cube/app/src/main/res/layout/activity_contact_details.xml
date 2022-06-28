@@ -147,7 +147,7 @@
             android:background="?attr/selectorOptionItem"
             android:focusable="true"
             android:clickable="true"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="@dimen/option_item_margin_top"
             auto:start_text="@string/remark_and_tag"
             auto:start_text_margin_left="@dimen/item_margin_start_and_end"
             auto:end_src="@mipmap/indicator"
@@ -157,11 +157,43 @@
             android:layout_marginStart="@dimen/item_margin_start_and_end"
             android:layout_marginEnd="@dimen/item_margin_start_and_end"/>
 
+        <!-- 角色 -->
+        <LinearLayout
+            android:id="@+id/llRole"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/option_item_height"
+            android:background="?attr/selectorOptionItem"
+            android:gravity="center_vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/item_margin_start_and_end"
+                android:layout_weight="1"
+                android:text="@string/member_role"
+                android:textColor="?attr/colorText"
+                android:textSize="16sp"/>
+
+            <TextView
+                android:id="@+id/tvRole"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end|center_vertical"
+                android:gravity="end|center_vertical"
+                android:layout_marginEnd="@dimen/option_item_margin_end_only_text"
+                android:layout_weight="2"
+                android:text="@string/member_role_member"
+                android:textColor="?attr/colorTextSecondary"
+                android:textSize="16sp"/>
+
+        </LinearLayout>
+
         <!-- 地区 -->
         <LinearLayout
             android:id="@+id/llCountriesAndRegions"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
+            android:layout_height="@dimen/option_item_height"
             android:layout_marginTop="@dimen/activity_vertical_margin"
             android:background="?attr/selectorOptionItem"
             android:gravity="center_vertical">

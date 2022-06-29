@@ -59,68 +59,122 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
  */
 public class LoginPresenter extends BasePresenter<LoginView> {
 
+    public final static int LOGIN_BY_PHONE = 1;
+
+    public final static int LOGIN_BY_ACCOUNT = 2;
+
     public LoginPresenter(BaseActivity activity) {
         super(activity);
     }
 
-    public void login() {
-        String phoneNumber = getView().getPhoneNumberText().getText().toString().trim();
-        String password = getView().getPasswordText().getText().toString().trim();
+    public void login(int mode) {
+        if (mode == LOGIN_BY_PHONE) {
+            String phoneNumber = getView().getPhoneNumberText().getText().toString().trim();
+            String password = getView().getPasswordText().getText().toString().trim();
 
-        if (TextUtils.isEmpty(phoneNumber)) {
-            UIUtils.showToast(UIUtils.getString(R.string.phone_not_empty));
-            return;
-        }
+            if (TextUtils.isEmpty(phoneNumber)) {
+                UIUtils.showToast(UIUtils.getString(R.string.phone_not_empty));
+                return;
+            }
 
-        // 号码格式
-        if (!RegularUtils.isMobile(phoneNumber)) {
-            UIUtils.showToast(UIUtils.getString(R.string.phone_format_error));
-            return;
-        }
+            // 号码格式
+            if (!RegularUtils.isMobile(phoneNumber)) {
+                UIUtils.showToast(UIUtils.getString(R.string.phone_format_error));
+                return;
+            }
 
-        activity.showWaitingDialog(UIUtils.getString(R.string.please_wait_a_moment));
+            activity.showWaitingDialog(UIUtils.getString(R.string.please_wait_a_moment));
 
-        // 密码 MD5
-        password = HashUtils.makeMD5(password);
+            // 密码 MD5
+            password = HashUtils.makeMD5(password);
 
-        String device = DeviceUtils.getDeviceDescription(this.activity.getApplicationContext());
-        // 登录
-        Explorer.getInstance().login(phoneNumber, password, device)
-                .flatMap(new Function<LoginResponse, ObservableSource<AccountInfoResponse>>() {
-                    @Override
-                    public ObservableSource<AccountInfoResponse> apply(LoginResponse loginResponse) throws Throwable {
-                        if (loginResponse.code == StateCode.Success) {
-                            // 保存令牌
-                            AccountHelper.getInstance(activity.getApplicationContext())
-                                    .saveToken(loginResponse.token, loginResponse.expire);
-                            // 使用令牌获取账号信息
-                            return Explorer.getInstance().getAccountInfo(loginResponse.token);
+            String device = DeviceUtils.getDeviceDescription(this.activity.getApplicationContext());
+            // 登录
+            Explorer.getInstance().loginByPhone(phoneNumber, password, device)
+                    .flatMap(new Function<LoginResponse, ObservableSource<AccountInfoResponse>>() {
+                        @Override
+                        public ObservableSource<AccountInfoResponse> apply(LoginResponse loginResponse) throws Throwable {
+                            if (loginResponse.code == StateCode.Success) {
+                                // 保存令牌
+                                AccountHelper.getInstance(activity.getApplicationContext())
+                                        .saveToken(loginResponse.token, loginResponse.expire);
+                                // 使用令牌获取账号信息
+                                return Explorer.getInstance().getAccountInfo(loginResponse.token);
+                            }
+                            else {
+                                return Observable.error(new Exception(UIUtils.getString(R.string.login_error)));
+                            }
+                        }
+                    })
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(accountInfoResponse -> {
+                        activity.hideWaitingDialog();
+
+                        // 账号
+                        Account account = accountInfoResponse.toAccount();
+                        AccountHelper.getInstance(activity.getApplicationContext())
+                                .setCurrentAccount(account);
+
+                        if (AppConsts.FERRY_MODE) {
+                            CubeApp.getMainThreadHandler().post(() -> {
+                                // 跳转到闪屏，以便从闪屏连接引擎
+                                activity.jumpToActivityAndClearTask(SplashActivity.class);
+                            });
                         }
                         else {
-                            return Observable.error(new Exception(UIUtils.getString(R.string.login_error)));
+                            activity.jumpToActivityAndClearTask(MainActivity.class);
                         }
-                    }
-                })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(accountInfoResponse -> {
-                    activity.hideWaitingDialog();
+                    }, this::loginError);
+        }
+        else if (mode == LOGIN_BY_ACCOUNT) {
+            String accountName = getView().getAccountText().getText().toString().trim();
+            String password = getView().getAccountPasswordText().getText().toString().trim();
 
-                    // 账号
-                    Account account = accountInfoResponse.toAccount();
-                    AccountHelper.getInstance(activity.getApplicationContext())
-                            .setCurrentAccount(account);
+            activity.showWaitingDialog(UIUtils.getString(R.string.please_wait_a_moment));
 
-                    if (AppConsts.FERRY_MODE) {
-                        CubeApp.getMainThreadHandler().post(() -> {
-                            // 跳转到闪屏，以便从闪屏连接引擎
-                            activity.jumpToActivityAndClearTask(SplashActivity.class);
-                        });
-                    }
-                    else {
-                        activity.jumpToActivityAndClearTask(MainActivity.class);
-                    }
-                }, this::loginError);
+            // 密码 MD5
+            password = HashUtils.makeMD5(password);
+
+            String device = DeviceUtils.getDeviceDescription(this.activity.getApplicationContext());
+            // 登录
+            Explorer.getInstance().loginByAccount(accountName, password, device)
+                    .flatMap(new Function<LoginResponse, ObservableSource<AccountInfoResponse>>() {
+                        @Override
+                        public ObservableSource<AccountInfoResponse> apply(LoginResponse loginResponse) throws Throwable {
+                            if (loginResponse.code == StateCode.Success) {
+                                // 保存令牌
+                                AccountHelper.getInstance(activity.getApplicationContext())
+                                        .saveToken(loginResponse.token, loginResponse.expire);
+                                // 使用令牌获取账号信息
+                                return Explorer.getInstance().getAccountInfo(loginResponse.token);
+                            }
+                            else {
+                                return Observable.error(new Exception(UIUtils.getString(R.string.login_error)));
+                            }
+                        }
+                    })
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(accountInfoResponse -> {
+                        activity.hideWaitingDialog();
+
+                        // 账号
+                        Account account = accountInfoResponse.toAccount();
+                        AccountHelper.getInstance(activity.getApplicationContext())
+                                .setCurrentAccount(account);
+
+                        if (AppConsts.FERRY_MODE) {
+                            CubeApp.getMainThreadHandler().post(() -> {
+                                // 跳转到闪屏，以便从闪屏连接引擎
+                                activity.jumpToActivityAndClearTask(SplashActivity.class);
+                            });
+                        }
+                        else {
+                            activity.jumpToActivityAndClearTask(MainActivity.class);
+                        }
+                    }, this::loginError);
+        }
     }
 
     private void loginError(Throwable throwable) {

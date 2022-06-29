@@ -36,4 +36,8 @@ public interface LoginView {
     EditText getPhoneNumberText();
 
     EditText getPasswordText();
+
+    EditText getAccountText();
+
+    EditText getAccountPasswordText();
 }

@@ -133,15 +133,33 @@ public class Explorer {
     }
 
     /**
-     * 账号登录。
+     * 使用手机号码登录。
      *
      * @param phoneNumber
      * @param password
      * @param device
      * @return
      */
-    public Observable<LoginResponse> login(String phoneNumber, String password, String device) {
-        return this.api.login(getRequestBody(new LoginRequest(phoneNumber, password, device)));
+    public Observable<LoginResponse> loginByPhone(String phoneNumber, String password, String device) {
+        LoginRequest request = new LoginRequest(device);
+        request.phoneNumber = phoneNumber;
+        request.password = password;
+        return this.api.login(getRequestBody(request));
+    }
+
+    /**
+     * 使用账号登录。
+     *
+     * @param account
+     * @param password
+     * @param device
+     * @return
+     */
+    public Observable<LoginResponse> loginByAccount(String account, String password, String device) {
+        LoginRequest request = new LoginRequest(device);
+        request.account = account;
+        request.password = password;
+        return this.api.login(getRequestBody(request));
     }
 
     /**

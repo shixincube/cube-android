@@ -38,13 +38,13 @@ public class LoginRequest {
     @SerializedName("phone")
     public String phoneNumber;
 
+    public String account;
+
     public String password;
 
     public String device;
 
-    public LoginRequest(String phoneNumber, String password, String device) {
-        this.phoneNumber = phoneNumber;
-        this.password = password;
+    public LoginRequest(String device) {
         this.device = device;
     }
 

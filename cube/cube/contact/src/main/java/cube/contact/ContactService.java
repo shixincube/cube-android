@@ -34,6 +34,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -83,6 +84,7 @@ import cube.core.handler.FailureHandler;
 import cube.core.handler.PipelineHandler;
 import cube.core.handler.StableCompletionHandler;
 import cube.core.handler.StableFailureHandler;
+import cube.util.FileUtils;
 import cube.util.LogUtils;
 import cube.util.ObservableEvent;
 
@@ -413,6 +415,15 @@ public class ContactService extends Module {
     public boolean signOut(SignHandler handler) {
         if (null == this.self) {
             return false;
+        }
+
+        // 删除外部配置文件
+        try {
+            File path = FileUtils.getFilePath(getContext(), "cube");
+            File configFile = new File(path, "cube.config");
+            configFile.delete();
+        } catch (Exception e) {
+            // Nothing
         }
 
         if (!this.pipeline.isReady()) {

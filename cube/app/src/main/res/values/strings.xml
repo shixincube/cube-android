@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources
     xmlns:tools="http://schemas.android.com/tools"
     tools:ignore="MissingTranslation">
@@ -35,6 +36,10 @@
     <string name="send_verification_code">发送验证码</string>
     <string name="china">中国</string>
     <string name="china_region_number">+86</string>
+    <string name="login_by_account">使用账号登录</string>
+    <string name="login_by_phone">使用手机号码登录</string>
+    <string name="account">账号</string>
+    <string name="enter_account_name">请填写账号名</string>
 
     <!-- 注册账号 -->
     <string name="title_register">注册账号</string>
@@ -274,6 +279,7 @@
     <string name="ferry_explain_p4">3、扫描好友分享的魔方讯盒邀请二维码或者输入邀请二维码。</string>
     <string name="ferry_btn_scan">扫码加入通讯域</string>
     <string name="ferry_btn_input">输入邀请码</string>
+    <string name="ferry_btn_logout">退出登录</string>
     <string name="ferry_box_invi_code">邀请码</string>
     <string name="ferry_please_input_invi_code">请输入讯盒邀请码</string>
     <string name="ferry_btn_quit">退出当前通讯域</string>

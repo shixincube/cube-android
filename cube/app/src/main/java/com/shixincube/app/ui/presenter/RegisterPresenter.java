@@ -229,7 +229,7 @@ public class RegisterPresenter extends BasePresenter<RegisterView> {
         String device = DeviceUtils.getDeviceDescription(this.activity.getApplicationContext());
 
         // 登录
-        Explorer.getInstance().login(phoneNumber, passwordMD5Code, device)
+        Explorer.getInstance().loginByPhone(phoneNumber, passwordMD5Code, device)
                 .flatMap(new Function<LoginResponse, ObservableSource<AccountInfoResponse>>() {
                     @Override
                     public ObservableSource<AccountInfoResponse> apply(LoginResponse loginResponse)

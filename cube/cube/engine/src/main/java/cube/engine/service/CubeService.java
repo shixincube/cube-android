@@ -256,6 +256,10 @@ public class CubeService extends Service {
         return CubeEngine.getInstance().loadConfig(context);
     }
 
+    private void monitorMessageNotifying() {
+
+    }
+
     private class Failure {
 
         public int code;

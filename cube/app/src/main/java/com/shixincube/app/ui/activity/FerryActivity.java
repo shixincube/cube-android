@@ -201,6 +201,14 @@ public class FerryActivity extends BaseActivity<FerryView, FerryPresenter> imple
         }
     }
 
+    @Override
+    public void onBackPressed() {
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.addCategory(Intent.CATEGORY_HOME);
+        startActivity(intent);
+    }
+
     private void logout() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(UIUtils.getString(R.string.prompt));

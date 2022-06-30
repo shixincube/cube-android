@@ -116,6 +116,7 @@
                 android:layout_marginEnd="40dp"
                 android:layout_marginTop="10dp"
                 android:autoLink="phone|email|web"
+                android:textColorLink="@color/text_link"
                 android:text="@string/ferry_explain_p2"
                 android:textColor="?attr/colorText"
                 android:textSize="16sp"/>
@@ -127,6 +128,7 @@
                 android:layout_marginEnd="40dp"
                 android:layout_marginTop="10dp"
                 android:autoLink="phone|email|web"
+                android:textColorLink="@color/text_link"
                 android:text="@string/ferry_explain_p3"
                 android:textColor="?attr/colorText"
                 android:textSize="16sp"/>
@@ -138,6 +140,7 @@
                 android:layout_marginEnd="40dp"
                 android:layout_marginTop="10dp"
                 android:autoLink="phone|email|web"
+                android:textColorLink="@color/text_link"
                 android:text="@string/ferry_explain_p4"
                 android:textColor="?attr/colorText"
                 android:textSize="16sp"/>
@@ -178,7 +181,7 @@
                 android:id="@+id/btnLogout"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/strip_button_height"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="20dp"
                 android:background="@drawable/selector_primary_button"
                 android:enabled="true"
                 android:text="@string/ferry_btn_logout"

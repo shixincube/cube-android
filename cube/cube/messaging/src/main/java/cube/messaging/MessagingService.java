@@ -89,6 +89,7 @@ import cube.messaging.handler.MessageHandler;
 import cube.messaging.handler.MessageListResultHandler;
 import cube.messaging.handler.SendHandler;
 import cube.messaging.hook.InstantiateHook;
+import cube.messaging.hook.NotifyHook;
 import cube.messaging.model.CacheableFileLabelCapsule;
 import cube.messaging.model.Conversation;
 import cube.messaging.model.ConversationReminding;
@@ -364,6 +365,7 @@ public class MessagingService extends Module {
 
     private void assemble() {
         this.pluginSystem.addHook(new InstantiateHook());
+        this.pluginSystem.addHook(new NotifyHook());
 
         // 注册插件
         this.pluginSystem.registerPlugin(InstantiateHook.NAME, new MessageTypePlugin());
@@ -3490,6 +3492,12 @@ public class MessagingService extends Module {
         }
 
         if (!exists) {
+            // Hook
+            NotifyHook hook = (NotifyHook) this.pluginSystem.getHook(NotifyHook.NAME);
+            if (null != hook) {
+                compMessage = hook.apply(compMessage);
+            }
+
             // 更新会话清单
             long pivotalId = compMessage.isFromGroup() ? compMessage.getSource() : compMessage.getPartnerId();
             Conversation conversation = this.appendMessageToConversation(pivotalId, compMessage);

@@ -29,6 +29,7 @@ package cube.engine;
 import static android.content.Context.BIND_AUTO_CREATE;
 
 import android.app.Activity;
+import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
@@ -54,6 +55,7 @@ import cube.core.KernelConfig;
 import cube.core.ModuleError;
 import cube.core.handler.KernelHandler;
 import cube.engine.handler.EngineHandler;
+import cube.engine.service.CubeActivityLifecycleCallbacks;
 import cube.engine.service.CubeService;
 import cube.ferry.FerryService;
 import cube.fileprocessor.FileProcessor;
@@ -79,6 +81,8 @@ public class CubeEngine implements Observer {
     private AtomicBoolean starting;
 
     private AtomicBoolean started;
+
+    private CubeActivityLifecycleCallbacks lifecycleCallbacks;
 
     private CubeEngine() {
         this.starting = new AtomicBoolean(false);
@@ -106,6 +110,22 @@ public class CubeEngine implements Observer {
 
     public KernelConfig getConfig() {
         return this.config;
+    }
+
+    /**
+     * 应用程序是否在前台。
+     *
+     * @return
+     */
+    public boolean isForeground() {
+        return this.lifecycleCallbacks.isForeground();
+    }
+
+    public void monitorBackground(Application application) {
+        if (null == this.lifecycleCallbacks) {
+            this.lifecycleCallbacks = new CubeActivityLifecycleCallbacks();
+        }
+        application.registerActivityLifecycleCallbacks(this.lifecycleCallbacks);
     }
 
     /**

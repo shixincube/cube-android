@@ -39,6 +39,8 @@ import com.shixincube.app.ui.base.BaseActivity;
 import java.util.LinkedList;
 import java.util.List;
 
+import cube.engine.CubeEngine;
+
 /**
  * 基础 App 描述。
  */
@@ -64,6 +66,9 @@ public class CubeBaseApp extends MultiDexApplication {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        // 监听应用退到后台
+        CubeEngine.getInstance().monitorBackground(this);
 
         CubeBaseApp.context = getApplicationContext();
         CubeBaseApp.mainThread = Thread.currentThread();

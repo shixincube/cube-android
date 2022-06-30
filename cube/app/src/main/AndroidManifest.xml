@@ -44,6 +44,10 @@
         <meta-data android:name="CUBE_DOMAIN" android:value="shixincube.com"></meta-data>
         <meta-data android:name="CUBE_APPKEY" android:value="shixin-cubeteam-opensource-appkey"></meta-data>
 
+        <meta-data
+            android:name="CUBE_MESSAGE_NOTIFY_ACTIVITY"
+            android:value="com.shixincube.app.ui.activity.MessagePanelActivity"/>
+
         <service
             android:name="cube.engine.service.CubeService"
             android:exported="true">

@@ -138,6 +138,15 @@ public abstract class Module extends Subject {
     }
 
     /**
+     * 获取插件系统。
+     *
+     * @return
+     */
+    public PluginSystem getPluginSystem() {
+        return this.pluginSystem;
+    }
+
+    /**
      * 引擎启动后对模块进行配置。
      *
      * @param configData

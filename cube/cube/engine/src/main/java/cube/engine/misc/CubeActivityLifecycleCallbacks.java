@@ -24,7 +24,7 @@
  * SOFTWARE.
  */
 
-package cube.engine.service;
+package cube.engine.misc;
 
 import android.app.Activity;
 import android.app.Application;

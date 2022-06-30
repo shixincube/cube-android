@@ -55,7 +55,8 @@ import cube.core.KernelConfig;
 import cube.core.ModuleError;
 import cube.core.handler.KernelHandler;
 import cube.engine.handler.EngineHandler;
-import cube.engine.service.CubeActivityLifecycleCallbacks;
+import cube.engine.misc.CubeActivityLifecycleCallbacks;
+import cube.engine.misc.NotificationConfig;
 import cube.engine.service.CubeService;
 import cube.ferry.FerryService;
 import cube.fileprocessor.FileProcessor;
@@ -72,6 +73,12 @@ import cube.util.Observer;
  */
 public class CubeEngine implements Observer {
 
+    public final static String CONFIG_ADDRESS = "CUBE_ADDRESS";
+    public final static String CONFIG_PORT = "CUBE_PORT";
+    public final static String CONFIG_DOMAIN = "CUBE_DOMAIN";
+    public final static String CONFIG_APPKEY = "CUBE_APPKEY";
+    public final static String CONFIG_MESSAGE_NOTIFY_ACTIVITY = "CUBE_MESSAGE_NOTIFY_ACTIVITY";
+
     protected static CubeEngine instance = null;
 
     private KernelConfig config;
@@ -83,6 +90,8 @@ public class CubeEngine implements Observer {
     private AtomicBoolean started;
 
     private CubeActivityLifecycleCallbacks lifecycleCallbacks;
+
+    private NotificationConfig notificationConfig;
 
     private CubeEngine() {
         this.starting = new AtomicBoolean(false);
@@ -144,6 +153,19 @@ public class CubeEngine implements Observer {
 
         LogUtils.i("CubeEngine", "#start : " + this.config.print());
 
+        try {
+            ApplicationInfo appInfo = context.getPackageManager().getApplicationInfo(context.getPackageName(),
+                    PackageManager.GET_META_DATA);
+            if (appInfo.metaData.containsKey(CONFIG_MESSAGE_NOTIFY_ACTIVITY)) {
+                this.notificationConfig = new NotificationConfig();
+
+                this.notificationConfig.messageNotifyActivityClassName =
+                        appInfo.metaData.getString(CONFIG_MESSAGE_NOTIFY_ACTIVITY);
+            }
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+
         boolean processed = this.kernel.startup(context, this.config, new KernelHandler() {
             @Override
             public void handleCompletion(Kernel kernel) {
@@ -191,6 +213,8 @@ public class CubeEngine implements Observer {
 
         this.starting.set(false);
         this.started.set(false);
+
+        this.notificationConfig = null;
     }
 
     public void suspend() {
@@ -344,6 +368,15 @@ public class CubeEngine implements Observer {
     }
 
     /**
+     * 返回通知配置。
+     *
+     * @return
+     */
+    public NotificationConfig getNotificationConfig() {
+        return this.notificationConfig;
+    }
+
+    /**
      * 重置配置。
      *
      * @param activity 指定当前操作的 Activity 实例。
@@ -358,10 +391,10 @@ public class CubeEngine implements Observer {
         File configFile = new File(path, "cube.config");
         JSONObject data = new JSONObject();
         try {
-            data.put("CUBE_ADDRESS", authDomain.mainEndpoint.host);
-            data.put("CUBE_PORT", authDomain.mainEndpoint.port);
-            data.put("CUBE_DOMAIN", authDomain.domainName);
-            data.put("CUBE_APPKEY", authDomain.appKey);
+            data.put(CONFIG_ADDRESS, authDomain.mainEndpoint.host);
+            data.put(CONFIG_PORT, authDomain.mainEndpoint.port);
+            data.put(CONFIG_DOMAIN, authDomain.domainName);
+            data.put(CONFIG_APPKEY, authDomain.appKey);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -399,19 +432,19 @@ public class CubeEngine implements Observer {
                 LogUtils.d("CubeEngine", "#loadConfig - Load config from config file");
 
                 JSONObject data = FileUtils.readJSONFile(configFile);
-                String address = data.getString("CUBE_ADDRESS");
-                int port = data.getInt("CUBE_PORT");
-                String domain = data.getString("CUBE_DOMAIN");
-                String appKey = data.getString("CUBE_APPKEY");
+                String address = data.getString(CONFIG_ADDRESS);
+                int port = data.getInt(CONFIG_PORT);
+                String domain = data.getString(CONFIG_DOMAIN);
+                String appKey = data.getString(CONFIG_APPKEY);
                 config = new KernelConfig(address, port, domain, appKey);
             }
             else {
                 ApplicationInfo appInfo = context.getPackageManager().getApplicationInfo(context.getPackageName(),
                         PackageManager.GET_META_DATA);
-                String address = appInfo.metaData.getString("CUBE_ADDRESS");
-                int port = appInfo.metaData.containsKey("CUBE_PORT") ? appInfo.metaData.getInt("CUBE_PORT") : 7000;
-                String domain = appInfo.metaData.getString("CUBE_DOMAIN");
-                String appKey = appInfo.metaData.getString("CUBE_APPKEY");
+                String address = appInfo.metaData.getString(CONFIG_ADDRESS);
+                int port = appInfo.metaData.containsKey(CONFIG_PORT) ? appInfo.metaData.getInt("CUBE_PORT") : 7000;
+                String domain = appInfo.metaData.getString(CONFIG_DOMAIN);
+                String appKey = appInfo.metaData.getString(CONFIG_APPKEY);
 
                 if (null != address && null != domain && null != appKey) {
                     config = new KernelConfig(address, port, domain, appKey);
@@ -440,10 +473,10 @@ public class CubeEngine implements Observer {
         File configFile = new File(path, "cube.config");
         JSONObject data = new JSONObject();
         try {
-            data.put("CUBE_ADDRESS", address);
-            data.put("CUBE_PORT", port);
-            data.put("CUBE_DOMAIN", domainName);
-            data.put("CUBE_APPKEY", appKey);
+            data.put(CONFIG_ADDRESS, address);
+            data.put(CONFIG_PORT, port);
+            data.put(CONFIG_DOMAIN, domainName);
+            data.put(CONFIG_APPKEY, appKey);
         } catch (JSONException e) {
             e.printStackTrace();
         }

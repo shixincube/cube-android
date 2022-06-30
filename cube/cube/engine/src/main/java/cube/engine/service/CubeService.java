@@ -37,8 +37,11 @@ import androidx.annotation.Nullable;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import cube.core.KernelConfig;
+import cube.core.PluginSystem;
 import cube.engine.CubeEngine;
 import cube.engine.handler.EngineHandler;
+import cube.engine.misc.MessageNotifyPlugin;
+import cube.messaging.hook.NotifyHook;
 import cube.util.LogUtils;
 
 /**
@@ -103,6 +106,8 @@ public class CubeService extends Service {
                                                     && null != binder.engineHandler) {
                                                 binder.handleCalled.set(true);
                                                 binder.engineHandler.handleSuccess(CubeEngine.getInstance());
+                                                // 监视消息通知
+                                                monitorMessageNotifying();
                                             }
                                         }
 
@@ -132,6 +137,8 @@ public class CubeService extends Service {
                                     if (null != binder && !binder.handleCalled.get()) {
                                         binder.handleCalled.set(true);
                                         binder.engineHandler.handleSuccess(CubeEngine.getInstance());
+                                        // 监视消息通知
+                                        monitorMessageNotifying();
                                     }
                                 }
                             }
@@ -179,6 +186,8 @@ public class CubeService extends Service {
                                                 && null != binder.engineHandler) {
                                             binder.handleCalled.set(true);
                                             binder.engineHandler.handleSuccess(CubeEngine.getInstance());
+                                            // 监视消息通知
+                                            monitorMessageNotifying();
                                         }
                                     }
 
@@ -241,6 +250,8 @@ public class CubeService extends Service {
 
                             if (null == startFailure) {
                                 binder.engineHandler.handleSuccess(CubeEngine.getInstance());
+                                // 监视消息通知
+                                monitorMessageNotifying();
                             } else {
                                 binder.engineHandler.handleFailure(startFailure.code, startFailure.description);
                             }
@@ -257,7 +268,12 @@ public class CubeService extends Service {
     }
 
     private void monitorMessageNotifying() {
-
+        if (null != CubeEngine.getInstance().getNotificationConfig()) {
+            // 配置了 Activity 类，则进行消息通知
+            PluginSystem pluginSystem = CubeEngine.getInstance().getMessagingService().getPluginSystem();
+            pluginSystem.registerPlugin(NotifyHook.NAME,
+                    new MessageNotifyPlugin(getApplicationContext()));
+        }
     }
 
     private class Failure {

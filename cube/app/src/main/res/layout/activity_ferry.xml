@@ -104,6 +104,7 @@
                 android:layout_marginStart="40dp"
                 android:layout_marginEnd="40dp"
                 android:layout_marginTop="20dp"
+                android:autoLink="phone|email|web"
                 android:text="@string/ferry_explain_p1"
                 android:textColor="?attr/colorText"
                 android:textSize="16sp"/>
@@ -114,6 +115,7 @@
                 android:layout_marginStart="40dp"
                 android:layout_marginEnd="40dp"
                 android:layout_marginTop="10dp"
+                android:autoLink="phone|email|web"
                 android:text="@string/ferry_explain_p2"
                 android:textColor="?attr/colorText"
                 android:textSize="16sp"/>
@@ -124,6 +126,7 @@
                 android:layout_marginStart="40dp"
                 android:layout_marginEnd="40dp"
                 android:layout_marginTop="10dp"
+                android:autoLink="phone|email|web"
                 android:text="@string/ferry_explain_p3"
                 android:textColor="?attr/colorText"
                 android:textSize="16sp"/>
@@ -134,6 +137,7 @@
                 android:layout_marginStart="40dp"
                 android:layout_marginEnd="40dp"
                 android:layout_marginTop="10dp"
+                android:autoLink="phone|email|web"
                 android:text="@string/ferry_explain_p4"
                 android:textColor="?attr/colorText"
                 android:textSize="16sp"/>
@@ -163,7 +167,7 @@
                 android:id="@+id/btnInput"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/strip_button_height"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="5dp"
                 android:background="@drawable/selector_primary_button"
                 android:enabled="true"
                 android:text="@string/ferry_btn_input"

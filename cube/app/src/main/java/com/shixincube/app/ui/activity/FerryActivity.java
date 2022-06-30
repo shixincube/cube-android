@@ -26,6 +26,7 @@
 
 package com.shixincube.app.ui.activity;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.util.Log;
 import android.view.View;
@@ -34,19 +35,31 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 
 import com.google.zxing.client.android.Intents;
 import com.journeyapps.barcodescanner.ScanContract;
 import com.journeyapps.barcodescanner.ScanOptions;
+import com.shixincube.app.CubeBaseApp;
 import com.shixincube.app.R;
+import com.shixincube.app.api.Explorer;
+import com.shixincube.app.manager.AccountHelper;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.presenter.FerryPresenter;
 import com.shixincube.app.ui.view.FerryView;
+import com.shixincube.app.util.DeviceUtils;
 import com.shixincube.app.util.UIUtils;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import butterknife.BindView;
+import cube.contact.ContactService;
+import cube.contact.handler.DefaultSignHandler;
+import cube.contact.model.Self;
+import cube.core.ModuleError;
 import cube.engine.CubeEngine;
 import cube.util.LogUtils;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 /**
  * Ferry 模式检查。
@@ -91,6 +104,9 @@ public class FerryActivity extends BaseActivity<FerryView, FerryPresenter> imple
 
     @BindView(R.id.btnInput)
     Button btnInputInvitation;
+
+    @BindView(R.id.btnLogout)
+    Button btnLogout;
 
     public FerryActivity() {
         super();
@@ -149,6 +165,10 @@ public class FerryActivity extends BaseActivity<FerryView, FerryPresenter> imple
             Intent intent = new Intent(this, InvitationCodeActivity.class);
             startActivityForResult(intent, InvitationCodeActivity.RESULT);
         });
+
+        this.btnLogout.setOnClickListener((view) -> {
+            logout();
+        });
     }
 
     @Override
@@ -179,5 +199,75 @@ public class FerryActivity extends BaseActivity<FerryView, FerryPresenter> imple
             String code = data.getStringExtra(InvitationCodeActivity.EXTRA_CODE);
             this.presenter.processInvitationCode(code);
         }
+    }
+
+    private void logout() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(UIUtils.getString(R.string.prompt));
+        builder.setMessage(UIUtils.getString(R.string.do_you_want_to_logout));
+        builder.setPositiveButton(UIUtils.getString(R.string.sure), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int index) {
+                showWaitingDialog(UIUtils.getString(R.string.logout));
+
+                // 删除当前账号
+                AccountHelper.getInstance().removeCurrentAccount();
+                // 删除本地令牌
+                String tokenCode = AccountHelper.getInstance().deleteToken();
+                if (null == tokenCode) {
+                    LogUtils.w(TAG, "Token is null");
+                    return;
+                }
+
+                AtomicBoolean finishLogout = new AtomicBoolean(false);
+                AtomicBoolean finishSignOut = new AtomicBoolean(false);
+
+                Runnable jumpTask = new Runnable() {
+                    @Override
+                    public void run() {
+                        if (finishLogout.get() && finishSignOut.get()) {
+                            CubeBaseApp.getMainThreadHandler().post(() -> {
+                                jumpToActivityAndClearTask(SplashActivity.class);
+                            });
+                        }
+                    }
+                };
+
+                // 从应用服务器登出
+                String device = DeviceUtils.getDeviceDescription(getApplicationContext());
+                Explorer.getInstance().logout(tokenCode, device)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(Schedulers.io())
+                        .doOnError(error -> {
+                            LogUtils.w(TAG, "Logout failed", error);
+                            finishLogout.set(true);
+                            jumpTask.run();
+                        })
+                        .subscribe(logoutResponse -> {
+                            LogUtils.i(TAG, "Logout - " + logoutResponse.code);
+                            finishLogout.set(true);
+                            jumpTask.run();
+                        });
+
+                // 从引擎签出
+                CubeEngine.getInstance().signOut(new DefaultSignHandler(false) {
+                    @Override
+                    public void handleSuccess(ContactService service, Self self) {
+                        LogUtils.i(TAG, "SignOut : " + self.id);
+                        finishSignOut.set(true);
+                        jumpTask.run();
+                    }
+
+                    @Override
+                    public void handleFailure(ContactService service, ModuleError error) {
+                        LogUtils.w(TAG, "SignOut failed : " + error.code);
+                        finishSignOut.set(true);
+                        jumpTask.run();
+                    }
+                });
+            }
+        });
+        builder.setNegativeButton(UIUtils.getString(R.string.cancel), null);
+        builder.show();
     }
 }

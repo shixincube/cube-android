@@ -33,6 +33,8 @@ public class NotificationConfig {
 
     public String messageNotifyActivityClassName;
 
+    public int messageNotifySmallIconResource;
+
     public NotificationConfig() {
     }
 }

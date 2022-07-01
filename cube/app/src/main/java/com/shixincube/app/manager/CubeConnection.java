@@ -33,6 +33,7 @@ import android.os.IBinder;
 
 import com.shixincube.app.AppConsts;
 import com.shixincube.app.CubeBaseApp;
+import com.shixincube.app.R;
 import com.shixincube.app.model.Account;
 
 import java.io.IOException;
@@ -42,9 +43,9 @@ import cube.contact.ContactService;
 import cube.contact.handler.DefaultSignHandler;
 import cube.contact.model.Self;
 import cube.core.ModuleError;
-import cube.engine.service.CubeBinder;
 import cube.engine.CubeEngine;
 import cube.engine.handler.EngineHandler;
+import cube.engine.service.CubeBinder;
 import cube.engine.util.Future;
 import cube.engine.util.Promise;
 import cube.engine.util.PromiseFuture;
@@ -101,6 +102,9 @@ public class CubeConnection implements ServiceConnection {
                     if (null != successHandler) {
                         successHandler.run();
                     }
+
+                    // 设置消息通知条的 Icon
+                    engine.getNotificationConfig().messageNotifySmallIconResource = R.mipmap.ic_launcher;
                 }, () -> {
                     // 暖机
                     LogUtils.i(AppConsts.TAG, "Engine warmup");

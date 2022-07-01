@@ -51,6 +51,18 @@ public class MessageNotifyPlugin implements Plugin<Message> {
 
     @Override
     public Message onEvent(String name, Message data) {
+        String title = null;
+        String text = null;
+        switch (data.getType()) {
+            case Text:
+            case Image:
+            case File:
+            case Burn:
+                break;
+            default:
+                return data;
+        }
+
         NotificationConfig config = CubeEngine.getInstance().getNotificationConfig();
 
         NotificationManager nm = (NotificationManager) this.context.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -63,12 +75,21 @@ public class MessageNotifyPlugin implements Plugin<Message> {
             e.printStackTrace();
         }
 
-        PendingIntent pendingIntent = PendingIntent.getActivity(this.context, requestCode, intent,
+        PendingIntent pendingIntent = PendingIntent.getActivity(this.context, this.requestCode, intent,
                 PendingIntent.FLAG_ONE_SHOT);
 
         Notification.Builder builder = new Notification.Builder(this.context);
-//        builder.setSmallIcon(R.mipmap.ic_launcher);
+        builder.setContentIntent(pendingIntent);
+        builder.setContentTitle(title);
+        builder.setContentText(text);
+
+        if (config.messageNotifySmallIconResource > 0) {
+            builder.setSmallIcon(config.messageNotifySmallIconResource);
+        }
+
         Notification notification = builder.build();
+        notification.flags |= Notification.FLAG_AUTO_CANCEL;
+        nm.notify(data.getId().intValue(), notification);
 
         return data;
     }

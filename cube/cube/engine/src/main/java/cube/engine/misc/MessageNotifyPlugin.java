@@ -51,6 +51,10 @@ public class MessageNotifyPlugin implements Plugin<Message> {
 
     @Override
     public Message onEvent(String name, Message data) {
+        if (CubeEngine.getInstance().isForeground()) {
+            return data;
+        }
+
         String title = null;
         String text = null;
         switch (data.getType()) {
@@ -58,6 +62,18 @@ public class MessageNotifyPlugin implements Plugin<Message> {
             case Image:
             case File:
             case Burn:
+                if (data.isSelfTyper()) {
+                    return data;
+                }
+
+                if (data.isFromGroup()) {
+                    title = data.getSourceGroup().getPriorityName();
+                }
+                else {
+                    title = data.getSender().getPriorityName();
+                }
+
+                text = data.getSummary();
                 break;
             default:
                 return data;

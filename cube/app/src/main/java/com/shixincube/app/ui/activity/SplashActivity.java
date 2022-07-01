@@ -49,6 +49,7 @@ import com.shixincube.app.util.UIUtils;
 
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import butterknife.BindView;
 import cell.util.log.Logger;
@@ -102,31 +103,30 @@ public class SplashActivity extends BaseActivity {
         // 请求权限
         this.requestPermission();
 
-        // 启动
-        this.launch();
+        if (AppConsts.FERRY_MODE) {
+            AtomicInteger count = new AtomicInteger(0);
+            checkEngineConfig(new ResultCallback() {
+                @Override
+                public void onResult(boolean ok) {
+                    if (!ok) {
+                        UIUtils.showToast(UIUtils.getString(R.string.network_failure), 3000);
 
-//        if (AppConsts.FERRY_MODE) {
-//            AtomicInteger count = new AtomicInteger(0);
-//            checkEngineConfig(new ResultCallback() {
-//                @Override
-//                public void onResult(boolean ok) {
-//                    if (!ok) {
-//                        UIUtils.showToast(UIUtils.getString(R.string.network_failure), 3000);
-//
-//                        if (count.incrementAndGet() >= 2) {
-//                            // 重试两次
-//                            launch();
-//                        }
-//                    }
-//                    else {
-//                        launch();
-//                    }
-//                }
-//            });
-//        }
-//        else {
-//            this.launch();
-//        }
+                        if (count.incrementAndGet() >= 2) {
+                            // 重试两次
+                            launch();
+                        }
+                    }
+                    else {
+                        // 启动
+                        launch();
+                    }
+                }
+            });
+        }
+        else {
+            // 启动
+            this.launch();
+        }
     }
 
     @Override

@@ -33,8 +33,10 @@ import android.content.Intent;
 import com.shixincube.app.AppConsts;
 import com.shixincube.app.CubeApp;
 import com.shixincube.app.api.Explorer;
+import com.shixincube.app.api.RetryWithDelay;
 import com.shixincube.app.manager.AccountHelper;
 import com.shixincube.app.manager.CubeConnection;
+import com.shixincube.app.model.Notice;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.MainView;
@@ -55,6 +57,8 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
  * 主界面。
  */
 public class MainPresenter extends BasePresenter<MainView> implements Observer {
+
+    private final static String TAG = "MainPresenter";
 
     private boolean useDemoData = !AppConsts.FERRY_MODE;
 
@@ -128,6 +132,21 @@ public class MainPresenter extends BasePresenter<MainView> implements Observer {
                     });
             }
         }
+    }
+
+    public void processNotice() {
+        Explorer.getInstance().getNotices()
+            .subscribeOn(Schedulers.io())
+            .observeOn(Schedulers.io())
+            .doOnError(error -> {
+                LogUtils.w(TAG, "#processNotice", error);
+            })
+            .retryWhen(new RetryWithDelay(3000, 2))
+            .subscribe(noticeResponse -> {
+                for (Notice notice : noticeResponse.notices) {
+
+                }
+            });
     }
 
     @Override

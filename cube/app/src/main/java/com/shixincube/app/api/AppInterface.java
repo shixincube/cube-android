@@ -32,6 +32,7 @@ import com.shixincube.app.model.response.CheckPhoneResponse;
 import com.shixincube.app.model.response.ContactZoneResponse;
 import com.shixincube.app.model.response.LoginResponse;
 import com.shixincube.app.model.response.LogoutResponse;
+import com.shixincube.app.model.response.NoticeResponse;
 import com.shixincube.app.model.response.RegisterResponse;
 import com.shixincube.app.model.response.SearchAccountResultResponse;
 
@@ -145,6 +146,16 @@ public interface AppInterface {
      */
     @GET("/account/search/")
     Observable<SearchAccountResultResponse> searchAccount(@Query("token") String token, @Query("phone") String phoneNumber);
+
+    /**
+     * 获取通知数据。
+     *
+     * @param token
+     * @param domainName
+     * @return
+     */
+    @GET("/notice/")
+    Observable<NoticeResponse> getNotices(@Query("token") String token, @Query("domain") String domainName);
 
     /**
      * 获取指定的域数据。

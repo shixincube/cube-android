@@ -42,6 +42,7 @@ import com.shixincube.app.model.response.CheckPhoneResponse;
 import com.shixincube.app.model.response.ContactZoneResponse;
 import com.shixincube.app.model.response.LoginResponse;
 import com.shixincube.app.model.response.LogoutResponse;
+import com.shixincube.app.model.response.NoticeResponse;
 import com.shixincube.app.model.response.RegisterResponse;
 import com.shixincube.app.model.response.SearchAccountResultResponse;
 
@@ -252,6 +253,16 @@ public class Explorer {
      */
     public Observable<SearchAccountResultResponse> searchAccount(String phoneNumber) {
         return this.api.searchAccount(AccountHelper.getInstance().getTokenCode(), phoneNumber);
+    }
+
+    /**
+     * 获取指定域的所有通知数据。
+     *
+     * @return
+     */
+    public Observable<NoticeResponse> getNotices() {
+        return this.api.getNotices(AccountHelper.getInstance().getTokenCode(),
+                AccountHelper.getInstance().getDomain());
     }
 
     /**

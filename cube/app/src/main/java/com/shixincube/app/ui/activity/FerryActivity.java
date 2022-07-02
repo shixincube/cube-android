@@ -127,6 +127,9 @@ public class FerryActivity extends BaseActivity<FerryView, FerryPresenter> imple
                 }
             }
 
+            // 设置域
+            AccountHelper.getInstance().setDomain(CubeEngine.getInstance().getConfig().domain);
+
             // 跳转到 MainActivity
             runOnUiThread(new Runnable() {
                 @Override

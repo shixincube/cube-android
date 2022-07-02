@@ -41,6 +41,7 @@ import androidx.viewpager.widget.ViewPager;
 
 import com.shixincube.app.AppConsts;
 import com.shixincube.app.R;
+import com.shixincube.app.manager.AccountHelper;
 import com.shixincube.app.ui.adapter.CommonFragmentPagerAdapter;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BaseFragment;
@@ -200,6 +201,12 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
         Promise.create(new PromiseHandler<Boolean>() {
             @Override
             public void emit(PromiseFuture<Boolean> promise) {
+                // 设置域
+                AccountHelper.getInstance().setDomain(CubeEngine.getInstance().getConfig().domain);
+
+                // 处理通知
+                presenter.processNotice();
+
                 boolean first = CubeEngine.getInstance().getContactService().isFirstSignIn();
                 promise.resolve(first);
             }

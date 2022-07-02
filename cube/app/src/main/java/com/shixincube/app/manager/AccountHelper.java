@@ -59,6 +59,8 @@ public class AccountHelper implements ContactDataProvider {
 
     private String tokenCode;
 
+    private String domain;
+
     private Account current;
 
     private AccountHelper(Context context) {
@@ -183,6 +185,8 @@ public class AccountHelper implements ContactDataProvider {
 
         this.current = null;
 
+        this.domain = null;
+
         return account;
     }
 
@@ -207,6 +211,14 @@ public class AccountHelper implements ContactDataProvider {
 
         this.editor.putString(AppConsts.APP_ACCOUNT, this.current.toJSON().toString());
         this.editor.commit();
+    }
+
+    public void setDomain(String domain) {
+        this.domain = domain;
+    }
+
+    public String getDomain() {
+        return this.domain;
     }
 
     /**

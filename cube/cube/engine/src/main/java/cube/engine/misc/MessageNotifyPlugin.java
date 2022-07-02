@@ -27,14 +27,20 @@
 package cube.engine.misc;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
+import android.os.Handler;
 
 import cube.core.Plugin;
 import cube.engine.CubeEngine;
+import cube.messaging.Const;
+import cube.messaging.model.Conversation;
 import cube.messaging.model.Message;
+import cube.util.LogUtils;
 
 /**
  * 消息通知插件。
@@ -52,6 +58,12 @@ public class MessageNotifyPlugin implements Plugin<Message> {
     @Override
     public Message onEvent(String name, Message data) {
         if (CubeEngine.getInstance().isForeground()) {
+            return data;
+        }
+
+        Conversation conversation = CubeEngine.getInstance().getMessagingService()
+                .getConversationByMessage(data);
+        if (null == conversation) {
             return data;
         }
 
@@ -81,14 +93,14 @@ public class MessageNotifyPlugin implements Plugin<Message> {
 
         NotificationConfig config = CubeEngine.getInstance().getNotificationConfig();
 
-        NotificationManager nm = (NotificationManager) this.context.getSystemService(Context.NOTIFICATION_SERVICE);
+        final NotificationManager nm = (NotificationManager) this.context.getSystemService(Context.NOTIFICATION_SERVICE);
         Intent intent = new Intent();
-        intent.putExtra("messageId", data.getId());
-        try {
-            Class<?> activityClass = ClassLoader.getSystemClassLoader().loadClass(config.messageNotifyActivityClassName);
-            intent.setClass(context, activityClass);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+        intent.putExtra(Const.ENTRANCE, "notification");
+        intent.putExtra(Const.MESSAGE_ID, data.getId());
+        intent.putExtra(Const.CONVERSATION_ID, conversation.getId());
+
+        if (null != config.messageNotifyActivityClass) {
+            intent.setClass(context, config.messageNotifyActivityClass);
         }
 
         PendingIntent pendingIntent = PendingIntent.getActivity(this.context, this.requestCode, intent,
@@ -99,13 +111,25 @@ public class MessageNotifyPlugin implements Plugin<Message> {
         builder.setContentTitle(title);
         builder.setContentText(text);
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(this.context.getPackageName(),
+                    "MessageNotifyPlugin", NotificationManager.IMPORTANCE_DEFAULT);
+            nm.createNotificationChannel(channel);
+            builder.setChannelId(this.context.getPackageName());
+        }
+
         if (config.messageNotifySmallIconResource > 0) {
             builder.setSmallIcon(config.messageNotifySmallIconResource);
         }
 
-        Notification notification = builder.build();
-        notification.flags |= Notification.FLAG_AUTO_CANCEL;
-        nm.notify(data.getId().intValue(), notification);
+        LogUtils.d("MessageNotifyPlugin", "Notify message: " + conversation.getDisplayName());
+
+        Handler handler = new Handler(this.context.getMainLooper());
+        handler.post(() -> {
+            Notification notification = builder.build();
+            notification.flags |= Notification.FLAG_AUTO_CANCEL;
+            nm.notify(data.getId().intValue(), notification);
+        });
 
         return data;
     }

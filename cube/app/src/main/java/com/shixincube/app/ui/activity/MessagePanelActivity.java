@@ -86,6 +86,7 @@ import cube.engine.CubeEngine;
 import cube.engine.service.FloatingVideoWindowBinder;
 import cube.engine.service.FloatingVideoWindowListener;
 import cube.engine.service.FloatingVideoWindowService;
+import cube.messaging.Const;
 import cube.messaging.MessagingService;
 import cube.messaging.model.Conversation;
 import cube.messaging.model.ConversationState;
@@ -185,9 +186,21 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
 
     @Override
     public void init() {
+        long conversationId = 0;
+
         Intent intent = getIntent();
-        long conversationId = intent.getLongExtra("conversationId", 0);
+
+        if (intent.hasExtra(Const.CONVERSATION_ID)) {
+            conversationId = intent.getLongExtra(Const.CONVERSATION_ID, 0);
+        }
+
         this.conversation = CubeEngine.getInstance().getMessagingService().getConversation(conversationId);
+
+        if (null == this.conversation) {
+            runOnUiThread(() -> {
+                finish();
+            });
+        }
     }
 
     @Override

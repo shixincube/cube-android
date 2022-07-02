@@ -77,7 +77,6 @@ public class CubeEngine implements Observer {
     public final static String CONFIG_PORT = "CUBE_PORT";
     public final static String CONFIG_DOMAIN = "CUBE_DOMAIN";
     public final static String CONFIG_APPKEY = "CUBE_APPKEY";
-    public final static String CONFIG_MESSAGE_NOTIFY_ACTIVITY = "CUBE_MESSAGE_NOTIFY_ACTIVITY";
 
     protected static CubeEngine instance = null;
 
@@ -153,18 +152,7 @@ public class CubeEngine implements Observer {
 
         LogUtils.i("CubeEngine", "#start : " + this.config.print());
 
-        try {
-            ApplicationInfo appInfo = context.getPackageManager().getApplicationInfo(context.getPackageName(),
-                    PackageManager.GET_META_DATA);
-            if (appInfo.metaData.containsKey(CONFIG_MESSAGE_NOTIFY_ACTIVITY)) {
-                this.notificationConfig = new NotificationConfig();
-
-                this.notificationConfig.messageNotifyActivityClassName =
-                        appInfo.metaData.getString(CONFIG_MESSAGE_NOTIFY_ACTIVITY);
-            }
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        }
+        this.notificationConfig = new NotificationConfig();
 
         boolean processed = this.kernel.startup(context, this.config, new KernelHandler() {
             @Override

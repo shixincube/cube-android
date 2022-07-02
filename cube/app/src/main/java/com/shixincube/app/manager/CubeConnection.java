@@ -45,6 +45,7 @@ import cube.contact.model.Self;
 import cube.core.ModuleError;
 import cube.engine.CubeEngine;
 import cube.engine.handler.EngineHandler;
+import cube.engine.misc.NotificationConfig;
 import cube.engine.service.CubeBinder;
 import cube.engine.util.Future;
 import cube.engine.util.Promise;
@@ -104,7 +105,9 @@ public class CubeConnection implements ServiceConnection {
                     }
 
                     // 设置消息通知条的 Icon
-                    engine.getNotificationConfig().messageNotifySmallIconResource = R.mipmap.ic_launcher;
+                    NotificationConfig config = engine.getNotificationConfig();
+                    config.messageNotifyActivityClass = com.shixincube.app.ui.activity.MessagePanelActivity.class;
+                    config.messageNotifySmallIconResource = R.mipmap.ic_launcher;
                 }, () -> {
                     // 暖机
                     LogUtils.i(AppConsts.TAG, "Engine warmup");

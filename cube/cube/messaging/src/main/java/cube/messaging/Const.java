@@ -24,17 +24,19 @@
  * SOFTWARE.
  */
 
-package cube.engine.misc;
+package cube.messaging;
 
 /**
- * 通知配置。
+ * 常量。
  */
-public class NotificationConfig {
+public final class Const {
 
-    public Class<?> messageNotifyActivityClass;
+    public final static String MESSAGE_ID = "messageId";
 
-    public int messageNotifySmallIconResource;
+    public final static String CONVERSATION_ID = "conversationId";
 
-    public NotificationConfig() {
+    public final static String ENTRANCE = "entrance";
+
+    private Const() {
     }
 }

@@ -58,6 +58,11 @@ public class Notice implements JSONable {
      */
     private long expires;
 
+    /**
+     * 上次显示该通知时间。
+     */
+    private long lastShowTime = 0;
+
     public Notice(long id, String domain, String title, String content, int type, long creation, long expires) {
         this.id = id;
         this.domain = domain;
@@ -80,6 +85,10 @@ public class Notice implements JSONable {
 
             if (json.has("contentURL")) {
                 this.contentURL = json.getString("contentURL");
+            }
+
+            if (json.has("lastShowTime")) {
+                this.lastShowTime = json.getLong("lastShowTime");
             }
         } catch (JSONException e) {
             // Nothing
@@ -122,6 +131,28 @@ public class Notice implements JSONable {
         return this.expires;
     }
 
+    public long getLastShowTime() {
+        return this.lastShowTime;
+    }
+
+    public void setLastShowTime(long time) {
+        this.lastShowTime = time;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (object instanceof Notice) {
+            return ((Notice) object).getId() == this.id;
+        }
+
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return (int) this.id;
+    }
+
     @Override
     public JSONObject toJSON() {
         JSONObject json = new JSONObject();
@@ -137,6 +168,8 @@ public class Notice implements JSONable {
             if (null != this.contentURL) {
                 json.put("contentURL", this.contentURL);
             }
+
+            json.put("lastShowTime", this.lastShowTime);
         } catch (JSONException e) {
             // Nothing
         }

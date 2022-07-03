@@ -36,11 +36,17 @@ import com.shixincube.app.api.Explorer;
 import com.shixincube.app.api.RetryWithDelay;
 import com.shixincube.app.manager.AccountHelper;
 import com.shixincube.app.manager.CubeConnection;
+import com.shixincube.app.manager.PreferenceHelper;
+import com.shixincube.app.model.MutableNotice;
 import com.shixincube.app.model.Notice;
+import com.shixincube.app.model.NoticeType;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.MainView;
+import com.shixincube.app.widget.NoticeDialog;
 
+import java.util.Calendar;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -61,6 +67,8 @@ public class MainPresenter extends BasePresenter<MainView> implements Observer {
     private final static String TAG = "MainPresenter";
 
     private boolean useDemoData = !AppConsts.FERRY_MODE;
+
+    private NoticeDialog noticeDialog;
 
     private Timer timer;
 
@@ -135,6 +143,55 @@ public class MainPresenter extends BasePresenter<MainView> implements Observer {
     }
 
     public void processNotice() {
+        Runnable task = () -> {
+            List<Notice> list = PreferenceHelper.getInstance(activity.getApplicationContext())
+                    .loadNotices();
+
+            MutableNotice mutableNotice = new MutableNotice();
+
+            for (Notice current : list) {
+                if (current.getType() == NoticeType.ONLY_ONCE) {
+                    if (current.getLastShowTime() == 0) {
+                        mutableNotice.value = current;
+                        break;
+                    }
+                }
+                else if (current.getType() == NoticeType.ONLY_ONCE_A_DAY) {
+                    if (current.getLastShowTime() == 0) {
+                        mutableNotice.value = current;
+                        break;
+                    }
+                    else {
+                        Calendar last = Calendar.getInstance();
+                        last.setTimeInMillis(current.getLastShowTime());
+
+                        Calendar now = Calendar.getInstance();
+
+                        if (last.get(Calendar.DAY_OF_YEAR) != now.get(Calendar.DAY_OF_YEAR)) {
+                            mutableNotice.value = current;
+                            break;
+                        }
+                    }
+                }
+                else if (current.getType() == NoticeType.EVERY_TIME_START) {
+                    mutableNotice.value = current;
+                    break;
+                }
+            }
+
+            if (null != mutableNotice.value) {
+                // 设置时间
+                mutableNotice.value.setLastShowTime(System.currentTimeMillis());
+
+                // 刷新数据
+                PreferenceHelper.getInstance().refreshNotice(mutableNotice.value);
+
+                activity.runOnUiThread(() -> {
+                    showNoticeDialog(mutableNotice.value);
+                });
+            }
+        };
+
         Explorer.getInstance().getNotices()
             .subscribeOn(Schedulers.io())
             .observeOn(Schedulers.io())
@@ -143,10 +200,20 @@ public class MainPresenter extends BasePresenter<MainView> implements Observer {
             })
             .retryWhen(new RetryWithDelay(3000, 2))
             .subscribe(noticeResponse -> {
-                for (Notice notice : noticeResponse.notices) {
+                // 保存数据
+                PreferenceHelper.getInstance(activity.getApplicationContext())
+                        .saveNotices(noticeResponse.notices);
 
-                }
+                task.run();
             });
+    }
+
+    public void showNoticeDialog(Notice notice) {
+        if (null == this.noticeDialog) {
+            this.noticeDialog = new NoticeDialog(activity);
+        }
+
+        this.noticeDialog.show(notice.getTitle(), notice.getContent());
     }
 
     @Override

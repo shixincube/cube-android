@@ -94,6 +94,11 @@ public final class AppConsts {
     public final static String APP_DARK_THEME_MODE = "AppDarkThemeMode";
 
     /**
+     * 系统当前需要显示的通知。
+     */
+    public final static String APP_NOTICE_SET = "AppNotices";
+
+    /**
      * 图片保存位置。
      */
     public final static String IMAGE_DIR = FileUtils.getDir("image");

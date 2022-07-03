@@ -163,9 +163,9 @@ public class VoiceRecordButton extends androidx.appcompat.widget.AppCompatButton
             this.dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.MATCH_PARENT);
 
-            this.recordTimeView = (TextView) dialog.findViewById(R.id.recordTime);
-            this.tipTextView = (TextView) dialog.findViewById(R.id.tipText);
-            this.recordVolumeView = (ImageView) dialog.findViewById(R.id.recordVolume);
+            this.recordTimeView = (TextView) dialog.findViewById(R.id.tvRecordTime);
+            this.tipTextView = (TextView) dialog.findViewById(R.id.tvTipText);
+            this.recordVolumeView = (ImageView) dialog.findViewById(R.id.ivRecordVolume);
         }
 
         this.tipTextView.setText(UIUtils.getString(R.string.release_to_send));

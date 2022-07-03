@@ -42,7 +42,6 @@ import cube.engine.CubeEngine;
 import cube.messaging.Constants;
 import cube.messaging.model.Conversation;
 import cube.messaging.model.Message;
-import cube.util.LogUtils;
 
 /**
  * 消息通知插件。
@@ -143,7 +142,7 @@ public class MessageNotifyPlugin implements Plugin<Message> {
             builder.setSmallIcon(config.messageNotifySmallIconResource);
         }
 
-        LogUtils.d("MessageNotifyPlugin", "Notify message: " + conversation.getDisplayName());
+//        LogUtils.d("MessageNotifyPlugin", "Notify message: " + conversation.getDisplayName());
 
         Handler handler = new Handler(this.context.getMainLooper());
         handler.post(() -> {

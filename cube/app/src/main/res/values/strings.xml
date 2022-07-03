@@ -21,6 +21,7 @@
     <string name="confirm">确认</string>
     <string name="cancel">取消</string>
     <string name="send">发送</string>
+    <string name="i_see">我知道了</string>
 
     <!-- 开屏页 -->
     <string name="login">登录</string>

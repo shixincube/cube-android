@@ -34,9 +34,17 @@ import androidx.appcompat.app.AppCompatDelegate;
 
 import com.shixincube.app.AppConsts;
 import com.shixincube.app.CubeBaseApp;
+import com.shixincube.app.model.Notice;
 import com.shixincube.app.ui.base.BaseActivity;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.Calendar;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * 偏好数据存取。
@@ -200,5 +208,84 @@ public final class PreferenceHelper {
             default:
                 break;
         }
+    }
+
+    public void saveNotices(List<Notice> notices) {
+        if (notices.isEmpty()) {
+            if (this.sp.contains(AppConsts.APP_NOTICE_SET)) {
+                this.editor.remove(AppConsts.APP_NOTICE_SET);
+                this.editor.commit();
+            }
+            return;
+        }
+
+        // 更新数据
+        List<Notice> localList = loadNotices();
+        for (Notice notice : notices) {
+            for (Notice localNotice : localList) {
+                if (localNotice.equals(notice)) {
+                    // 本地已包含该通知
+                    notice.setLastShowTime(localNotice.getLastShowTime());
+                    break;
+                }
+            }
+        }
+
+        Set<String> noticeSet = new LinkedHashSet<>();
+        for (Notice notice : notices) {
+            noticeSet.add(notice.toJSON().toString());
+        }
+
+        this.editor.putStringSet(AppConsts.APP_NOTICE_SET, noticeSet);
+        this.editor.commit();
+    }
+
+    public List<Notice> loadNotices() {
+        List<Notice> list = new LinkedList<>();
+
+        Set<String> data = this.sp.getStringSet(AppConsts.APP_NOTICE_SET, null);
+        if (null != data) {
+            for (String string : data) {
+                try {
+                    JSONObject json = new JSONObject(string);
+                    Notice notice = new Notice(json);
+                    list.add(notice);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return list;
+    }
+
+    public void refreshNotice(Notice notice) {
+        List<Notice> notices = new LinkedList<>();
+
+        Set<String> data = this.sp.getStringSet(AppConsts.APP_NOTICE_SET, null);
+        if (null != data) {
+            for (String string : data) {
+                try {
+                    JSONObject json = new JSONObject(string);
+                    Notice local = new Notice(json);
+                    if (local.equals(notice)) {
+                        notices.add(notice);
+                    }
+                    else {
+                        notices.add(local);
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        Set<String> noticeSet = new LinkedHashSet<>();
+        for (Notice current : notices) {
+            noticeSet.add(current.toJSON().toString());
+        }
+
+        this.editor.putStringSet(AppConsts.APP_NOTICE_SET, noticeSet);
+        this.editor.commit();
     }
 }

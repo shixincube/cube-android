@@ -22,6 +22,7 @@
     <string name="cancel">取消</string>
     <string name="send">发送</string>
     <string name="i_see">我知道了</string>
+    <string name="close">关闭</string>
 
     <!-- 开屏页 -->
     <string name="login">登录</string>
@@ -235,12 +236,18 @@
     <string name="dark_theme_disable">未启用</string>
     <string name="manual_selection">手动选择</string>
     <string name="light_theme">普通模式</string>
-    <string name="about_cube">关于时信魔方</string>
-    <string name="app_name_in_about">时信魔方 %1$s</string>
+    <string name="about_cube">关于魔方云信</string>
+    <string name="app_name_in_about">魔方云信 %1$s</string>
+    <string name="check_version">检查更新</string>
     <string name="goto_website">访问官网 shixincube.com</string>
     <string name="logout">退出登录</string>
     <string name="deregister">注销并删除账号</string>
     <string name="do_you_want_to_logout">您是否确认要退出当前账号在该设备上的登录状态。</string>
+    <string name="tip_checking_version">检查新版本</string>
+    <string name="tip_check_version_failed">检查新版本出错，请稍候重试</string>
+    <string name="tip_important_version_format">检测到最新版本 %1$s ，您需要更新到该版本才能继续使用魔方云信。</string>
+    <string name="tip_new_version_format">检测到最新版本 %1$s ，您是否现在进行更新？</string>
+    <string name="tip_no_new_version">您的应用程序已经是最新版本！</string>
 
     <!-- 常用 -->
     <string name="prompt">提示</string>

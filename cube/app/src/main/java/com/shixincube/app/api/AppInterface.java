@@ -35,6 +35,7 @@ import com.shixincube.app.model.response.LogoutResponse;
 import com.shixincube.app.model.response.NoticeResponse;
 import com.shixincube.app.model.response.RegisterResponse;
 import com.shixincube.app.model.response.SearchAccountResultResponse;
+import com.shixincube.app.model.response.VersionResponse;
 
 import io.reactivex.rxjava3.core.Observable;
 import okhttp3.RequestBody;
@@ -156,6 +157,16 @@ public interface AppInterface {
      */
     @GET("/notice/")
     Observable<NoticeResponse> getNotices(@Query("token") String token, @Query("domain") String domainName);
+
+    /**
+     * 获取设备对应的最新版本信息。
+     *
+     * @param token
+     * @param device
+     * @return
+     */
+    @GET("/version/")
+    Observable<VersionResponse> getAppVersion(@Query("token") String token, @Query("device") String device);
 
     /**
      * 获取指定的域数据。

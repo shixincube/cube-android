@@ -48,15 +48,28 @@
         android:orientation="vertical">
 
         <Button
-            android:id="@+id/btnGotoWebsite"
+            android:id="@+id/btnCheckVersion"
             android:layout_width="match_parent"
-            android:layout_height="46dp"
+            android:layout_height="@dimen/strip_button_height"
             android:layout_marginStart="@dimen/activity_horizontal_margin"
             android:layout_marginEnd="@dimen/activity_horizontal_margin"
             android:background="@drawable/selector_primary_button"
-            android:text="@string/goto_website"
+            android:text="@string/check_version"
             android:textAllCaps="false"
             android:textColor="?attr/colorButtonPrimaryText"
+            android:textSize="16sp"/>
+
+        <Button
+            android:id="@+id/btnGotoWebsite"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/strip_button_height"
+            android:layout_marginTop="@dimen/activity_vertical_margin"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            android:background="@drawable/selector_secondary_button"
+            android:text="@string/goto_website"
+            android:textAllCaps="false"
+            android:textColor="?attr/colorButtonSecondaryText"
             android:textSize="16sp"/>
 
     </LinearLayout>

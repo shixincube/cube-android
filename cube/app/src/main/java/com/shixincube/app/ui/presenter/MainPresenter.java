@@ -43,6 +43,7 @@ import com.shixincube.app.model.NoticeType;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.MainView;
+import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.NoticeDialog;
 
 import java.util.Calendar;
@@ -144,8 +145,8 @@ public class MainPresenter extends BasePresenter<MainView> implements Observer {
 
     public void processNotice() {
         Runnable task = () -> {
-            List<Notice> list = PreferenceHelper.getInstance(activity.getApplicationContext())
-                    .loadNotices();
+            // 加载当前的通知
+            List<Notice> list = PreferenceHelper.getInstance().loadNotices();
 
             MutableNotice mutableNotice = new MutableNotice();
 
@@ -186,9 +187,9 @@ public class MainPresenter extends BasePresenter<MainView> implements Observer {
                 // 刷新数据
                 PreferenceHelper.getInstance().refreshNotice(mutableNotice.value);
 
-                activity.runOnUiThread(() -> {
+                UIUtils.postTaskDelay(() -> {
                     showNoticeDialog(mutableNotice.value);
-                });
+                }, 1000);
             }
         };
 

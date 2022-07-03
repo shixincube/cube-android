@@ -45,6 +45,7 @@ import com.shixincube.app.model.response.LogoutResponse;
 import com.shixincube.app.model.response.NoticeResponse;
 import com.shixincube.app.model.response.RegisterResponse;
 import com.shixincube.app.model.response.SearchAccountResultResponse;
+import com.shixincube.app.model.response.VersionResponse;
 
 import java.io.File;
 import java.io.IOException;
@@ -263,6 +264,16 @@ public class Explorer {
     public Observable<NoticeResponse> getNotices() {
         return this.api.getNotices(AccountHelper.getInstance().getTokenCode(),
                 AccountHelper.getInstance().getDomain());
+    }
+
+    /**
+     * 获取最新版本信息。
+     *
+     * @return
+     */
+    public Observable<VersionResponse> getVersion() {
+        return this.api.getAppVersion(AccountHelper.getInstance().getTokenCode(),
+                "Android");
     }
 
     /**

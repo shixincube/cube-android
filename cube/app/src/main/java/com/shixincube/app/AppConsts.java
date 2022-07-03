@@ -69,6 +69,11 @@ public final class AppConsts {
     public final static String APP_SERVER_ADDRESS = "192.168.0.108";
 
     /**
+     * App APK 下载地址。
+     */
+    public final static String APP_DOWNLOAD_URL = "https://static.shixincube.com/cube/apk/";
+
+    /**
      * 默认国际电话区号。
      */
     public final static String REGION_CODE = "86";

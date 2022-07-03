@@ -10,7 +10,7 @@ android {
         minSdk 23
         targetSdk 30
         versionCode 1
-        versionName "1.0"
+        versionName "3.0.0"
         multiDexEnabled true
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -19,7 +19,7 @@ android {
     // 自定义打包名称
     android.applicationVariants.all { variant ->
         variant.outputs.all {
-            outputFileName = "Cube.apk"
+            outputFileName = "Cube_${buildType.name}_${versionName}.apk"
         }
     }
 

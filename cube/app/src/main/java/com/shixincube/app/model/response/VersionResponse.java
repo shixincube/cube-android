@@ -26,19 +26,17 @@
 
 package com.shixincube.app.model.response;
 
-import com.shixincube.app.model.Notice;
-
-import java.util.List;
+import com.shixincube.app.model.AppVersion;
 
 /**
- * 通知应答数据。
+ * 版本应答数据。
  */
-public class NoticeResponse {
+public class VersionResponse {
 
-    public String domain;
+    public String device;
 
-    public List<Notice> notices;
+    public AppVersion version;
 
-    public NoticeResponse() {
+    public VersionResponse() {
     }
 }

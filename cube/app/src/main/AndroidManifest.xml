@@ -66,6 +66,9 @@
             </intent-filter>
         </receiver>
 
+        <!-- 通知接收器 -->
+        <receiver android:name=".manager.NotificationReceiver"/>
+
         <activity
             android:name=".ui.activity.SplashActivity"
             android:screenOrientation="portrait"

@@ -35,6 +35,7 @@ import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.provider.Settings;
 import android.text.Editable;
@@ -83,10 +84,11 @@ import cube.core.Module;
 import cube.core.ModuleError;
 import cube.core.handler.DefaultFailureHandler;
 import cube.engine.CubeEngine;
+import cube.engine.misc.NotificationConfig;
 import cube.engine.service.FloatingVideoWindowBinder;
 import cube.engine.service.FloatingVideoWindowListener;
 import cube.engine.service.FloatingVideoWindowService;
-import cube.messaging.Const;
+import cube.messaging.Constants;
 import cube.messaging.MessagingService;
 import cube.messaging.model.Conversation;
 import cube.messaging.model.ConversationState;
@@ -190,8 +192,12 @@ public class MessagePanelActivity extends BaseActivity<MessagePanelView, Message
 
         Intent intent = getIntent();
 
-        if (intent.hasExtra(Const.CONVERSATION_ID)) {
-            conversationId = intent.getLongExtra(Const.CONVERSATION_ID, 0);
+        if (intent.hasExtra(Constants.CONVERSATION_ID)) {
+            conversationId = intent.getLongExtra(Constants.CONVERSATION_ID, 0);
+        }
+        else if (intent.hasExtra(NotificationConfig.EXTRA_BUNDLE)) {
+            Bundle bundle = intent.getBundleExtra(NotificationConfig.EXTRA_BUNDLE);
+            conversationId = bundle.getLong(Constants.CONVERSATION_ID, 0);
         }
 
         this.conversation = CubeEngine.getInstance().getMessagingService().getConversation(conversationId);

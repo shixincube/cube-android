@@ -29,7 +29,7 @@ package cube.messaging;
 /**
  * 常量。
  */
-public final class Const {
+public final class Constants {
 
     public final static String MESSAGE_ID = "messageId";
 
@@ -37,6 +37,6 @@ public final class Const {
 
     public final static String ENTRANCE = "entrance";
 
-    private Const() {
+    private Constants() {
     }
 }

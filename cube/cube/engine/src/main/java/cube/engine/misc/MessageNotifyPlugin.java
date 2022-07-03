@@ -30,14 +30,16 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
 
 import cube.core.Plugin;
 import cube.engine.CubeEngine;
-import cube.messaging.Const;
+import cube.messaging.Constants;
 import cube.messaging.model.Conversation;
 import cube.messaging.model.Message;
 import cube.util.LogUtils;
@@ -93,23 +95,42 @@ public class MessageNotifyPlugin implements Plugin<Message> {
 
         NotificationConfig config = CubeEngine.getInstance().getNotificationConfig();
 
-        final NotificationManager nm = (NotificationManager) this.context.getSystemService(Context.NOTIFICATION_SERVICE);
+        Bundle bundle = new Bundle();
+        bundle.putLong(Constants.MESSAGE_ID, data.getId());
+        bundle.putLong(Constants.CONVERSATION_ID, conversation.getId());
+
         Intent intent = new Intent();
-        intent.putExtra(Const.ENTRANCE, "notification");
-        intent.putExtra(Const.MESSAGE_ID, data.getId());
-        intent.putExtra(Const.CONVERSATION_ID, conversation.getId());
+        intent.putExtra(NotificationConfig.EXTRA_BUNDLE, bundle);
+
+        PendingIntent pendingIntent = null;
 
         if (null != config.messageNotifyActivityClass) {
-            intent.setClass(context, config.messageNotifyActivityClass);
+            intent.setClass(this.context, config.messageNotifyActivityClass);
+            pendingIntent = PendingIntent.getActivity(this.context, this.requestCode, intent,
+                    PendingIntent.FLAG_ONE_SHOT);
         }
+        else if (null != config.messageNotifyReceiverClass) {
+            intent.setClass(this.context, config.messageNotifyReceiverClass);
 
-        PendingIntent pendingIntent = PendingIntent.getActivity(this.context, this.requestCode, intent,
-                PendingIntent.FLAG_ONE_SHOT);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                ComponentName componentName = new ComponentName(this.context.getPackageName(),
+                        config.messageNotifyReceiverClass.getName());
+                intent.setComponent(componentName);
+            }
+
+            pendingIntent = PendingIntent.getBroadcast(this.context, this.requestCode, intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT);
+        }
+        else {
+            return data;
+        }
 
         Notification.Builder builder = new Notification.Builder(this.context);
         builder.setContentIntent(pendingIntent);
         builder.setContentTitle(title);
         builder.setContentText(text);
+
+        final NotificationManager nm = (NotificationManager) this.context.getSystemService(Context.NOTIFICATION_SERVICE);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(this.context.getPackageName(),

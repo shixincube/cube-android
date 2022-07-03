@@ -31,9 +31,13 @@ package cube.engine.misc;
  */
 public class NotificationConfig {
 
-    public Class<?> messageNotifyActivityClass;
+    public final static String EXTRA_BUNDLE = "CubeNotification";
 
-    public int messageNotifySmallIconResource;
+    public Class<?> messageNotifyActivityClass = null;
+
+    public Class<?> messageNotifyReceiverClass = null;
+
+    public int messageNotifySmallIconResource = 0;
 
     public NotificationConfig() {
     }

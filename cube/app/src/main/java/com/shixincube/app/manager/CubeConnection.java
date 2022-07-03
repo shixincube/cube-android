@@ -106,7 +106,7 @@ public class CubeConnection implements ServiceConnection {
 
                     // 设置消息通知条的 Icon
                     NotificationConfig config = engine.getNotificationConfig();
-                    config.messageNotifyActivityClass = com.shixincube.app.ui.activity.MessagePanelActivity.class;
+                    config.messageNotifyReceiverClass = com.shixincube.app.manager.NotificationReceiver.class;
                     config.messageNotifySmallIconResource = R.mipmap.ic_launcher;
                 }, () -> {
                     // 暖机

@@ -28,10 +28,15 @@ package com.shixincube.app.ui.activity;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.content.FileProvider;
 
 import com.shixincube.app.AppConsts;
 import com.shixincube.app.R;
@@ -40,7 +45,15 @@ import com.shixincube.app.api.RetryWithDelay;
 import com.shixincube.app.model.AppVersion;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
+import com.shixincube.app.util.FileUtils;
 import com.shixincube.app.util.UIUtils;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.text.DecimalFormat;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import butterknife.BindView;
 import cube.util.LogUtils;
@@ -111,6 +124,7 @@ public class AboutActivity extends BaseActivity {
                         appVersion.isImportant()) {
                         // 必须更新
                         AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                        builder.setCancelable(false);
                         builder.setTitle(UIUtils.getString(R.string.check_version));
                         builder.setMessage(UIUtils.getString(R.string.tip_important_version_format,
                                 appVersion.getDescription()));
@@ -123,6 +137,7 @@ public class AboutActivity extends BaseActivity {
                         AppConsts.VERSION_REVISION != appVersion.getRevision()) {
                         // 建议更新
                         AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                        builder.setCancelable(false);
                         builder.setTitle(UIUtils.getString(R.string.check_version));
                         builder.setMessage(UIUtils.getString(R.string.tip_new_version_format,
                                 appVersion.getDescription()));
@@ -135,6 +150,7 @@ public class AboutActivity extends BaseActivity {
                     else {
                         // 版本一致
                         AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                        builder.setCancelable(false);
                         builder.setTitle(UIUtils.getString(R.string.check_version));
                         builder.setMessage(UIUtils.getString(R.string.tip_no_new_version));
                         builder.setNegativeButton(UIUtils.getString(R.string.close), null);
@@ -144,8 +160,103 @@ public class AboutActivity extends BaseActivity {
     }
 
     private void downloadApkFile(String version) {
-        String url = AppConsts.APP_DOWNLOAD_URL + "Cube_release_" + version + ".apk";
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setCancelable(false);
+        builder.setTitle(UIUtils.getString(R.string.downloading));
+        View view = LayoutInflater.from(this).inflate(R.layout.dialog_progress, null);
+        final ProgressBar progressBar = (ProgressBar) view.findViewById(R.id.pbProgress);
+        view.findViewById(R.id.tvDescription).setVisibility(View.GONE);
+        final TextView totalSizeView = (TextView) view.findViewById(R.id.tvTotalSize);
+        totalSizeView.setText("0 KB");
+        final TextView progressSizeView = (TextView) view.findViewById(R.id.tvProgressSize);
+        progressSizeView.setText("0 KB");
+        builder.setView(view);
 
+        DecimalFormat format = new DecimalFormat("###,###,##0.00");
+        float denominator = 1024.0f * 1024.0f;
+
+        AtomicBoolean cancel = new AtomicBoolean(false);
+        builder.setNegativeButton(UIUtils.getString(R.string.cancel), (dialog, which) -> {
+            dialog.dismiss();
+            cancel.set(true);
+            UIUtils.showToast(UIUtils.getString(R.string.downloading_stopped));
+        });
+        AlertDialog downloadingDialog = builder.show();
+
+        (new Thread(() -> {
+            String dir = FileUtils.getDir("cube_files/download/");
+            String filePath = dir + "Cube_release_" + version + ".apk";
+            File file = new File(filePath);
+            if (file.exists() && file.length() > 0) {
+                file.delete();
+            }
+
+            String urlString = AppConsts.APP_DOWNLOAD_URL + "Cube_release_" + version + ".apk";
+            try {
+                URL url = new URL(urlString);
+                FileUtils.downloadFile(url, file, new FileUtils.DownloadListener() {
+                    @Override
+                    public void onStarted(URL url, File file, long fileSize) {
+                        LogUtils.d("AboutActivity", "#onStarted - download: " + url.toString());
+                        runOnUiThread(() -> {
+                            totalSizeView.setText(format.format((float)fileSize / denominator) + " MB");
+                        });
+                    }
+
+                    @Override
+                    public boolean onDownloading(URL url, File file, long totalSize, long processedSize) {
+                        if (cancel.get()) {
+                            return false;
+                        }
+
+                        // 计算进度
+                        int progress = (int) (((float) processedSize / (float)totalSize) * 100.0f);
+                        runOnUiThread(() -> {
+                            progressSizeView.setText(format.format((float)processedSize / denominator) + " MB");
+                            progressBar.setProgress(progress);
+                        });
+
+                        return true;
+                    }
+
+                    @Override
+                    public void onCompleted(URL url, File file) {
+                        LogUtils.i("AboutActivity", "#onCompleted - download to: " + file.getAbsolutePath());
+
+                        if (file.exists() && file.length() > 0) {
+                            runOnUiThread(() -> {
+                                downloadingDialog.dismiss();
+                                showInstallPrompt(file);
+                            });
+                        }
+                    }
+                });
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        })).start();
+    }
+
+    private void showInstallPrompt(File file) {
+
+    }
+
+    private void installAPK(File file) {
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+        Uri uri = null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            uri = FileProvider.getUriForFile(this,this.getPackageName() + ".provider", file);
+        }
+        else {
+            uri = Uri.fromFile(file);
+        }
+        intent.setDataAndType(uri, "application/vnd.android.package-archive");
+        this.startActivity(intent);
     }
 
     @Override

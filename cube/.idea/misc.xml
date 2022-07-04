@@ -141,6 +141,7 @@
         <entry key="app/src/main/res/layout/activity_text_input.xml" value="0.5" />
         <entry key="app/src/main/res/layout/dialog_conversation_menu.xml" value="0.1" />
         <entry key="app/src/main/res/layout/dialog_notice.xml" value="0.25" />
+        <entry key="app/src/main/res/layout/dialog_progress.xml" value="0.5" />
         <entry key="app/src/main/res/layout/dialog_record_voice.xml" value="0.1" />
         <entry key="app/src/main/res/layout/dialog_waiting.xml" value="0.17827868852459017" />
         <entry key="app/src/main/res/layout/emotion_layout.xml" value="0.18886612021857924" />

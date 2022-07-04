@@ -109,7 +109,7 @@
                         android:maxLines="1"
                         android:text=""
                         android:textColor="?attr/colorTextSecondary"
-                        android:textSize="14sp"/>
+                        android:textSize="12sp"/>
 
                 </LinearLayout>
 

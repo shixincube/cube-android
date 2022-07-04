@@ -504,6 +504,7 @@ public class ContactService extends Module {
                 signInReady.set(false);
 
                 final Self current = self;
+                self = null;
 
                 execute(() -> {
                     ObservableEvent event = new ObservableEvent(ContactServiceEvent.SelfLost, current);
@@ -522,10 +523,8 @@ public class ContactService extends Module {
                 }
 
                 execute(() -> {
-                    ObservableEvent event = new ObservableEvent(ContactServiceEvent.SignOut, self);
+                    ObservableEvent event = new ObservableEvent(ContactServiceEvent.SignOut, current);
                     notifyObservers(event);
-
-                    self = null;
 
                     // 清空缓存
                     cache.clear();

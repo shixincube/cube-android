@@ -66,7 +66,7 @@ public class HttpClient {
     }
 
     /**
-     * 已 GET 方法从服务器获取数据。
+     * GET 方法从服务器获取数据。
      *
      * @param responseStream
      * @param listener
@@ -104,7 +104,7 @@ public class HttpClient {
                     HttpURLConnection.HTTP_CREATED == stateCode ||
                     HttpURLConnection.HTTP_ACCEPTED == stateCode) {
                 bis = new BufferedInputStream(conn.getInputStream());
-                byte[] buf = new byte[10240];
+                byte[] buf = new byte[4096];
                 int length = 0;
                 while ((length = bis.read(buf)) > 0) {
                     responseStream.write(buf, 0, length);
@@ -143,7 +143,7 @@ public class HttpClient {
     }
 
     /**
-     * 以 POST 方法向服务器发送二进制数据形式 Form 数据。
+     * POST 方法向服务器发送二进制数据形式 Form 数据。
      *
      * @param requestStream
      * @param boundary

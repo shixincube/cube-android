@@ -129,7 +129,7 @@ public class AboutActivity extends BaseActivity {
                         builder.setMessage(UIUtils.getString(R.string.tip_important_version_format,
                                 appVersion.getDescription()));
                         builder.setPositiveButton(UIUtils.getString(R.string.sure), (dialogInterface, which) -> {
-                            downloadApkFile(appVersion.getDescription());
+                            downloadApkFile(appVersion.getDescription(), false);
                         });
                         builder.show();
                     }
@@ -143,7 +143,7 @@ public class AboutActivity extends BaseActivity {
                                 appVersion.getDescription()));
                         builder.setNegativeButton(UIUtils.getString(R.string.cancel), null);
                         builder.setPositiveButton(UIUtils.getString(R.string.sure), (dialogInterface, which) -> {
-                            downloadApkFile(appVersion.getDescription());
+                            downloadApkFile(appVersion.getDescription(), true);
                         });
                         builder.show();
                     }
@@ -159,7 +159,8 @@ public class AboutActivity extends BaseActivity {
                 });
     }
 
-    private void downloadApkFile(String version) {
+    private void downloadApkFile(String version, boolean canCancel) {
+        // 初始化界面
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setCancelable(false);
         builder.setTitle(UIUtils.getString(R.string.downloading));
@@ -175,6 +176,7 @@ public class AboutActivity extends BaseActivity {
         DecimalFormat format = new DecimalFormat("###,###,##0.00");
         float denominator = 1024.0f * 1024.0f;
 
+        // 取消下载操作
         AtomicBoolean cancel = new AtomicBoolean(false);
         builder.setNegativeButton(UIUtils.getString(R.string.cancel), (dialog, which) -> {
             dialog.dismiss();
@@ -184,7 +186,7 @@ public class AboutActivity extends BaseActivity {
         AlertDialog downloadingDialog = builder.show();
 
         (new Thread(() -> {
-            String dir = FileUtils.getDir("cube_files/download/");
+            String dir = FileUtils.getDir("");
             String filePath = dir + "Cube_release_" + version + ".apk";
             File file = new File(filePath);
             if (file.exists() && file.length() > 0) {
@@ -226,7 +228,7 @@ public class AboutActivity extends BaseActivity {
                         if (file.exists() && file.length() > 0) {
                             runOnUiThread(() -> {
                                 downloadingDialog.dismiss();
-                                showInstallPrompt(file);
+                                showInstallPrompt(file, canCancel);
                             });
                         }
                     }
@@ -239,22 +241,33 @@ public class AboutActivity extends BaseActivity {
         })).start();
     }
 
-    private void showInstallPrompt(File file) {
-
+    private void showInstallPrompt(File file, boolean canCancel) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setCancelable(false);
+        builder.setTitle(UIUtils.getString(R.string.install_update_file));
+        builder.setMessage(UIUtils.getString(R.string.file_download_completed));
+        if (canCancel) {
+            builder.setNegativeButton(R.string.cancel, null);
+        }
+        builder.setPositiveButton(R.string.install_now, (dialog, witch) -> {
+            installAPK(file);
+        });
+        builder.show();
     }
 
     private void installAPK(File file) {
         Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
         Uri uri = null;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             uri = FileProvider.getUriForFile(this,this.getPackageName() + ".provider", file);
         }
         else {
             uri = Uri.fromFile(file);
         }
+
         intent.setDataAndType(uri, "application/vnd.android.package-archive");
         this.startActivity(intent);
     }

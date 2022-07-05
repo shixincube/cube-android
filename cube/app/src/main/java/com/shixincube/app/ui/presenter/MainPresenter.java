@@ -43,9 +43,11 @@ import com.shixincube.app.model.NoticeType;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
 import com.shixincube.app.ui.view.MainView;
+import com.shixincube.app.util.FileUtils;
 import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.NoticeDialog;
 
+import java.io.File;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Timer;
@@ -76,7 +78,19 @@ public class MainPresenter extends BasePresenter<MainView> implements Observer {
     public MainPresenter(BaseActivity activity) {
         super(activity);
 
+        this.clear();
+
         this.check();
+    }
+
+    private void clear() {
+        // 删除更新安装包
+        String dir = FileUtils.getDir("");
+        String filePath = dir + "Cube_release_" + AppConsts.VERSION + ".apk";
+        File apkFile = new File(filePath);
+        if (apkFile.exists() && apkFile.length() > 0) {
+            apkFile.delete();
+        }
     }
 
     /**

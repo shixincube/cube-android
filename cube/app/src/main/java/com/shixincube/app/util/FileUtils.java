@@ -94,9 +94,12 @@ public final class FileUtils {
      * @return
      */
     public static String getExternalStoragePath(String dir) {
+        String path = UIUtils.getContext().getExternalFilesDir(dir).getAbsolutePath();
         StringBuilder buf = new StringBuilder();
-        buf.append(UIUtils.getContext().getExternalFilesDir(dir).getAbsolutePath());
-        buf.append(File.separator);
+        buf.append(path);
+        if (!path.endsWith(File.separator)) {
+            buf.append(File.separator);
+        }
         return buf.toString();
     }
 

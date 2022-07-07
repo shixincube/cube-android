@@ -38,7 +38,7 @@
     <color name="theme_dark">#0854E6</color>
     <color name="theme_light">#368CF2</color>
 
-    <color name="theme_bg">#EBEBEB</color>
+    <color name="theme_bg">#F1F1F1</color>
     <color name="theme_bg_night">#191919</color>
     <color name="theme_accent_bg">#D1D1D1</color>
     <color name="theme_accent_bg_night">#595959</color>

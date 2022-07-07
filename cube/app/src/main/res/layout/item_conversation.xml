@@ -34,8 +34,8 @@
                     <!-- 图标/头像 -->
                     <com.shixincube.app.widget.AdvancedImageView
                         android:id="@+id/ivAvatar"
-                        android:layout_width="50dp"
-                        android:layout_height="50dp"
+                        android:layout_width="46dp"
+                        android:layout_height="46dp"
                         android:layout_centerInParent="true"
                         android:src="@mipmap/avatar_default"
                         auto:corner_radius="4dp" />
@@ -78,7 +78,7 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
+                android:layout_height="46dp"
                 android:layout_marginStart="10dp"
                 android:gravity="center_vertical"
                 android:orientation="vertical">
@@ -128,7 +128,7 @@
                         android:maxLines="1"
                         android:text="@string/draft"
                         android:textColor="@color/text_danger"
-                        android:textSize="14sp"
+                        android:textSize="12sp"
                         android:visibility="gone"/>
 
                     <TextView
@@ -140,7 +140,7 @@
                         android:maxLines="1"
                         android:text=""
                         android:textColor="?attr/colorTextSecondary"
-                        android:textSize="14sp"/>
+                        android:textSize="12sp"/>
 
                 </LinearLayout>
 
@@ -151,7 +151,7 @@
         <View
             android:id="@+id/vLine"
             style="?attr/styleLine"
-            android:layout_marginStart="76dp"
+            android:layout_marginStart="70dp"
             android:layout_marginEnd="0dp"/>
 
     </LinearLayout>

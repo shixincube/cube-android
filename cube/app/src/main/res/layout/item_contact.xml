@@ -32,9 +32,9 @@
 
         <com.shixincube.app.widget.AdvancedImageView
             android:id="@+id/ivAvatar"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:scaleType="centerCrop"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:scaleType="centerInside"
             android:gravity="center_vertical"
             android:src="@mipmap/avatar_default"
             auto:corner_radius="4dp"/>
@@ -48,7 +48,7 @@
             android:singleLine="true"
             android:text="@string/app_name"
             android:textColor="?attr/colorText"
-            android:textSize="16sp"/>
+            android:textSize="14sp"/>
 
         <CheckBox
             android:id="@+id/cbSelector"

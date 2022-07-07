@@ -24,12 +24,12 @@
 
             <com.shixincube.app.widget.AdvancedImageView
                 android:id="@+id/ivNewContact"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginEnd="5dp"
-                android:layout_marginTop="5dp"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginEnd="4dp"
                 android:src="@mipmap/ic_new_contact"
-                auto:corner_radius="4dp"/>
+                auto:corner_radius="4dp" />
 
             <TextView
                 android:id="@+id/tvNewContactUnread"
@@ -53,7 +53,7 @@
             android:layout_marginStart="@dimen/item_margin_start_and_end"
             android:text="@string/new_contact"
             android:textColor="?attr/colorText"
-            android:textSize="16sp"/>
+            android:textSize="14sp"/>
 
     </LinearLayout>
 
@@ -80,10 +80,10 @@
 
             <com.shixincube.app.widget.AdvancedImageView
                 android:id="@+id/ivGroups"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginEnd="5dp"
-                android:layout_marginTop="5dp"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_marginEnd="4dp"
+                android:layout_marginTop="4dp"
                 android:src="@mipmap/ic_group"
                 auto:corner_radius="4dp"/>
 
@@ -109,7 +109,7 @@
             android:layout_marginStart="@dimen/item_margin_start_and_end"
             android:text="@string/group"
             android:textColor="?attr/colorText"
-            android:textSize="16sp"/>
+            android:textSize="14sp"/>
 
     </LinearLayout>
 
@@ -136,10 +136,10 @@
 
             <com.shixincube.app.widget.AdvancedImageView
                 android:id="@+id/ivTag"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginEnd="5dp"
-                android:layout_marginTop="5dp"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_marginEnd="4dp"
+                android:layout_marginTop="4dp"
                 android:src="@mipmap/ic_tag"
                 auto:corner_radius="4dp"/>
 
@@ -165,7 +165,7 @@
             android:layout_marginStart="@dimen/item_margin_start_and_end"
             android:text="@string/tag"
             android:textColor="?attr/colorText"
-            android:textSize="16sp"/>
+            android:textSize="14sp"/>
 
     </LinearLayout>
 
@@ -192,10 +192,10 @@
 
             <com.shixincube.app.widget.AdvancedImageView
                 android:id="@+id/ivConference"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginEnd="5dp"
-                android:layout_marginTop="5dp"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_marginEnd="4dp"
+                android:layout_marginTop="4dp"
                 android:src="@mipmap/ic_conference"
                 auto:corner_radius="4dp"/>
 
@@ -221,7 +221,7 @@
             android:layout_marginStart="@dimen/item_margin_start_and_end"
             android:text="@string/conference"
             android:textColor="?attr/colorText"
-            android:textSize="16sp"/>
+            android:textSize="14sp"/>
 
     </LinearLayout>
 

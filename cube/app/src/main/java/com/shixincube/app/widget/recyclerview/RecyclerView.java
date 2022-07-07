@@ -118,9 +118,9 @@ public class RecyclerView extends androidx.recyclerview.widget.RecyclerView {
         this.setLayoutManager(mLayoutManager);
 
         // 2、设置RecyclerView的分割线样式
-        this.removeItemDecoration(mItemDecoration);
-        mItemDecoration = new DefaultItemDecoration(mContext, orientation, dividerSize, dividerColor, dividerDrawable);
-        this.addItemDecoration(mItemDecoration);
+//        this.removeItemDecoration(mItemDecoration);
+//        mItemDecoration = new DefaultItemDecoration(mContext, orientation, dividerSize, dividerColor, dividerDrawable);
+//        this.addItemDecoration(mItemDecoration);
 
         // 3、设置默认动画是否开启
         if (!isDefaultAnimatorOpen) {

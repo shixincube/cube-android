@@ -70,6 +70,9 @@ public enum MessagingServiceState {
     /** 被对方阻止。 */
     BeBlocked(30),
 
+    /** 敏感数据。 */
+    SensitiveData(31),
+
     /** 禁止操作。 */
     Forbidden(101),
 

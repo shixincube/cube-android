@@ -68,6 +68,7 @@ import cube.filestorage.handler.DefaultDirectoryFileUploadHandler;
 import cube.filestorage.handler.DefaultDirectoryHandler;
 import cube.filestorage.handler.DefaultFileItemListHandler;
 import cube.filestorage.handler.DefaultSearchResultHandler;
+import cube.filestorage.handler.DefaultSharingTagHandler;
 import cube.filestorage.handler.DefaultTrashHandler;
 import cube.filestorage.model.Directory;
 import cube.filestorage.model.FileAnchor;
@@ -75,6 +76,7 @@ import cube.filestorage.model.FileItem;
 import cube.filestorage.model.FileLabel;
 import cube.filestorage.model.SearchFilter;
 import cube.filestorage.model.SearchResultItem;
+import cube.filestorage.model.SharingTag;
 import cube.filestorage.model.Trash;
 import cube.util.LogUtils;
 
@@ -337,7 +339,7 @@ public class FilesPresenter extends BasePresenter<FilesView>
     }
 
     public void showSharingMenu(FileItem item) {
-        ((MainActivity) this.activity).showBottomMenu();
+        ((MainActivity) this.activity).showBottomMenu(item);
     }
 
     public void filterFile(String[] types) {
@@ -765,11 +767,24 @@ public class FilesPresenter extends BasePresenter<FilesView>
     }
 
     @Override
-    public void onItemClick(int resourceId) {
+    public void onItemClick(int resourceId, Object data) {
+        FileItem fileItem = (FileItem) data;
         switch (resourceId) {
             case R.id.llShareToContact:
                 break;
             case R.id.llShareToHyperlink:
+                CubeEngine.getInstance().getFileStorage().createSharingTag(fileItem.fileLabel,
+                        new DefaultSharingTagHandler() {
+                            @Override
+                            public void handle(SharingTag sharingTag) {
+                                // 复制分享链接
+                            }
+                        }, new DefaultFailureHandler() {
+                            @Override
+                            public void handleFailure(Module module, ModuleError error) {
+
+                            }
+                        });
                 break;
             case R.id.llShareToWeChat:
                 break;

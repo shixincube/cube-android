@@ -106,6 +106,11 @@ public final class FileStorageAction {
      */
     public final static String SearchFile = "searchFile";
 
+    /**
+     * 创建分享标签。
+     */
+    public final static String CreateSharingTag = "createSharingTag";
+
     private FileStorageAction() {
     }
 }

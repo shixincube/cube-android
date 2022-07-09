@@ -63,6 +63,7 @@ import cube.filestorage.handler.DownloadFileHandler;
 import cube.filestorage.handler.FileItemListHandler;
 import cube.filestorage.handler.MutableDirectory;
 import cube.filestorage.handler.SearchResultHandler;
+import cube.filestorage.handler.SharingTagHandler;
 import cube.filestorage.handler.StableFileLabelHandler;
 import cube.filestorage.handler.TrashHandler;
 import cube.filestorage.handler.UploadFileHandler;
@@ -73,6 +74,7 @@ import cube.filestorage.model.FileItem;
 import cube.filestorage.model.FileLabel;
 import cube.filestorage.model.SearchFilter;
 import cube.filestorage.model.SearchResultItem;
+import cube.filestorage.model.SharingTag;
 import cube.filestorage.model.Trash;
 import cube.filestorage.model.TrashDirectory;
 import cube.filestorage.model.TrashFile;
@@ -211,17 +213,6 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
-//        if (Build.SERIAL.contains("unknown")) {
-//            // FIXME 以下判断仅用于测试，Release 时务必使用域名
-//            // 模拟器里将 127.0.0.1 修改为 10.0.2.2
-//            this.fileURL = this.fileURL.replace("127.0.0.1", "10.0.2.2");
-//            this.fileSecureURL = this.fileSecureURL.replace("127.0.0.1", "10.0.2.2");
-//        }
-//        else {
-//            this.fileURL = this.fileURL.replace("127.0.0.1", getKernel().getConfig().address);
-//            this.fileSecureURL = this.fileSecureURL.replace("127.0.0.1", getKernel().getConfig().address);
-//        }
 
         this.fileURL = URLUtils.correctFileURL(this.fileURL);
         this.fileSecureURL = URLUtils.correctFileURL(this.fileSecureURL);
@@ -953,6 +944,12 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
         }
     }
 
+    /**
+     * 指定文件码的文件是否正在下载。
+     *
+     * @param fileCode
+     * @return
+     */
     public boolean isDownloading(String fileCode) {
         return this.downloadQueue.isProcessing(fileCode);
     }
@@ -1075,6 +1072,71 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
         } catch (IOException e) {
             LogUtils.w(this.getClass().getSimpleName(), e);
         }
+    }
+
+    /**
+     * 创建文件的分享标签。
+     *
+     * @param fileLabel
+     * @param successHandler
+     * @param failureHandler
+     */
+    public void createSharingTag(FileLabel fileLabel, SharingTagHandler successHandler,
+                                 FailureHandler failureHandler) {
+        if (!this.hasStarted()) {
+            ModuleError error = new ModuleError(NAME, FileStorageState.NotReady.code);
+            this.execute(failureHandler, error);
+            return;
+        }
+
+        if (!this.pipeline.isReady()) {
+            ModuleError error = new ModuleError(NAME, FileStorageState.PipelineNotReady.code);
+            this.execute(failureHandler, error);
+            return;
+        }
+
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("fileCode", fileLabel.getFileCode());
+        } catch (JSONException e) {
+            // Nothing
+        }
+        Packet requestPacket = new Packet(FileStorageAction.GetFile, payload);
+        this.pipeline.send(FileStorage.NAME, requestPacket, new PipelineHandler() {
+            @Override
+            public void handleResponse(Packet packet) {
+                if (packet.state.code != PipelineState.Ok.code) {
+                    ModuleError error = new ModuleError(FileStorage.NAME, packet.state.code);
+                    execute(failureHandler, error);
+                    return;
+                }
+
+                int stateCode = packet.extractServiceStateCode();
+                if (stateCode != FileStorageState.Ok.code) {
+                    ModuleError error = new ModuleError(FileStorage.NAME, stateCode);
+                    execute(failureHandler, error);
+                    return;
+                }
+
+                JSONObject data = packet.extractServiceData();
+                try {
+                    SharingTag sharingTag = new SharingTag(data);
+                    if (successHandler.isInMainThread()) {
+                        executeOnMainThread(() -> {
+                            successHandler.handle(sharingTag);
+                        });
+                    }
+                    else {
+                        execute(() -> {
+                            successHandler.handle(sharingTag);
+                        });
+                    }
+                } catch (JSONException e) {
+                    ModuleError error = new ModuleError(FileStorage.NAME, FileStorageState.DataFormatError.code);
+                    execute(failureHandler, error);
+                }
+            }
+        });
     }
 
     protected Self getSelf() {

@@ -48,6 +48,8 @@ public class MainBottomMenu implements View.OnClickListener {
 
     private OnClickListener clickListener;
 
+    private Object itemData;
+
     public MainBottomMenu(MainActivity activity, ViewGroup parentView) {
         this.activity = activity;
         LinearLayout sharingMenu = parentView.findViewById(R.id.llSharingMenu);
@@ -64,6 +66,10 @@ public class MainBottomMenu implements View.OnClickListener {
         this.shareToOther.setOnClickListener(this);
     }
 
+    public void setItemData(Object data) {
+        this.itemData = data;
+    }
+
     public void setOnClickListener(OnClickListener listener) {
         this.clickListener = listener;
     }
@@ -71,7 +77,7 @@ public class MainBottomMenu implements View.OnClickListener {
     @Override
     public void onClick(View view) {
         if (null != clickListener) {
-            clickListener.onItemClick(view.getId());
+            clickListener.onItemClick(view.getId(), this.itemData);
         }
 
         activity.hideBottomMenu();
@@ -83,6 +89,6 @@ public class MainBottomMenu implements View.OnClickListener {
      */
     public interface OnClickListener {
 
-        void onItemClick(int resourceId);
+        void onItemClick(int resourceId, Object itemData);
     }
 }

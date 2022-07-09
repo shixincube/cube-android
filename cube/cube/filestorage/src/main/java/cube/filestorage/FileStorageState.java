@@ -118,6 +118,11 @@ public enum FileStorageState {
     PipelineNotReady(106),
 
     /**
+     * 数据格式错误。
+     */
+    DataFormatError(107),
+
+    /**
      * 未知的状态。
      */
     Unknown(99);

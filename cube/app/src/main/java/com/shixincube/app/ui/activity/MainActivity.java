@@ -294,8 +294,10 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
         return this.mainBottomMenu;
     }
 
-    public void showBottomMenu() {
+    public void showBottomMenu(Object itemData) {
         this.menuLayout.setVisibility(View.VISIBLE);
+
+        this.mainBottomMenu.setItemData(itemData);
 
         TranslateAnimation animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0,
                 Animation.RELATIVE_TO_SELF, 0,

@@ -55,6 +55,7 @@ import com.shixincube.app.ui.view.MainView;
 import com.shixincube.app.util.AvatarUtils;
 import com.shixincube.app.util.PopupWindowUtils;
 import com.shixincube.app.util.UIUtils;
+import com.shixincube.app.widget.MainBottomMenu;
 import com.shixincube.app.widget.MainTabBar;
 
 import java.util.ArrayList;
@@ -145,6 +146,8 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
 
     private MainTabBar mainTabBar;
 
+    private MainBottomMenu mainBottomMenu;
+
     private ServiceConnection serviceConnection;
 
     public MainActivity() {
@@ -191,6 +194,8 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
         fragmentList.add(FragmentFactory.getInstance().getContactsFragment());
         fragmentList.add(FragmentFactory.getInstance().getProfileFragment());
         this.contentViewPager.setAdapter(new CommonFragmentPagerAdapter(getSupportFragmentManager(), fragmentList));
+
+        this.mainBottomMenu = new MainBottomMenu(this, this.menuScrollView);
     }
 
     @Override
@@ -205,7 +210,7 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
         this.contentViewPager.addOnPageChangeListener(this);
 
         this.menuLayout.setOnClickListener((view) -> {
-            hideMenu();
+            hideBottomMenu();
         });
     }
 
@@ -280,7 +285,16 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
         return R.layout.activity_main;
     }
 
-    public void showMenu() {
+    /**
+     * 获取底部滑动菜单。
+     *
+     * @return
+     */
+    public MainBottomMenu getBottomMenu() {
+        return this.mainBottomMenu;
+    }
+
+    public void showBottomMenu() {
         this.menuLayout.setVisibility(View.VISIBLE);
 
         TranslateAnimation animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0,
@@ -291,7 +305,7 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
         this.menuScrollView.startAnimation(animation);
     }
 
-    protected void hideMenu() {
+    public void hideBottomMenu() {
         TranslateAnimation animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0,
                 Animation.RELATIVE_TO_SELF, 0,
                 Animation.RELATIVE_TO_SELF, 0,

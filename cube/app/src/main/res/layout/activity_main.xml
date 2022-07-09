@@ -438,24 +438,9 @@
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:scrollbars="none">
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="?attr/colorBackground"
-                android:gravity="center"
-                android:orientation="vertical">
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="?attr/colorBackground"
-                    android:gravity="center"
-                    android:orientation="horizontal">
-                    <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:src="@mipmap/sharing_contact"/>
-                </LinearLayout>
-            </LinearLayout>
+
+            <include layout="@layout/include_sharing_menu"/>
+
         </ScrollView>
     </RelativeLayout>
 

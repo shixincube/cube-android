@@ -43,6 +43,7 @@ import com.shixincube.app.ui.view.FilesView;
 import com.shixincube.app.util.DateUtils;
 import com.shixincube.app.util.UIUtils;
 import com.shixincube.app.widget.FilesTabController;
+import com.shixincube.app.widget.MainBottomMenu;
 import com.shixincube.app.widget.adapter.AdapterForRecyclerView;
 import com.shixincube.app.widget.adapter.OnItemClickListener;
 import com.shixincube.app.widget.adapter.OnItemLongClickListener;
@@ -80,7 +81,8 @@ import cube.util.LogUtils;
 /**
  * 文件清单。
  */
-public class FilesPresenter extends BasePresenter<FilesView> implements FilesTabController.TabChangedListener, DirectoryListener {
+public class FilesPresenter extends BasePresenter<FilesView>
+        implements FilesTabController.TabChangedListener, DirectoryListener, MainBottomMenu.OnClickListener {
 
     private final static String TAG = FilesPresenter.class.getSimpleName();
 
@@ -107,6 +109,8 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
         this.tabController = tabController;
         this.tabController.setTabChangedListener(this);
         this.fileItemList = new ArrayList<>();
+
+        ((MainActivity) activity).getBottomMenu().setOnClickListener(this);
     }
 
     private FilesFragment getFragment() {
@@ -333,7 +337,7 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
     }
 
     public void showSharingMenu(FileItem item) {
-        ((MainActivity) this.activity).showMenu();
+        ((MainActivity) this.activity).showBottomMenu();
     }
 
     public void filterFile(String[] types) {
@@ -757,6 +761,25 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
         int tab = this.tabController.getActiveTab();
         if (tab == FilesTabController.TAB_ALL_FILES) {
             this.refreshData();
+        }
+    }
+
+    @Override
+    public void onItemClick(int resourceId) {
+        switch (resourceId) {
+            case R.id.llShareToContact:
+                break;
+            case R.id.llShareToHyperlink:
+                break;
+            case R.id.llShareToWeChat:
+                break;
+            case R.id.llShareToQQ:
+                break;
+            case R.id.llShareToOther:
+                UIUtils.showToast(UIUtils.getString(R.string.developing));
+                break;
+            default:
+                break;
         }
     }
 

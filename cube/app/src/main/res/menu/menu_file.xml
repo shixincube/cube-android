@@ -29,4 +29,8 @@
         android:id="@+id/menuEraseTrash"
         android:title="@string/file_erase_trash"/>
 
+    <item
+        android:id="@+id/menuSharing"
+        android:title="@string/file_sharing"/>
+
 </menu>

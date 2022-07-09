@@ -98,22 +98,22 @@ public class CubeConnection implements ServiceConnection {
                     engine.getFerryService().start();
                 }
 
+                // 设置消息通知条的 Icon
+                NotificationConfig config = engine.getNotificationConfig();
+                config.messageNotifyReceiverClass = com.shixincube.app.manager.NotificationReceiver.class;
+                config.messageNotifySmallIconResource = R.mipmap.ic_launcher;
+
                 // 签入账号
                 signIn(() -> {
-                    if (null != successHandler) {
-                        successHandler.run();
-                    }
-
-                    // 设置消息通知条的 Icon
-                    NotificationConfig config = engine.getNotificationConfig();
-                    config.messageNotifyReceiverClass = com.shixincube.app.manager.NotificationReceiver.class;
-                    config.messageNotifySmallIconResource = R.mipmap.ic_launcher;
-                }, () -> {
                     // 暖机
                     LogUtils.i(AppConsts.TAG, "Engine warmup");
                     long timestamp = System.currentTimeMillis();
                     CubeEngine.getInstance().warmup();
                     LogUtils.i(AppConsts.TAG, "Engine warmup elapsed: " + (System.currentTimeMillis() - timestamp) + " ms");
+
+                    if (null != successHandler) {
+                        successHandler.run();
+                    }
                 }, () -> {
                     retrySignIn();
                 });
@@ -146,16 +146,16 @@ public class CubeConnection implements ServiceConnection {
                 }
 
                 signIn(() -> {
-                    if (null != successHandler) {
-                        successHandler.run();
-                    }
-                }, () -> {
                     // 暖机
                     LogUtils.i(AppConsts.TAG, "Engine warmup");
                     long timestamp = System.currentTimeMillis();
                     CubeEngine.getInstance().warmup();
                     LogUtils.i(AppConsts.TAG, "Engine warmup elapsed: "
                             + (System.currentTimeMillis() - timestamp) + " ms");
+
+                    if (null != successHandler) {
+                        successHandler.run();
+                    }
                 }, () -> {
                     if (null != failureHandler) {
                         failureHandler.run();
@@ -165,11 +165,11 @@ public class CubeConnection implements ServiceConnection {
         }).start();
     }
 
-    private void signIn(Runnable startedHandler, Runnable successHandler, Runnable failureHandler) {
+    private void signIn(Runnable successHandler, Runnable failureHandler) {
         Promise.create(new PromiseHandler<Account>() {
             @Override
             public void emit(PromiseFuture<Account> promise) {
-                int count = 200;
+                int count = 300;
                 while (!CubeEngine.getInstance().isReady()) {
                     if ((--count) <= 0) {
                         break;
@@ -214,9 +214,6 @@ public class CubeConnection implements ServiceConnection {
                 if (!result) {
                     failureHandler.run();
                     LogUtils.w(AppConsts.TAG, "SignIn error");
-                }
-                else {
-                    startedHandler.run();
                 }
             }
         }).catchReject(new Future<Account>() {

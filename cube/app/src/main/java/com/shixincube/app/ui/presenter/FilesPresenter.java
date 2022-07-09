@@ -34,6 +34,7 @@ import android.view.ViewGroup;
 import android.widget.PopupMenu;
 
 import com.shixincube.app.R;
+import com.shixincube.app.ui.activity.MainActivity;
 import com.shixincube.app.ui.activity.TextInputActivity;
 import com.shixincube.app.ui.base.BaseActivity;
 import com.shixincube.app.ui.base.BasePresenter;
@@ -60,6 +61,7 @@ import cube.engine.util.Future;
 import cube.engine.util.Promise;
 import cube.engine.util.PromiseFuture;
 import cube.engine.util.PromiseHandler;
+import cube.fileprocessor.util.CalculationUtils;
 import cube.filestorage.DirectoryListener;
 import cube.filestorage.handler.DefaultDirectoryFileUploadHandler;
 import cube.filestorage.handler.DefaultDirectoryHandler;
@@ -330,6 +332,10 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
                 });
     }
 
+    public void showSharingMenu(FileItem item) {
+        ((MainActivity) this.activity).showMenu();
+    }
+
     public void filterFile(String[] types) {
 
     }
@@ -342,7 +348,12 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
                     if (item.type == FileItem.ItemType.File) {
                         helper.setImageResource(R.id.ivFileIcon, UIUtils.getFileIcon(item.getFileLabel().getFileType()));
                         helper.setText(R.id.tvName, item.getName());
+                        // 文件修改日期
                         helper.setText(R.id.tvDate, DateUtils.formatYMDHM(item.getLastModified()));
+                        // 文件大小
+                        helper.setViewVisibility(R.id.tvSize, View.VISIBLE);
+                        helper.setText(R.id.tvSize,
+                                CalculationUtils.formatByteDataSize(item.getFileLabel().getFileSize()));
                         helper.setViewVisibility(R.id.cbSelector, View.VISIBLE);
                     }
                     else if (item.type == FileItem.ItemType.Directory) {
@@ -366,7 +377,12 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
                     else if (item.type == FileItem.ItemType.TrashFile) {
                         helper.setImageResource(R.id.ivFileIcon, UIUtils.getFileIcon(item.getFileLabel().getFileType()));
                         helper.setText(R.id.tvName, item.getName());
+                        // 文件修改日期
                         helper.setText(R.id.tvDate, DateUtils.formatYMDHM(item.getLastModified()));
+                        // 文件大小
+                        helper.setViewVisibility(R.id.tvSize, View.VISIBLE);
+                        helper.setText(R.id.tvSize,
+                                CalculationUtils.formatByteDataSize(item.getFileLabel().getFileSize()));
                         helper.setViewVisibility(R.id.cbSelector, View.VISIBLE);
                     }
                 }
@@ -417,6 +433,7 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
                         menu.getMenu().getItem(4).setVisible(false);
                         menu.getMenu().getItem(5).setVisible(false);
                         menu.getMenu().getItem(6).setVisible(false);
+                        menu.getMenu().getItem(7).setVisible(false);
                     }
                     else if (fileItem.type == FileItem.ItemType.TrashDirectory ||
                         fileItem.type == FileItem.ItemType.TrashFile) {
@@ -425,6 +442,7 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
                         menu.getMenu().getItem(2).setVisible(false);
                         menu.getMenu().getItem(3).setVisible(false);
                         menu.getMenu().getItem(4).setVisible(false);
+                        menu.getMenu().getItem(7).setVisible(false);
                     }
                     else {
                         menu.getMenu().getItem(0).setVisible(false);
@@ -434,6 +452,7 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
                         menu.getMenu().getItem(4).setVisible(false);
                         menu.getMenu().getItem(5).setVisible(false);
                         menu.getMenu().getItem(6).setVisible(false);
+                        menu.getMenu().getItem(7).setVisible(false);
                     }
 
                     menu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
@@ -463,6 +482,9 @@ public class FilesPresenter extends BasePresenter<FilesView> implements FilesTab
                             }
                             else if (menuItem.getItemId() == R.id.menuEraseTrash) {
                                 eraseTrash(fileItem);
+                            }
+                            else if (menuItem.getItemId() == R.id.menuSharing) {
+                                showSharingMenu(fileItem);
                             }
 
                             return true;

@@ -32,9 +32,13 @@ import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.view.Gravity;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.TranslateAnimation;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
+import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.viewpager.widget.ViewPager;
@@ -134,6 +138,11 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
     @BindView(R.id.tvProfileTextPressed)
     TextView profileTextPressed;
 
+    @BindView(R.id.rlBottomMenu)
+    protected RelativeLayout menuLayout;
+    @BindView(R.id.svMenu)
+    protected ScrollView menuScrollView;
+
     private MainTabBar mainTabBar;
 
     private ServiceConnection serviceConnection;
@@ -194,6 +203,10 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
         this.profileLayout.setOnClickListener(this::onBottomTabBarClick);
 
         this.contentViewPager.addOnPageChangeListener(this);
+
+        this.menuLayout.setOnClickListener((view) -> {
+            hideMenu();
+        });
     }
 
     @Override
@@ -265,6 +278,40 @@ public class MainActivity extends BaseActivity<MainView, MainPresenter> implemen
     @Override
     protected int provideContentViewId() {
         return R.layout.activity_main;
+    }
+
+    public void showMenu() {
+        this.menuLayout.setVisibility(View.VISIBLE);
+
+        TranslateAnimation animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0,
+                Animation.RELATIVE_TO_SELF, 0,
+                Animation.RELATIVE_TO_SELF, 1,
+                Animation.RELATIVE_TO_SELF, 0);
+        animation.setDuration(200);
+        this.menuScrollView.startAnimation(animation);
+    }
+
+    protected void hideMenu() {
+        TranslateAnimation animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0,
+                Animation.RELATIVE_TO_SELF, 0,
+                Animation.RELATIVE_TO_SELF, 0,
+                Animation.RELATIVE_TO_SELF, 1);
+        animation.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                menuLayout.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+            }
+        });
+        animation.setDuration(200);
+        this.menuScrollView.startAnimation(animation);
     }
 
     private void onPopupMenuButtonClick(View view) {

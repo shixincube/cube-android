@@ -274,7 +274,7 @@ public class ContactService extends Module {
 
         // 等待内核就绪
         int count = 500;
-        while (!this.kernel.isReady() && count > 0) {
+        while (!this.kernel.isWorking() && count > 0) {
             --count;
             try {
                 Thread.sleep(10);
@@ -283,9 +283,9 @@ public class ContactService extends Module {
             }
         }
 
-        if (!this.kernel.isReady()) {
+        if (!this.kernel.isWorking()) {
             // 内核未就绪
-            LogUtils.e("ContactService", "Kernel is not ready");
+            LogUtils.e("ContactService", "Kernel is not working");
             return false;
         }
 

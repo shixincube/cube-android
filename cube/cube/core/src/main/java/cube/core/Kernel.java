@@ -41,6 +41,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import cell.util.Cryptology;
 import cell.util.log.LogLevel;
@@ -65,7 +66,7 @@ public class Kernel implements PipelineListener {
 
     private KernelConfig config;
 
-    private boolean working;
+    private AtomicBoolean working;
 
     private String deviceSerial;
 
@@ -82,7 +83,7 @@ public class Kernel implements PipelineListener {
     protected Looper looper;
 
     public Kernel() {
-        this.working = false;
+        this.working = new AtomicBoolean(false);
         this.moduleMap = new HashMap<>();
         this.executor = Executors.newFixedThreadPool(MAX_THREADS);
         this.scheduledExecutor = Executors.newScheduledThreadPool(1);
@@ -103,14 +104,14 @@ public class Kernel implements PipelineListener {
      * @return
      */
     public boolean startup(Context context, KernelConfig config, KernelHandler handler) {
-        if (null == config || null == handler || this.working) {
+        if (null == config || null == handler || this.working.get()) {
             return false;
         }
 
+        this.working.set(true);
+
         // 设置 cell 的日志等级
         LogManager.getInstance().setLevel(LogLevel.INFO);
-
-        this.working = true;
 
         this.looper = Looper.getMainLooper();
 
@@ -153,7 +154,7 @@ public class Kernel implements PipelineListener {
 
             @Override
             public void handleFailure(ModuleError error) {
-                working = false;
+                working.set(false);
 
                 handler.handleFailure(error);
             }
@@ -166,7 +167,7 @@ public class Kernel implements PipelineListener {
      * 关停内核。
      */
     public void shutdown() {
-        if (!this.working) {
+        if (!this.working.get()) {
             LogUtils.d("Kernel", "#shutdown - Working state is false");
             return;
         }
@@ -195,11 +196,11 @@ public class Kernel implements PipelineListener {
             this.scheduledExecutor = null;
         }
 
-        this.working = false;
+        this.working.set(false);
     }
 
     public void suspend() {
-        if (this.working) {
+        if (this.working.get()) {
             for (Module module : this.moduleMap.values()) {
                 module.suspend();
             }
@@ -210,13 +211,13 @@ public class Kernel implements PipelineListener {
         // 缓存管理检测
         this.inspector.check();
 
-        if (this.working) {
+        if (this.working.get()) {
             for (Module module : this.moduleMap.values()) {
                 module.resume();
             }
         }
 
-        if (this.working) {
+        if (this.working.get()) {
             if (null != this.pipeline && !this.pipeline.isReady()) {
                 this.pipeline.open();
             }
@@ -232,10 +233,24 @@ public class Kernel implements PipelineListener {
         return this.config;
     }
 
+    /**
+     * 判断数据状态是否就绪。
+     *
+     * @return
+     */
     public boolean isReady() {
         AuthService service = (AuthService) this.getModule(AuthService.NAME);
         AuthToken authToken = service.getToken();
-        return this.working && (null != authToken && authToken.isValid());
+        return this.working.get() && (null != authToken && authToken.isValid());
+    }
+
+    /**
+     * 是否已启动并处于工作状态。
+     *
+     * @return
+     */
+    public boolean isWorking() {
+        return this.working.get();
     }
 
     public void installModule(Module module) {

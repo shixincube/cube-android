@@ -1,417 +1,462 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/colorThemeBackground"
-    android:orientation="vertical">
-
-    <!-- View Header -->
-    <include layout="@layout/include_toolbar"/>
+    android:background="?attr/colorThemeBackground">
 
     <LinearLayout
-        android:id="@+id/llState"
         android:layout_width="match_parent"
-        android:layout_height="36dp"
-        android:layout_gravity="center"
-        android:gravity="center"
-        android:background="?attr/colorBackground"
-        android:orientation="vertical"
+        android:layout_height="match_parent"
+        android:background="?attr/colorThemeBackground"
+        android:orientation="vertical">
+
+        <!-- View Header -->
+        <include layout="@layout/include_toolbar"/>
+
+        <LinearLayout
+            android:id="@+id/llState"
+            android:layout_width="match_parent"
+            android:layout_height="36dp"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:background="?attr/colorBackground"
+            android:orientation="vertical"
+            android:visibility="gone">
+            <TextView
+                android:id="@+id/tvStateText"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:background="@color/text_danger_background"
+                android:text="@string/ferry_detect_failed"
+                android:textColor="@color/text_danger"
+                android:textSize="14sp"/>
+        </LinearLayout>
+
+        <!-- View Body -->
+        <androidx.viewpager.widget.ViewPager
+            android:id="@+id/vpContent"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+        </androidx.viewpager.widget.ViewPager>
+
+        <!-- View Footer -->
+        <View style="?attr/styleLine"/>
+
+        <LinearLayout
+            android:id="@+id/llBottom"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_alignParentBottom="true"
+            android:layout_gravity="bottom"
+            android:background="?attr/colorTabBackground">
+
+            <!-- Conversation - Begin -->
+            <LinearLayout
+                android:id="@+id/llConversation"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <!-- Icon -->
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="5"
+                    android:gravity="bottom">
+
+                    <RelativeLayout
+                        android:id="@+id/rlConversation"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerHorizontal="true"
+                        android:layout_marginBottom="2dp">
+
+                        <TextView
+                            android:id="@+id/tvConversationNormal"
+                            android:layout_width="@dimen/main_bottom_iv_horizontal_size"
+                            android:layout_height="@dimen/main_bottom_iv_vertical_size"
+                            android:layout_centerInParent="true"
+                            android:background="?attr/mipmapTabConversationNormal"
+                            android:button="@null"
+                            android:gravity="center"
+                            android:textSize="12sp"/>
+
+                        <TextView
+                            android:id="@+id/tvConversationPressed"
+                            android:layout_width="@dimen/main_bottom_iv_horizontal_size"
+                            android:layout_height="@dimen/main_bottom_iv_vertical_size"
+                            android:layout_centerInParent="true"
+                            android:background="?attr/mipmapTabConversationPressed"
+                            android:button="@null"
+                            android:gravity="center"
+                            android:textSize="12sp"/>
+
+                    </RelativeLayout>
+
+                    <TextView
+                        android:id="@+id/tvConversationBadge"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_alignEnd="@id/rlConversation"
+                        android:layout_marginEnd="-10dp"
+                        android:layout_marginTop="-2dp"
+                        android:background="@mipmap/bg_unread"
+                        android:gravity="center|bottom"
+                        android:paddingBottom="2dp"
+                        android:text="@string/number_1"
+                        android:textColor="@color/white"
+                        android:textSize="12sp"
+                        android:visibility="gone"/>
+
+                </RelativeLayout>
+
+                <!-- Text -->
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="0dp"
+                    android:layout_weight="3">
+
+                    <TextView
+                        android:id="@+id/tvConversationTextNormal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/conversation"
+                        android:textColor="?attr/colorTabNormal"
+                        android:textSize="12sp"/>
+
+                    <TextView
+                        android:id="@+id/tvConversationTextPressed"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/conversation"
+                        android:textColor="?attr/colorTabPressed"
+                        android:textSize="12sp"/>
+                </RelativeLayout>
+
+            </LinearLayout>
+            <!-- Conversation - End -->
+
+            <!-- Files - Begin -->
+            <LinearLayout
+                android:id="@+id/llFiles"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <!-- Icon -->
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="5"
+                    android:gravity="bottom">
+
+                    <RelativeLayout
+                        android:id="@+id/rlFiles"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerHorizontal="true"
+                        android:layout_marginBottom="2dp">
+
+                        <TextView
+                            android:id="@+id/tvFilesNormal"
+                            android:layout_width="@dimen/main_bottom_iv_horizontal_size"
+                            android:layout_height="@dimen/main_bottom_iv_vertical_size"
+                            android:background="?attr/mipmapTabFilesNormal"
+                            android:button="@null"
+                            android:gravity="center"
+                            android:textSize="12sp"/>
+
+                        <TextView
+                            android:id="@+id/tvFilesPressed"
+                            android:layout_width="@dimen/main_bottom_iv_horizontal_size"
+                            android:layout_height="@dimen/main_bottom_iv_vertical_size"
+                            android:background="?attr/mipmapTabFilesPressed"
+                            android:button="@null"
+                            android:gravity="center"
+                            android:textSize="12sp"/>
+
+                    </RelativeLayout>
+
+                    <TextView
+                        android:id="@+id/tvFilesBadge"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_alignEnd="@id/rlFiles"
+                        android:layout_marginEnd="-10dp"
+                        android:layout_marginTop="-2dp"
+                        android:background="@mipmap/bg_unread"
+                        android:gravity="center|bottom"
+                        android:paddingBottom="2dp"
+                        android:text="@string/number_1"
+                        android:textColor="@color/white"
+                        android:textSize="12sp"
+                        android:visibility="gone"/>
+
+                </RelativeLayout>
+
+                <!-- Text -->
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="0dp"
+                    android:layout_weight="3">
+
+                    <TextView
+                        android:id="@+id/tvFilesTextNormal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/files"
+                        android:textColor="?attr/colorTabNormal"
+                        android:textSize="12sp"/>
+
+                    <TextView
+                        android:id="@+id/tvFilesTextPressed"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/files"
+                        android:textColor="?attr/colorTabPressed"
+                        android:textSize="12sp"/>
+
+                </RelativeLayout>
+
+            </LinearLayout>
+            <!-- Files - End -->
+
+            <!-- Contacts - Begin -->
+            <LinearLayout
+                android:id="@+id/llContacts"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <!-- Icon -->
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="5"
+                    android:gravity="bottom">
+
+                    <RelativeLayout
+                        android:id="@+id/rlContacts"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerHorizontal="true"
+                        android:layout_marginBottom="2dp">
+
+                        <TextView
+                            android:id="@+id/tvContactsNormal"
+                            android:layout_width="@dimen/main_bottom_iv_horizontal_size"
+                            android:layout_height="@dimen/main_bottom_iv_vertical_size"
+                            android:background="?attr/mipmapTabContactsNormal"
+                            android:button="@null"
+                            android:gravity="center"
+                            android:textSize="12sp"/>
+
+                        <TextView
+                            android:id="@+id/tvContactsPressed"
+                            android:layout_width="@dimen/main_bottom_iv_horizontal_size"
+                            android:layout_height="@dimen/main_bottom_iv_vertical_size"
+                            android:background="?attr/mipmapTabContactsPressed"
+                            android:button="@null"
+                            android:gravity="center"
+                            android:textSize="12sp"/>
+
+                    </RelativeLayout>
+
+                    <TextView
+                        android:id="@+id/tvContactBadge"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_alignEnd="@id/rlContacts"
+                        android:layout_marginEnd="-10dp"
+                        android:layout_marginTop="-2dp"
+                        android:background="@mipmap/bg_unread"
+                        android:gravity="center|bottom"
+                        android:paddingBottom="2dp"
+                        android:text="@string/number_1"
+                        android:textColor="@color/white"
+                        android:textSize="12sp"
+                        android:visibility="gone"/>
+
+                    <TextView
+                        android:id="@+id/tvContactBadgeOnly"
+                        android:layout_width="10dp"
+                        android:layout_height="10dp"
+                        android:layout_alignEnd="@id/rlContacts"
+                        android:layout_marginEnd="-5dp"
+                        android:layout_marginTop="-0dp"
+                        android:background="@mipmap/bg_unread"
+                        android:gravity="center"
+                        android:textColor="@color/white"
+                        android:textSize="12sp"
+                        android:visibility="gone"/>
+
+                </RelativeLayout>
+
+                <!-- Text -->
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="0dp"
+                    android:layout_weight="3">
+
+                    <TextView
+                        android:id="@+id/tvContactsTextNormal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/contacts"
+                        android:textColor="?attr/colorTabNormal"
+                        android:textSize="12sp"/>
+
+                    <TextView
+                        android:id="@+id/tvContactsTextPressed"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/contacts"
+                        android:textColor="?attr/colorTabPressed"
+                        android:textSize="12sp"/>
+                </RelativeLayout>
+
+            </LinearLayout>
+            <!-- Contacts - End -->
+
+            <!-- Profile - Begin -->
+            <LinearLayout
+                android:id="@+id/llProfile"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <!-- Icon -->
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="5"
+                    android:gravity="bottom">
+
+                    <RelativeLayout
+                        android:id="@+id/rlProfile"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerHorizontal="true"
+                        android:layout_marginBottom="2dp">
+
+                        <TextView
+                            android:id="@+id/tvProfileNormal"
+                            android:layout_width="@dimen/main_bottom_iv_horizontal_size"
+                            android:layout_height="@dimen/main_bottom_iv_vertical_size"
+                            android:background="?attr/mipmapTabProfileNormal"
+                            android:button="@null"
+                            android:gravity="center"
+                            android:textSize="12sp"/>
+
+                        <TextView
+                            android:id="@+id/tvProfilePressed"
+                            android:layout_width="@dimen/main_bottom_iv_horizontal_size"
+                            android:layout_height="@dimen/main_bottom_iv_vertical_size"
+                            android:background="?attr/mipmapTabProfilePressed"
+                            android:button="@null"
+                            android:gravity="center"
+                            android:textSize="12sp"/>
+
+                    </RelativeLayout>
+
+                    <TextView
+                        android:id="@+id/tvProfileBadgeOnly"
+                        android:layout_width="10dp"
+                        android:layout_height="10dp"
+                        android:layout_alignEnd="@id/rlProfile"
+                        android:layout_marginEnd="-5dp"
+                        android:layout_marginTop="-0dp"
+                        android:background="@mipmap/bg_unread"
+                        android:gravity="center"
+                        android:textColor="@color/white"
+                        android:textSize="12sp"
+                        android:visibility="gone"/>
+
+                </RelativeLayout>
+
+                <!-- Text -->
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="0dp"
+                    android:layout_weight="3">
+
+                    <TextView
+                        android:id="@+id/tvProfileTextNormal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/profile"
+                        android:textColor="?attr/colorTabNormal"
+                        android:textSize="12sp"/>
+
+                    <TextView
+                        android:id="@+id/tvProfileTextPressed"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/profile"
+                        android:textColor="?attr/colorTabPressed"
+                        android:textSize="12sp"/>
+
+                </RelativeLayout>
+
+            </LinearLayout>
+            <!-- Profile - End -->
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- 菜单 -->
+    <RelativeLayout
+        android:id="@+id/rlBottomMenu"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:visibility="gone">
-        <TextView
-            android:id="@+id/tvStateText"
+        <View
+            android:id="@+id/vMask"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_gravity="center"
-            android:gravity="center"
-            android:background="@color/text_danger_background"
-            android:text="@string/ferry_detect_failed"
-            android:textColor="@color/text_danger"
-            android:textSize="14sp"/>
-    </LinearLayout>
+            android:background="@color/mask"/>
 
-    <!-- View Body -->
-    <androidx.viewpager.widget.ViewPager
-        android:id="@+id/vpContent"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
-    </androidx.viewpager.widget.ViewPager>
-
-    <!-- View Footer -->
-    <View
-        style="?attr/styleLine"/>
-
-    <LinearLayout
-        android:id="@+id/llBottom"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:layout_alignParentBottom="true"
-        android:layout_gravity="bottom"
-        android:background="?attr/colorTabBackground">
-
-        <!-- Conversation - Begin -->
-        <LinearLayout
-            android:id="@+id/llConversation"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_gravity="center"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <!-- Icon -->
-            <RelativeLayout
+        <ScrollView
+            android:id="@+id/svMenu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:scrollbars="none">
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="5"
-                android:gravity="bottom">
-
-                <RelativeLayout
-                    android:id="@+id/rlConversation"
-                    android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?attr/colorBackground"
+                android:gravity="center"
+                android:orientation="vertical">
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_centerHorizontal="true"
-                    android:layout_marginBottom="2dp">
-
-                    <TextView
-                        android:id="@+id/tvConversationNormal"
-                        android:layout_width="@dimen/main_bottom_iv_horizontal_size"
-                        android:layout_height="@dimen/main_bottom_iv_vertical_size"
-                        android:layout_centerInParent="true"
-                        android:background="?attr/mipmapTabConversationNormal"
-                        android:button="@null"
-                        android:gravity="center"
-                        android:textSize="12sp"/>
-
-                    <TextView
-                        android:id="@+id/tvConversationPressed"
-                        android:layout_width="@dimen/main_bottom_iv_horizontal_size"
-                        android:layout_height="@dimen/main_bottom_iv_vertical_size"
-                        android:layout_centerInParent="true"
-                        android:background="?attr/mipmapTabConversationPressed"
-                        android:button="@null"
-                        android:gravity="center"
-                        android:textSize="12sp"/>
-
-                </RelativeLayout>
-
-                <TextView
-                    android:id="@+id/tvConversationBadge"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_alignEnd="@id/rlConversation"
-                    android:layout_marginEnd="-10dp"
-                    android:layout_marginTop="-2dp"
-                    android:background="@mipmap/bg_unread"
-                    android:gravity="center|bottom"
-                    android:paddingBottom="2dp"
-                    android:text="@string/number_1"
-                    android:textColor="@color/white"
-                    android:textSize="12sp"
-                    android:visibility="gone"/>
-
-            </RelativeLayout>
-
-            <!-- Text -->
-            <RelativeLayout
-                android:layout_width="wrap_content"
-                android:layout_height="0dp"
-                android:layout_weight="3">
-
-                <TextView
-                    android:id="@+id/tvConversationTextNormal"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/conversation"
-                    android:textColor="?attr/colorTabNormal"
-                    android:textSize="12sp"/>
-
-                <TextView
-                    android:id="@+id/tvConversationTextPressed"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/conversation"
-                    android:textColor="?attr/colorTabPressed"
-                    android:textSize="12sp"/>
-            </RelativeLayout>
-
-        </LinearLayout>
-        <!-- Conversation - End -->
-
-        <!-- Files - Begin -->
-        <LinearLayout
-            android:id="@+id/llFiles"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_gravity="center"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <!-- Icon -->
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="5"
-                android:gravity="bottom">
-
-                <RelativeLayout
-                    android:id="@+id/rlFiles"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerHorizontal="true"
-                    android:layout_marginBottom="2dp">
-
-                    <TextView
-                        android:id="@+id/tvFilesNormal"
-                        android:layout_width="@dimen/main_bottom_iv_horizontal_size"
-                        android:layout_height="@dimen/main_bottom_iv_vertical_size"
-                        android:background="?attr/mipmapTabFilesNormal"
-                        android:button="@null"
-                        android:gravity="center"
-                        android:textSize="12sp"/>
-
-                    <TextView
-                        android:id="@+id/tvFilesPressed"
-                        android:layout_width="@dimen/main_bottom_iv_horizontal_size"
-                        android:layout_height="@dimen/main_bottom_iv_vertical_size"
-                        android:background="?attr/mipmapTabFilesPressed"
-                        android:button="@null"
-                        android:gravity="center"
-                        android:textSize="12sp"/>
-
-                </RelativeLayout>
-
-                <TextView
-                    android:id="@+id/tvFilesBadge"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_alignEnd="@id/rlFiles"
-                    android:layout_marginEnd="-10dp"
-                    android:layout_marginTop="-2dp"
-                    android:background="@mipmap/bg_unread"
-                    android:gravity="center|bottom"
-                    android:paddingBottom="2dp"
-                    android:text="@string/number_1"
-                    android:textColor="@color/white"
-                    android:textSize="12sp"
-                    android:visibility="gone"/>
-
-            </RelativeLayout>
-
-            <!-- Text -->
-            <RelativeLayout
-                android:layout_width="wrap_content"
-                android:layout_height="0dp"
-                android:layout_weight="3">
-
-                <TextView
-                    android:id="@+id/tvFilesTextNormal"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/files"
-                    android:textColor="?attr/colorTabNormal"
-                    android:textSize="12sp"/>
-
-                <TextView
-                    android:id="@+id/tvFilesTextPressed"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/files"
-                    android:textColor="?attr/colorTabPressed"
-                    android:textSize="12sp"/>
-
-            </RelativeLayout>
-
-        </LinearLayout>
-        <!-- Files - End -->
-
-        <!-- Contacts - Begin -->
-        <LinearLayout
-            android:id="@+id/llContacts"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_gravity="center"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <!-- Icon -->
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="5"
-                android:gravity="bottom">
-
-                <RelativeLayout
-                    android:id="@+id/rlContacts"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerHorizontal="true"
-                    android:layout_marginBottom="2dp">
-
-                    <TextView
-                        android:id="@+id/tvContactsNormal"
-                        android:layout_width="@dimen/main_bottom_iv_horizontal_size"
-                        android:layout_height="@dimen/main_bottom_iv_vertical_size"
-                        android:background="?attr/mipmapTabContactsNormal"
-                        android:button="@null"
-                        android:gravity="center"
-                        android:textSize="12sp"/>
-
-                    <TextView
-                        android:id="@+id/tvContactsPressed"
-                        android:layout_width="@dimen/main_bottom_iv_horizontal_size"
-                        android:layout_height="@dimen/main_bottom_iv_vertical_size"
-                        android:background="?attr/mipmapTabContactsPressed"
-                        android:button="@null"
-                        android:gravity="center"
-                        android:textSize="12sp"/>
-
-                </RelativeLayout>
-
-                <TextView
-                    android:id="@+id/tvContactBadge"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_alignEnd="@id/rlContacts"
-                    android:layout_marginEnd="-10dp"
-                    android:layout_marginTop="-2dp"
-                    android:background="@mipmap/bg_unread"
-                    android:gravity="center|bottom"
-                    android:paddingBottom="2dp"
-                    android:text="@string/number_1"
-                    android:textColor="@color/white"
-                    android:textSize="12sp"
-                    android:visibility="gone"/>
-
-                <TextView
-                    android:id="@+id/tvContactBadgeOnly"
-                    android:layout_width="10dp"
-                    android:layout_height="10dp"
-                    android:layout_alignEnd="@id/rlContacts"
-                    android:layout_marginEnd="-5dp"
-                    android:layout_marginTop="-0dp"
-                    android:background="@mipmap/bg_unread"
+                    android:background="?attr/colorBackground"
                     android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="12sp"
-                    android:visibility="gone"/>
+                    android:orientation="horizontal">
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@mipmap/sharing_contact"/>
+                </LinearLayout>
+            </LinearLayout>
+        </ScrollView>
+    </RelativeLayout>
 
-            </RelativeLayout>
-
-            <!-- Text -->
-            <RelativeLayout
-                android:layout_width="wrap_content"
-                android:layout_height="0dp"
-                android:layout_weight="3">
-
-                <TextView
-                    android:id="@+id/tvContactsTextNormal"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/contacts"
-                    android:textColor="?attr/colorTabNormal"
-                    android:textSize="12sp"/>
-
-                <TextView
-                    android:id="@+id/tvContactsTextPressed"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/contacts"
-                    android:textColor="?attr/colorTabPressed"
-                    android:textSize="12sp"/>
-            </RelativeLayout>
-
-        </LinearLayout>
-        <!-- Contacts - End -->
-
-        <!-- Profile - Begin -->
-        <LinearLayout
-            android:id="@+id/llProfile"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_gravity="center"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <!-- Icon -->
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="5"
-                android:gravity="bottom">
-
-                <RelativeLayout
-                    android:id="@+id/rlProfile"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerHorizontal="true"
-                    android:layout_marginBottom="2dp">
-
-                    <TextView
-                        android:id="@+id/tvProfileNormal"
-                        android:layout_width="@dimen/main_bottom_iv_horizontal_size"
-                        android:layout_height="@dimen/main_bottom_iv_vertical_size"
-                        android:background="?attr/mipmapTabProfileNormal"
-                        android:button="@null"
-                        android:gravity="center"
-                        android:textSize="12sp"/>
-
-                    <TextView
-                        android:id="@+id/tvProfilePressed"
-                        android:layout_width="@dimen/main_bottom_iv_horizontal_size"
-                        android:layout_height="@dimen/main_bottom_iv_vertical_size"
-                        android:background="?attr/mipmapTabProfilePressed"
-                        android:button="@null"
-                        android:gravity="center"
-                        android:textSize="12sp"/>
-
-                </RelativeLayout>
-
-                <TextView
-                    android:id="@+id/tvProfileBadgeOnly"
-                    android:layout_width="10dp"
-                    android:layout_height="10dp"
-                    android:layout_alignEnd="@id/rlProfile"
-                    android:layout_marginEnd="-5dp"
-                    android:layout_marginTop="-0dp"
-                    android:background="@mipmap/bg_unread"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="12sp"
-                    android:visibility="gone"/>
-
-            </RelativeLayout>
-
-            <!-- Text -->
-            <RelativeLayout
-                android:layout_width="wrap_content"
-                android:layout_height="0dp"
-                android:layout_weight="3">
-
-                <TextView
-                    android:id="@+id/tvProfileTextNormal"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/profile"
-                    android:textColor="?attr/colorTabNormal"
-                    android:textSize="12sp"/>
-
-                <TextView
-                    android:id="@+id/tvProfileTextPressed"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/profile"
-                    android:textColor="?attr/colorTabPressed"
-                    android:textSize="12sp"/>
-
-            </RelativeLayout>
-
-        </LinearLayout>
-        <!-- Profile - End -->
-
-    </LinearLayout>
-
-</LinearLayout>
+</FrameLayout>

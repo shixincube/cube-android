@@ -144,6 +144,8 @@
     <string name="tip_delete_directory">您确认要删除文件夹 %1$s 吗？如果确认删除将同时删除文件夹下的所有文件！</string>
     <string name="tip_delete_file">您确认要删除文件 %1$s 吗？</string>
     <string name="tip_can_not_find_files">没有找到文件</string>
+    <string name="tip_file_share_failed_format">文件分享失败: %1$d</string>
+    <string name="tip_file_sharing_url_copy_to_clipboard">文件分享链接已复制到系统剪贴板</string>
 
     <!-- 个人信息 -->
     <string name="my_nickname">我的名称</string>

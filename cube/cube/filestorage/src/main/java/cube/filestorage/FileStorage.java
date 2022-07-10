@@ -1101,7 +1101,7 @@ public class FileStorage extends Module implements Observer, UploadQueue.UploadQ
         } catch (JSONException e) {
             // Nothing
         }
-        Packet requestPacket = new Packet(FileStorageAction.GetFile, payload);
+        Packet requestPacket = new Packet(FileStorageAction.CreateSharingTag, payload);
         this.pipeline.send(FileStorage.NAME, requestPacket, new PipelineHandler() {
             @Override
             public void handleResponse(Packet packet) {

@@ -26,6 +26,9 @@
 
 package com.shixincube.app.ui.presenter;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.view.Gravity;
 import android.view.MenuItem;
@@ -774,15 +777,20 @@ public class FilesPresenter extends BasePresenter<FilesView>
                 break;
             case R.id.llShareToHyperlink:
                 CubeEngine.getInstance().getFileStorage().createSharingTag(fileItem.fileLabel,
-                        new DefaultSharingTagHandler() {
+                        new DefaultSharingTagHandler(true) {
                             @Override
                             public void handle(SharingTag sharingTag) {
                                 // 复制分享链接
+                                ClipboardManager clipboard = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
+                                ClipData clipData = ClipData.newPlainText("Sharing", sharingTag.getHttpURL());
+                                clipboard.setPrimaryClip(clipData);
+
+                                UIUtils.showToast(UIUtils.getString(R.string.tip_file_sharing_url_copy_to_clipboard));
                             }
-                        }, new DefaultFailureHandler() {
+                        }, new DefaultFailureHandler(true) {
                             @Override
                             public void handleFailure(Module module, ModuleError error) {
-
+                                UIUtils.showToast(UIUtils.getString(R.string.tip_file_share_failed_format, error.code));
                             }
                         });
                 break;

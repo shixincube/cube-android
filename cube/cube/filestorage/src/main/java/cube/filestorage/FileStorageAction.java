@@ -111,6 +111,11 @@ public final class FileStorageAction {
      */
     public final static String CreateSharingTag = "createSharingTag";
 
+    /**
+     * 罗列当前联系人的所有分享标签。
+     */
+    public final static String ListSharingTags = "listSharingTags";
+
     private FileStorageAction() {
     }
 }

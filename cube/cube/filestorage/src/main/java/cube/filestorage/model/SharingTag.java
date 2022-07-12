@@ -30,6 +30,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import cube.contact.model.Contact;
+import cube.contact.model.Device;
 import cube.core.model.Entity;
 
 /**
@@ -45,7 +46,11 @@ public class SharingTag extends Entity {
 
     private Contact sharer;
 
+    private Device device;
+
     private FileLabel fileLabel;
+
+    private long duration;
 
     private long expiryDate;
 
@@ -54,13 +59,18 @@ public class SharingTag extends Entity {
     public SharingTag(JSONObject json) throws JSONException {
         super(json);
         this.code = json.getString("code");
-        this.httpURL = json.getString("httpURL");
-        this.httpsURL = json.getString("httpsURL");
+        this.expiryDate = json.getLong("expiryDate");
+
+        this.httpURL = json.has("httpURL") ? json.getString("httpURL") : null;
+        this.httpsURL = json.has("httpsURL") ? json.getString("httpsURL") : null;
 
         JSONObject config = json.getJSONObject("config");
-        this.sharer = new Contact(config.getJSONObject("contact"));
+        if (config.has("contact")) {
+            this.sharer = new Contact(config.getJSONObject("contact"));
+        }
+        this.device = new Device(config.getJSONObject("device"));
         this.fileLabel = new FileLabel(config.getJSONObject("fileLabel"));
-        this.expiryDate = config.getLong("expiryDate");
+        this.duration = config.getLong("duration");
 
         if (config.has("password")) {
             this.password = config.getString("password");
@@ -83,12 +93,20 @@ public class SharingTag extends Entity {
         return this.sharer;
     }
 
+    public Device getDevice() {
+        return this.device;
+    }
+
     public FileLabel getFileLabel() {
         return this.fileLabel;
     }
 
     public long getExpiryDate() {
         return this.expiryDate;
+    }
+
+    public long getDuration() {
+        return this.duration;
     }
 
     public String getPassword() {

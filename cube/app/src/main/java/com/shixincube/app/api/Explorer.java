@@ -130,8 +130,10 @@ public class Explorer {
      * @param verificationCode
      * @return
      */
-    public Observable<RegisterResponse> registerAccount(String phoneNumber, String password, String nickname, String verificationCode) {
-        return this.api.register(getRequestBody(new RegisterRequest(phoneNumber, password, nickname, verificationCode)));
+    public Observable<RegisterResponse> registerAccount(String domain, String phoneNumber,
+                                                        String password, String nickname,
+                                                        String verificationCode) {
+        return this.api.register(getRequestBody(new RegisterRequest(domain, phoneNumber, password, nickname, verificationCode)));
     }
 
     /**

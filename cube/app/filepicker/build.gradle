@@ -3,13 +3,11 @@ plugins {
 }
 
 android {
-    compileSdk 30
+    compileSdk 32
 
     defaultConfig {
         minSdk 23
-        targetSdk 30
-        versionCode 1
-        versionName "1.0"
+        targetSdk 32
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
@@ -25,6 +23,7 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    namespace 'com.shixincube.filepicker'
 }
 
 dependencies {

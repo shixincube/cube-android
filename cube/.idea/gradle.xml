@@ -28,7 +28,6 @@
             <option value="$PROJECT_DIR$/cube/multipointcomm" />
           </set>
         </option>
-        <option name="resolveModulePerSourceSet" value="false" />
       </GradleProjectSettings>
     </option>
   </component>

@@ -33,6 +33,8 @@ import com.google.gson.annotations.SerializedName;
  */
 public class RegisterRequest {
 
+    public String domain;
+
     @SerializedName("phone")
     public String phoneNumber;
 
@@ -45,7 +47,9 @@ public class RegisterRequest {
     @SerializedName("vcode")
     public String verificationCode;
 
-    public RegisterRequest(String phoneNumber, String password, String nickname, String verificationCode) {
+    public RegisterRequest(String domain, String phoneNumber, String password,
+                           String nickname, String verificationCode) {
+        this.domain = domain;
         this.phoneNumber = phoneNumber;
         this.password = password;
         this.nickname = nickname;

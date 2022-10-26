@@ -1374,7 +1374,7 @@ public class ContactService extends Module {
 
             zone.entityLifeExpiry += LIFESPAN;
 
-            // 移除
+            // 添加
             zone.addParticipant(participant);
             zone.resetLast(timestamp);
             zone.setTimestamp(timestamp);

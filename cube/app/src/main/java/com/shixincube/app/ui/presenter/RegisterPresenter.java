@@ -50,6 +50,7 @@ import com.shixincube.app.util.UIUtils;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import cube.engine.CubeEngine;
 import cube.util.LogUtils;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.annotations.NonNull;
@@ -80,6 +81,7 @@ public class RegisterPresenter extends BasePresenter<RegisterView> {
      * 注册账号。
      */
     public void register() {
+        String domain = CubeEngine.getInstance().getConfig().domain;
         String nickname = getView().getNickNameEditText().getText().toString().trim();
         String phoneNumber = getView().getPhoneNumberEditText().getText().toString().trim();
         String password = getView().getPasswordEditText().getText().toString().trim();
@@ -108,7 +110,7 @@ public class RegisterPresenter extends BasePresenter<RegisterView> {
         // 生成密码 MD5 码
         final String passwordMD5 = HashUtils.makeMD5(password);
 
-        Explorer.getInstance().registerAccount(phoneNumber, passwordMD5, nickname, code)
+        Explorer.getInstance().registerAccount(domain, phoneNumber, passwordMD5, nickname, code)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(registerResponse -> {
